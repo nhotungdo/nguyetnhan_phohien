@@ -72,9 +72,8 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
       {/* 1. Header */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
+          }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection("hero")}>
@@ -115,13 +114,13 @@ export default function LandingPage() {
             >
               {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
             </button>
-            <button 
+            <button
               onClick={handleOpenChat}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
             </button>
-            <button 
+            <button
               onClick={() => scrollToSection("dat-hang")}
               className="bg-accent hover:bg-accent/90 text-white text-base font-bold px-6 py-2.5 rounded-full shadow-lg shadow-[#B45309]/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2"
             >
@@ -143,12 +142,12 @@ export default function LandingPage() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 md:hidden">
           {[
-              { label: "Sản phẩm", id: "san-pham" },
-              { label: "Câu chuyện", id: "cau-chuyen" },
-              { label: "Lịch sử", id: "lich-su" },
-              { label: "Văn hóa", id: "van-hoa" },
-              { label: "Liên hệ", id: "lien-he" }
-            ].map((item, index) => (
+            { label: "Sản phẩm", id: "san-pham" },
+            { label: "Câu chuyện", id: "cau-chuyen" },
+            { label: "Lịch sử", id: "lich-su" },
+            { label: "Văn hóa", id: "van-hoa" },
+            { label: "Liên hệ", id: "lien-he" }
+          ].map((item, index) => (
             <button
               key={index}
               onClick={() => scrollToSection(item.id)}
@@ -157,7 +156,7 @@ export default function LandingPage() {
               {item.label}
             </button>
           ))}
-          <button 
+          <button
             onClick={() => scrollToSection("dat-hang")}
             className="bg-accent text-white text-lg font-medium px-6 py-3 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2"
           >
@@ -173,7 +172,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
             <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.5 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
@@ -182,7 +181,7 @@ export default function LandingPage() {
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -193,7 +192,7 @@ export default function LandingPage() {
                 Tinh túy đất Phố Hiến
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
-                {language === "en" ? t.hero.title.split(' ')[0] : "Hương Vị"} <br/>
+                {language === "en" ? t.hero.title.split(' ')[0] : "Hương Vị"} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
                   {language === "en" ? t.hero.title.split(' ').slice(1).join(' ') : "Truyền Thống"}
                 </span>
@@ -202,7 +201,7 @@ export default function LandingPage() {
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => scrollToSection("san-pham")}
@@ -210,7 +209,7 @@ export default function LandingPage() {
                 >
                   {t.hero.discover} <ArrowRight className="w-5 h-5" />
                 </motion.button>
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => scrollToSection("cau-chuyen")}
@@ -220,8 +219,8 @@ export default function LandingPage() {
                 </motion.button>
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -229,8 +228,8 @@ export default function LandingPage() {
             >
               {/* Product Hero Image Placeholder */}
               <div className="relative w-full max-w-md aspect-square rounded-full bg-gradient-to-tr from-[#FDE68A] to-[#FEF3C7] shadow-2xl flex items-center justify-center overflow-hidden animate-[spin_60s_linear_infinite]">
-                 {/* Decorative elements */}
-                 <div className="absolute inset-2 border border-[#B45309]/20 rounded-full border-dashed"></div>
+                {/* Decorative elements */}
+                <div className="absolute inset-2 border border-[#B45309]/20 rounded-full border-dashed"></div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
@@ -238,7 +237,7 @@ export default function LandingPage() {
                   [ Ảnh Sản Phẩm Tách Nền ]
                 </div>
               </div>
-              
+
               {/* Floating Badge */}
               <div className="absolute bottom-20 left-10 bg-white p-4 rounded-2xl shadow-xl border border-[#FDE68A] animate-bounce-slow">
                 <div className="flex items-center gap-3">
@@ -258,7 +257,7 @@ export default function LandingPage() {
         {/* 3. Giới thiệu thương hiệu */}
         <section id="gioi-thieu" className="py-24 bg-white relative">
           <div className="container mx-auto px-4 md:px-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -270,22 +269,22 @@ export default function LandingPage() {
                 {t.about.desc}
               </p>
             </motion.div>
-            
+
             <div className="grid md:grid-cols-3 gap-8 mt-20">
               {[
                 { title: t.about.natural_title, desc: t.about.natural_desc },
                 { title: t.about.traditional_title, desc: t.about.traditional_desc },
                 { title: t.about.safe_title, desc: t.about.safe_desc }
               ].map((val, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.5, delay: i * 0.2 }}
-                  key={i} 
+                  key={i}
                   className="bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-all hover:-translate-y-2 group"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">0{i+1}</div>
+                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">0{i + 1}</div>
                   <h3 className="text-xl font-bold text-primary mb-3">{val.title}</h3>
                   <p className="text-foreground/80">{val.desc}</p>
                 </motion.div>
@@ -297,7 +296,7 @@ export default function LandingPage() {
         {/* 4. Khu vực sản phẩm */}
         <section id="san-pham" className="py-24 bg-secondary/30">
           <div className="container mx-auto px-4 md:px-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -314,27 +313,27 @@ export default function LandingPage() {
                 { name: t.products.zip_name, price: "320.000đ", size: "500g", desc: t.products.zip_desc },
                 { name: t.products.gift_name, price: "850.000đ", size: "1kg", desc: t.products.gift_desc },
               ].map((prod, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.5, delay: i * 0.15 }}
-                  key={i} 
+                  key={i}
                   className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all"
                 >
                   <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
-                     {/* Product Image Placeholder */}
-                     <div className="text-accent font-medium">[ Ảnh Sản Phẩm {i+1} ]</div>
-                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                       <motion.button 
-                         whileHover={{ scale: 1.05 }}
-                         whileTap={{ scale: 0.95 }}
-                         onClick={() => scrollToSection("dat-hang")}
-                         className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
-                       >
-                         {t.products.buy}
-                       </motion.button>
-                     </div>
+                    {/* Product Image Placeholder */}
+                    <div className="text-accent font-medium">[ Ảnh Sản Phẩm {i + 1} ]</div>
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => scrollToSection("dat-hang")}
+                        className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
+                      >
+                        {t.products.buy}
+                      </motion.button>
+                    </div>
                   </div>
                   <div className="p-8">
                     <div className="flex justify-between items-start mb-4">
@@ -344,7 +343,7 @@ export default function LandingPage() {
                     <p className="text-foreground/80 text-sm mb-6 line-clamp-2">{prod.desc}</p>
                     <div className="flex items-center justify-between mt-auto">
                       <span className="text-2xl font-bold text-accent">{prod.price}</span>
-                      <button 
+                      <button
                         onClick={() => scrollToSection("dat-hang")}
                         className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors"
                       >
@@ -372,7 +371,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex-1 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : "Thứ Quả Tiến Vua Chứ Danh"}</h2>
+                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : "Thứ Quả Tiến Vua Trứ Danh"}</h2>
                 <p className="text-lg text-foreground/80 leading-relaxed">
                   {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
@@ -381,7 +380,7 @@ export default function LandingPage() {
                     {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For a hundred years, the people here still preserve the profession of firewood drying longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn sấy củi, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => scrollToSection("van-hoa")}
                   className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all"
                 >
@@ -458,10 +457,10 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative">
-                 <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
-                 <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold">
-                    [ Ảnh Văn Hóa Thưởng Trà ]
-                 </div>
+                <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
+                <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold">
+                  [ Ảnh Văn Hóa Thưởng Trà ]
+                </div>
               </div>
             </div>
           </div>
@@ -470,18 +469,18 @@ export default function LandingPage() {
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-24 bg-[#451A03] text-background relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#78350F] rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-          
+
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-                  {language === "en" ? "Enjoy the Essence" : "Thưởng Thức"}<br/>
+                  {language === "en" ? "Enjoy the Essence" : "Thưởng Thức"}<br />
                   {language === "en" ? "of Flavor" : "Hương Vị Tinh Túy"}
                 </h2>
                 <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
                   {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                 </p>
-                
+
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
                     <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white shrink-0">
@@ -503,7 +502,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Form Đặt Hàng */}
               <div className="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl text-foreground">
                 <h3 className="text-2xl font-bold text-primary mb-6">{t.order.title}</h3>
@@ -714,19 +713,19 @@ export default function LandingPage() {
           <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <p>© 2026 Nguyệt Nhãn Phố Hiến. {t.footer.rights}</p>
             <div className="flex gap-4">
-               {/* Social Icons */}
-               <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
-                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"/></svg>
-               </a>
-               <a href="https://zalo.me/0982072601" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Zalo">
-                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5C21 16.19 16.97 20 12 20C10.87 20 9.8 19.8 8.8 19.45C8.42 19.32 8.02 19.29 7.63 19.36L4.7 19.92C4.16 20.02 3.65 19.51 3.75 18.97L4.31 16.04C4.38 15.65 4.35 15.25 4.22 14.87C3.87 13.87 3.67 12.8 3.67 11.67C3.67 6.98 7.7 3.17 12.67 3.17C17.64 3.17 21 6.98 21 11.5Z"/><text x="12" y="15" fontFamily="Arial" fontSize="7" fontWeight="bold" fill="currentColor" stroke="none" textAnchor="middle">Zalo</text></svg>
-               </a>
-               <a href="https://www.instagram.com/Nguy%E1%BB%87t%20Nh%C3%A3n%20Ph%E1%BB%91%20Hi%E1%BA%BFn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Instagram">
-                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-               </a>
-               <a href="https://www.tiktok.com/@nguyetnhan888?_r=1&_t=ZS-99nuoBxZRau" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Tiktok">
-                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.24-2.61.94-5.26 3.15-6.81 1.76-1.23 4-1.67 6.13-1.25V9.41c-1.31-.22-2.64-.17-3.92.2-1.57.46-2.94 1.48-3.79 2.85-.92 1.45-1.13 3.32-.61 4.96.48 1.48 1.54 2.82 2.93 3.48 1.63.76 3.63.76 5.25-.13 1.99-1.07 3.2-3.23 3.19-5.49-.04-4.84-.01-9.68-.01-14.52H12.53z"/></svg>
-               </a>
+              {/* Social Icons */}
+              <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
+                <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z" /></svg>
+              </a>
+              <a href="https://zalo.me/0982072601" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Zalo">
+                <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5C21 16.19 16.97 20 12 20C10.87 20 9.8 19.8 8.8 19.45C8.42 19.32 8.02 19.29 7.63 19.36L4.7 19.92C4.16 20.02 3.65 19.51 3.75 18.97L4.31 16.04C4.38 15.65 4.35 15.25 4.22 14.87C3.87 13.87 3.67 12.8 3.67 11.67C3.67 6.98 7.7 3.17 12.67 3.17C17.64 3.17 21 6.98 21 11.5Z" /><text x="12" y="15" fontFamily="Arial" fontSize="7" fontWeight="bold" fill="currentColor" stroke="none" textAnchor="middle">Zalo</text></svg>
+              </a>
+              <a href="https://www.instagram.com/Nguy%E1%BB%87t%20Nh%C3%A3n%20Ph%E1%BB%91%20Hi%E1%BA%BFn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Instagram">
+                <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
+              </a>
+              <a href="https://www.tiktok.com/@nguyetnhan888?_r=1&_t=ZS-99nuoBxZRau" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Tiktok">
+                <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.24-2.61.94-5.26 3.15-6.81 1.76-1.23 4-1.67 6.13-1.25V9.41c-1.31-.22-2.64-.17-3.92.2-1.57.46-2.94 1.48-3.79 2.85-.92 1.45-1.13 3.32-.61 4.96.48 1.48 1.54 2.82 2.93 3.48 1.63.76 3.63.76 5.25-.13 1.99-1.07 3.2-3.23 3.19-5.49-.04-4.84-.01-9.68-.01-14.52H12.53z" /></svg>
+              </a>
             </div>
           </div>
         </div>
@@ -789,11 +788,10 @@ export default function LandingPage() {
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`p-3 rounded-2xl text-sm max-w-[80%] shadow-sm ${
-                        msg.senderType === 'Guest'
-                          ? 'bg-accent text-white self-end rounded-br-sm'
-                          : 'bg-white border text-primary self-start rounded-tl-sm'
-                      }`}
+                      className={`p-3 rounded-2xl text-sm max-w-[80%] shadow-sm ${msg.senderType === 'Guest'
+                        ? 'bg-accent text-white self-end rounded-br-sm'
+                        : 'bg-white border text-primary self-start rounded-tl-sm'
+                        }`}
                     >
                       {msg.content}
                     </div>
