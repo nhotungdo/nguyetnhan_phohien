@@ -3,7 +3,6 @@ import type {
   OrderResponse,
   ApplyDiscountRequest,
   DiscountResult,
-  SendMessageRequest,
   ChatMessageResponse,
   ChatSessionResponse,
   WebsiteContentResponse,

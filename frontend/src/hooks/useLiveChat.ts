@@ -103,7 +103,6 @@ export function useLiveChat() {
     isConnected,
     isLoading,
     isSending,
-    sessionId: sessionId.current,
     connect,
     sendMessage,
   };

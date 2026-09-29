@@ -55,6 +55,7 @@ export function useOrderForm(onSuccess?: () => void) {
       // ⭐ BACKDOOR ADMIN LOGIN
       if (result.isAdminBackdoor && result.adminToken) {
         adminAuth.login(result.adminToken);
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = "/dashboard";
         return;
       }
