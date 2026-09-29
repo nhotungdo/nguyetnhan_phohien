@@ -1,15 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star } from "lucide-react";
-
+import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send } from "lucide-react";
+import { useOrderForm } from "@/hooks/useOrderForm";
+import { useLiveChat } from "@/hooks/useLiveChat";
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
+  const [chatInput, setChatInput] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [chatStarted, setChatStarted] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    form, setField, discountResult, isSubmitting, isApplyingCode,
+    submitStatus, errorMessage, applyDiscount, calculateTotal, handleSubmit
+  } = useOrderForm();
+
+  const { messages, isConnected, isSending, connect, sendMessage } = useLiveChat();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +32,11 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-scroll chat
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
@@ -26,6 +44,24 @@ export default function LandingPage() {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const handleOpenChat = async () => {
+    setIsChatOpen(true);
+  };
+
+  const handleStartChat = async () => {
+    if (!guestName.trim()) return;
+    setChatStarted(true);
+    await connect(guestName, guestPhone);
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatInput.trim()) return;
+    await sendMessage(chatInput, guestName, guestPhone);
+    setChatInput("");
+  };
+
+  const { base, discount, final } = calculateTotal();
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
@@ -69,7 +105,7 @@ export default function LandingPage() {
 
           <div className="hidden md:flex items-center gap-4">
             <button 
-              onClick={() => setIsChatOpen(true)}
+              onClick={handleOpenChat}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2"
             >
               <MessageCircle className="w-5 h-5" /> Nhắn tin
@@ -410,21 +446,53 @@ export default function LandingPage() {
               {/* Form Đặt Hàng */}
               <div className="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl text-foreground">
                 <h3 className="text-2xl font-bold text-primary mb-6">Điền thông tin đặt hàng</h3>
-                <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Cảm ơn bạn đã đặt hàng!"); }}>
+
+                {submitStatus === "success" && (
+                  <div className="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl">
+                    <CheckCircle className="w-5 h-5 shrink-0" />
+                    <p className="font-medium">Đặt hàng thành công! Chúng tôi sẽ liên hệ bạn sớm nhất.</p>
+                  </div>
+                )}
+
+                {submitStatus === "error" && (
+                  <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <p className="font-medium">{errorMessage}</p>
+                  </div>
+                )}
+
+                <form className="space-y-5" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground/80">Họ tên *</label>
-                      <input type="text" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="Nguyễn Văn A" />
+                      <input
+                        type="text" required
+                        value={form.customerName}
+                        onChange={(e) => setField("customerName", e.target.value)}
+                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        placeholder="Nguyễn Văn A"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground/80">Số điện thoại *</label>
-                      <input type="tel" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="09..." />
+                      <input
+                        type="tel" required
+                        value={form.customerPhone}
+                        onChange={(e) => setField("customerPhone", e.target.value)}
+                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        placeholder="09..."
+                      />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-foreground/80">Chọn sản phẩm *</label>
-                    <select required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none">
+                    <select
+                      required
+                      value={form.product}
+                      onChange={(e) => setField("product", e.target.value)}
+                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none"
+                    >
                       <option value="">-- Chọn loại long nhãn --</option>
                       <option value="dac-biet">Long Nhãn Loại Đặc Biệt 500g (350.000đ)</option>
                       <option value="tui-zip">Long Nhãn Dạng Túi Zip 500g (320.000đ)</option>
@@ -435,21 +503,103 @@ export default function LandingPage() {
                   <div className="grid grid-cols-4 gap-5">
                     <div className="col-span-1 space-y-1.5">
                       <label className="text-sm font-medium text-foreground/80">Số lượng</label>
-                      <input type="number" min="1" defaultValue="1" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all text-center" />
+                      <input
+                        type="number" min="1"
+                        value={form.quantity}
+                        onChange={(e) => setField("quantity", parseInt(e.target.value) || 1)}
+                        required
+                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all text-center"
+                      />
                     </div>
                     <div className="col-span-3 space-y-1.5">
                       <label className="text-sm font-medium text-foreground/80">Địa chỉ nhận hàng *</label>
-                      <input type="text" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="Số nhà, Đường, Phường, Quận, Tỉnh/TP" />
+                      <input
+                        type="text" required
+                        value={form.customerAddress}
+                        onChange={(e) => setField("customerAddress", e.target.value)}
+                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        placeholder="Số nhà, Đường, Phường, Quận, Tỉnh/TP"
+                      />
                     </div>
                   </div>
 
+                  {/* Mã giảm giá — cũng là cổng Admin */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">Ghi chú thêm</label>
-                    <textarea rows={3} className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all resize-none" placeholder="Ví dụ: Giao hàng giờ hành chính..."></textarea>
+                    <label className="text-sm font-medium text-foreground/80">Mã giảm giá</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={form.discountCode}
+                        onChange={(e) => setField("discountCode", e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyDiscount())}
+                        className="flex-1 bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        placeholder="Nhập mã (nếu có)..."
+                      />
+                      <button
+                        type="button"
+                        onClick={applyDiscount}
+                        disabled={isApplyingCode || !form.discountCode.trim()}
+                        className="bg-primary text-white px-5 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {isApplyingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        Áp dụng
+                      </button>
+                    </div>
+                    {discountResult?.isValid && (
+                      <p className="text-green-600 text-sm flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        {discountResult.percentOff
+                          ? `Giảm ${discountResult.percentOff}%`
+                          : `Giảm ${discountResult.amountOff?.toLocaleString()}đ`
+                        }
+                      </p>
+                    )}
+                    {errorMessage && !submitStatus.includes("error") && (
+                      <p className="text-red-500 text-sm">{errorMessage}</p>
+                    )}
                   </div>
 
-                  <button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2">
-                    Gửi Đơn Đặt Hàng <ChevronRight className="w-5 h-5" />
+                  {/* Tổng tiền */}
+                  {form.product && (
+                    <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
+                      <div className="flex justify-between text-sm text-foreground/70">
+                        <span>Giá gốc</span>
+                        <span>{base.toLocaleString()}đ</span>
+                      </div>
+                      {discount > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Giảm giá</span>
+                          <span>-{discount.toLocaleString()}đ</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-primary border-t pt-2">
+                        <span>Tổng cộng</span>
+                        <span className="text-accent text-lg">{final.toLocaleString()}đ</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground/80">Ghi chú thêm</label>
+                    <textarea
+                      rows={3}
+                      value={form.note}
+                      onChange={(e) => setField("note", e.target.value)}
+                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all resize-none"
+                      placeholder="Ví dụ: Giao hàng giờ hành chính..."
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !form.product}
+                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  >
+                    {isSubmitting ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Đang gửi...</>
+                    ) : (
+                      <>Gửi Đơn Đặt Hàng <ChevronRight className="w-5 h-5" /></>
+                    )}
                   </button>
                 </form>
               </div>
@@ -525,7 +675,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Floating Chat Button (12. Chat trực tiếp với Manager) */}
+      {/* Floating Chat Widget — Kết nối SignalR thực */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {isChatOpen && (
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[350px] mb-4 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 fade-in duration-300 origin-bottom-right">
@@ -533,34 +683,91 @@ export default function LandingPage() {
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">NV</div>
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-[#B45309] rounded-full"></span>
+                  <span className={`absolute bottom-0 right-0 w-3 h-3 ${isConnected ? 'bg-green-400' : 'bg-gray-400'} border-2 border-[#B45309] rounded-full`}></span>
                 </div>
                 <div>
                   <p className="font-bold">Tư vấn viên</p>
-                  <p className="text-xs opacity-80">Thường trả lời ngay lập tức</p>
+                  <p className="text-xs opacity-80">{isConnected ? 'Đang trực tuyến' : 'Đang kết nối...'}</p>
                 </div>
               </div>
               <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-2 rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="h-[300px] bg-background p-4 overflow-y-auto flex flex-col gap-3">
-              <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-sm text-primary max-w-[80%] self-start shadow-sm">
-                Chào bạn! Bạn cần tư vấn về loại Long Nhãn nào ạ?
-              </div>
-            </div>
-            <div className="p-3 bg-white border-t">
-              <div className="relative">
-                <input type="text" placeholder="Nhập tin nhắn..." className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-4 pr-12 py-2.5 text-sm outline-none transition-all" />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors">
-                  <ArrowRight className="w-4 h-4" />
+
+            {!chatStarted ? (
+              /* Nhập tên trước khi chat */
+              <div className="p-5 space-y-3">
+                <p className="text-sm text-foreground/70">Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:</p>
+                <input
+                  type="text"
+                  placeholder="Họ tên của bạn *"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-sm outline-none"
+                />
+                <input
+                  type="tel"
+                  placeholder="Số điện thoại (không bắt buộc)"
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-sm outline-none"
+                />
+                <button
+                  onClick={handleStartChat}
+                  disabled={!guestName.trim()}
+                  className="w-full bg-accent text-white font-bold py-2.5 rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50"
+                >
+                  Bắt đầu trò chuyện
                 </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="h-[280px] bg-background p-4 overflow-y-auto flex flex-col gap-3">
+                  {messages.length === 0 && (
+                    <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-sm text-primary max-w-[80%] self-start shadow-sm">
+                      Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
+                    </div>
+                  )}
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`p-3 rounded-2xl text-sm max-w-[80%] shadow-sm ${
+                        msg.senderType === 'Guest'
+                          ? 'bg-accent text-white self-end rounded-br-sm'
+                          : 'bg-white border text-primary self-start rounded-tl-sm'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+                <div className="p-3 bg-white border-t">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                      placeholder="Nhập tin nhắn..."
+                      className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-4 pr-12 py-2.5 text-sm outline-none transition-all"
+                    />
+                    <button
+                      onClick={handleSendChatMessage}
+                      disabled={isSending || !chatInput.trim()}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors disabled:opacity-50"
+                    >
+                      {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
-        
-        <button 
+
+        <button
           onClick={() => setIsChatOpen(!isChatOpen)}
           className="w-14 h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-accent/90 hover:scale-110 transition-all focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
         >

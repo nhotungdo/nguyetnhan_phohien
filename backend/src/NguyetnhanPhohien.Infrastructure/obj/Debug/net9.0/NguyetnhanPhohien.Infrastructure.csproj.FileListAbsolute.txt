@@ -2,8 +2,10 @@ F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bi
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Infrastructure.runtimeconfig.json
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Infrastructure.dll
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Infrastructure.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Application.dll
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Domain.dll
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Domain.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\bin\Debug\net9.0\NguyetnhanPhohien.Application.pdb
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\obj\Debug\net9.0\NguyetnhanPhohien.Infrastructure.csproj.AssemblyReference.cache
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\obj\Debug\net9.0\NguyetnhanPhohien.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Infrastructure\obj\Debug\net9.0\NguyetnhanPhohien.Infrastructure.AssemblyInfoInputs.cache

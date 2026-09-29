@@ -1,4 +1,4 @@
-﻿using NguyetnhanPhohien.Domain.Entities;
+using NguyetnhanPhohien.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace NguyetnhanPhohien.Infrastructure.Persistence;
@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     {
     }
 
+    // ===== LEGACY (Facebook Integration - giữ lại nếu cần) =====
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<FacebookPage> FacebookPages { get; set; } = null!;
     public DbSet<FacebookPost> FacebookPosts { get; set; } = null!;
@@ -18,19 +19,26 @@ public class AppDbContext : DbContext
     public DbSet<AutoReplyRule> AutoReplyRules { get; set; } = null!;
     public DbSet<BotSetting> BotSettings { get; set; } = null!;
 
+    // ===== CORE BUSINESS =====
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
+    public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
+
+    // ===== LIVE CHAT =====
+    public DbSet<ChatSession> ChatSessions { get; set; } = null!;
+    public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // User
+        // ===== LEGACY CONFIGS =====
         modelBuilder.Entity<User>().HasKey(u => u.Id);
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
 
-        // FacebookPage
         modelBuilder.Entity<FacebookPage>().HasKey(p => p.Id);
         modelBuilder.Entity<FacebookPage>().HasIndex(p => p.PageId).IsUnique();
 
-        // FacebookPost
         modelBuilder.Entity<FacebookPost>().HasKey(p => p.Id);
         modelBuilder.Entity<FacebookPost>()
             .HasOne(p => p.Page)
@@ -38,25 +46,21 @@ public class AppDbContext : DbContext
             .HasForeignKey(p => p.FacebookPageId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Customer
         modelBuilder.Entity<Customer>().HasKey(c => c.Id);
         modelBuilder.Entity<Customer>().HasIndex(c => c.FacebookSenderId).IsUnique();
 
-        // Conversation
         modelBuilder.Entity<Conversation>().HasKey(c => c.Id);
         modelBuilder.Entity<Conversation>()
             .HasOne(c => c.Page)
             .WithMany(p => p.Conversations)
             .HasForeignKey(c => c.FacebookPageId)
             .OnDelete(DeleteBehavior.Cascade);
-
         modelBuilder.Entity<Conversation>()
             .HasOne(c => c.Customer)
             .WithMany(cu => cu.Conversations)
             .HasForeignKey(c => c.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Message
         modelBuilder.Entity<Message>().HasKey(m => m.Id);
         modelBuilder.Entity<Message>()
             .HasOne(m => m.Conversation)
@@ -64,7 +68,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(m => m.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // AutoReplyRule
         modelBuilder.Entity<AutoReplyRule>().HasKey(a => a.Id);
         modelBuilder.Entity<AutoReplyRule>()
             .HasOne(a => a.Page)
@@ -72,12 +75,45 @@ public class AppDbContext : DbContext
             .HasForeignKey(a => a.FacebookPageId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // BotSetting
         modelBuilder.Entity<BotSetting>().HasKey(b => b.Id);
         modelBuilder.Entity<BotSetting>()
             .HasOne(b => b.Page)
             .WithMany()
             .HasForeignKey(b => b.FacebookPageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== ORDER =====
+        modelBuilder.Entity<Order>().HasKey(o => o.Id);
+        modelBuilder.Entity<Order>()
+            .Property(o => o.TotalAmount)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<Order>()
+            .Property(o => o.DiscountAmount)
+            .HasPrecision(18, 2);
+
+        // ===== DISCOUNT CODE =====
+        modelBuilder.Entity<DiscountCode>().HasKey(d => d.Id);
+        modelBuilder.Entity<DiscountCode>().HasIndex(d => d.Code).IsUnique();
+        modelBuilder.Entity<DiscountCode>()
+            .Property(d => d.PercentOff)
+            .HasPrecision(5, 2);
+        modelBuilder.Entity<DiscountCode>()
+            .Property(d => d.AmountOff)
+            .HasPrecision(18, 2);
+
+        // ===== WEBSITE CONTENT =====
+        modelBuilder.Entity<WebsiteContent>().HasKey(w => w.Id);
+        modelBuilder.Entity<WebsiteContent>().HasIndex(w => w.Key).IsUnique();
+
+        // ===== CHAT SESSION & MESSAGE =====
+        modelBuilder.Entity<ChatSession>().HasKey(cs => cs.Id);
+        modelBuilder.Entity<ChatSession>().HasIndex(cs => cs.SessionId);
+
+        modelBuilder.Entity<ChatMessage>().HasKey(cm => cm.Id);
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne(cm => cm.ChatSession)
+            .WithMany(cs => cs.Messages)
+            .HasForeignKey(cm => cm.ChatSessionId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

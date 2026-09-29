@@ -1,47 +1,111 @@
-﻿using NguyetnhanPhohien.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NguyetnhanPhohien.API.Hubs;
+using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Infrastructure.Persistence;
+using NguyetnhanPhohien.Infrastructure.Services;
+using System.Text;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ===== DATABASE =====
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// ===== JWT AUTHENTICATION =====
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key chưa được cấu hình trong appsettings.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        // Cho phép SignalR gửi token qua query string
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    context.Token = accessToken;
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// ===== SIGNALR =====
+builder.Services.AddSignalR();
+
+// ===== CONTROLLERS =====
+builder.Services.AddControllers();
+
+// ===== SWAGGER / OPENAPI =====
 builder.Services.AddOpenApi();
+
+// ===== SERVICES (DI Registration) =====
+builder.Services.AddScoped<IDiscountService, DiscountService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IContentService, ContentService>();
+
+// ===== CORS (Cho phép Frontend Next.js gọi API) =====
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                builder.Configuration["AllowedOrigins"] ?? "http://localhost:3000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // Cần thiết cho SignalR
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ===== MIDDLEWARE PIPELINE =====
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("NguyetNhanPhoHien API");
+        options.WithTheme(ScalarTheme.Moon);
+    });
 }
 
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// ===== ROUTES =====
+app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1"));
+app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
-app.MapGet("/weatherforecast", () =>
+// ===== AUTO MIGRATE & SEED =====
+using (var scope = app.Services.CreateScope())
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var db = scope.ServiceProvider.GetRequiredService<NguyetnhanPhohien.Infrastructure.Persistence.AppDbContext>();
+    await NguyetnhanPhohien.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+}
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
