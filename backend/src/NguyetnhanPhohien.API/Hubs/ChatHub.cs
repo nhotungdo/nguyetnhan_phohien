@@ -43,14 +43,15 @@ public class ChatHub : Hub
     /// <summary>
     /// Khách gửi tin nhắn lên server.
     /// </summary>
-    public async Task SendGuestMessage(Guid sessionId, string content)
+    public async Task SendGuestMessage(string sessionId, string content)
     {
-        var message = await _chatService.SaveMessageAsync(sessionId, content, "Guest");
+        var session = await _chatService.GetOrCreateSessionAsync(sessionId, null, null);
+        var message = await _chatService.SaveMessageAsync(session.Id, content, "Guest");
 
         // Gửi đến Admin group
         await Clients.Group(AdminGroup).SendAsync("ReceiveGuestMessage", new
         {
-            sessionId,
+            sessionId = session.Id,
             message
         });
 

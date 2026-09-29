@@ -6,6 +6,8 @@ import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, Chevro
 import { motion, AnimatePresence } from "framer-motion";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useLiveChat } from "@/hooks/useLiveChat";
+import { useWebsiteContent } from "@/hooks/useWebsiteContent";
+import { useLanguageStore } from "@/store/useLanguageStore";
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,6 +26,8 @@ export default function LandingPage() {
   } = useOrderForm();
 
   const { messages, isConnected, isSending, connect, sendMessage } = useLiveChat();
+  const { content: cmsContent } = useWebsiteContent();
+  const { t, language, setLanguage } = useLanguageStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,11 +91,11 @@ export default function LandingPage() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {[
-              { label: "Sản phẩm", id: "san-pham" },
-              { label: "Câu chuyện", id: "cau-chuyen" },
-              { label: "Lịch sử", id: "lich-su" },
-              { label: "Văn hóa", id: "van-hoa" },
-              { label: "Liên hệ", id: "lien-he" }
+              { label: t.nav.products, id: "san-pham" },
+              { label: t.nav.story, id: "cau-chuyen" },
+              { label: t.nav.history, id: "lich-su" },
+              { label: t.nav.culture, id: "van-hoa" },
+              { label: t.nav.contact, id: "lien-he" }
             ].map((item, index) => (
               <button
                 key={index}
@@ -105,17 +109,23 @@ export default function LandingPage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <button
+              onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
+              className="text-sm font-bold text-foreground/80 border px-3 py-1.5 rounded-full hover:bg-muted transition-colors flex items-center gap-2"
+            >
+              {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
+            </button>
             <button 
               onClick={handleOpenChat}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2"
             >
-              <MessageCircle className="w-5 h-5" /> Nhắn tin
+              <MessageCircle className="w-5 h-5" />
             </button>
             <button 
               onClick={() => scrollToSection("dat-hang")}
               className="bg-accent hover:bg-accent/90 text-white text-base font-bold px-6 py-2.5 rounded-full shadow-lg shadow-[#B45309]/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2"
             >
-              <ShoppingCart className="w-4 h-4" /> Đặt hàng
+              <ShoppingCart className="w-4 h-4" /> {t.nav.buyNow}
             </button>
           </div>
 
@@ -151,7 +161,7 @@ export default function LandingPage() {
             onClick={() => scrollToSection("dat-hang")}
             className="bg-accent text-white text-lg font-medium px-6 py-3 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2"
           >
-            <ShoppingCart className="w-5 h-5" /> Đặt hàng ngay
+            <ShoppingCart className="w-5 h-5" /> {t.nav.buyNow}
           </button>
         </div>
       )}
@@ -183,13 +193,13 @@ export default function LandingPage() {
                 Tinh túy đất Phố Hiến
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
-                Hương Vị <br/>
+                {language === "en" ? t.hero.title.split(' ')[0] : "Hương Vị"} <br/>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
-                  Truyền Thống
+                  {language === "en" ? t.hero.title.split(' ').slice(1).join(' ') : "Truyền Thống"}
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed">
-                Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa.
+                {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <motion.button 
@@ -198,7 +208,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection("san-pham")}
                   className="bg-accent text-white text-base font-medium px-8 py-4 rounded-full shadow-xl shadow-[#B45309]/30 transition-shadow flex items-center justify-center gap-2"
                 >
-                  Khám phá sản phẩm <ArrowRight className="w-5 h-5" />
+                  {t.hero.discover} <ArrowRight className="w-5 h-5" />
                 </motion.button>
                 <motion.button 
                   whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
@@ -206,7 +216,7 @@ export default function LandingPage() {
                   onClick={() => scrollToSection("cau-chuyen")}
                   className="bg-white text-accent border border-[#FDE68A] text-base font-medium px-8 py-4 rounded-full flex items-center justify-center"
                 >
-                  Câu chuyện của chúng tôi
+                  {t.nav.story}
                 </motion.button>
               </div>
             </motion.div>
@@ -237,7 +247,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <p className="font-bold text-primary">100%</p>
-                    <p className="text-xs text-foreground/80">Tự nhiên không đường</p>
+                    <p className="text-xs text-foreground/80">{t.hero.quality}</p>
                   </div>
                 </div>
               </div>
@@ -255,17 +265,17 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
               className="max-w-3xl mx-auto text-center space-y-6"
             >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary">Về Nguyệt Nhãn Phố Hiến</h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary">{t.about.title}</h2>
               <p className="text-lg text-foreground/80 leading-relaxed">
-                Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến, Nguyệt Nhãn mang trong mình sứ mệnh gìn giữ và phát triển hương vị đặc sản Long Nhãn tiến vua. Chúng tôi kết hợp phương pháp sấy củi truyền thống cùng quy trình vệ sinh hiện đại, tạo ra những mẻ long nhãn vàng óng, dẻo thơm, trọn vẹn tinh túy đất trời.
+                {t.about.desc}
               </p>
             </motion.div>
             
             <div className="grid md:grid-cols-3 gap-8 mt-20">
               {[
-                { title: "Nguồn gốc 100% tự nhiên", desc: "Tuyển chọn từ những trái nhãn lồng Hương Chi chín mọng, cùi dày nhất tại các vườn nhãn cổ thụ." },
-                { title: "Phương pháp truyền thống", desc: "Sấy hoàn toàn bằng củi nhãn, kiểm soát nhiệt độ thủ công giúp giữ được độ dẻo và hương thơm đặc trưng." },
-                { title: "Không chất bảo quản", desc: "Cam kết không sử dụng đường hóa học, không chất tạo màu, an toàn tuyệt đối cho sức khỏe người dùng." }
+                { title: t.about.natural_title, desc: t.about.natural_desc },
+                { title: t.about.traditional_title, desc: t.about.traditional_desc },
+                { title: t.about.safe_title, desc: t.about.safe_desc }
               ].map((val, i) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 50 }}
@@ -294,15 +304,15 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">Sản Phẩm Của Chúng Tôi</h2>
-              <p className="text-foreground/80">Món quà sức khỏe dành tặng người thân yêu</p>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">{t.products.title}</h2>
+              <p className="text-foreground/80">{t.products.subtitle}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
-                { name: "Long Nhãn Loại Đặc Biệt", price: "350.000đ", size: "Hộp 500g", desc: "Nhãn lồng cùi dày, sấy thủ công 100%, hạt đều, màu vàng cánh gián đẹp mắt." },
-                { name: "Long Nhãn Dạng Túi Zip", price: "320.000đ", size: "Túi 500g", desc: "Tiện lợi để sử dụng hàng ngày, ngâm rượu hoặc nấu chè, pha trà." },
-                { name: "Set Quà Tặng Cao Cấp", price: "850.000đ", size: "Hộp 1kg + Trà hoa vàng", desc: "Bao bì sang trọng, thiết kế mang đậm bản sắc văn hóa Phố Hiến." },
+                { name: t.products.special_name, price: "350.000đ", size: "500g", desc: t.products.special_desc },
+                { name: t.products.zip_name, price: "320.000đ", size: "500g", desc: t.products.zip_desc },
+                { name: t.products.gift_name, price: "850.000đ", size: "1kg", desc: t.products.gift_desc },
               ].map((prod, i) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 50 }}
@@ -322,7 +332,7 @@ export default function LandingPage() {
                          onClick={() => scrollToSection("dat-hang")}
                          className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
                        >
-                         Mua Ngay
+                         {t.products.buy}
                        </motion.button>
                      </div>
                   </div>
@@ -362,20 +372,20 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex-1 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-bold text-primary">Thứ Quả Tiến Vua Chứ Danh</h2>
+                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : "Thứ Quả Tiến Vua Chứ Danh"}</h2>
                 <p className="text-lg text-foreground/80 leading-relaxed">
-                  Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm.
+                  {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
                 <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
                   <p className="text-foreground/80 italic">
-                    &quot;Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn sấy củi, như một cách lưu giữ hồn quê hương.&quot;
+                    {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For a hundred years, the people here still preserve the profession of firewood drying longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn sấy củi, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
                 <button 
                   onClick={() => scrollToSection("van-hoa")}
                   className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all"
                 >
-                  Tìm hiểu văn hóa vùng đất <ArrowRight className="w-5 h-5" />
+                  {language === "en" ? "Learn about the land's culture" : "Tìm hiểu văn hóa vùng đất"} <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -385,42 +395,42 @@ export default function LandingPage() {
         {/* Lịch sử */}
         <section id="lich-su" className="py-24 bg-background border-t border-border/30">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl">
-            <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">Lịch Sử Trăm Năm</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">{t.history.title}</h2>
             <div className="relative border-l-2 border-accent pl-8 ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-12">
               <div className="md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
-                  <h3 className="text-2xl font-bold text-accent">Thế kỷ 16</h3>
-                  <p className="text-foreground/80">Nhãn lồng trở thành sản vật tiến vua.</p>
+                  <h3 className="text-2xl font-bold text-accent">{t.history.c16_title}</h3>
+                  <p className="text-foreground/80">{t.history.c16_desc.split(". ")[0]}.</p>
                 </div>
                 <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
                 <div className="md:w-1/2 md:text-left">
-                  <h3 className="text-2xl font-bold text-accent md:hidden">Thế kỷ 16</h3>
-                  <p className="text-foreground/80 md:hidden mb-2">Nhãn lồng trở thành sản vật tiến vua.</p>
-                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Được ghi chép trong các thư tịch cổ là loại quả trân quý nhất.</div>
+                  <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.c16_title}</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">{t.history.c16_desc.split(". ")[0]}.</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">{t.history.c16_desc.split(". ")[1]}</div>
                 </div>
               </div>
               <div className="md:flex items-center justify-between gap-8 flex-row-reverse">
                 <div className="md:w-1/2 text-left hidden md:block">
-                  <h3 className="text-2xl font-bold text-accent">Cây Nhãn Tổ</h3>
-                  <p className="text-foreground/80">Di tích lịch sử tại Chùa Hiến.</p>
+                  <h3 className="text-2xl font-bold text-accent">{t.history.tree_title}</h3>
+                  <p className="text-foreground/80">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
                 </div>
                 <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
                 <div className="md:w-1/2 md:text-right">
-                  <h3 className="text-2xl font-bold text-accent md:hidden">Cây Nhãn Tổ</h3>
-                  <p className="text-foreground/80 md:hidden mb-2">Di tích lịch sử tại Chùa Hiến.</p>
-                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Cây nhãn tổ hơn 300 năm tuổi tại Chùa Hiến là minh chứng lịch sử sống động, nơi sản sinh ra giống nhãn lồng cùi dày, hạt nhỏ, ngọt lịm tiếng tăm lẫy lừng.</div>
+                  <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.tree_title}</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">{t.history.tree_desc}</div>
                 </div>
               </div>
               <div className="md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
-                  <h3 className="text-2xl font-bold text-accent">Năm 2010</h3>
-                  <p className="text-foreground/80">Khôi phục phương pháp sấy thủ công.</p>
+                  <h3 className="text-2xl font-bold text-accent">{t.history.year2010_title}</h3>
+                  <p className="text-foreground/80">{t.history.year2010_desc.split(". ")[0]}.</p>
                 </div>
                 <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
                 <div className="md:w-1/2 md:text-left">
-                  <h3 className="text-2xl font-bold text-accent md:hidden">Năm 2010</h3>
-                  <p className="text-foreground/80 md:hidden mb-2">Khôi phục phương pháp sấy thủ công.</p>
-                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Thương hiệu Nguyệt Nhãn ra đời nhằm bảo tồn di sản.</div>
+                  <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.year2010_title}</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">{t.history.year2010_desc.split(". ")[0]}.</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">{t.history.year2010_desc.split(". ")[1]}</div>
                 </div>
               </div>
             </div>
@@ -432,9 +442,9 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">Hồn Quê Trong Từng Thớ Nhãn</h2>
+                <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">{t.culture.title}</h2>
                 <p className="text-lg text-foreground/80 leading-relaxed mb-6">
-                  Văn hóa ẩm thực Phố Hiến không chỉ nằm ở hương vị, mà còn ở cách thưởng thức. Long nhãn thường được dùng để nấu chè hạt sen ngọt mát trong những ngày hè, hoặc ngâm rượu, pha trà thiết đãi khách quý.
+                  {t.culture.desc}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <button onClick={() => setSelectedRecipe('tra')} className="bg-background p-4 rounded-xl border border-border/50 text-center hover:border-accent hover:shadow-lg transition-all hover:-translate-y-1">
@@ -464,9 +474,12 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">Thưởng Thức <br/>Hương Vị Tinh Túy</h2>
+                <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+                  {language === "en" ? "Enjoy the Essence" : "Thưởng Thức"}<br/>
+                  {language === "en" ? "of Flavor" : "Hương Vị Tinh Túy"}
+                </h2>
                 <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
-                  Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn.
+                  {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                 </p>
                 
                 <div className="space-y-6">
@@ -493,64 +506,62 @@ export default function LandingPage() {
               
               {/* Form Đặt Hàng */}
               <div className="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl text-foreground">
-                <h3 className="text-2xl font-bold text-primary mb-6">Điền thông tin đặt hàng</h3>
+                <h3 className="text-2xl font-bold text-primary mb-6">{t.order.title}</h3>
 
                 {submitStatus === "success" && (
                   <div className="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl">
                     <CheckCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">Đặt hàng thành công! Chúng tôi sẽ liên hệ bạn sớm nhất.</p>
+                    <p className="font-medium">{t.order.success}</p>
                   </div>
                 )}
 
                 {submitStatus === "error" && (
                   <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
                     <AlertCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">{errorMessage}</p>
+                    <p className="font-medium">{t.order.error}</p>
                   </div>
                 )}
 
                 <form className="space-y-5" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">Họ tên *</label>
+                      <label className="text-sm font-medium text-foreground/80">{t.order.name} *</label>
                       <input
                         type="text" required
                         value={form.customerName}
                         onChange={(e) => setField("customerName", e.target.value)}
                         className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                        placeholder="Nguyễn Văn A"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">Số điện thoại *</label>
+                      <label className="text-sm font-medium text-foreground/80">{t.order.phone} *</label>
                       <input
                         type="tel" required
                         value={form.customerPhone}
                         onChange={(e) => setField("customerPhone", e.target.value)}
                         className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                        placeholder="09..."
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">Chọn sản phẩm *</label>
+                    <label className="text-sm font-medium text-foreground/80">{t.order.select_product} *</label>
                     <select
                       required
                       value={form.product}
                       onChange={(e) => setField("product", e.target.value)}
                       className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none"
                     >
-                      <option value="">-- Chọn loại long nhãn --</option>
-                      <option value="dac-biet">Long Nhãn Loại Đặc Biệt 500g (350.000đ)</option>
-                      <option value="tui-zip">Long Nhãn Dạng Túi Zip 500g (320.000đ)</option>
-                      <option value="set-qua">Set Quà Tặng Cao Cấp 1kg (850.000đ)</option>
+                      <option value="">{t.order.select_default}</option>
+                      <option value="dac-biet">{t.order.special_option}</option>
+                      <option value="tui-zip">{t.order.zip_option}</option>
+                      <option value="set-qua">{t.order.gift_option}</option>
                     </select>
                   </div>
 
                   <div className="grid grid-cols-4 gap-5">
                     <div className="col-span-1 space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">Số lượng</label>
+                      <label className="text-sm font-medium text-foreground/80">{t.order.quantity}</label>
                       <input
                         type="number" min="1"
                         value={form.quantity}
@@ -560,20 +571,19 @@ export default function LandingPage() {
                       />
                     </div>
                     <div className="col-span-3 space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">Địa chỉ nhận hàng *</label>
+                      <label className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
                       <input
                         type="text" required
                         value={form.customerAddress}
                         onChange={(e) => setField("customerAddress", e.target.value)}
                         className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                        placeholder="Số nhà, Đường, Phường, Quận, Tỉnh/TP"
                       />
                     </div>
                   </div>
 
                   {/* Mã giảm giá — cũng là cổng Admin */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">Mã giảm giá</label>
+                    <label className="text-sm font-medium text-foreground/80">{t.order.discount}</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -581,7 +591,6 @@ export default function LandingPage() {
                         onChange={(e) => setField("discountCode", e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyDiscount())}
                         className="flex-1 bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                        placeholder="Nhập mã (nếu có)..."
                       />
                       <button
                         type="button"
@@ -590,7 +599,7 @@ export default function LandingPage() {
                         className="bg-primary text-white px-5 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                       >
                         {isApplyingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                        Áp dụng
+                        {t.order.apply}
                       </button>
                     </div>
                     {discountResult?.isValid && (
@@ -611,30 +620,30 @@ export default function LandingPage() {
                   {form.product && (
                     <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
                       <div className="flex justify-between text-sm text-foreground/70">
-                        <span>Giá gốc</span>
+                        <span>{t.order.base_price}</span>
                         <span>{base.toLocaleString()}đ</span>
                       </div>
                       {discount > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
-                          <span>Giảm giá</span>
+                          <span>{t.order.discount_amount}</span>
                           <span>-{discount.toLocaleString()}đ</span>
                         </div>
                       )}
                       <div className="flex justify-between font-bold text-primary border-t pt-2">
-                        <span>Tổng cộng</span>
+                        <span>{t.order.total_bill}</span>
                         <span className="text-accent text-lg">{final.toLocaleString()}đ</span>
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">Ghi chú thêm</label>
+                    <label className="text-sm font-medium text-foreground/80">{t.order.add_note}</label>
                     <textarea
                       rows={3}
                       value={form.note}
                       onChange={(e) => setField("note", e.target.value)}
                       className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all resize-none"
-                      placeholder="Ví dụ: Giao hàng giờ hành chính..."
+                      placeholder={t.order.note_placeholder}
                     />
                   </div>
 
@@ -644,9 +653,9 @@ export default function LandingPage() {
                     className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {isSubmitting ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Đang gửi...</>
+                      <><Loader2 className="w-5 h-5 animate-spin" /> {t.order.submitting}</>
                     ) : (
-                      <>Gửi Đơn Đặt Hàng <ChevronRight className="w-5 h-5" /></>
+                      <>{t.order.send_order} <ChevronRight className="w-5 h-5" /></>
                     )}
                   </button>
                 </form>
@@ -671,11 +680,11 @@ export default function LandingPage() {
                 <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống.
+                {language === "en" ? "The brand providing authentic Pho Hien Dried Longan specialty. 100% natural, no preservatives, preserving traditional flavors." : "Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống."}
               </p>
             </div>
             <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">Liên Hệ</h4>
+              <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
               <ul className="space-y-2 text-muted-foreground text-sm">
                 <li>Hotline/Zalo: 0982.072.601</li>
                 <li>Email: hello@nguyetnhan.vn</li>
@@ -684,26 +693,26 @@ export default function LandingPage() {
               </ul>
             </div>
             <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">Điều Hướng</h4>
+              <h4 className="text-lg font-bold text-white">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
               <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
-                <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">Sản phẩm</button></li>
-                <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">Câu chuyện thương hiệu</button></li>
-                <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">Lịch sử trăm năm</button></li>
-                <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">Văn hóa vùng đất</button></li>
+                <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">{t.nav.products}</button></li>
+                <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">{t.nav.story}</button></li>
+                <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">{t.history.title}</button></li>
+                <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">{t.culture.title}</button></li>
               </ul>
             </div>
             <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">Chính Sách</h4>
+              <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
               <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
-                <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">Chính sách giao hàng</Link></li>
-                <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">Chính sách đổi trả</Link></li>
-                <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">Bảo mật thông tin</Link></li>
-                <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">Kiểm định chất lượng</Link></li>
+                <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
+                <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
+                <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
+                <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-            <p>© 2026 Nguyệt Nhãn Phố Hiến. All rights reserved.</p>
+            <p>© 2026 Nguyệt Nhãn Phố Hiến. {t.footer.rights}</p>
             <div className="flex gap-4">
                {/* Social Icons */}
                <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
@@ -746,17 +755,17 @@ export default function LandingPage() {
             {!chatStarted ? (
               /* Nhập tên trước khi chat */
               <div className="p-5 space-y-3">
-                <p className="text-sm text-foreground/70">Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:</p>
+                <p className="text-sm text-foreground/70">{language === "en" ? "To serve you better, please provide:" : "Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:"}</p>
                 <input
                   type="text"
-                  placeholder="Họ tên của bạn *"
+                  placeholder={language === "en" ? "Your name *" : "Họ tên của bạn *"}
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-sm outline-none"
                 />
                 <input
                   type="tel"
-                  placeholder="Số điện thoại (không bắt buộc)"
+                  placeholder={language === "en" ? "Phone number (optional)" : "Số điện thoại (không bắt buộc)"}
                   value={guestPhone}
                   onChange={(e) => setGuestPhone(e.target.value)}
                   className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-sm outline-none"
@@ -766,7 +775,7 @@ export default function LandingPage() {
                   disabled={!guestName.trim()}
                   className="w-full bg-accent text-white font-bold py-2.5 rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50"
                 >
-                  Bắt đầu trò chuyện
+                  {t.chat.start}
                 </button>
               </div>
             ) : (
@@ -798,7 +807,7 @@ export default function LandingPage() {
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
-                      placeholder="Nhập tin nhắn..."
+                      placeholder={t.chat.placeholder}
                       className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-4 pr-12 py-2.5 text-sm outline-none transition-all"
                     />
                     <button

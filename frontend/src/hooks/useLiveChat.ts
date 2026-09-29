@@ -61,7 +61,7 @@ export function useLiveChat() {
     try {
       await connection.start();
       // Tham gia vào group của session này
-      await connection.invoke("JoinSession", sessionId.current, guestName || null, guestPhone || null);
+      await connection.invoke("JoinAsGuest", sessionId.current, guestName || null, guestPhone || null);
       setIsConnected(true);
       connectionRef.current = connection;
     } catch (err) {
@@ -78,12 +78,7 @@ export function useLiveChat() {
 
     setIsSending(true);
     try {
-      await connectionRef.current?.invoke("SendGuestMessage", {
-        sessionId: sessionId.current,
-        content: content.trim(),
-        guestName,
-        guestPhone,
-      });
+      await connectionRef.current?.invoke("SendGuestMessage", sessionId.current, content.trim());
     } catch (err) {
       console.error("Send message error:", err);
     } finally {

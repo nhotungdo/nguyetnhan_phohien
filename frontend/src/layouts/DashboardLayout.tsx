@@ -2,8 +2,19 @@
 import React from "react"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
+import { useAdminGuard } from "@/hooks/useAdminGuard"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthorized, isLoading } = useAdminGuard();
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Đang xác thực...</div>;
+  }
+
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full relative">

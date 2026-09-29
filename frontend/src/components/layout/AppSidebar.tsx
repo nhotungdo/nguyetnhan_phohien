@@ -10,19 +10,25 @@ import {
   SidebarHeader,
   SidebarFooter
 } from "@/components/ui/sidebar"
-import { MessageSquare, Settings, Users, LayoutDashboard } from "lucide-react"
+import { MessageSquare, Settings, Package, LayoutDashboard, LogOut } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
+import { adminAuth } from "@/services/api.service"
 
 const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Messenger", url: "/messenger", icon: MessageSquare },
-  { title: "Khách hàng", url: "/customers", icon: Users },
-  { title: "Auto Reply / Bot", url: "/chatbot", icon: Settings },
+  { title: "Tổng quan", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Đơn hàng", url: "/orders", icon: Package },
+  { title: "Nhắn tin", url: "/messenger", icon: MessageSquare },
+  { title: "Nội dung Website", url: "/content", icon: Settings },
 ]
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const handleLogout = () => {
+    adminAuth.logout();
+    router.push("/");
+  };
 
   return (
     <Sidebar>
@@ -62,14 +68,23 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-border/50">
-        <div className="flex items-center gap-2 px-2">
-          <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold text-sm">
-            AD
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-semibold text-sm">
+              AD
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">Quản trị viên</span>
+              <span className="text-xs text-muted-foreground text-green-500">Đang trực tuyến</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">Premium Plan</span>
-          </div>
+          <button 
+            onClick={handleLogout}
+            className="p-2 hover:bg-destructive/10 text-destructive rounded-md transition-colors"
+            title="Đăng xuất"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
         </div>
       </SidebarFooter>
     </Sidebar>
