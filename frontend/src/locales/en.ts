@@ -73,7 +73,6 @@ export const en = {
     total_bill: "Total",
     add_note: "Additional Note",
     note_placeholder: "E.g., Deliver during office hours...",
-    submitting: "Sending...",
     send_order: "Submit Order"
   },
   // Chat

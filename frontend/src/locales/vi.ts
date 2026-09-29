@@ -73,7 +73,6 @@ export const vi = {
     total_bill: "Tổng cộng",
     add_note: "Ghi chú thêm",
     note_placeholder: "Ví dụ: Giao hàng giờ hành chính...",
-    submitting: "Đang gửi...",
     send_order: "Gửi Đơn Đặt Hàng"
   },
   // Chat
