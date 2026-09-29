@@ -1,0 +1,6 @@
+@FacebookManager.API_HostAddress = http://localhost:5050
+
+GET {{FacebookManager.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,157 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* 🎨 Bảng màu Nguyệt Nhãn Phố Hiến */
+    --nguyet-brand: #23452F;      /* Xanh thương hiệu */
+    --nguyet-brand-dark: #173522; /* Xanh đậm */
+    --nguyet-brand-light: #4F7D3A;/* Xanh lá */
+    
+    --nguyet-gold: #B68A45;       /* Vàng đồng (CTA) */
+    --nguyet-gold-light: #D5B477; /* Vàng nhạt */
+    
+    --nguyet-brown: #8B6748;      /* Nâu nhãn */
+    --nguyet-orange: #D98A43;     /* Cam nhãn */
+    
+    --nguyet-bg-cream: #F8F3E8;   /* Kem nền */
+    --nguyet-bg-white: #FFFDF8;   /* Trắng ấm */
+    --nguyet-bg-green: #EDF3E9;   /* Xanh kem */
+    
+    --nguyet-accent-pink: #D99491;/* Hồng sen */
+    --nguyet-accent-sky: #6EB6E5; /* Xanh trời */
+
+    /* Map to Shadcn/Tailwind Variables */
+    --background: var(--nguyet-bg-cream);
+    --foreground: var(--nguyet-brand-dark);
+    --card: var(--nguyet-bg-white);
+    --card-foreground: var(--nguyet-brand-dark);
+    --popover: var(--nguyet-bg-white);
+    --popover-foreground: var(--nguyet-brand-dark);
+    --primary: var(--nguyet-brand);
+    --primary-foreground: var(--nguyet-bg-white);
+    --secondary: var(--nguyet-bg-green);
+    --secondary-foreground: var(--nguyet-brand);
+    --muted: var(--nguyet-bg-green);
+    --muted-foreground: var(--nguyet-brown);
+    --accent: var(--nguyet-gold);
+    --accent-foreground: var(--nguyet-bg-white);
+    --destructive: #ef4444;
+    --border: var(--nguyet-gold-light);
+    --input: var(--nguyet-gold-light);
+    --ring: var(--nguyet-gold);
+    --chart-1: var(--nguyet-brand);
+    --chart-2: var(--nguyet-gold);
+    --chart-3: var(--nguyet-brown);
+    --chart-4: var(--nguyet-brand-light);
+    --chart-5: var(--nguyet-orange);
+    --radius: 0.75rem;
+    
+    --sidebar: var(--nguyet-bg-white);
+    --sidebar-foreground: var(--nguyet-brand-dark);
+    --sidebar-primary: var(--nguyet-brand);
+    --sidebar-primary-foreground: var(--nguyet-bg-white);
+    --sidebar-accent: var(--nguyet-bg-green);
+    --sidebar-accent-foreground: var(--nguyet-brand);
+    --sidebar-border: var(--nguyet-gold-light);
+    --sidebar-ring: var(--nguyet-gold);
+}
+
+.dark {
+    /* Dark mode organic theme */
+    --background: var(--nguyet-brand-dark);
+    --foreground: var(--nguyet-bg-cream);
+    --card: var(--nguyet-brand);
+    --card-foreground: var(--nguyet-bg-cream);
+    --popover: var(--nguyet-brand);
+    --popover-foreground: var(--nguyet-bg-cream);
+    --primary: var(--nguyet-gold);
+    --primary-foreground: var(--nguyet-brand-dark);
+    --secondary: var(--nguyet-brown);
+    --secondary-foreground: var(--nguyet-bg-cream);
+    --muted: #2A4533;
+    --muted-foreground: var(--nguyet-gold-light);
+    --accent: var(--nguyet-gold);
+    --accent-foreground: var(--nguyet-brand-dark);
+    --destructive: #7f1d1d;
+    --border: var(--nguyet-brown);
+    --input: var(--nguyet-brown);
+    --ring: var(--nguyet-gold);
+    --chart-1: var(--nguyet-gold);
+    --chart-2: var(--nguyet-orange);
+    --chart-3: var(--nguyet-bg-cream);
+    --chart-4: var(--nguyet-brand-light);
+    --chart-5: var(--nguyet-accent-sky);
+    
+    --sidebar: var(--nguyet-brand-dark);
+    --sidebar-foreground: var(--nguyet-bg-cream);
+    --sidebar-primary: var(--nguyet-gold);
+    --sidebar-primary-foreground: var(--nguyet-brand-dark);
+    --sidebar-accent: #2A4533;
+    --sidebar-accent-foreground: var(--nguyet-bg-cream);
+    --sidebar-border: var(--nguyet-brown);
+    --sidebar-ring: var(--nguyet-gold);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    /* subtle paper/linen texture */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  section[id] {
+    scroll-margin-top: 90px;
+  }
+}

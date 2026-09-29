@@ -1,0 +1,12 @@
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\bin\Debug\net9.0\NguyetnhanPhohien.Domain.deps.json
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\bin\Debug\net9.0\NguyetnhanPhohien.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\bin\Debug\net9.0\NguyetnhanPhohien.Domain.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.AssemblyInfoInputs.cache
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.AssemblyInfo.cs
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.csproj.CoreCompileInputs.cache
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.sourcelink.json
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\refint\NguyetnhanPhohien.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\NguyetnhanPhohien.Domain.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\NguyetnhanPhohien.Domain\obj\Debug\net9.0\ref\NguyetnhanPhohien.Domain.dll

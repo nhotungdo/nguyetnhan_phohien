@@ -1,0 +1,618 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star } from "lucide-react";
+
+
+export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    setIsMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
+      {/* 1. Header */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
+        }`}
+      >
+        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection("hero")}>
+            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-border shadow-sm relative">
+              <span className="absolute text-accent font-bold text-xs">NN</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpg" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+            </div>
+            <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-[28px] tracking-wide transition-colors ${isScrolled ? "text-primary" : "text-primary"}`}>
+              Nguyệt Nhãn Phố Hiến
+            </span>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            {[
+              { label: "Sản phẩm", id: "san-pham" },
+              { label: "Câu chuyện", id: "cau-chuyen" },
+              { label: "Lịch sử", id: "lich-su" },
+              { label: "Văn hóa", id: "van-hoa" },
+              { label: "Liên hệ", id: "lien-he" }
+            ].map((item, index) => (
+              <button
+                key={index}
+                onClick={() => scrollToSection(item.id)}
+                className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out relative group"
+              >
+                {item.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 ease-in-out group-hover:w-full"></span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="hidden md:flex items-center gap-4">
+            <button 
+              onClick={() => setIsChatOpen(true)}
+              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2"
+            >
+              <MessageCircle className="w-5 h-5" /> Nhắn tin
+            </button>
+            <button 
+              onClick={() => scrollToSection("dat-hang")}
+              className="bg-accent hover:bg-accent/90 text-white text-base font-bold px-6 py-2.5 rounded-full shadow-lg shadow-[#B45309]/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2"
+            >
+              <ShoppingCart className="w-4 h-4" /> Đặt hàng
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden text-foreground/80"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 md:hidden">
+          {[
+              { label: "Sản phẩm", id: "san-pham" },
+              { label: "Câu chuyện", id: "cau-chuyen" },
+              { label: "Lịch sử", id: "lich-su" },
+              { label: "Văn hóa", id: "van-hoa" },
+              { label: "Liên hệ", id: "lien-he" }
+            ].map((item, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToSection(item.id)}
+              className="text-xl font-medium text-primary text-left border-b pb-4"
+            >
+              {item.label}
+            </button>
+          ))}
+          <button 
+            onClick={() => scrollToSection("dat-hang")}
+            className="bg-accent text-white text-lg font-medium px-6 py-3 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2"
+          >
+            <ShoppingCart className="w-5 h-5" /> Đặt hàng ngay
+          </button>
+        </div>
+      )}
+
+      <main>
+        {/* 2. Hero Banner */}
+        <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+          {/* Background Elements */}
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
+            {/* Replace with real banner image */}
+            <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-secondary rounded-full blur-3xl opacity-50"></div>
+          </div>
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-accent text-sm font-medium border border-[#FDE68A]">
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+                Tinh túy đất Phố Hiến
+              </div>
+              <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
+                Hương Vị <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
+                  Truyền Thống
+                </span>
+              </h1>
+              <p className="text-lg md:text-xl text-foreground/80 leading-relaxed">
+                Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <button 
+                  onClick={() => scrollToSection("san-pham")}
+                  className="bg-accent hover:bg-accent/90 text-white text-base font-medium px-8 py-4 rounded-full shadow-xl shadow-[#B45309]/30 transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
+                >
+                  Khám phá sản phẩm <ArrowRight className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => scrollToSection("cau-chuyen")}
+                  className="bg-white hover:bg-secondary text-accent border border-[#FDE68A] text-base font-medium px-8 py-4 rounded-full transition-all flex items-center justify-center"
+                >
+                  Câu chuyện của chúng tôi
+                </button>
+              </div>
+            </div>
+            <div className="relative h-[500px] md:h-[700px] flex items-center justify-center">
+              {/* Product Hero Image Placeholder */}
+              <div className="relative w-full max-w-md aspect-square rounded-full bg-gradient-to-tr from-[#FDE68A] to-[#FEF3C7] shadow-2xl flex items-center justify-center overflow-hidden animate-[spin_60s_linear_infinite]">
+                 {/* Decorative elements */}
+                 <div className="absolute inset-2 border border-[#B45309]/20 rounded-full border-dashed"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
+                  <div className="absolute inset-0 bg-[#FDE68A]/30"></div>
+                  [ Ảnh Sản Phẩm Tách Nền ]
+                </div>
+              </div>
+              
+              {/* Floating Badge */}
+              <div className="absolute bottom-20 left-10 bg-white p-4 rounded-2xl shadow-xl border border-[#FDE68A] animate-bounce-slow">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-accent">
+                    <Star className="w-6 h-6 fill-[#B45309]" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-primary">100%</p>
+                    <p className="text-xs text-foreground/80">Tự nhiên không đường</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. Giới thiệu thương hiệu */}
+        <section id="gioi-thieu" className="py-24 bg-white relative">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              <h2 className="text-3xl md:text-5xl font-bold text-primary">Về Nguyệt Nhãn Phố Hiến</h2>
+              <p className="text-lg text-foreground/80 leading-relaxed">
+                Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến, Nguyệt Nhãn mang trong mình sứ mệnh gìn giữ và phát triển hương vị đặc sản Long Nhãn tiến vua. Chúng tôi kết hợp phương pháp sấy củi truyền thống cùng quy trình vệ sinh hiện đại, tạo ra những mẻ long nhãn vàng óng, dẻo thơm, trọn vẹn tinh túy đất trời.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 mt-20">
+              {[
+                { title: "Nguồn gốc 100% tự nhiên", desc: "Tuyển chọn từ những trái nhãn lồng Hương Chi chín mọng, cùi dày nhất tại các vườn nhãn cổ thụ." },
+                { title: "Phương pháp truyền thống", desc: "Sấy hoàn toàn bằng củi nhãn, kiểm soát nhiệt độ thủ công giúp giữ được độ dẻo và hương thơm đặc trưng." },
+                { title: "Không chất bảo quản", desc: "Cam kết không sử dụng đường hóa học, không chất tạo màu, an toàn tuyệt đối cho sức khỏe người dùng." }
+              ].map((val, i) => (
+                <div key={i} className="bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-all hover:-translate-y-2 group">
+                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">0{i+1}</div>
+                  <h3 className="text-xl font-bold text-primary mb-3">{val.title}</h3>
+                  <p className="text-foreground/80">{val.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Khu vực sản phẩm */}
+        <section id="san-pham" className="py-24 bg-secondary/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">Sản Phẩm Của Chúng Tôi</h2>
+              <p className="text-foreground/80">Món quà sức khỏe dành tặng người thân yêu</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {[
+                { name: "Long Nhãn Loại Đặc Biệt", price: "350.000đ", size: "Hộp 500g", desc: "Nhãn lồng cùi dày, sấy thủ công 100%, hạt đều, màu vàng cánh gián đẹp mắt." },
+                { name: "Long Nhãn Dạng Túi Zip", price: "320.000đ", size: "Túi 500g", desc: "Tiện lợi để sử dụng hàng ngày, ngâm rượu hoặc nấu chè, pha trà." },
+                { name: "Set Quà Tặng Cao Cấp", price: "850.000đ", size: "Hộp 1kg + Trà hoa vàng", desc: "Bao bì sang trọng, thiết kế mang đậm bản sắc văn hóa Phố Hiến." },
+              ].map((prod, i) => (
+                <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all">
+                  <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
+                     {/* Product Image Placeholder */}
+                     <div className="text-accent font-medium">[ Ảnh Sản Phẩm {i+1} ]</div>
+                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                       <button 
+                         onClick={() => scrollToSection("dat-hang")}
+                         className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
+                       >
+                         Mua Ngay
+                       </button>
+                     </div>
+                  </div>
+                  <div className="p-8">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-primary">{prod.name}</h3>
+                      <span className="bg-secondary text-accent text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{prod.size}</span>
+                    </div>
+                    <p className="text-foreground/80 text-sm mb-6 line-clamp-2">{prod.desc}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-2xl font-bold text-accent">{prod.price}</span>
+                      <button 
+                        onClick={() => scrollToSection("dat-hang")}
+                        className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
+        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col lg:flex-row items-center gap-16">
+              <div className="flex-1 relative">
+                <div className="aspect-square rounded-full bg-secondary absolute -top-10 -left-10 w-full h-full -z-10 blur-3xl opacity-50"></div>
+                <div className="w-full aspect-[4/5] rounded-[3rem] bg-[#FDE68A]/30 overflow-hidden relative border-8 border-white shadow-2xl">
+                  {/* Story Image Placeholder */}
+                  <div className="absolute inset-0 flex items-center justify-center text-accent font-medium">
+                    [ Ảnh Người Nông Dân / Vườn Nhãn ]
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 space-y-8">
+                <h2 className="text-3xl md:text-5xl font-bold text-primary">Thứ Quả Tiến Vua Chứ Danh</h2>
+                <p className="text-lg text-foreground/80 leading-relaxed">
+                  Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm.
+                </p>
+                <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
+                  <p className="text-foreground/80 italic">
+                    &quot;Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn sấy củi, như một cách lưu giữ hồn quê hương.&quot;
+                  </p>
+                </div>
+                <button 
+                  onClick={() => scrollToSection("van-hoa")}
+                  className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all"
+                >
+                  Tìm hiểu văn hóa vùng đất <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Lịch sử */}
+        <section id="lich-su" className="py-24 bg-background border-t border-border/30">
+          <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl">
+            <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">Lịch Sử Trăm Năm</h2>
+            <div className="relative border-l-2 border-accent pl-8 ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-12">
+              <div className="md:flex items-center justify-between gap-8">
+                <div className="md:w-1/2 text-right hidden md:block">
+                  <h3 className="text-2xl font-bold text-accent">Thế kỷ 16</h3>
+                  <p className="text-foreground/80">Nhãn lồng trở thành sản vật tiến vua.</p>
+                </div>
+                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <div className="md:w-1/2 md:text-left">
+                  <h3 className="text-2xl font-bold text-accent md:hidden">Thế kỷ 16</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">Nhãn lồng trở thành sản vật tiến vua.</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Được ghi chép trong các thư tịch cổ là loại quả trân quý nhất.</div>
+                </div>
+              </div>
+              <div className="md:flex items-center justify-between gap-8 flex-row-reverse">
+                <div className="md:w-1/2 text-left hidden md:block">
+                  <h3 className="text-2xl font-bold text-accent">Cây Nhãn Tổ</h3>
+                  <p className="text-foreground/80">Di tích lịch sử tại Chùa Hiến.</p>
+                </div>
+                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <div className="md:w-1/2 md:text-right">
+                  <h3 className="text-2xl font-bold text-accent md:hidden">Cây Nhãn Tổ</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">Di tích lịch sử tại Chùa Hiến.</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Cây nhãn tổ hơn 300 năm tuổi tại Chùa Hiến là minh chứng lịch sử sống động, nơi sản sinh ra giống nhãn lồng cùi dày, hạt nhỏ, ngọt lịm tiếng tăm lẫy lừng.</div>
+                </div>
+              </div>
+              <div className="md:flex items-center justify-between gap-8">
+                <div className="md:w-1/2 text-right hidden md:block">
+                  <h3 className="text-2xl font-bold text-accent">Năm 2010</h3>
+                  <p className="text-foreground/80">Khôi phục phương pháp sấy thủ công.</p>
+                </div>
+                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <div className="md:w-1/2 md:text-left">
+                  <h3 className="text-2xl font-bold text-accent md:hidden">Năm 2010</h3>
+                  <p className="text-foreground/80 md:hidden mb-2">Khôi phục phương pháp sấy thủ công.</p>
+                  <div className="bg-card p-6 rounded-2xl shadow-sm border border-border">Thương hiệu Nguyệt Nhãn ra đời nhằm bảo tồn di sản.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Văn hóa */}
+        <section id="van-hoa" className="py-24 bg-card relative overflow-hidden border-t border-border/30">
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">Hồn Quê Trong Từng Thớ Nhãn</h2>
+                <p className="text-lg text-foreground/80 leading-relaxed mb-6">
+                  Văn hóa ẩm thực Phố Hiến không chỉ nằm ở hương vị, mà còn ở cách thưởng thức. Long nhãn thường được dùng để nấu chè hạt sen ngọt mát trong những ngày hè, hoặc ngâm rượu, pha trà thiết đãi khách quý.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <button onClick={() => setSelectedRecipe('tra')} className="bg-background p-4 rounded-xl border border-border/50 text-center hover:border-accent hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div className="text-3xl mb-2">🍵</div>
+                    <div className="font-bold text-primary">Trà Long Nhãn</div>
+                  </button>
+                  <button onClick={() => setSelectedRecipe('che')} className="bg-background p-4 rounded-xl border border-border/50 text-center hover:border-accent hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div className="text-3xl mb-2">🥣</div>
+                    <div className="font-bold text-primary">Chè Hạt Sen</div>
+                  </button>
+                </div>
+              </div>
+              <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative">
+                 <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
+                 <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold">
+                    [ Ảnh Văn Hóa Thưởng Trà ]
+                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 11. Khu vực đặt hàng */}
+        <section id="dat-hang" className="py-24 bg-[#451A03] text-background relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#78350F] rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+          
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">Thưởng Thức <br/>Hương Vị Tinh Túy</h2>
+                <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
+                  Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn.
+                </p>
+                
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
+                    <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white shrink-0">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#FDE68A]">Hotline tư vấn (24/7)</p>
+                      <p className="text-xl font-bold text-white">0987.654.321</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
+                    <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white shrink-0">
+                      <MapPin className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#FDE68A]">Địa chỉ xưởng sản xuất</p>
+                      <p className="text-lg font-bold text-white">123 Phố Hiến, Tp. Hưng Yên</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Form Đặt Hàng */}
+              <div className="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl text-foreground">
+                <h3 className="text-2xl font-bold text-primary mb-6">Điền thông tin đặt hàng</h3>
+                <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Cảm ơn bạn đã đặt hàng!"); }}>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground/80">Họ tên *</label>
+                      <input type="text" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="Nguyễn Văn A" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground/80">Số điện thoại *</label>
+                      <input type="tel" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="09..." />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground/80">Chọn sản phẩm *</label>
+                    <select required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none">
+                      <option value="">-- Chọn loại long nhãn --</option>
+                      <option value="dac-biet">Long Nhãn Loại Đặc Biệt 500g (350.000đ)</option>
+                      <option value="tui-zip">Long Nhãn Dạng Túi Zip 500g (320.000đ)</option>
+                      <option value="set-qua">Set Quà Tặng Cao Cấp 1kg (850.000đ)</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-5">
+                    <div className="col-span-1 space-y-1.5">
+                      <label className="text-sm font-medium text-foreground/80">Số lượng</label>
+                      <input type="number" min="1" defaultValue="1" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all text-center" />
+                    </div>
+                    <div className="col-span-3 space-y-1.5">
+                      <label className="text-sm font-medium text-foreground/80">Địa chỉ nhận hàng *</label>
+                      <input type="text" required className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all" placeholder="Số nhà, Đường, Phường, Quận, Tỉnh/TP" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground/80">Ghi chú thêm</label>
+                    <textarea rows={3} className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all resize-none" placeholder="Ví dụ: Giao hàng giờ hành chính..."></textarea>
+                  </div>
+
+                  <button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2">
+                    Gửi Đơn Đặt Hàng <ChevronRight className="w-5 h-5" />
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      {/* 14. Footer */}
+      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid md:grid-cols-4 gap-8 md:gap-12">
+            <div className="space-y-4 md:col-span-1">
+              <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
+                  <span className="absolute">NN</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.jpg" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                </div>
+                <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold text-white">Liên Hệ</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm">
+                <li>Hotline/Zalo: 0982.072.601</li>
+                <li>Email: hello@nguyetnhan.vn</li>
+                <li>Địa chỉ: 123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên</li>
+                <li>Giờ mở cửa: 08:00 - 20:00 (T2-CN)</li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold text-white">Điều Hướng</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">Sản phẩm</button></li>
+                <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">Câu chuyện thương hiệu</button></li>
+                <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">Lịch sử trăm năm</button></li>
+                <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">Văn hóa vùng đất</button></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="text-lg font-bold text-white">Chính Sách</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">Chính sách giao hàng</Link></li>
+                <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">Chính sách đổi trả</Link></li>
+                <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">Bảo mật thông tin</Link></li>
+                <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">Kiểm định chất lượng</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>© 2026 Nguyệt Nhãn Phố Hiến. All rights reserved.</p>
+            <div className="flex gap-4">
+               {/* Social Icons */}
+               <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
+                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"/></svg>
+               </a>
+               <a href="https://zalo.me/0982072601" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Zalo">
+                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5C21 16.19 16.97 20 12 20C10.87 20 9.8 19.8 8.8 19.45C8.42 19.32 8.02 19.29 7.63 19.36L4.7 19.92C4.16 20.02 3.65 19.51 3.75 18.97L4.31 16.04C4.38 15.65 4.35 15.25 4.22 14.87C3.87 13.87 3.67 12.8 3.67 11.67C3.67 6.98 7.7 3.17 12.67 3.17C17.64 3.17 21 6.98 21 11.5Z"/><text x="12" y="15" fontFamily="Arial" fontSize="7" fontWeight="bold" fill="currentColor" stroke="none" textAnchor="middle">Zalo</text></svg>
+               </a>
+               <a href="https://www.instagram.com/Nguy%E1%BB%87t%20Nh%C3%A3n%20Ph%E1%BB%91%20Hi%E1%BA%BFn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Instagram">
+                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+               </a>
+               <a href="https://www.tiktok.com/@nguyetnhan888?_r=1&_t=ZS-99nuoBxZRau" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Tiktok">
+                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.24-2.61.94-5.26 3.15-6.81 1.76-1.23 4-1.67 6.13-1.25V9.41c-1.31-.22-2.64-.17-3.92.2-1.57.46-2.94 1.48-3.79 2.85-.92 1.45-1.13 3.32-.61 4.96.48 1.48 1.54 2.82 2.93 3.48 1.63.76 3.63.76 5.25-.13 1.99-1.07 3.2-3.23 3.19-5.49-.04-4.84-.01-9.68-.01-14.52H12.53z"/></svg>
+               </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Floating Chat Button (12. Chat trực tiếp với Manager) */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {isChatOpen && (
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[350px] mb-4 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 fade-in duration-300 origin-bottom-right">
+            <div className="bg-accent p-4 text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">NV</div>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-[#B45309] rounded-full"></span>
+                </div>
+                <div>
+                  <p className="font-bold">Tư vấn viên</p>
+                  <p className="text-xs opacity-80">Thường trả lời ngay lập tức</p>
+                </div>
+              </div>
+              <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-2 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="h-[300px] bg-background p-4 overflow-y-auto flex flex-col gap-3">
+              <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-sm text-primary max-w-[80%] self-start shadow-sm">
+                Chào bạn! Bạn cần tư vấn về loại Long Nhãn nào ạ?
+              </div>
+            </div>
+            <div className="p-3 bg-white border-t">
+              <div className="relative">
+                <input type="text" placeholder="Nhập tin nhắn..." className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-4 pr-12 py-2.5 text-sm outline-none transition-all" />
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors">
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <button 
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          className="w-14 h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-accent/90 hover:scale-110 transition-all focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
+        >
+          {isChatOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Recipe Modal */}
+      {selectedRecipe && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedRecipe(null)}>
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedRecipe(null)} className="absolute top-4 right-4 p-2 bg-background hover:bg-secondary rounded-full transition-colors text-primary">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">{selectedRecipe === 'tra' ? '🍵' : '🥣'}</div>
+              <h3 className="text-3xl font-bold text-primary">
+                {selectedRecipe === 'tra' ? 'Cách pha Trà Long Nhãn' : 'Cách nấu Chè Hạt Sen Long Nhãn'}
+              </h3>
+            </div>
+            {selectedRecipe === 'tra' ? (
+              <div className="space-y-4 text-foreground/80">
+                <p><strong>Nguyên liệu:</strong> 10g Trà khô (trà xanh, ô long, hoa cúc...), 15-20g Long nhãn Nguyệt Nhãn Phố Hiến, 3-5 quả táo đỏ, Kỷ tử, Nước sôi.</p>
+                <p><strong>Cách thực hiện:</strong></p>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>Tráng trà qua một lần nước sôi để làm sạch và đánh thức trà.</li>
+                  <li>Cho trà, long nhãn, táo đỏ, kỷ tử vào ấm.</li>
+                  <li>Châm nước sôi và ủ trong khoảng 10-15 phút để long nhãn nở bung và tiết ra vị ngọt thanh tự nhiên.</li>
+                  <li>Rót ra chén và thưởng thức khi còn ấm. Không cần thêm đường vì long nhãn đã đủ độ ngọt dịu mát.</li>
+                </ol>
+              </div>
+            ) : (
+              <div className="space-y-4 text-foreground/80">
+                <p><strong>Nguyên liệu:</strong> 100g Long nhãn Nguyệt Nhãn, 100g Hạt sen tươi (hoặc khô), Đường phèn.</p>
+                <p><strong>Cách thực hiện:</strong></p>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>Hầm hạt sen với nước cho đến khi hạt sen chín mềm, bở tơi. Thêm đường phèn vừa khẩu vị và đun cho tan.</li>
+                  <li>Tắt bếp, vớt hạt sen ra để nguội bớt. Khéo léo nhồi từng hạt sen vào bên trong cùi long nhãn.</li>
+                  <li>Bật bếp đun sôi lại nồi nước đường, thả phần long nhãn lồng hạt sen vào.</li>
+                  <li>Đun sôi nhẹ khoảng 2-3 phút thì tắt bếp ngay (nếu đun lâu long nhãn sẽ mất độ giòn). Thưởng thức nóng hoặc thêm đá tùy thích.</li>
+                </ol>
+              </div>
+            )}
+            <div className="mt-8 pt-6 border-t flex justify-center">
+              <button onClick={() => setSelectedRecipe(null)} className="bg-accent hover:bg-accent/90 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95">
+                Đã hiểu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

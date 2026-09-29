@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "FacebookManager.Domain/1.0.0": {
+        "runtime": {
+          "FacebookManager.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "FacebookManager.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

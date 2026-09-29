@@ -1,0 +1,12 @@
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\bin\Debug\net9.0\FacebookManager.Domain.deps.json
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\bin\Debug\net9.0\FacebookManager.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\bin\Debug\net9.0\FacebookManager.Domain.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.GeneratedMSBuildEditorConfig.editorconfig
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.AssemblyInfoInputs.cache
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.AssemblyInfo.cs
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.csproj.CoreCompileInputs.cache
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.sourcelink.json
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\refint\FacebookManager.Domain.dll
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\FacebookManager.Domain.pdb
+F:\OJT-Review\nguyetnhan_phohien\backend\src\FacebookManager.Domain\obj\Debug\net9.0\ref\FacebookManager.Domain.dll
