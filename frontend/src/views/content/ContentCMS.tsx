@@ -19,10 +19,6 @@ export default function ContentCMS() {
   const [isSaving, setIsSaving] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchContents();
-  }, []);
-
   const fetchContents = async () => {
     try {
       const data = await contentApi.getAll();
@@ -45,6 +41,11 @@ export default function ContentCMS() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    fetchContents();
+  }, []);
 
   const handleChange = (key: string, value: string) => {
     setContents(prev => ({ ...prev, [key]: value }));

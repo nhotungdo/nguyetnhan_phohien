@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";

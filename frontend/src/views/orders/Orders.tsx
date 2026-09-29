@@ -33,10 +33,6 @@ export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   const fetchOrders = async () => {
     try {
       const data = await orderApi.getAll();
@@ -48,6 +44,11 @@ export default function Orders() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line
+    fetchOrders();
+  }, []);
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
@@ -149,7 +150,7 @@ export default function Orders() {
                       )}
                       {order.note && (
                         <p className="text-xs text-muted-foreground mt-1 italic truncate max-w-[200px]" title={order.note}>
-                          "{order.note}"
+                          &quot;{order.note}&quot;
                         </p>
                       )}
                     </td>

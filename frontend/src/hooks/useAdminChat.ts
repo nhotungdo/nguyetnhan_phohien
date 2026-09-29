@@ -49,6 +49,7 @@ export function useAdminChat() {
 
   // 3. Khởi tạo SignalR kết nối
   useEffect(() => {
+    // eslint-disable-next-line
     fetchSessions();
 
     const connection = new signalR.HubConnectionBuilder()
