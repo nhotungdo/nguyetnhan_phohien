@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useLiveChat } from "@/hooks/useLiveChat";
 
@@ -161,13 +162,22 @@ export default function LandingPage() {
           {/* Background Elements */}
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
-            {/* Replace with real banner image */}
             <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-secondary rounded-full blur-3xl opacity-50"></div>
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.5 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-secondary rounded-full blur-3xl"
+            />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8 max-w-xl">
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="space-y-8 max-w-xl"
+            >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-accent text-sm font-medium border border-[#FDE68A]">
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
                 Tinh túy đất Phố Hiến
@@ -182,21 +192,31 @@ export default function LandingPage() {
                 Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => scrollToSection("san-pham")}
-                  className="bg-accent hover:bg-accent/90 text-white text-base font-medium px-8 py-4 rounded-full shadow-xl shadow-[#B45309]/30 transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
+                  className="bg-accent text-white text-base font-medium px-8 py-4 rounded-full shadow-xl shadow-[#B45309]/30 transition-shadow flex items-center justify-center gap-2"
                 >
                   Khám phá sản phẩm <ArrowRight className="w-5 h-5" />
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => scrollToSection("cau-chuyen")}
-                  className="bg-white hover:bg-secondary text-accent border border-[#FDE68A] text-base font-medium px-8 py-4 rounded-full transition-all flex items-center justify-center"
+                  className="bg-white text-accent border border-[#FDE68A] text-base font-medium px-8 py-4 rounded-full flex items-center justify-center"
                 >
                   Câu chuyện của chúng tôi
-                </button>
+                </motion.button>
               </div>
-            </div>
-            <div className="relative h-[500px] md:h-[700px] flex items-center justify-center">
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="relative h-[500px] md:h-[700px] flex items-center justify-center"
+            >
               {/* Product Hero Image Placeholder */}
               <div className="relative w-full max-w-md aspect-square rounded-full bg-gradient-to-tr from-[#FDE68A] to-[#FEF3C7] shadow-2xl flex items-center justify-center overflow-hidden animate-[spin_60s_linear_infinite]">
                  {/* Decorative elements */}
@@ -221,19 +241,25 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* 3. Giới thiệu thương hiệu */}
         <section id="gioi-thieu" className="py-24 bg-white relative">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+              className="max-w-3xl mx-auto text-center space-y-6"
+            >
               <h2 className="text-3xl md:text-5xl font-bold text-primary">Về Nguyệt Nhãn Phố Hiến</h2>
               <p className="text-lg text-foreground/80 leading-relaxed">
                 Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến, Nguyệt Nhãn mang trong mình sứ mệnh gìn giữ và phát triển hương vị đặc sản Long Nhãn tiến vua. Chúng tôi kết hợp phương pháp sấy củi truyền thống cùng quy trình vệ sinh hiện đại, tạo ra những mẻ long nhãn vàng óng, dẻo thơm, trọn vẹn tinh túy đất trời.
               </p>
-            </div>
+            </motion.div>
             
             <div className="grid md:grid-cols-3 gap-8 mt-20">
               {[
@@ -241,11 +267,18 @@ export default function LandingPage() {
                 { title: "Phương pháp truyền thống", desc: "Sấy hoàn toàn bằng củi nhãn, kiểm soát nhiệt độ thủ công giúp giữ được độ dẻo và hương thơm đặc trưng." },
                 { title: "Không chất bảo quản", desc: "Cam kết không sử dụng đường hóa học, không chất tạo màu, an toàn tuyệt đối cho sức khỏe người dùng." }
               ].map((val, i) => (
-                <div key={i} className="bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-all hover:-translate-y-2 group">
+                <motion.div 
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.5, delay: i * 0.2 }}
+                  key={i} 
+                  className="bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-all hover:-translate-y-2 group"
+                >
                   <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">0{i+1}</div>
                   <h3 className="text-xl font-bold text-primary mb-3">{val.title}</h3>
                   <p className="text-foreground/80">{val.desc}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -254,10 +287,16 @@ export default function LandingPage() {
         {/* 4. Khu vực sản phẩm */}
         <section id="san-pham" className="py-24 bg-secondary/30">
           <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-16">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
               <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">Sản Phẩm Của Chúng Tôi</h2>
               <p className="text-foreground/80">Món quà sức khỏe dành tặng người thân yêu</p>
-            </div>
+            </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[
@@ -265,17 +304,26 @@ export default function LandingPage() {
                 { name: "Long Nhãn Dạng Túi Zip", price: "320.000đ", size: "Túi 500g", desc: "Tiện lợi để sử dụng hàng ngày, ngâm rượu hoặc nấu chè, pha trà." },
                 { name: "Set Quà Tặng Cao Cấp", price: "850.000đ", size: "Hộp 1kg + Trà hoa vàng", desc: "Bao bì sang trọng, thiết kế mang đậm bản sắc văn hóa Phố Hiến." },
               ].map((prod, i) => (
-                <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all">
+                <motion.div 
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: i * 0.15 }}
+                  key={i} 
+                  className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all"
+                >
                   <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
                      {/* Product Image Placeholder */}
                      <div className="text-accent font-medium">[ Ảnh Sản Phẩm {i+1} ]</div>
                      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                       <button 
+                       <motion.button 
+                         whileHover={{ scale: 1.05 }}
+                         whileTap={{ scale: 0.95 }}
                          onClick={() => scrollToSection("dat-hang")}
                          className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
                        >
                          Mua Ngay
-                       </button>
+                       </motion.button>
                      </div>
                   </div>
                   <div className="p-8">
@@ -294,7 +342,7 @@ export default function LandingPage() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
