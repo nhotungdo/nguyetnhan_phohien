@@ -1,11 +1,13 @@
 // ===== ORDER TYPES =====
+// Backend tự tính tổng tiền từ giá sản phẩm trong DB — client KHÔNG gửi totalAmount.
 export interface CreateOrderRequest {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
   customerEmail?: string;
   note?: string;
-  totalAmount: number;
+  productId: string;
+  quantity: number;
   discountCode?: string;
 }
 
@@ -16,10 +18,14 @@ export interface OrderResponse {
   customerAddress: string;
   customerEmail?: string;
   note?: string;
+  baseAmount: number;
   totalAmount: number;
   discountAmount: number;
   status: string;
   discountCodeApplied?: string;
+  productName: string;
+  productSize?: string;
+  quantity: number;
   createdAt: string;
 }
 
@@ -30,12 +36,9 @@ export interface ApplyDiscountRequest {
 
 export interface DiscountResult {
   isValid: boolean;
-  message: string;
-  isAdminBackdoor: boolean;
-  adminToken?: string;
+  message?: string;
   percentOff?: number;
   amountOff?: number;
-  code?: string;
 }
 
 // ===== CHAT TYPES =====

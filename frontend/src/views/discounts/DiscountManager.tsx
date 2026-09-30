@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useDiscounts, DiscountDto } from "@/hooks/useDiscounts";
-import { Ticket, Plus, Trash2, Edit, Check, X, ShieldAlert } from "lucide-react";
+import { Ticket, Plus, Trash2, Edit, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function DiscountManager() {
@@ -16,7 +16,6 @@ export function DiscountManager() {
     value: 0,
     maxUsageCount: "",
     expiresAt: "",
-    isAdminBackdoor: false,
     isActive: true,
   });
 
@@ -28,7 +27,6 @@ export function DiscountManager() {
       value: 0,
       maxUsageCount: "",
       expiresAt: "",
-      isAdminBackdoor: false,
       isActive: true,
     });
     setIsModalOpen(true);
@@ -42,7 +40,6 @@ export function DiscountManager() {
       value: discount.percentOff ?? discount.amountOff ?? 0,
       maxUsageCount: discount.maxUsageCount?.toString() ?? "",
       expiresAt: discount.expiresAt ? new Date(discount.expiresAt).toISOString().slice(0, 16) : "",
-      isAdminBackdoor: discount.isAdminBackdoor,
       isActive: discount.isActive,
     });
     setIsModalOpen(true);
@@ -56,7 +53,6 @@ export function DiscountManager() {
       code: form.code.trim(),
       percentOff: form.type === "percent" && form.value > 0 ? form.value : null,
       amountOff: form.type === "amount" && form.value > 0 ? form.value : null,
-      isAdminBackdoor: form.isAdminBackdoor,
       isActive: form.isActive,
       maxUsageCount: form.maxUsageCount ? parseInt(form.maxUsageCount) : null,
       expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : null,
@@ -98,7 +94,7 @@ export function DiscountManager() {
             <Ticket className="w-6 h-6 text-primary" />
             Mã Giảm Giá
           </h2>
-          <p className="text-muted-foreground mt-1">Quản lý các mã khuyến mãi và mã bí mật (backdoor) cho hệ thống.</p>
+          <p className="text-muted-foreground mt-1">Quản lý các mã khuyến mãi của hệ thống.</p>
         </div>
         <Button onClick={openCreateModal} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -134,17 +130,10 @@ export function DiscountManager() {
                         <span className="font-mono font-bold px-2 py-1 bg-primary/10 text-primary rounded-md">
                           {discount.code}
                         </span>
-                        {discount.isAdminBackdoor && (
-                          <span title="Mã Admin Backdoor">
-                            <ShieldAlert className="w-4 h-4 text-destructive" />
-                          </span>
-                        )}
                       </div>
                     </td>
                     <td className="p-4">
-                      {discount.isAdminBackdoor ? (
-                        <span className="text-destructive font-medium text-sm border border-destructive/20 bg-destructive/10 px-2 py-1 rounded">Admin Backdoor</span>
-                      ) : discount.percentOff != null ? (
+                      {discount.percentOff != null ? (
                         <span className="font-medium text-emerald-600 dark:text-emerald-400">Giảm {discount.percentOff}%</span>
                       ) : discount.amountOff != null ? (
                         <span className="font-medium text-blue-600 dark:text-blue-400">Giảm {discount.amountOff.toLocaleString()}đ</span>
@@ -217,23 +206,7 @@ export function DiscountManager() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                <input 
-                  type="checkbox" 
-                  id="isAdminBackdoor"
-                  checked={form.isAdminBackdoor}
-                  onChange={e => setForm({...form, isAdminBackdoor: e.target.checked})}
-                  className="w-4 h-4 text-destructive rounded focus:ring-destructive"
-                />
-                <label htmlFor="isAdminBackdoor" className="text-sm font-semibold text-destructive cursor-pointer flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4" />
-                  Đây là mã Admin Backdoor
-                </label>
-              </div>
-
-              {!form.isAdminBackdoor && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold">Loại giảm</label>
                       <select 
@@ -257,8 +230,6 @@ export function DiscountManager() {
                       />
                     </div>
                   </div>
-                </>
-              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

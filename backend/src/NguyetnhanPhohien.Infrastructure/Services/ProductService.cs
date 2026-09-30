@@ -15,8 +15,11 @@ public class ProductService : IProductService
     public ProductService(AppDbContext db, IConfiguration config)
     {
         _db = db;
-        // Lấy đường dẫn uploads từ config, mặc định là thư mục tương đối
-        var basePath = config["FileStorage:UploadsPath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        // Lấy đường dẫn uploads từ config (nếu có); mặc định là wwwroot của API
+        var configuredPath = config["FileStorage:UploadsPath"];
+        var basePath = string.IsNullOrWhiteSpace(configuredPath)
+            ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+            : configuredPath;
         _uploadsPath = Path.Combine(basePath, "uploads", "products");
         Directory.CreateDirectory(_uploadsPath);
     }

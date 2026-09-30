@@ -14,8 +14,15 @@ public class Order
     public string? CustomerEmail { get; set; }
     public string? Note { get; set; }
 
+    // Sản phẩm đặt mua (snapshot tại thời điểm đặt)
+    public Guid ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public string? ProductSize { get; set; }
+    public int Quantity { get; set; } = 1;
+
     // Thông tin đơn
-    public decimal TotalAmount { get; set; }
+    public decimal BaseAmount { get; set; }          // Tiền hàng = giá DB x số lượng
+    public decimal TotalAmount { get; set; }         // = BaseAmount - DiscountAmount, luôn >= 0
     public OrderStatus Status { get; set; } = OrderStatus.PendingConfirmation;
     public string? DiscountCodeApplied { get; set; }
     public decimal DiscountAmount { get; set; } = 0;

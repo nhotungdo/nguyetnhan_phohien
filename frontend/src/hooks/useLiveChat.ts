@@ -26,11 +26,16 @@ export function useLiveChat() {
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const sessionId = useRef<string>("");
 
+  // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
+  // mà không cần re-register handlers
+  const guestInfoRef = useRef<{ name?: string; phone?: string }>({});
+
   // Kết nối SignalR
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
     if (connectionRef.current?.state === signalR.HubConnectionState.Connected) return;
 
     sessionId.current = getOrCreateSessionId();
+    guestInfoRef.current = { name: guestName, phone: guestPhone };
 
     // Load lịch sử trước khi kết nối
     setIsLoading(true);
@@ -53,13 +58,36 @@ export function useLiveChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
-    // Nhận tin nhắn từ Admin
-    connection.on("ReceiveMessage", (message: ChatMessageResponse) => {
+    // Nhận tin nhắn từ Admin — event name phải khớp ChatHub.AdminReply
+    connection.on("ReceiveAdminMessage", (message: ChatMessageResponse) => {
       setMessages((prev) => [...prev, message]);
     });
 
+    // Echo xác nhận tin nhắn của chính khách đã được lưu
+    connection.on("MessageSent", (message: ChatMessageResponse) => {
+      setMessages((prev) => {
+        // Tránh hiển thị trùng nếu tin nhắn đã được append optimistic
+        const exists = prev.some((m) => m.id === message.id);
+        return exists ? prev : [...prev, message];
+      });
+    });
+
     connection.onclose(() => setIsConnected(false));
-    connection.onreconnected(() => setIsConnected(true));
+    connection.onreconnected(async () => {
+      setIsConnected(true);
+      // Sau reconnect, connection id mới => mất membership của group cũ.
+      // Phải join lại group phiên chat thì mới tiếp tục nhận tin nhắn admin.
+      try {
+        await connection.invoke(
+          "JoinAsGuest",
+          sessionId.current,
+          guestInfoRef.current.name ?? null,
+          guestInfoRef.current.phone ?? null
+        );
+      } catch (err) {
+        console.error("Failed to re-join session group after reconnect:", err);
+      }
+    });
 
     try {
       await connection.start();

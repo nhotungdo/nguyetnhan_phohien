@@ -22,6 +22,9 @@ public class ChatController : ControllerBase
     [HttpGet("messages/{sessionId}")]
     public async Task<IActionResult> GetGuestMessages(string sessionId)
     {
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
+            return BadRequest("SessionId không hợp lệ.");
+
         var session = await _chatService.GetOrCreateSessionAsync(sessionId, null, null);
         var messages = await _chatService.GetSessionMessagesAsync(session.Id);
         return Ok(messages);

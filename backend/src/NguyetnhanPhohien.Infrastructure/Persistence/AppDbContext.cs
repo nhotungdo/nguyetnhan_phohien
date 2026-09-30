@@ -19,8 +19,9 @@ public class AppDbContext : DbContext
     public DbSet<AutoReplyRule> AutoReplyRules { get; set; } = null!;
     public DbSet<BotSetting> BotSettings { get; set; } = null!;
 
-    // ===== CORE BUSINESS =====
+    // ===== ORDER =====
     public DbSet<Order> Orders { get; set; } = null!;
+    // Lưu ý: không dùng bảng OrderItems — đơn hàng lưu snapshot sản phẩm trực tiếp trên Order.
     public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
     public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
@@ -84,14 +85,19 @@ public class AppDbContext : DbContext
             .HasForeignKey(b => b.FacebookPageId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // ===== ORDER =====
+        // ===== ORDER (snapshot sản phẩm nằm ngay trên Order, không có bảng OrderItems) =====
         modelBuilder.Entity<Order>().HasKey(o => o.Id);
+        modelBuilder.Entity<Order>()
+            .Property(o => o.BaseAmount)
+            .HasPrecision(18, 2);
         modelBuilder.Entity<Order>()
             .Property(o => o.TotalAmount)
             .HasPrecision(18, 2);
         modelBuilder.Entity<Order>()
             .Property(o => o.DiscountAmount)
             .HasPrecision(18, 2);
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.ProductId);
 
         // ===== DISCOUNT CODE =====
         modelBuilder.Entity<DiscountCode>().HasKey(d => d.Id);

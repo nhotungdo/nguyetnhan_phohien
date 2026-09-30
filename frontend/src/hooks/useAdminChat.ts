@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as signalR from "@microsoft/signalr";
-import { chatApi } from "@/services/api.service";
+import { chatApi, adminAuth } from "@/services/api.service";
 import type { ChatSessionResponse, ChatMessageResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -63,6 +63,7 @@ export function useAdminChat() {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
+        accessTokenFactory: () => adminAuth.getToken() || "",
       })
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.None)
@@ -88,7 +89,16 @@ export function useAdminChat() {
     });
 
     connection.onclose(() => setIsConnected(false));
-    connection.onreconnected(() => setIsConnected(true));
+    connection.onreconnected(async () => {
+      setIsConnected(true);
+      try {
+        await connection.invoke("JoinAsAdmin");
+        // Tin nhắn bị mất trong lúc mất kết nối: reload sessions để lấy trạng thái mới nhất
+        await fetchSessions();
+      } catch (err) {
+        console.error("Re-join admin group error:", err);
+      }
+    });
 
     connection.start()
       .then(async () => {

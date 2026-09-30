@@ -20,27 +20,60 @@ public class OrderService : IOrderService
 
     public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request)
     {
-        decimal discountAmount = 0;
+        // ===== 1. VALIDATE SẢN PHẨM — tính tiền từ giá trong DB, KHÔNG tin client =====
+        if (!Guid.TryParse(request.ProductId, out var productId))
+            throw new ArgumentException("Sản phẩm không hợp lệ.");
 
-        // Xử lý mã giảm giá nếu có
+        if (request.Quantity < 1 || request.Quantity > 999)
+            throw new ArgumentException("Số lượng phải từ 1 đến 999.");
+
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == productId && p.IsActive)
+            ?? throw new ArgumentException("Sản phẩm không tồn tại hoặc đã ngừng bán.");
+
+        var baseAmount = product.Price * request.Quantity;
+
+        // ===== 2. VALIDATE MÃ GIẢM GIÁ (kể cả hạn dùng + số lượt) và tính số tiền giảm =====
+        decimal discountAmount = 0;
+        DiscountCode? appliedDiscount = null;
+
         if (!string.IsNullOrWhiteSpace(request.DiscountCode))
         {
+            var code = request.DiscountCode.Trim();
             var discountCode = await _db.DiscountCodes
-                .FirstOrDefaultAsync(d => d.Code == request.DiscountCode
-                    && d.IsActive
-                    && !d.IsAdminBackdoor);
+                .FirstOrDefaultAsync(d => d.Code == code && d.IsActive && !d.IsAdminBackdoor)
+                ?? throw new ArgumentException("Mã giảm giá không hợp lệ.");
 
-            if (discountCode != null)
+            if (discountCode.ExpiresAt.HasValue && discountCode.ExpiresAt.Value < DateTime.UtcNow)
+                throw new ArgumentException("Mã giảm giá đã hết hạn.");
+
+            if (discountCode.MaxUsageCount.HasValue && discountCode.UsageCount >= discountCode.MaxUsageCount.Value)
+                throw new ArgumentException("Mã giảm giá đã được sử dụng hết lượt.");
+
+            // Giới hạn giảm giá luôn bị kẹp bởi baseAmount thật:
+            // - PercentOff chỉ chấp nhận (0, 100]
+            // - AmountOff không bao giờ giảm quá tiền hàng
+            // => tổng tiền của đơn KHÔNG BAO GIỜ âm.
+            if (discountCode.PercentOff.HasValue)
             {
-                if (discountCode.PercentOff.HasValue)
-                    discountAmount = request.TotalAmount * (discountCode.PercentOff.Value / 100m);
-                else if (discountCode.AmountOff.HasValue)
-                    discountAmount = discountCode.AmountOff.Value;
-
-                discountCode.UsageCount++;
+                if (discountCode.PercentOff.Value <= 0 || discountCode.PercentOff.Value > 100)
+                    throw new ArgumentException("Mã giảm giá không hợp lệ.");
+                discountAmount = decimal.Round(baseAmount * discountCode.PercentOff.Value / 100m, 0, MidpointRounding.AwayFromZero);
             }
+            else if (discountCode.AmountOff.HasValue)
+            {
+                if (discountCode.AmountOff.Value <= 0)
+                    throw new ArgumentException("Mã giảm giá không hợp lệ.");
+                discountAmount = Math.Min(discountCode.AmountOff.Value, baseAmount);
+            }
+            else
+            {
+                throw new ArgumentException("Mã giảm giá không hợp lệ.");
+            }
+
+            appliedDiscount = discountCode;
         }
 
+        // ===== 3. TẠO ĐƠN =====
         var order = new Order
         {
             CustomerName = request.CustomerName,
@@ -48,12 +81,31 @@ public class OrderService : IOrderService
             CustomerEmail = request.CustomerEmail,
             CustomerAddress = request.CustomerAddress,
             Note = request.Note,
-            TotalAmount = request.TotalAmount - discountAmount,
+            ProductId = productId,
+            ProductName = product.Name,
+            ProductSize = product.Size,
+            Quantity = request.Quantity,
+            BaseAmount = baseAmount,
+            TotalAmount = baseAmount - discountAmount,
             DiscountAmount = discountAmount,
-            DiscountCodeApplied = request.DiscountCode,
+            DiscountCodeApplied = appliedDiscount?.Code,
             Status = OrderStatus.PendingConfirmation,
             CreatedAt = DateTime.UtcNow
         };
+
+        // ===== 4. TĂNG LƯỢT DÙNG MÃ NGUYÊN TỬ (đúng 1 lần / đơn, tại thời điểm tạo đơn) =====
+        if (appliedDiscount != null)
+        {
+            // UPDATE có điều kiện WHERE UsageCount < MaxUsageCount: chặn race condition
+            // khi nhiều đơn cùng lúc vượt quá MaxUsageCount.
+            var affected = await _db.DiscountCodes
+                .Where(d => d.Id == appliedDiscount.Id
+                    && (!d.MaxUsageCount.HasValue || d.UsageCount < d.MaxUsageCount.Value))
+                .ExecuteUpdateAsync(s => s.SetProperty(d => d.UsageCount, d => d.UsageCount + 1));
+
+            if (affected == 0)
+                throw new ArgumentException("Mã giảm giá đã được sử dụng hết lượt.");
+        }
 
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
@@ -69,7 +121,7 @@ public class OrderService : IOrderService
         try
         {
             string adminEmail = "nhotungdo89@gmail.com";
-            
+
             // Build HTML
             string invoiceHtml = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
@@ -80,6 +132,10 @@ public class OrderService : IOrderService
                         <tr>
                             <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Mã đơn hàng</td>
                             <td style='padding: 8px; border: 1px solid #ddd;'>{order.Id}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Sản phẩm</td>
+                            <td style='padding: 8px; border: 1px solid #ddd;'>{order.ProductName} ({order.ProductSize}) x {order.Quantity}</td>
                         </tr>
                         <tr>
                             <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Điện thoại</td>
@@ -94,7 +150,11 @@ public class OrderService : IOrderService
                             <td style='padding: 8px; border: 1px solid #ddd;'>{order.Note ?? "Không"}</td>
                         </tr>
                         <tr>
-                            <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Giảm giá</td>
+                            <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Tiền hàng</td>
+                            <td style='padding: 8px; border: 1px solid #ddd;'>{order.BaseAmount:N0} đ</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Giảm giá{(order.DiscountCodeApplied != null ? $" ({order.DiscountCodeApplied})" : "")}</td>
                             <td style='padding: 8px; border: 1px solid #ddd; color: #E53935;'>- {order.DiscountAmount:N0} đ</td>
                         </tr>
                         <tr>
@@ -119,9 +179,10 @@ public class OrderService : IOrderService
                     <p><strong>Khách hàng:</strong> {order.CustomerName} ({order.CustomerPhone})</p>
                     <p><strong>Email:</strong> {order.CustomerEmail ?? "Không có"}</p>
                     <p><strong>Địa chỉ:</strong> {order.CustomerAddress}</p>
+                    <p><strong>Sản phẩm:</strong> {order.ProductName} ({order.ProductSize}) x {order.Quantity}</p>
                     <p><strong>Tổng tiền:</strong> {order.TotalAmount:N0} đ</p>
                     <p><strong>Ghi chú:</strong> {order.Note}</p>
-                    <p><a href='http://localhost:3000/dashboard/orders'>Vào Dashboard để xem chi tiết</a></p>
+                    <p><a href='http://localhost:3000/orders'>Vào Dashboard để xem chi tiết</a></p>
                 </div>";
 
             await _emailService.SendEmailAsync(adminEmail, $"Đơn hàng mới từ {order.CustomerName}", adminHtml);
@@ -172,10 +233,14 @@ public class OrderService : IOrderService
         CustomerEmail = order.CustomerEmail,
         CustomerAddress = order.CustomerAddress,
         Note = order.Note,
+        BaseAmount = order.BaseAmount,
         TotalAmount = order.TotalAmount,
         DiscountAmount = order.DiscountAmount,
         DiscountCodeApplied = order.DiscountCodeApplied,
         Status = order.Status.ToString(),
+        ProductName = order.ProductName,
+        ProductSize = order.ProductSize,
+        Quantity = order.Quantity,
         CreatedAt = order.CreatedAt
     };
 }

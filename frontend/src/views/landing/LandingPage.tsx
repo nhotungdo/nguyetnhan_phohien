@@ -266,8 +266,18 @@ export default function LandingPage() {
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
-                  <div className="absolute inset-0 bg-[#FDE68A]/30"></div>
-                  [ Ảnh Sản Phẩm Tách Nền ]
+                  {cmsContent.HeroBannerUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cmsContent.HeroBannerUrl.startsWith("http") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover" />
+                  ) : products[0]?.images?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={`${API_URL}${products[0].images[0].imagePath}`} alt={products[0].name} className="w-full h-full object-cover" />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-[#FDE68A]/30"></div>
+                      <span className="relative z-10 text-xl font-bold text-primary">Nguyệt Nhãn Phố Hiến</span>
+                    </>
+                  )}
                 </div>
               </div>
 

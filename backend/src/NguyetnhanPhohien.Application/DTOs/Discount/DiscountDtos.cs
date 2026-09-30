@@ -6,19 +6,15 @@ public class ApplyDiscountRequest
     public string Code { get; set; } = string.Empty;
 }
 
-// DTO trả về khi apply mã thường (giảm giá)
+// DTO trả về khi apply mã giảm giá (KHÔNG còn backdoor/token admin)
 public class DiscountResult
 {
     public bool IsValid { get; set; }
-    public bool IsAdminBackdoor { get; set; }
 
-    // Nếu là mã thường:
+    // Giá trị giảm nếu mã hợp lệ:
     public decimal? PercentOff { get; set; }
     public decimal? AmountOff { get; set; }
     public string? Message { get; set; }
-
-    // Nếu là mã Admin backdoor: trả về JWT token
-    public string? AdminToken { get; set; }
 }
 
 public class DiscountDto
@@ -40,7 +36,6 @@ public class CreateDiscountRequest
     public string Code { get; set; } = string.Empty;
     public decimal? PercentOff { get; set; }
     public decimal? AmountOff { get; set; }
-    public bool IsAdminBackdoor { get; set; } = false;
     public DateTime? ExpiresAt { get; set; }
     public int? MaxUsageCount { get; set; }
 }
@@ -50,7 +45,6 @@ public class UpdateDiscountRequest
     public string Code { get; set; } = string.Empty;
     public decimal? PercentOff { get; set; }
     public decimal? AmountOff { get; set; }
-    public bool IsAdminBackdoor { get; set; } = false;
     public bool IsActive { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public int? MaxUsageCount { get; set; }

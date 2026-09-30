@@ -18,8 +18,6 @@ public class DiscountController : ControllerBase
 
     /// <summary>
     /// Xác thực mã giảm giá.
-    /// Nếu là mã Admin backdoor -> trả về JWT token để truy cập dashboard.
-    /// Nếu là mã thường -> trả về thông tin giảm giá.
     /// </summary>
     [HttpPost("apply")]
     public async Task<IActionResult> ApplyCode([FromBody] ApplyDiscountRequest request)

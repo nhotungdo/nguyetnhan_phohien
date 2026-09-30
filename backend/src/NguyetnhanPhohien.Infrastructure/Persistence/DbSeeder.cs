@@ -5,8 +5,9 @@ using NguyetnhanPhohien.Infrastructure.Persistence;
 namespace NguyetnhanPhohien.Infrastructure.Persistence;
 
 /// <summary>
-/// Seed dữ liệu ban đầu: Mã Admin Backdoor + nội dung website mặc định.
+/// Seed dữ liệu ban đầu: mã giảm giá mẫu + nội dung website mặc định.
 /// Chạy khi app khởi động lần đầu.
+/// Đăng nhập admin KHÔNG còn qua mã backdoor — dùng POST /api/auth/admin-login.
 /// </summary>
 public static class DbSeeder
 {
@@ -31,18 +32,16 @@ public static class DbSeeder
             END $$;
         ");
 
-        // ===== SEED MÃ GIẢM GIÁ (Bao gồm mã Admin Backdoor) =====
+        // Cleanup any legacy Admin Backdoor discount codes
+        await db.Database.ExecuteSqlRawAsync(@"
+            DELETE FROM ""DiscountCodes"" WHERE ""IsAdminBackdoor"" = true OR ""Code"" = 'NguyetNhanPhoHienAdmin';
+        ");
+
+        // ===== SEED MÃ GIẢM GIÁ =====
         if (!await db.DiscountCodes.AnyAsync())
         {
             var codes = new List<DiscountCode>
             {
-                // Mã bí mật để Admin đăng nhập
-                new()
-                {
-                    Code = "NguyetNhanPhoHienAdmin",
-                    IsAdminBackdoor = true,
-                    IsActive = true
-                },
                 // Mã giảm giá thông thường mẫu
                 new()
                 {

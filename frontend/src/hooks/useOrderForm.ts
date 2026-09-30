@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { orderApi, discountApi, adminAuth } from "@/services/api.service";
+import { orderApi, discountApi } from "@/services/api.service";
 import type { CreateOrderRequest, DiscountResult } from "@/types/api.types";
 
 interface OrderFormState {
@@ -50,15 +50,6 @@ export function useOrderForm(
 
     try {
       const result = await discountApi.apply({ code: form.discountCode.trim() });
-
-      // ⭐ BACKDOOR ADMIN LOGIN
-      if (result.isAdminBackdoor && result.adminToken) {
-        adminAuth.login(result.adminToken);
-        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = "/dashboard";
-        return;
-      }
-
       setDiscountResult(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mã không hợp lệ.";
@@ -69,6 +60,8 @@ export function useOrderForm(
     }
   };
 
+  // Preview tổng tiền CHỈ để hiển thị trên UI.
+  // Khi submit, backend tự tính lại từ giá trong DB — con số này không được gửi đi.
   const calculateTotal = (): { base: number; discount: number; final: number } => {
     const selectedProduct = products.find(p => p.id === form.product);
     const price = selectedProduct ? selectedProduct.price : 0;
@@ -92,20 +85,17 @@ export function useOrderForm(
     setErrorMessage("");
     setSubmitStatus("idle");
 
-    const { final, discount } = calculateTotal();
-
+    // Gửi productId + quantity — tổng tiền và số tiền giảm do backend tính.
     const payload: CreateOrderRequest = {
       customerName: form.customerName,
       customerPhone: form.customerPhone,
-      customerEmail: form.customerEmail,
+      customerEmail: form.customerEmail || undefined,
       customerAddress: form.customerAddress,
       note: form.note || undefined,
-      totalAmount: final,
-      discountCode: discountResult?.isValid ? form.discountCode : undefined,
+      productId: form.product,
+      quantity: form.quantity,
+      discountCode: discountResult?.isValid ? form.discountCode.trim() : undefined,
     };
-
-    // Attach discount amount info for display (stored separately)
-    void discount;
 
     try {
       await orderApi.create(payload);

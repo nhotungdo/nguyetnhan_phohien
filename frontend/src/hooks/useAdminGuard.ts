@@ -12,7 +12,7 @@ export function useAdminGuard() {
   useEffect(() => {
     const checkAuth = () => {
       if (!adminAuth.isLoggedIn()) {
-        router.push("/");
+        router.push("/admin-login");
       } else {
         setIsAuthorized(true);
       }

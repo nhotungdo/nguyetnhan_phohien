@@ -76,16 +76,20 @@ public class ChatService : IChatService
 
     public async Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync()
     {
-        var sessions = await _db.ChatSessions
-            .Include(cs => cs.Messages)
+        return await _db.ChatSessions
             .OrderByDescending(cs => cs.LastMessageAt)
+            .Select(s => new ChatSessionResponse
+            {
+                Id = s.Id,
+                SessionId = s.SessionId,
+                GuestName = s.GuestName,
+                GuestPhone = s.GuestPhone,
+                HasUnreadMessages = s.HasUnreadMessages,
+                IsResolved = s.IsResolved,
+                LastMessageAt = s.LastMessageAt,
+                LastMessagePreview = s.Messages.OrderByDescending(m => m.SentAt).Select(m => m.Content).FirstOrDefault() ?? string.Empty
+            })
             .ToListAsync();
-
-        return sessions.Select(s =>
-        {
-            var lastMsg = s.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
-            return MapSessionToResponse(s, lastMsg?.Content ?? string.Empty);
-        });
     }
 
     public async Task<IEnumerable<ChatMessageResponse>> GetSessionMessagesAsync(Guid sessionId)

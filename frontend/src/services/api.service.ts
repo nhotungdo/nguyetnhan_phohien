@@ -9,6 +9,13 @@ import type {
   UpdateContentRequest,
 } from "@/types/api.types";
 
+// Kết quả đăng nhập admin từ POST /api/auth/admin-login
+export interface AdminLoginResponse {
+  token: string;
+  expiresAtUtc: string;
+  username: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
 // ===== BASE FETCH HELPER =====
@@ -82,7 +89,6 @@ export const orderApi = {
 export const discountApi = {
   /**
    * [PUBLIC] Áp dụng mã giảm giá.
-   * Nếu là mã Admin backdoor → trả về { isAdminBackdoor: true, adminToken: "..." }
    */
   apply: (data: ApplyDiscountRequest): Promise<DiscountResult> =>
     apiFetch("/api/discount/apply", {
@@ -222,9 +228,23 @@ export const productApi = {
     }),
 };
 
+// ===== AUTH API =====
+export const authApi = {
+  /** Đăng nhập admin bằng username/password → JWT role Admin */
+  adminLogin: (username: string, password: string): Promise<AdminLoginResponse> =>
+    apiFetch("/api/auth/admin-login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+
+  /** Kiểm tra token hiện tại còn hiệu lực */
+  me: (): Promise<{ username: string; authenticated: boolean }> =>
+    apiFetch("/api/auth/me", { headers: getAdminHeaders() }),
+};
+
 // ===== ADMIN AUTH HELPERS =====
 export const adminAuth = {
-  /** Lưu token admin vào localStorage sau khi backdoor login thành công */
+  /** Lưu token admin vào localStorage sau khi đăng nhập thành công */
   login: (token: string) => {
     localStorage.setItem("adminToken", token);
   },

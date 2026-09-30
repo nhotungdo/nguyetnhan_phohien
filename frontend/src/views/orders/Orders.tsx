@@ -141,7 +141,10 @@ export default function Orders() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 mb-1">
                         <Package className="w-4 h-4 text-accent" />
-                        <span className="font-medium">Xem chi tiết</span>
+                        <span className="font-medium text-xs">
+                          {order.productName}
+                          {order.productSize ? ` (${order.productSize})` : ""} x{order.quantity}
+                        </span>
                       </div>
                       {order.discountCodeApplied && (
                         <div className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 inline-block">

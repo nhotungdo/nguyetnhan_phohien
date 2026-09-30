@@ -1,30 +1,23 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Infrastructure.Persistence;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
 
 public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
-    private readonly IConfiguration _config;
 
-    public DiscountService(AppDbContext db, IConfiguration config)
+    public DiscountService(AppDbContext db)
     {
         _db = db;
-        _config = config;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code)
     {
         var discountCode = await _db.DiscountCodes
-            .FirstOrDefaultAsync(d => d.Code == code && d.IsActive);
+            .FirstOrDefaultAsync(d => d.Code == code && d.IsActive && !d.IsAdminBackdoor);
 
         if (discountCode == null)
         {
@@ -47,61 +40,19 @@ public class DiscountService : IDiscountService
             return new DiscountResult { IsValid = false, Message = "Mã đã được sử dụng hết lượt." };
         }
 
-        // === ADMIN BACKDOOR ===
-        if (discountCode.IsAdminBackdoor)
-        {
-            var token = GenerateAdminJwt();
-            return new DiscountResult
-            {
-                IsValid = true,
-                IsAdminBackdoor = true,
-                AdminToken = token,
-                Message = "Xác thực Admin thành công."
-            };
-        }
-
-        // === MÃ GIẢM GIÁ THƯỜNG ===
-        // Tăng số lần sử dụng
-        discountCode.UsageCount++;
-        await _db.SaveChangesAsync();
+        // KHÔNG tăng UsageCount ở đây — lượt dùng chỉ được tính khi đơn hàng
+        // thực sự được tạo (OrderService.CreateOrderAsync), tránh "đốt" lượt
+        // dùng cho khách bấm Áp dụng rồi bỏ cuộc.
 
         return new DiscountResult
         {
             IsValid = true,
-            IsAdminBackdoor = false,
             PercentOff = discountCode.PercentOff,
             AmountOff = discountCode.AmountOff,
             Message = discountCode.PercentOff.HasValue
                 ? $"Giảm {discountCode.PercentOff}% cho đơn hàng!"
                 : $"Giảm {discountCode.AmountOff?.ToString("N0")}đ cho đơn hàng!"
         };
-    }
-
-    private string GenerateAdminJwt()
-    {
-        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
-        var issuer = _config["Jwt:Issuer"] ?? "NguyetNhanPhoHien";
-        var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
-
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Role, "Admin"),
-            new Claim(ClaimTypes.Name, "NguyetNhanAdmin"),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<List<DiscountDto>> GetAllAsync()
@@ -128,7 +79,7 @@ public class DiscountService : IDiscountService
     {
         var d = await _db.DiscountCodes.FindAsync(id);
         if (d == null) return null;
-        
+
         return new DiscountDto
         {
             Id = d.Id,
@@ -151,12 +102,13 @@ public class DiscountService : IDiscountService
             throw new Exception("Mã giảm giá đã tồn tại.");
         }
 
+        ValidateDiscountValues(request.PercentOff, request.AmountOff);
+
         var discount = new Domain.Entities.DiscountCode
         {
             Code = request.Code,
             PercentOff = request.PercentOff,
             AmountOff = request.AmountOff,
-            IsAdminBackdoor = request.IsAdminBackdoor,
             ExpiresAt = request.ExpiresAt,
             MaxUsageCount = request.MaxUsageCount,
             IsActive = true,
@@ -183,10 +135,11 @@ public class DiscountService : IDiscountService
         discount.Code = request.Code;
         discount.PercentOff = request.PercentOff;
         discount.AmountOff = request.AmountOff;
-        discount.IsAdminBackdoor = request.IsAdminBackdoor;
         discount.IsActive = request.IsActive;
         discount.ExpiresAt = request.ExpiresAt;
         discount.MaxUsageCount = request.MaxUsageCount;
+
+        ValidateDiscountValues(discount.PercentOff, discount.AmountOff);
 
         await _db.SaveChangesAsync();
 
@@ -201,5 +154,23 @@ public class DiscountService : IDiscountService
         _db.DiscountCodes.Remove(discount);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Mã phải có đúng MỘT loại giá trị giảm: theo % (0-100) hoặc theo số tiền cố định.
+    /// </summary>
+    private static void ValidateDiscountValues(decimal? percentOff, decimal? amountOff)
+    {
+        if (percentOff.HasValue && amountOff.HasValue)
+            throw new Exception("Chỉ được chọn một loại giảm giá: theo phần trăm HOẶC theo số tiền.");
+
+        if (!percentOff.HasValue && !amountOff.HasValue)
+            throw new Exception("Phải nhập giá trị giảm: phần trăm hoặc số tiền.");
+
+        if (percentOff.HasValue && (percentOff.Value <= 0 || percentOff.Value > 100))
+            throw new Exception("Phần trăm giảm giá phải nằm trong khoảng (0, 100].");
+
+        if (amountOff.HasValue && amountOff.Value <= 0)
+            throw new Exception("Số tiền giảm giá phải lớn hơn 0.");
     }
 }

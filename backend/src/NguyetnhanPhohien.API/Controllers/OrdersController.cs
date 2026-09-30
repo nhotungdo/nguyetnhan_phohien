@@ -18,6 +18,7 @@ public class OrdersController : ControllerBase
 
     /// <summary>
     /// [PUBLIC] Khách hàng gửi đơn đặt hàng - không cần đăng nhập.
+    /// Tổng tiền và số tiền giảm giá được tính lại hoàn toàn phía server.
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
@@ -29,8 +30,16 @@ public class OrdersController : ControllerBase
             return BadRequest(new { message = "Vui lòng điền đầy đủ thông tin: Tên, SĐT và Địa chỉ." });
         }
 
-        var order = await _orderService.CreateOrderAsync(request);
-        return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+        try
+        {
+            var order = await _orderService.CreateOrderAsync(request);
+            return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+        }
+        catch (ArgumentException ex)
+        {
+            // Sản phẩm không hợp lệ / mã giảm giá hết hạn hoặc hết lượt...
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>
