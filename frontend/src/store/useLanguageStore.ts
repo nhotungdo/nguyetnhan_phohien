@@ -12,6 +12,10 @@ interface LanguageState {
   setLanguage: (lang: Language) => void;
 }
 
+interface PersistedLanguageState {
+  language?: Language;
+}
+
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set) => ({
@@ -25,6 +29,15 @@ export const useLanguageStore = create<LanguageState>()(
     }),
     {
       name: "language-storage",
+      merge: (persistedState: unknown, currentState) => {
+        const persisted = (persistedState ?? {}) as PersistedLanguageState;
+        const language = persisted.language ?? currentState.language;
+        return {
+          ...currentState,
+          language,
+          t: language === "en" ? en : vi,
+        };
+      },
     }
   )
 );

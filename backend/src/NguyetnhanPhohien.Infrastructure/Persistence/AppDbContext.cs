@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
     public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<ProductImage> ProductImages { get; set; } = null!;
 
     // ===== LIVE CHAT =====
     public DbSet<ChatSession> ChatSessions { get; set; } = null!;
@@ -114,6 +116,20 @@ public class AppDbContext : DbContext
             .HasOne(cm => cm.ChatSession)
             .WithMany(cs => cs.Messages)
             .HasForeignKey(cm => cm.ChatSessionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== PRODUCT =====
+        modelBuilder.Entity<Product>().HasKey(p => p.Id);
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Price)
+            .HasPrecision(18, 2);
+
+        // ===== PRODUCT IMAGE =====
+        modelBuilder.Entity<ProductImage>().HasKey(pi => pi.Id);
+        modelBuilder.Entity<ProductImage>()
+            .HasOne(pi => pi.Product)
+            .WithMany(p => p.Images)
+            .HasForeignKey(pi => pi.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

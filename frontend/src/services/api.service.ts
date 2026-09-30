@@ -16,13 +16,24 @@ async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
-  });
+  // Chỉ gửi Content-Type khi thực sự có body: request GET/DELETE không body
+  // sẽ không bị trình duyệt bắt buộc CORS preflight (OPTIONS) nữa.
+  const headers: HeadersInit = {
+    Accept: "application/json",
+    ...(options.body != null ? { "Content-Type": "application/json" } : {}),
+    ...options.headers,
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    // Lỗi mạng / CORS / backend chưa chạy → fetch ném TypeError "Failed to fetch".
+    // Chuyển thành thông báo rõ nguyên nhân thay vì để lỗi trần lọt ra console.
+    throw new Error(
+      `Không kết nối được API tại ${API_URL}. Kiểm tra backend đã chạy chưa và origin của trang có nằm trong AllowedOrigins không.`
+    );
+  }
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
@@ -118,6 +129,64 @@ export const contentApi = {
     apiFetch("/api/content", {
       method: "PUT",
       body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+};
+
+// ===== PRODUCT API =====
+export const productApi = {
+  /** [PUBLIC] Lấy danh sách sản phẩm hiển thị */
+  getAllPublic: (): Promise<import("@/types/api.types").ProductResponse[]> =>
+    apiFetch("/api/products"),
+
+  /** [ADMIN] Lấy toàn bộ sản phẩm (kể cả ẩn) */
+  getAllAdmin: (): Promise<import("@/types/api.types").ProductResponse[]> =>
+    apiFetch("/api/products/admin", { headers: getAdminHeaders() }),
+
+  /** [ADMIN] Tạo sản phẩm mới */
+  create: (data: import("@/types/api.types").ProductRequest): Promise<import("@/types/api.types").ProductResponse> =>
+    apiFetch("/api/products", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Cập nhật sản phẩm */
+  update: (id: string, data: import("@/types/api.types").ProductRequest): Promise<import("@/types/api.types").ProductResponse> =>
+    apiFetch(`/api/products/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Xóa sản phẩm */
+  delete: (id: string): Promise<void> =>
+    apiFetch(`/api/products/${id}`, {
+      method: "DELETE",
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Upload ảnh cho sản phẩm (từ thiết bị) */
+  uploadImage: async (productId: string, file: File): Promise<import("@/types/api.types").ProductImageResponse> => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_URL}/api/products/${productId}/images`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message || `Upload lỗi ${res.status}`);
+    }
+    return res.json();
+  },
+
+  /** [ADMIN] Xóa ảnh của sản phẩm */
+  deleteImage: (productId: string, imageId: string): Promise<void> =>
+    apiFetch(`/api/products/${productId}/images/${imageId}`, {
+      method: "DELETE",
       headers: getAdminHeaders(),
     }),
 };

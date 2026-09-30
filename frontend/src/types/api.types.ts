@@ -86,3 +86,30 @@ export type ContentKey =
   | "about_text"
   | "contact_phone"
   | "contact_address";
+
+// ===== PRODUCT TYPES =====
+export interface ProductImageResponse {
+  id: string;
+  imagePath: string;
+  displayOrder: number;
+}
+
+export interface ProductResponse {
+  id: string;
+  name: string;
+  price: number;
+  size: string;
+  description: string;
+  isActive: boolean;
+  displayOrder: number;
+  images: ProductImageResponse[];
+}
+
+export interface ProductRequest {
+  name: string;
+  price: number;
+  size: string;
+  description: string;
+  isActive: boolean;
+  displayOrder: number;
+}

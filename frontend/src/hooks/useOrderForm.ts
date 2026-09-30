@@ -12,13 +12,10 @@ interface OrderFormState {
   discountCode: string;
 }
 
-const PRODUCT_PRICES: Record<string, number> = {
-  "dac-biet": 350000,
-  "tui-zip": 320000,
-  "set-qua": 850000,
-};
-
-export function useOrderForm(onSuccess?: () => void) {
+export function useOrderForm(
+  products: import("@/types/api.types").ProductResponse[],
+  onSuccess?: () => void
+) {
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
@@ -71,7 +68,9 @@ export function useOrderForm(onSuccess?: () => void) {
   };
 
   const calculateTotal = (): { base: number; discount: number; final: number } => {
-    const base = (PRODUCT_PRICES[form.product] || 0) * form.quantity;
+    const selectedProduct = products.find(p => p.id === form.product);
+    const price = selectedProduct ? selectedProduct.price : 0;
+    const base = price * form.quantity;
     let discount = 0;
 
     if (discountResult?.isValid) {

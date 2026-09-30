@@ -8,6 +8,11 @@ import { useOrderForm } from "@/hooks/useOrderForm";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useLanguageStore } from "@/store/useLanguageStore";
+import { useProducts } from "@/hooks/useProducts";
+import { ProductGalleryModal } from "@/components/ProductGalleryModal";
+import type { ProductResponse } from "@/types/api.types";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,10 +25,13 @@ export default function LandingPage() {
   const [chatStarted, setChatStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const { products, isLoading: isLoadingProducts } = useProducts();
+  const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
+
   const {
     form, setField, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, applyDiscount, calculateTotal, handleSubmit
-  } = useOrderForm();
+  } = useOrderForm(products);
 
   const { messages, isConnected, isSending, connect, sendMessage } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
@@ -70,6 +78,18 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
+      {/* Gallery Modal */}
+      {galleryProduct && (
+        <ProductGalleryModal
+          product={galleryProduct}
+          language={language as "vi" | "en"}
+          onClose={() => setGalleryProduct(null)}
+          onOrder={() => {
+            setField("product", galleryProduct.id);
+            scrollToSection("dat-hang");
+          }}
+        />
+      )}
       {/* 1. Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
@@ -308,51 +328,75 @@ export default function LandingPage() {
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {[
-                { name: t.products.special_name, price: "350.000đ", size: "500g", desc: t.products.special_desc },
-                { name: t.products.zip_name, price: "320.000đ", size: "500g", desc: t.products.zip_desc },
-                { name: t.products.gift_name, price: "850.000đ", size: "1kg", desc: t.products.gift_desc },
-              ].map((prod, i) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: i * 0.15 }}
-                  key={i}
-                  className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all"
-                >
-                  <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
-                    {/* Product Image Placeholder */}
-                    <div className="text-accent font-medium">[ Ảnh Sản Phẩm {i + 1} ]</div>
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => scrollToSection("dat-hang")}
-                        className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all"
-                      >
-                        {t.products.buy}
-                      </motion.button>
-                    </div>
-                  </div>
-                  <div className="p-8">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold text-primary">{prod.name}</h3>
-                      <span className="bg-secondary text-accent text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">{prod.size}</span>
-                    </div>
-                    <p className="text-foreground/80 text-sm mb-6 line-clamp-2">{prod.desc}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <span className="text-2xl font-bold text-accent">{prod.price}</span>
-                      <button
-                        onClick={() => scrollToSection("dat-hang")}
-                        className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors"
-                      >
-                        <ShoppingCart className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              {isLoadingProducts ? (
+                <div className="col-span-full flex justify-center py-10">
+                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                </div>
+              ) : (
+                products.map((prod, i) => {
+                  const mainImage = prod.images?.[0];
+                  const extraCount = (prod.images?.length ?? 0) - 1;
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 0.5, delay: i * 0.15 }}
+                      key={prod.id}
+                      className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all cursor-pointer"
+                      onClick={() => setGalleryProduct(prod)}
+                    >
+                      <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
+                        {mainImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`${API_URL}${mainImage.imagePath}`} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="text-accent font-medium flex flex-col items-center gap-2">
+                            <span className="text-4xl">📷</span>
+                            <span className="text-sm">{prod.name}</span>
+                          </div>
+                        )}
+                        {extraCount > 0 && (
+                          <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                            +{extraCount} ảnh
+                          </span>
+                        )}
+                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                          <motion.span
+                            className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all text-sm"
+                          >
+                            {language === "en" ? "View Details" : "Xem Chi Tiết"}
+                          </motion.span>
+                        </div>
+                      </div>
+                      <div className="p-8 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4 gap-2">
+                          <h3 className="text-xl font-bold text-primary">{prod.name}</h3>
+                          <span className="bg-secondary text-accent text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{prod.size}</span>
+                        </div>
+                        <p className="text-foreground/80 text-sm mb-6 line-clamp-3">{prod.description}</p>
+                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
+                          <span className="text-2xl font-bold text-accent">
+                            {language === "en" 
+                              ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` 
+                              : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                          </span>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              setField("product", prod.id);
+                              scrollToSection("dat-hang");
+                            }}
+                            className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors shrink-0 shadow-sm"
+                          >
+                            <ShoppingCart className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </div>
         </section>
@@ -488,7 +532,7 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <p className="text-sm text-[#FDE68A]">Hotline tư vấn (24/7)</p>
-                      <p className="text-xl font-bold text-white">0987.654.321</p>
+                      <p className="text-xl font-bold text-white">{cmsContent.Hotline || "090 123 4567"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
@@ -497,7 +541,7 @@ export default function LandingPage() {
                     </div>
                     <div>
                       <p className="text-sm text-[#FDE68A]">Địa chỉ xưởng sản xuất</p>
-                      <p className="text-lg font-bold text-white">123 Phố Hiến, Tp. Hưng Yên</p>
+                      <p className="text-lg font-bold text-white">{cmsContent.Address || "Phố Hiến, Tp. Hưng Yên"}</p>
                     </div>
                   </div>
                 </div>
@@ -552,9 +596,11 @@ export default function LandingPage() {
                       className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none"
                     >
                       <option value="">{t.order.select_default}</option>
-                      <option value="dac-biet">{t.order.special_option}</option>
-                      <option value="tui-zip">{t.order.zip_option}</option>
-                      <option value="set-qua">{t.order.gift_option}</option>
+                      {products.map(prod => (
+                        <option key={prod.id} value={prod.id}>
+                          {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -620,17 +666,29 @@ export default function LandingPage() {
                     <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
                       <div className="flex justify-between text-sm text-foreground/70">
                         <span>{t.order.base_price}</span>
-                        <span>{base.toLocaleString()}đ</span>
+                        <span>
+                          {language === "en" 
+                            ? `$${(base / 25000).toFixed(2).replace(',', '.')}` 
+                            : `${base.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                        </span>
                       </div>
                       {discount > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
                           <span>{t.order.discount_amount}</span>
-                          <span>-{discount.toLocaleString()}đ</span>
+                          <span>
+                            -{language === "en" 
+                              ? `$${(discount / 25000).toFixed(2).replace(',', '.')}` 
+                              : `${discount.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                          </span>
                         </div>
                       )}
                       <div className="flex justify-between font-bold text-primary border-t pt-2">
                         <span>{t.order.total_bill}</span>
-                        <span className="text-accent text-lg">{final.toLocaleString()}đ</span>
+                        <span className="text-accent text-lg">
+                          {language === "en" 
+                            ? `$${(final / 25000).toFixed(2).replace(',', '.')}` 
+                            : `${final.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                        </span>
                       </div>
                     </div>
                   )}

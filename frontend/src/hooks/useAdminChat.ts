@@ -47,6 +47,12 @@ export function useAdminChat() {
     }
   }, []);
 
+  // Dùng ref để tránh stale closure trong SignalR listeners mà không cần re-connect
+  const selectedSessionIdRef = useRef(selectedSessionId);
+  useEffect(() => {
+    selectedSessionIdRef.current = selectedSessionId;
+  }, [selectedSessionId]);
+
   // 3. Khởi tạo SignalR kết nối
   useEffect(() => {
     // eslint-disable-next-line
@@ -54,6 +60,8 @@ export function useAdminChat() {
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_URL}/hubs/chat`, {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
       })
       .withAutomaticReconnect()
@@ -61,13 +69,10 @@ export function useAdminChat() {
 
     // Lắng nghe khách gửi tin nhắn
     connection.on("ReceiveGuestMessage", (data: { sessionId: string; message: ChatMessageResponse }) => {
-      // Nếu đang mở session này -> Thêm vào list tin nhắn
-      if (selectedSessionId === data.sessionId) {
+      if (selectedSessionIdRef.current === data.sessionId) {
         setMessages((prev) => [...prev, data.message]);
-        // Cần gọi API markRead luôn vì admin đang xem
         chatApi.markRead(data.sessionId).catch(console.error);
       } else {
-        // Nếu không mở -> Đánh dấu session có tin nhắn chưa đọc
         setSessions((prev) => {
           const updated = prev.map(s => s.id === data.sessionId ? { ...s, hasUnreadMessages: true, lastMessageAt: new Date().toISOString() } : s);
           return updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
@@ -75,9 +80,8 @@ export function useAdminChat() {
       }
     });
 
-    // Lắng nghe khi admin gửi tin nhắn thành công (phản hồi từ hub)
     connection.on("AdminReplied", (data: { sessionId: string; message: ChatMessageResponse }) => {
-       if (selectedSessionId === data.sessionId) {
+       if (selectedSessionIdRef.current === data.sessionId) {
          setMessages((prev) => [...prev, data.message]);
        }
     });
@@ -91,12 +95,17 @@ export function useAdminChat() {
         await connection.invoke("JoinAsAdmin");
         connectionRef.current = connection;
       })
-      .catch(err => console.error("SignalR Admin connection error:", err));
+      .catch(err => {
+        // Chỉ log nếu không phải là lỗi hủy do component unmount
+        if (err.message !== "The connection was stopped during negotiation.") {
+            console.error("SignalR Admin connection error:", err);
+        }
+      });
 
     return () => {
       connection.stop();
     };
-  }, [fetchSessions, selectedSessionId]);
+  }, [fetchSessions]); // <-- BỎ selectedSessionId khỏi dependency array
 
   // 4. Hàm Admin reply
   const sendMessage = useCallback(async (content: string) => {

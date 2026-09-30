@@ -54,6 +54,12 @@ builder.Services.AddSignalR();
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
+// ===== FILE UPLOAD CONFIG =====
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB max
+});
+
 // ===== SWAGGER / OPENAPI =====
 builder.Services.AddOpenApi();
 
@@ -62,15 +68,17 @@ builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IContentService, ContentService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // ===== CORS (Cho phép Frontend Next.js gọi API) =====
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                builder.Configuration["AllowedOrigins"] ?? "http://localhost:3000"
-            )
+        var allowedOrigins = builder.Configuration["AllowedOrigins"]
+            ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? new[] { "http://localhost:3000" };
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); // Cần thiết cho SignalR
@@ -91,7 +99,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
+
+// ===== STATIC FILES (phục vụ ảnh upload) =====
+app.UseStaticFiles();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -100,11 +116,18 @@ app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1")
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 
-// ===== AUTO MIGRATE & SEED =====
-using (var scope = app.Services.CreateScope())
+// ===== AUTO MIGRATE & SEED (non-fatal: API vẫn chạy nếu DB chưa kết nối được) =====
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<NguyetnhanPhohien.Infrastructure.Persistence.AppDbContext>();
-    await NguyetnhanPhohien.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<NguyetnhanPhohien.Infrastructure.Persistence.AppDbContext>();
+        await NguyetnhanPhohien.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Database migrate/seed failed. API will start without seeded data.");
 }
 
 app.Run();

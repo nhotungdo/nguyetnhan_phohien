@@ -45,6 +45,8 @@ export function useLiveChat() {
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_URL}/hubs/chat`, {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
       })
       .withAutomaticReconnect()

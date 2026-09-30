@@ -10,7 +10,7 @@ import {
   SidebarHeader,
   SidebarFooter
 } from "@/components/ui/sidebar"
-import { MessageSquare, Settings, Package, LayoutDashboard, LogOut } from "lucide-react"
+import { MessageSquare, Package, LayoutDashboard, LogOut, Globe } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { adminAuth } from "@/services/api.service"
 
@@ -18,7 +18,7 @@ const items = [
   { title: "Tổng quan", url: "/dashboard", icon: LayoutDashboard },
   { title: "Đơn hàng", url: "/orders", icon: Package },
   { title: "Nhắn tin", url: "/messenger", icon: MessageSquare },
-  { title: "Nội dung Website", url: "/content", icon: Settings },
+  { title: "Nội dung Website", url: "/content", icon: Globe },
 ]
 
 export function AppSidebar() {
