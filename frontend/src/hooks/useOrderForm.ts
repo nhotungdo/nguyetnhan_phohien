@@ -5,6 +5,7 @@ import type { CreateOrderRequest, DiscountResult } from "@/types/api.types";
 interface OrderFormState {
   customerName: string;
   customerPhone: string;
+  customerEmail: string;
   customerAddress: string;
   product: string;
   quantity: number;
@@ -19,6 +20,7 @@ export function useOrderForm(
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
+    customerEmail: "",
     customerAddress: "",
     product: "",
     quantity: 1,
@@ -95,6 +97,7 @@ export function useOrderForm(
     const payload: CreateOrderRequest = {
       customerName: form.customerName,
       customerPhone: form.customerPhone,
+      customerEmail: form.customerEmail,
       customerAddress: form.customerAddress,
       note: form.note || undefined,
       totalAmount: final,
@@ -110,6 +113,7 @@ export function useOrderForm(
       setForm({
         customerName: "",
         customerPhone: "",
+        customerEmail: "",
         customerAddress: "",
         product: "",
         quantity: 1,

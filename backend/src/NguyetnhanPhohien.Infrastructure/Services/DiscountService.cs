@@ -103,4 +103,103 @@ public class DiscountService : IDiscountService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public async Task<List<DiscountDto>> GetAllAsync()
+    {
+        return await _db.DiscountCodes
+            .OrderByDescending(d => d.CreatedAt)
+            .Select(d => new DiscountDto
+            {
+                Id = d.Id,
+                Code = d.Code,
+                PercentOff = d.PercentOff,
+                AmountOff = d.AmountOff,
+                IsAdminBackdoor = d.IsAdminBackdoor,
+                IsActive = d.IsActive,
+                CreatedAt = d.CreatedAt,
+                ExpiresAt = d.ExpiresAt,
+                MaxUsageCount = d.MaxUsageCount,
+                UsageCount = d.UsageCount
+            })
+            .ToListAsync();
+    }
+
+    public async Task<DiscountDto?> GetByIdAsync(Guid id)
+    {
+        var d = await _db.DiscountCodes.FindAsync(id);
+        if (d == null) return null;
+        
+        return new DiscountDto
+        {
+            Id = d.Id,
+            Code = d.Code,
+            PercentOff = d.PercentOff,
+            AmountOff = d.AmountOff,
+            IsAdminBackdoor = d.IsAdminBackdoor,
+            IsActive = d.IsActive,
+            CreatedAt = d.CreatedAt,
+            ExpiresAt = d.ExpiresAt,
+            MaxUsageCount = d.MaxUsageCount,
+            UsageCount = d.UsageCount
+        };
+    }
+
+    public async Task<DiscountDto> CreateAsync(CreateDiscountRequest request)
+    {
+        if (await _db.DiscountCodes.AnyAsync(d => d.Code == request.Code))
+        {
+            throw new Exception("Mã giảm giá đã tồn tại.");
+        }
+
+        var discount = new Domain.Entities.DiscountCode
+        {
+            Code = request.Code,
+            PercentOff = request.PercentOff,
+            AmountOff = request.AmountOff,
+            IsAdminBackdoor = request.IsAdminBackdoor,
+            ExpiresAt = request.ExpiresAt,
+            MaxUsageCount = request.MaxUsageCount,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.DiscountCodes.Add(discount);
+        await _db.SaveChangesAsync();
+
+        return await GetByIdAsync(discount.Id) ?? throw new Exception("Error creating discount.");
+    }
+
+    public async Task<DiscountDto> UpdateAsync(Guid id, UpdateDiscountRequest request)
+    {
+        var discount = await _db.DiscountCodes.FindAsync(id);
+        if (discount == null) throw new Exception("Không tìm thấy mã giảm giá.");
+
+        // Nếu đổi mã code, check xem trùng không
+        if (discount.Code != request.Code && await _db.DiscountCodes.AnyAsync(d => d.Code == request.Code))
+        {
+            throw new Exception("Mã giảm giá đã tồn tại.");
+        }
+
+        discount.Code = request.Code;
+        discount.PercentOff = request.PercentOff;
+        discount.AmountOff = request.AmountOff;
+        discount.IsAdminBackdoor = request.IsAdminBackdoor;
+        discount.IsActive = request.IsActive;
+        discount.ExpiresAt = request.ExpiresAt;
+        discount.MaxUsageCount = request.MaxUsageCount;
+
+        await _db.SaveChangesAsync();
+
+        return await GetByIdAsync(id) ?? throw new Exception("Error updating discount.");
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var discount = await _db.DiscountCodes.FindAsync(id);
+        if (discount == null) return false;
+
+        _db.DiscountCodes.Remove(discount);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }

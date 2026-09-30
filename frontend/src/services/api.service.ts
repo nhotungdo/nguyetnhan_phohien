@@ -89,6 +89,37 @@ export const discountApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  /** [ADMIN] Lấy toàn bộ mã giảm giá */
+  getAllAdmin: (): Promise<import("@/hooks/useDiscounts").DiscountDto[]> =>
+    apiFetch("/api/discount", { headers: getAdminHeaders() }),
+
+  /** [ADMIN] Lấy chi tiết 1 mã */
+  getById: (id: string): Promise<import("@/hooks/useDiscounts").DiscountDto> =>
+    apiFetch(`/api/discount/${id}`, { headers: getAdminHeaders() }),
+
+  /** [ADMIN] Tạo mã mới */
+  create: (data: Partial<import("@/hooks/useDiscounts").DiscountDto>): Promise<import("@/hooks/useDiscounts").DiscountDto> =>
+    apiFetch("/api/discount", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Cập nhật mã */
+  update: (id: string, data: Partial<import("@/hooks/useDiscounts").DiscountDto>): Promise<import("@/hooks/useDiscounts").DiscountDto> =>
+    apiFetch(`/api/discount/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Xóa mã */
+  delete: (id: string): Promise<void> =>
+    apiFetch(`/api/discount/${id}`, {
+      method: "DELETE",
+      headers: getAdminHeaders(),
+    }),
 };
 
 // ===== CHAT API =====

@@ -3,6 +3,7 @@ export interface CreateOrderRequest {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  customerEmail?: string;
   note?: string;
   totalAmount: number;
   discountCode?: string;
@@ -13,6 +14,7 @@ export interface OrderResponse {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  customerEmail?: string;
   note?: string;
   totalAmount: number;
   discountAmount: number;

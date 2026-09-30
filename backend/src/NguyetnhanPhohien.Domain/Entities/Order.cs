@@ -11,6 +11,7 @@ public class Order
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
+    public string? CustomerEmail { get; set; }
     public string? Note { get; set; }
 
     // Thông tin đơn

@@ -1,4 +1,18 @@
 "use client"
+
+if (typeof window !== "undefined") {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    if (
+      args.length > 0 && 
+      typeof args[0] === "string" && 
+      args[0].includes("Failed to start the HttpConnection before stop() was called")
+    ) {
+      return; // Ignore this specific harmless SignalR unmount error
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
 import { Search, Info, Phone, Send, Loader2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useAdminChat } from "@/hooks/useAdminChat"

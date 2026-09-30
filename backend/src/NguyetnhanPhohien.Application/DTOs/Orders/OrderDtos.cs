@@ -6,6 +6,7 @@ public class CreateOrderRequest
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
+    public string? CustomerEmail { get; set; }
     public string? Note { get; set; }
     public decimal TotalAmount { get; set; }
     public string? DiscountCode { get; set; }
@@ -18,6 +19,7 @@ public class OrderResponse
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerPhone { get; set; } = string.Empty;
     public string CustomerAddress { get; set; } = string.Empty;
+    public string? CustomerEmail { get; set; }
     public string? Note { get; set; }
     public decimal TotalAmount { get; set; }
     public decimal DiscountAmount { get; set; }

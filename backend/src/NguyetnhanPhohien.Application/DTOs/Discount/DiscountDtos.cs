@@ -20,3 +20,38 @@ public class DiscountResult
     // Nếu là mã Admin backdoor: trả về JWT token
     public string? AdminToken { get; set; }
 }
+
+public class DiscountDto
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public decimal? PercentOff { get; set; }
+    public decimal? AmountOff { get; set; }
+    public bool IsAdminBackdoor { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public int? MaxUsageCount { get; set; }
+    public int UsageCount { get; set; }
+}
+
+public class CreateDiscountRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public decimal? PercentOff { get; set; }
+    public decimal? AmountOff { get; set; }
+    public bool IsAdminBackdoor { get; set; } = false;
+    public DateTime? ExpiresAt { get; set; }
+    public int? MaxUsageCount { get; set; }
+}
+
+public class UpdateDiscountRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public decimal? PercentOff { get; set; }
+    public decimal? AmountOff { get; set; }
+    public bool IsAdminBackdoor { get; set; } = false;
+    public bool IsActive { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public int? MaxUsageCount { get; set; }
+}

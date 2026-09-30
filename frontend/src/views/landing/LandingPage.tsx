@@ -1,5 +1,18 @@
 "use client";
 
+if (typeof window !== "undefined") {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    if (
+      args.length > 0 && 
+      typeof args[0] === "string" && 
+      args[0].includes("Failed to start the HttpConnection before stop() was called")
+    ) {
+      return; // Ignore this specific harmless SignalR unmount error
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send } from "lucide-react";
@@ -585,6 +598,17 @@ export default function LandingPage() {
                         className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-foreground/80">{language === "en" ? "Email (For invoice)" : "Email (Để nhận hóa đơn)"}</label>
+                    <input
+                      type="email"
+                      value={form.customerEmail}
+                      onChange={(e) => setField("customerEmail", e.target.value)}
+                      placeholder={language === "en" ? "example@email.com" : "vi_du@email.com"}
+                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                    />
                   </div>
 
                   <div className="space-y-1.5">

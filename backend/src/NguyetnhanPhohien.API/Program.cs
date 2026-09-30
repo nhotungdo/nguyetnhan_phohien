@@ -69,6 +69,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // ===== CORS (Cho phép Frontend Next.js gọi API) =====
 builder.Services.AddCors(options =>

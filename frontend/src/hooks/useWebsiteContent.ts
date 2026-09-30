@@ -28,7 +28,7 @@ export function useWebsiteContent() {
         });
         setContent(mapped);
       } catch (err) {
-        console.error("Failed to load website content:", err);
+        console.warn("Failed to load website content:", err);
       } finally {
         setIsLoading(false);
       }

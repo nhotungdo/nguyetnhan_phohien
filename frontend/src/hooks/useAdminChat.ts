@@ -22,7 +22,7 @@ export function useAdminChat() {
       const data = await chatApi.getAllSessions();
       setSessions(data.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()));
     } catch (err) {
-      console.error("Failed to load chat sessions:", err);
+      console.warn("Failed to load chat sessions:", err);
     } finally {
       setIsLoadingSessions(false);
     }
@@ -43,7 +43,7 @@ export function useAdminChat() {
       const msgs = await chatApi.getSessionMessages(sessionId);
       setMessages(msgs);
     } catch (err) {
-      console.error("Failed to load messages:", err);
+      console.warn("Failed to load messages:", err);
     }
   }, []);
 
@@ -65,6 +65,7 @@ export function useAdminChat() {
         withCredentials: true,
       })
       .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.None)
       .build();
 
     // Lắng nghe khách gửi tin nhắn
@@ -97,13 +98,16 @@ export function useAdminChat() {
       })
       .catch(err => {
         // Chỉ log nếu không phải là lỗi hủy do component unmount
-        if (err.message !== "The connection was stopped during negotiation.") {
+        if (
+            err.message !== "The connection was stopped during negotiation." &&
+            err.message !== "Failed to start the HttpConnection before stop() was called."
+        ) {
             console.error("SignalR Admin connection error:", err);
         }
       });
 
     return () => {
-      connection.stop();
+      connection.stop().catch(() => {});
     };
   }, [fetchSessions]); // <-- BỎ selectedSessionId khỏi dependency array
 

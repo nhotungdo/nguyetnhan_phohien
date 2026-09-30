@@ -50,6 +50,7 @@ export function useLiveChat() {
         withCredentials: true,
       })
       .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.None)
       .build();
 
     // Nhận tin nhắn từ Admin
@@ -67,7 +68,15 @@ export function useLiveChat() {
       setIsConnected(true);
       connectionRef.current = connection;
     } catch (err) {
-      console.error("SignalR connection error:", err);
+      if (
+        err instanceof Error &&
+        err.message !== "The connection was stopped during negotiation." &&
+        err.message !== "Failed to start the HttpConnection before stop() was called."
+      ) {
+        console.error("SignalR connection error:", err);
+      } else if (!(err instanceof Error)) {
+        console.error("SignalR connection error:", err);
+      }
     }
   }, []);
 
@@ -91,7 +100,7 @@ export function useLiveChat() {
   // Disconnect khi unmount
   useEffect(() => {
     return () => {
-      connectionRef.current?.stop();
+      connectionRef.current?.stop().catch(() => {});
     };
   }, []);
 

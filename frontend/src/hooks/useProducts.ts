@@ -12,7 +12,7 @@ export function useProducts() {
         const data = await productApi.getAllPublic();
         setProducts(data);
       } catch (err) {
-        console.error("Failed to load products:", err);
+        console.warn("Failed to load products:", err);
       } finally {
         setIsLoading(false);
       }
