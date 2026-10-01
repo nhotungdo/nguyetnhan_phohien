@@ -20,7 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /out ./
 
-# Railway usually passes PORT environment variable
+# Render uses the EXPOSE instruction or PORT environment variable
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
