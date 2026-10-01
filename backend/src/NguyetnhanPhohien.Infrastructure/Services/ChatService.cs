@@ -29,7 +29,18 @@ public class ChatService : IChatService
                 GuestPhone = guestPhone
             };
             _db.ChatSessions.Add(session);
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // SessionId có unique index: 2 request tạo cùng lúc (guest connect + REST
+                // fallback gọi song song) thì request thua sẽ vào đây — lấy lại phiên
+                // đã có của request thắng thay vì báo lỗi cho khách.
+                _db.Entry(session).State = EntityState.Detached;
+                session = await _db.ChatSessions.FirstAsync(cs => cs.SessionId == sessionId);
+            }
         }
         else
         {
@@ -72,6 +83,17 @@ public class ChatService : IChatService
             IsRead = message.IsRead,
             SentAt = message.SentAt
         };
+    }
+
+    public async Task<ChatMessageResponse> SendGuestMessageAsync(string sessionId, string content, string? guestName, string? guestPhone)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
+            throw new ArgumentException("SessionId không hợp lệ.");
+        if (string.IsNullOrWhiteSpace(content) || content.Length > 2000)
+            throw new ArgumentException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
+
+        var session = await GetOrCreateSessionAsync(sessionId, guestName, guestPhone);
+        return await SaveMessageAsync(session.Id, content.Trim(), "Guest");
     }
 
     public async Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync()

@@ -72,6 +72,9 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
+// ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====
+builder.Services.AddHostedService<WeeklyReportBackgroundService>();
+
 // ===== CORS (Cho phép Frontend Next.js gọi API) =====
 builder.Services.AddCors(options =>
 {

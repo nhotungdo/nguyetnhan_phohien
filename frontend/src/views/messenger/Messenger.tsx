@@ -93,11 +93,18 @@ export default function Messenger() {
                 </span>
               </div>
               <p className={`text-sm truncate ${chat.hasUnreadMessages ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                {chat.guestPhone ? `SĐT: ${chat.guestPhone}` : "Chưa để lại SĐT"}
+                {chat.lastMessagePreview || "Chưa có tin nhắn"}
               </p>
-              {chat.hasUnreadMessages && (
-                <span className="inline-block mt-1 w-2 h-2 rounded-full bg-red-500" />
-              )}
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                  {chat.guestPhone ? `SĐT: ${chat.guestPhone}` : "Khách ẩn danh"}
+                </span>
+                {chat.hasUnreadMessages && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500">
+                    <span className="w-2 h-2 rounded-full bg-red-500" /> Chưa đọc
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -116,23 +123,18 @@ export default function Messenger() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-primary">{selectedSession.guestName || "Khách hàng ẩn danh"}</h3>
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                    Đang xem
+                  <p className="text-xs text-muted-foreground">
+                    {selectedSession.guestPhone || "Chưa để lại SĐT"}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto space-y-4 relative z-10">
-              <div className="flex justify-center">
-                <span className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded-full">Bắt đầu cuộc trò chuyện</span>
-              </div>
-              
               {messages.map((msg, idx) => (
                 <div key={msg.id || idx} className={`flex ${msg.senderType === "Admin" ? 'justify-end' : 'justify-start'}`}>
                   <div className={`py-2 px-4 max-w-[70%] shadow-sm ${msg.senderType === "Admin" ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' : 'bg-white border rounded-2xl rounded-tl-sm text-foreground'}`}>
-                    <p className="text-sm">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                     <span className={`text-[10px] block mt-1 ${msg.senderType === "Admin" ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground'}`}>
                       {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                     </span>

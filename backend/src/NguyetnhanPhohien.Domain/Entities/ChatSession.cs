@@ -11,7 +11,8 @@ public class ChatSession
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    // ID phiên vô danh của khách - lưu ở cookie phía client
+    // ID phiên vô danh của khách - lưu ở sessionStorage phía client.
+    // Có unique index để tránh race tạo 2 phiên cùng lúc (xem AppDbContext).
     public string SessionId { get; set; } = string.Empty;
 
     // Tên khách tự khai khi bắt đầu chat (optional)

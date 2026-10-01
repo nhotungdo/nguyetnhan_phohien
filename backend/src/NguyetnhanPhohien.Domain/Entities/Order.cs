@@ -14,11 +14,14 @@ public class Order
     public string? CustomerEmail { get; set; }
     public string? Note { get; set; }
 
-    // Sản phẩm đặt mua (snapshot tại thời điểm đặt)
-    public Guid ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
+    // Legacy: Tương thích với đơn cũ (1 sản phẩm đơn lẻ)
+    public Guid? ProductId { get; set; }
+    public string? ProductName { get; set; }
     public string? ProductSize { get; set; }
     public int Quantity { get; set; } = 1;
+
+    // Danh sách sản phẩm mua trong đơn hàng
+    public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 
     // Thông tin đơn
     public decimal BaseAmount { get; set; }          // Tiền hàng = giá DB x số lượng

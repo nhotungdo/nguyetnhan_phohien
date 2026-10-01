@@ -9,4 +9,10 @@ public interface IChatService
     Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync();
     Task<IEnumerable<ChatMessageResponse>> GetSessionMessagesAsync(Guid sessionId);
     Task MarkSessionReadAsync(Guid sessionId);
+
+    /// <summary>
+    /// Khách gửi tin nhắn qua REST (fallback khi SignalR lỗi).
+    /// Validate + tạo session nếu chưa có + lưu tin nhắn.
+    /// </summary>
+    Task<ChatMessageResponse> SendGuestMessageAsync(string sessionId, string content, string? guestName, string? guestPhone);
 }

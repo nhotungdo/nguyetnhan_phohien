@@ -1,4 +1,19 @@
 // ===== ORDER TYPES =====
+export interface OrderItemRequest {
+  productId: string;
+  quantity: number;
+}
+
+export interface OrderItemResponse {
+  id: string;
+  productId: string;
+  productName: string;
+  productSize?: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
 // Backend tự tính tổng tiền từ giá sản phẩm trong DB — client KHÔNG gửi totalAmount.
 export interface CreateOrderRequest {
   customerName: string;
@@ -6,9 +21,11 @@ export interface CreateOrderRequest {
   customerAddress: string;
   customerEmail?: string;
   note?: string;
-  productId: string;
-  quantity: number;
+  items: OrderItemRequest[];
   discountCode?: string;
+  // Legacy fallback
+  productId?: string;
+  quantity?: number;
 }
 
 export interface OrderResponse {
@@ -23,9 +40,11 @@ export interface OrderResponse {
   discountAmount: number;
   status: string;
   discountCodeApplied?: string;
-  productName: string;
+  items: OrderItemResponse[];
+  // Legacy fallback
+  productName?: string;
   productSize?: string;
-  quantity: number;
+  quantity?: number;
   createdAt: string;
 }
 
@@ -39,6 +58,8 @@ export interface DiscountResult {
   message?: string;
   percentOff?: number;
   amountOff?: number;
+  isAdminBackdoor?: boolean;
+  token?: string;
 }
 
 // ===== CHAT TYPES =====

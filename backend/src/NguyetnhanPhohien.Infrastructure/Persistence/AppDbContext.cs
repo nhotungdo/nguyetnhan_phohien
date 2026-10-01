@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
 
     // ===== ORDER =====
     public DbSet<Order> Orders { get; set; } = null!;
-    // Lưu ý: không dùng bảng OrderItems — đơn hàng lưu snapshot sản phẩm trực tiếp trên Order.
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
     public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
     public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
@@ -85,7 +85,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(b => b.FacebookPageId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // ===== ORDER (snapshot sản phẩm nằm ngay trên Order, không có bảng OrderItems) =====
+        // ===== ORDER & ORDER ITEM =====
         modelBuilder.Entity<Order>().HasKey(o => o.Id);
         modelBuilder.Entity<Order>()
             .Property(o => o.BaseAmount)
@@ -98,6 +98,19 @@ public class AppDbContext : DbContext
             .HasPrecision(18, 2);
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.ProductId);
+
+        modelBuilder.Entity<OrderItem>().HasKey(i => i.Id);
+        modelBuilder.Entity<OrderItem>()
+            .Property(i => i.UnitPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<OrderItem>()
+            .Property(i => i.TotalPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(i => i.Order)
+            .WithMany(o => o.Items)
+            .HasForeignKey(i => i.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ===== DISCOUNT CODE =====
         modelBuilder.Entity<DiscountCode>().HasKey(d => d.Id);
@@ -115,7 +128,8 @@ public class AppDbContext : DbContext
 
         // ===== CHAT SESSION & MESSAGE =====
         modelBuilder.Entity<ChatSession>().HasKey(cs => cs.Id);
-        modelBuilder.Entity<ChatSession>().HasIndex(cs => cs.SessionId);
+        // Unique: tránh race condition tạo 2 phiên chat cho cùng một sessionId
+        modelBuilder.Entity<ChatSession>().HasIndex(cs => cs.SessionId).IsUnique();
 
         modelBuilder.Entity<ChatMessage>().HasKey(cm => cm.Id);
         modelBuilder.Entity<ChatMessage>()

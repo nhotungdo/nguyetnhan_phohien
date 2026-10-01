@@ -60,8 +60,6 @@ export function useAdminChat() {
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_URL}/hubs/chat`, {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
         accessTokenFactory: () => adminAuth.getToken() || "",
       })
@@ -72,11 +70,30 @@ export function useAdminChat() {
     // Lắng nghe khách gửi tin nhắn
     connection.on("ReceiveGuestMessage", (data: { sessionId: string; message: ChatMessageResponse }) => {
       if (selectedSessionIdRef.current === data.sessionId) {
-        setMessages((prev) => [...prev, data.message]);
+        setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
         chatApi.markRead(data.sessionId).catch(console.error);
+        // Cập nhật preview + thời gian ở danh sách bên trái
+        setSessions((prev) => {
+          const updated = prev.map((s) =>
+            s.id === data.sessionId
+              ? { ...s, hasUnreadMessages: false, lastMessageAt: data.message.sentAt, lastMessagePreview: data.message.content }
+              : s
+          );
+          return updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+        });
       } else {
         setSessions((prev) => {
-          const updated = prev.map(s => s.id === data.sessionId ? { ...s, hasUnreadMessages: true, lastMessageAt: new Date().toISOString() } : s);
+          const exists = prev.some((s) => s.id === data.sessionId);
+          if (!exists) {
+            // Khách chat LẦN ĐẦU hoặc phiên tạo sau khi reload — tải lại danh sách từ server
+            fetchSessions();
+            return prev;
+          }
+          const updated = prev.map((s) =>
+            s.id === data.sessionId
+              ? { ...s, hasUnreadMessages: true, lastMessageAt: data.message.sentAt, lastMessagePreview: data.message.content }
+              : s
+          );
           return updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
         });
       }

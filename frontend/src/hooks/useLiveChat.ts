@@ -50,8 +50,6 @@ export function useLiveChat() {
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_URL}/hubs/chat`, {
-        skipNegotiation: true,
-        transport: signalR.HttpTransportType.WebSockets,
         withCredentials: true,
       })
       .withAutomaticReconnect()
@@ -87,6 +85,13 @@ export function useLiveChat() {
       } catch (err) {
         console.error("Failed to re-join session group after reconnect:", err);
       }
+      // Tin nhắn trao đổi trong lúc mất kết nối không tự đến — tải lại lịch sử từ server
+      try {
+        const history = await chatApi.getGuestMessages(sessionId.current);
+        setMessages(history);
+      } catch (err) {
+        console.error("Failed to reload chat history after reconnect:", err);
+      }
     });
 
     try {
@@ -108,16 +113,30 @@ export function useLiveChat() {
     }
   }, []);
 
-  // Gửi tin nhắn
+  // Gửi tin nhắn: ưu tiên SignalR realtime, fallback REST nếu WebSocket/SignalR bị chặn
   const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string) => {
     if (!content.trim()) return;
-    if (!connectionRef.current || connectionRef.current.state !== signalR.HubConnectionState.Connected) {
-      await connect(guestName, guestPhone);
-    }
 
     setIsSending(true);
     try {
-      await connectionRef.current?.invoke("SendGuestMessage", sessionId.current, content.trim());
+      const connected = connectionRef.current?.state === signalR.HubConnectionState.Connected;
+      if (connected) {
+        await connectionRef.current?.invoke("SendGuestMessage", sessionId.current, content.trim());
+      } else {
+        // SignalR chưa kết nối (mạng chặn WebSocket, server restart...):
+        // gửi qua REST — tin nhắn vẫn được lưu và admin vẫn thấy qua danh sách phiên.
+        if (!sessionId.current) sessionId.current = getOrCreateSessionId();
+        const saved = await chatApi.sendMessage({
+          sessionId: sessionId.current,
+          content: content.trim(),
+          guestName: guestName || guestInfoRef.current.name,
+          guestPhone: guestPhone || guestInfoRef.current.phone,
+        });
+        // Hiển thị ngay tin đã lưu (không chờ realtime echo)
+        setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
+        // Cố gắng kết nối lại nền để các tin sau nhận realtime bình thường
+        connect(guestName, guestPhone).catch(() => {});
+      }
     } catch (err) {
       console.error("Send message error:", err);
     } finally {

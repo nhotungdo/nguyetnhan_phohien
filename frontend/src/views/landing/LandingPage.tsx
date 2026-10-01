@@ -15,7 +15,7 @@ if (typeof window !== "undefined") {
 }
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useLiveChat } from "@/hooks/useLiveChat";
@@ -42,7 +42,7 @@ export default function LandingPage() {
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
   const {
-    form, setField, discountResult, isSubmitting, isApplyingCode,
+    form, setField, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(products);
 
@@ -98,7 +98,7 @@ export default function LandingPage() {
           language={language as "vi" | "en"}
           onClose={() => setGalleryProduct(null)}
           onOrder={() => {
-            setField("product", galleryProduct.id);
+            selectSingleProduct(galleryProduct.id);
             scrollToSection("dat-hang");
           }}
         />
@@ -407,7 +407,7 @@ export default function LandingPage() {
                           <button
                             onClick={e => {
                               e.stopPropagation();
-                              setField("product", prod.id);
+                              selectSingleProduct(prod.id);
                               scrollToSection("dat-hang");
                             }}
                             className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors shrink-0 shadow-sm"
@@ -622,42 +622,73 @@ export default function LandingPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">{t.order.select_product} *</label>
-                    <select
-                      required
-                      value={form.product}
-                      onChange={(e) => setField("product", e.target.value)}
-                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all appearance-none"
-                    >
-                      <option value="">{t.order.select_default}</option>
-                      {products.map(prod => (
-                        <option key={prod.id} value={prod.id}>
-                          {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
+                    <input
+                      type="text" required
+                      value={form.customerAddress}
+                      onChange={(e) => setField("customerAddress", e.target.value)}
+                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                    />
                   </div>
 
-                  <div className="grid grid-cols-4 gap-5">
-                    <div className="col-span-1 space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">{t.order.quantity}</label>
-                      <input
-                        type="number" min="1"
-                        value={form.quantity}
-                        onChange={(e) => setField("quantity", parseInt(e.target.value) || 1)}
-                        required
-                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all text-center"
-                      />
+                  {/* Danh sách sản phẩm mua */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-medium text-foreground/80">
+                        {language === "en" ? "Selected Products *" : "Sản phẩm chọn mua *"}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addItem}
+                        className="text-xs font-semibold text-accent hover:text-accent/80 flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all hover:scale-105"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        {language === "en" ? "Add Product" : "Thêm sản phẩm khác"}
+                      </button>
                     </div>
-                    <div className="col-span-3 space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
-                      <input
-                        type="text" required
-                        value={form.customerAddress}
-                        onChange={(e) => setField("customerAddress", e.target.value)}
-                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                      />
-                    </div>
+
+                    {form.items.map((item, idx) => (
+                      <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-background border border-[#FDE68A] shadow-sm">
+                        <div className="flex-1">
+                          <select
+                            required
+                            value={item.productId}
+                            onChange={(e) => updateItem(idx, "productId", e.target.value)}
+                            className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all"
+                          >
+                            <option value="">{t.order.select_default}</option>
+                            {products.map((prod) => (
+                              <option key={prod.id} value={prod.id}>
+                                {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 shrink-0">
+                            <input
+                              type="number"
+                              min="1"
+                              max="999"
+                              required
+                              value={item.quantity}
+                              onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)}
+                              className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm text-center outline-none transition-all"
+                            />
+                          </div>
+                          {form.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                              title="Xóa sản phẩm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Mã giảm giá — cũng là cổng Admin */}
@@ -696,9 +727,27 @@ export default function LandingPage() {
                   </div>
 
                   {/* Tổng tiền */}
-                  {form.product && (
+                  {form.items.some((i) => i.productId) && (
                     <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
-                      <div className="flex justify-between text-sm text-foreground/70">
+                      <div className="space-y-1 pb-2 border-b border-gray-200/60 text-xs text-foreground/80">
+                        {form.items.map((item, idx) => {
+                          const prod = products.find((p) => p.id === item.productId);
+                          if (!prod) return null;
+                          const itemTotal = prod.price * (item.quantity || 1);
+                          return (
+                            <div key={idx} className="flex justify-between">
+                              <span>{prod.name} ({prod.size}) x{item.quantity}</span>
+                              <span className="font-medium">
+                                {language === "en"
+                                  ? `$${(itemTotal / 25000).toFixed(2).replace(',', '.')}`
+                                  : `${itemTotal.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex justify-between text-sm text-foreground/70 pt-1">
                         <span>{t.order.base_price}</span>
                         <span>
                           {language === "en" 
@@ -740,7 +789,7 @@ export default function LandingPage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting || !form.product}
+                    disabled={isSubmitting || !form.items.some((i) => i.productId)}
                     className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {isSubmitting ? (
@@ -885,7 +934,10 @@ export default function LandingPage() {
                         : 'bg-white border text-primary self-start rounded-tl-sm'
                         }`}
                     >
-                      {msg.content}
+                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                      <span className={`text-[10px] block mt-1 opacity-70 ${msg.senderType === 'Guest' ? 'text-right' : ''}`}>
+                        {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
                     </div>
                   ))}
                   <div ref={messagesEndRef} />

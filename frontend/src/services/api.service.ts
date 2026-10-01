@@ -5,6 +5,7 @@ import type {
   DiscountResult,
   ChatMessageResponse,
   ChatSessionResponse,
+  SendMessageRequest,
   WebsiteContentResponse,
   UpdateContentRequest,
 } from "@/types/api.types";
@@ -133,6 +134,13 @@ export const chatApi = {
   /** [PUBLIC] Lấy lịch sử tin nhắn của session */
   getGuestMessages: (sessionId: string): Promise<ChatMessageResponse[]> =>
     apiFetch(`/api/chat/messages/${sessionId}`),
+
+  /** [PUBLIC] Gửi tin nhắn qua REST — fallback khi SignalR/WebSocket bị chặn */
+  sendMessage: (data: SendMessageRequest): Promise<ChatMessageResponse> =>
+    apiFetch("/api/chat/messages", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
   /** [ADMIN] Lấy tất cả phiên chat */
   getAllSessions: (): Promise<ChatSessionResponse[]> =>

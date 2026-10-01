@@ -18,9 +18,14 @@ namespace NguyetnhanPhohien.API.Hubs;
 ///   2. Khách join group "session_{sessionId}" VÀ "session_{sessionGuid}" (Guid trong DB)
 ///      để nhận được tin nhắn từ admin bất kể admin gửi theo key nào.
 ///   3. Khách gửi tin nhắn -> Hub lưu DB, broadcast đến Admin group.
-///   4. Admin gửi reply -> Hub lưu DB, gửi về đúng group phiên chat của khách.
+///   4. Admin reply -> Hub lưu DB, gửi về đúng group phiên chat của khách.
+///
+/// LƯU Ý QUAN TRỌNG: KHÔNG gắn [Authorize] ở cấp Hub class. Với JWT bearer,
+/// middleware xác thực chạy ở handshake — nếu yêu cầu Auth cấp Hub thì khách chưa
+/// đăng nhập sẽ bị 401 ngay khi kết nối, và [AllowAnonymous] trên hub method
+/// KHÔNG cứu được (khác với MVC controller). Admin vẫn bị chặn riêng ở từng
+/// method JoinAsAdmin / AdminReply bằng [Authorize(Roles = "Admin")].
 /// </summary>
-[Authorize] // Hub mặc định yêu cầu JWT; hub methods ghi đè bằng AllowAnonymous khi cần public
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
