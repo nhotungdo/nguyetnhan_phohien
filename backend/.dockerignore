@@ -1,0 +1,9 @@
+.git
+.vs
+.vscode
+**/.DS_Store
+**/bin/
+**/obj/
+**/out/
+Dockerfile
+.dockerignore
