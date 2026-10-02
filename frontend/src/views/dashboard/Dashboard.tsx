@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Package, Users, MessageSquare, TrendingUp, Loader2, Trophy, Download } from "lucide-react"
-import { useState, useEffect, useMemo } from "react"
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -13,7 +14,6 @@ import {
   Tooltip,
 } from "recharts"
 import { orderApi, chatApi } from "@/services/api.service"
-import type { OrderResponse } from "@/types/api.types"
 
 const RANGES = [7, 14, 30] as const;
 
@@ -44,55 +44,48 @@ interface TopProduct {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
+  const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard", "stats"],
+    queryFn: async () => {
+      const [ordersList, sessions] = await Promise.all([
+        orderApi.getAll(),
+        chatApi.getAllSessions()
+      ]);
+
+      const revenueVal = ordersList
+        .filter(o => o.status === "Completed")
+        .reduce((sum, o) => sum + o.totalAmount, 0);
+
+      const unread = sessions.filter(s => s.hasUnreadMessages).length;
+
+      const uniquePhones = new Set([
+        ...ordersList.map(o => o.customerPhone),
+        ...sessions.map(s => s.guestPhone).filter(Boolean)
+      ]);
+
+      return {
+        stats: {
+          ordersCount: ordersList.length,
+          customersCount: uniquePhones.size,
+          messagesCount: sessions.length,
+          unreadMessages: unread,
+          revenue: revenueVal,
+        },
+        orders: ordersList
+      };
+    }
+  });
+
+  const stats = data?.stats || {
     ordersCount: 0,
     customersCount: 0,
     messagesCount: 0,
     unreadMessages: 0,
     revenue: 0,
-  });
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
-
-  useEffect(() => {
-    async function loadStats() {
-      try {
-        const [orders, sessions] = await Promise.all([
-          orderApi.getAll(),
-          chatApi.getAllSessions()
-        ]);
-
-        const revenue = orders
-          .filter(o => o.status === "Completed")
-          .reduce((sum, o) => sum + o.totalAmount, 0);
-
-        const unread = sessions.filter(s => s.hasUnreadMessages).length;
-
-        // Count unique customers based on phone numbers from orders and chats
-        const uniquePhones = new Set([
-          ...orders.map(o => o.customerPhone),
-          ...sessions.map(s => s.guestPhone).filter(Boolean)
-        ]);
-
-        setStats({
-          ordersCount: orders.length,
-          customersCount: uniquePhones.size,
-          messagesCount: sessions.length,
-          unreadMessages: unread,
-          revenue,
-        });
-        setOrders(orders);
-      } catch (err) {
-        console.error("Failed to load dashboard stats", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadStats();
-  }, []);
+  };
+  const orders = data?.orders || [];
 
   /** Chuỗi dữ liệu N ngày gần nhất: doanh thu (đơn Completed) & số đơn theo ngày */
   const chartData = useMemo<DayPoint[]>(() => {

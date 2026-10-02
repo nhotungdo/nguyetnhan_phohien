@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderApi } from "@/services/api.service";
 import type { OrderResponse } from "@/types/api.types";
 import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck } from "lucide-react";
@@ -33,35 +34,26 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function Orders() {
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchOrders = async () => {
-    try {
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ["orders", "admin"],
+    queryFn: async () => {
       const data = await orderApi.getAll();
-      // Sort by latest
-      setOrders(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    } catch (err) {
-      console.error("Failed to fetch orders:", err);
-    } finally {
-      setIsLoading(false);
+      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line
-    fetchOrders();
-  }, []);
+  });
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
       await orderApi.updateStatus(id, newStatus);
-      setOrders((prev) =>
-        prev.map((order) => (order.id === id ? { ...order, status: newStatus } : order))
+      queryClient.setQueryData(["orders", "admin"], (old: OrderResponse[] | undefined) => 
+        old ? old.map(order => order.id === id ? { ...order, status: newStatus } : order) : []
       );
+      queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
     } catch (err) {
       console.error("Update failed", err);
       alert("Cập nhật thất bại!");

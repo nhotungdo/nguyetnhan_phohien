@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { discountApi } from "@/services/api.service";
 
 export interface DiscountDto {
@@ -15,39 +15,26 @@ export interface DiscountDto {
 }
 
 export function useDiscounts() {
-  const [discounts, setDiscounts] = useState<DiscountDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchDiscounts = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await discountApi.getAllAdmin();
-      setDiscounts(data);
-    } catch (err) {
-      console.warn("Failed to load discounts:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchDiscounts();
-  }, [fetchDiscounts]);
+  const { data: discounts = [], isLoading, refetch: fetchDiscounts } = useQuery({
+    queryKey: ["discounts", "admin"],
+    queryFn: () => discountApi.getAllAdmin()
+  });
 
   const createDiscount = async (data: Partial<DiscountDto>) => {
     await discountApi.create(data);
-    await fetchDiscounts();
+    queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
   };
 
   const updateDiscount = async (id: string, data: Partial<DiscountDto>) => {
     await discountApi.update(id, data);
-    await fetchDiscounts();
+    queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
   };
 
   const deleteDiscount = async (id: string) => {
     await discountApi.delete(id);
-    await fetchDiscounts();
+    queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
   };
 
   return {
