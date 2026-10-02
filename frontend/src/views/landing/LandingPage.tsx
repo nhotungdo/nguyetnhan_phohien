@@ -50,6 +50,17 @@ export default function LandingPage() {
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
 
+  // Tiêu đề Hero lấy từ CMS (key HeroTitle), chia 2 dòng để giữ bố cục gradient.
+  // Tiếng Việt lấy từ CMS như HeroSubtitle; tiếng Anh vẫn dùng locale.
+  const heroWords = (cmsContent.HeroTitle || "").trim().split(/\s+/).filter(Boolean);
+  const heroSplit = Math.ceil(heroWords.length / 2);
+  const heroLine1 = language === "en"
+    ? t.hero.title.split(" ")[0]
+    : heroWords.length > 0 ? heroWords.slice(0, heroSplit).join(" ") : "Hương Vị";
+  const heroLine2 = language === "en"
+    ? t.hero.title.split(" ").slice(1).join(" ")
+    : heroWords.length > 0 ? heroWords.slice(heroSplit).join(" ") : "Truyền Thống";
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -225,9 +236,9 @@ export default function LandingPage() {
                 Tinh túy đất Phố Hiến
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
-                {language === "en" ? t.hero.title.split(' ')[0] : "Hương Vị"} <br />
+                {heroLine1} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
-                  {language === "en" ? t.hero.title.split(' ').slice(1).join(' ') : "Truyền Thống"}
+                  {heroLine2}
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed">
@@ -268,7 +279,7 @@ export default function LandingPage() {
                 <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
                   {cmsContent.HeroBannerUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cmsContent.HeroBannerUrl.startsWith("http") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover" />
+                    <img src={/^(https?:)?\/\//i.test(cmsContent.HeroBannerUrl) || cmsContent.HeroBannerUrl.startsWith("data:") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover" />
                   ) : products[0]?.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={`${API_URL}${products[0].images[0].imagePath}`} alt={products[0].name} className="w-full h-full object-cover" />
@@ -852,7 +863,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-            <p>© 2026 Nguyệt Nhãn Phố Hiến. {t.footer.rights}</p>
+            <p>{language !== "en" && cmsContent.FooterText ? cmsContent.FooterText : `© 2026 Nguyệt Nhãn Phố Hiến. ${t.footer.rights}`}</p>
             <div className="flex gap-4">
               {/* Social Icons */}
               <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">

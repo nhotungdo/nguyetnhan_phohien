@@ -7,10 +7,16 @@ import type { WebsiteContentResponse, ProductResponse, ProductRequest } from "@/
 import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
-  CloudUpload, Link as LinkIcon, RefreshCw
+  CloudUpload, Link as LinkIcon, RefreshCw, AlertCircle
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+
+// URL tuyệt đối (https:, http:, protocol-relative //, data:) → dùng nguyên;
+// còn lại (vd /uploads/banners/...) → ghép với API_URL.
+const isRemoteUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.startsWith("data:");
+
+const MAX_PRODUCT_IMAGE_MB = 5;
 
 const TEXT_KEYS = [
   { key: "HeroTitle",    label: "Tiêu đề chính (Hero)",    icon: <Type className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Vd: Đặc Sản Long Nhãn Phố Hiến" },
@@ -34,7 +40,10 @@ export default function ContentCMS() {
   const queryClient = useQueryClient();
 
   // React Query: Fetch content
-  const { data: fetchedContents, isLoading: isLoadingText, refetch: refetchContents } = useQuery({
+  const {
+    data: fetchedContents, isLoading: isLoadingText,
+    isError: isErrorText, error: contentError, refetch: refetchContents
+  } = useQuery({
     queryKey: ["website", "content"],
     queryFn: async () => {
       const data = await contentApi.getAll();
@@ -45,15 +54,18 @@ export default function ContentCMS() {
     }
   });
 
-  // Sync content to local state for editing
+  // Đồng bộ server → state local CHỈ khi tải lần đầu.
+  // Nếu sync ở mỗi refetch (sau khi lưu một field) thì phần đang soạn dở
+  // ở các field khác sẽ bị ghi đè mất.
+  const hydratedRef = useRef(false);
   useEffect(() => {
-    if (fetchedContents) {
-      setContents(fetchedContents);
-    }
+    if (!fetchedContents || hydratedRef.current) return;
+    hydratedRef.current = true;
+    setContents(fetchedContents);
   }, [fetchedContents]);
 
   // React Query: Fetch products (Admin)
-  const { data: products = [], isLoading: isLoadingProducts, refetch: refetchProducts } = useQuery({
+  const { data: products = [], isLoading: isLoadingProducts, isError: isErrorProducts, refetch: refetchProducts } = useQuery({
     queryKey: ["products", "admin"],
     queryFn: () => productApi.getAllAdmin(),
   });
@@ -61,7 +73,8 @@ export default function ContentCMS() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductRequest>(EMPTY_FORM);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
-  const [pendingImages, setPendingImages] = useState<File[]>([]);
+  // Ảnh chờ upload: kèm blob URL tạo sẵn — tránh tạo URL mới mỗi lần render (rò rỉ bộ nhớ)
+  const [pendingImages, setPendingImages] = useState<{ file: File; url: string }[]>([]);
   const [existingImages, setExistingImages] = useState<{ id: string; imagePath: string; displayOrder: number }[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -72,6 +85,7 @@ export default function ContentCMS() {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [bannerUploadSuccess, setBannerUploadSuccess] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [bannerLoadFailed, setBannerLoadFailed] = useState(false);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -86,17 +100,21 @@ export default function ContentCMS() {
       await contentApi.upsert({ key, value: contents[key] || "" });
       queryClient.invalidateQueries({ queryKey: ["website", "content"] });
       setSaveSuccess(key); setTimeout(() => setSaveSuccess(null), 3000);
-    } catch { alert("Loi khi luu " + key); }
+    } catch (err) {
+      const label = TEXT_KEYS.find(f => f.key === key)?.label ?? key;
+      alert(`Lỗi khi lưu "${label}".\n${err instanceof Error ? err.message : ""}`.trim());
+    }
     finally { setIsSaving(null); }
   };
 
   const handleBannerFileSelect = (file: File) => {
-    if (!file.type.startsWith("image/")) { alert("Vui long chon file anh."); return; }
-    if (file.size > 10 * 1024 * 1024) { alert("Anh vuot qua 10MB."); return; }
+    if (!file.type.startsWith("image/")) { alert("Vui lòng chọn file ảnh."); return; }
+    if (file.size > 10 * 1024 * 1024) { alert("Ảnh vượt quá 10MB."); return; }
     if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
     setBannerFile(file);
     setBannerPreviewUrl(URL.createObjectURL(file));
     setBannerUploadSuccess(false);
+    setBannerLoadFailed(false);
   };
 
   const handleBannerInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,9 +137,9 @@ export default function ContentCMS() {
       setContents(prev => ({ ...prev, HeroBannerUrl: result.imagePath }));
       queryClient.invalidateQueries({ queryKey: ["website", "content"] });
       if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
-      setBannerFile(null); setBannerPreviewUrl(null);
+      setBannerFile(null); setBannerPreviewUrl(null); setBannerLoadFailed(false);
       setBannerUploadSuccess(true); setTimeout(() => setBannerUploadSuccess(false), 4000);
-    } catch (err) { alert(err instanceof Error ? err.message : "Loi khi upload banner!"); }
+    } catch (err) { alert(err instanceof Error ? err.message : "Lỗi khi upload banner!"); }
     finally { setIsUploadingBanner(false); }
   };
 
@@ -130,14 +148,20 @@ export default function ContentCMS() {
     try {
       await contentApi.upsert({ key: "HeroBannerUrl", value: contents["HeroBannerUrl"] || "" });
       queryClient.invalidateQueries({ queryKey: ["website", "content"] });
+      setBannerLoadFailed(false);
       setSaveSuccess("HeroBannerUrl"); setTimeout(() => setSaveSuccess(null), 3000);
-    } catch { alert("Loi khi luu URL banner!"); }
+    } catch (err) { alert(`Lỗi khi lưu URL banner!\n${err instanceof Error ? err.message : ""}`.trim()); }
     finally { setIsSaving(null); }
   };
 
   const handleResetBanner = () => {
     if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
-    setBannerFile(null); setBannerPreviewUrl(null); setBannerUploadSuccess(false);
+    setBannerFile(null); setBannerPreviewUrl(null); setBannerUploadSuccess(false); setBannerLoadFailed(false);
+  };
+
+  // Giải phóng toàn bộ blob URL của ảnh đang chờ upload
+  const clearPendingImages = () => {
+    setPendingImages(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; });
   };
 
   const openModal = (product?: ProductResponse) => {
@@ -150,40 +174,83 @@ export default function ContentCMS() {
       setFormData({ ...EMPTY_FORM, displayOrder: products.length + 1 });
       setExistingImages([]);
     }
-    setPendingImages([]); setDeletedImageIds([]); setIsModalOpen(true);
+    clearPendingImages(); setDeletedImageIds([]); setIsModalOpen(true);
   };
 
-  const closeModal = () => { setIsModalOpen(false); setEditingId(null); };
+  const closeModal = () => { clearPendingImages(); setIsModalOpen(false); setEditingId(null); };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    setPendingImages(prev => [...prev, ...Array.from(e.target.files!).filter(f => f.type.startsWith("image/"))]);
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
+    const valid: { file: File; url: string }[] = [];
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) { alert(`"${file.name}" không phải file ảnh.`); continue; }
+      if (file.size > MAX_PRODUCT_IMAGE_MB * 1024 * 1024) {
+        alert(`"${file.name}" vượt quá ${MAX_PRODUCT_IMAGE_MB}MB (${(file.size / 1024 / 1024).toFixed(1)}MB).`);
+        continue;
+      }
+      valid.push({ file, url: URL.createObjectURL(file) });
+    }
+    if (valid.length > 0) setPendingImages(prev => [...prev, ...valid]);
   };
 
-  const removePendingImage = (idx: number) => setPendingImages(prev => prev.filter((_, i) => i !== idx));
+  const removePendingImage = (idx: number) => setPendingImages(prev => {
+    const target = prev[idx];
+    if (target) URL.revokeObjectURL(target.url);
+    return prev.filter((_, i) => i !== idx);
+  });
   const removeExistingImage = (imgId: string) => {
     setExistingImages(prev => prev.filter(i => i.id !== imgId));
     setDeletedImageIds(prev => [...prev, imgId]);
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
-    e.preventDefault(); setIsSavingProduct(true);
+    e.preventDefault();
+    if (isSavingProduct) return;
+    setIsSavingProduct(true);
+
+    let productId = editingId;
+    let touchedServer = false;
     try {
-      let productId = editingId;
-      if (productId) { await productApi.update(productId, formData); }
-      else { const created = await productApi.create(formData); productId = created.id; }
-      for (const imgId of deletedImageIds) await productApi.deleteImage(productId!, imgId);
+      if (productId) {
+        await productApi.update(productId, formData);
+      } else {
+        const created = await productApi.create(formData);
+        productId = created.id;
+        // Ghi ngay editingId: nếu các bước sau lỗi, bấm "Lưu" lần nữa sẽ UPDATE
+        // thay vì tạo thêm sản phẩm trùng.
+        setEditingId(created.id);
+      }
+      touchedServer = true;
+
+      // Upload ảnh MỚI trước, xóa ảnh CŨ sau — upload lỗi thì chưa mất ảnh nào.
       if (pendingImages.length > 0) {
         setUploadingImages(true);
-        for (const file of pendingImages) await productApi.uploadImage(productId!, file);
-        setUploadingImages(false);
+        for (const item of [...pendingImages]) {
+          await productApi.uploadImage(productId!, item.file);
+          URL.revokeObjectURL(item.url);
+          // Bỏ dần khỏi danh sách chờ để retry không upload trùng lại ảnh đã lên
+          setPendingImages(prev => prev.filter(p => p.url !== item.url));
+        }
       }
+      for (const imgId of [...deletedImageIds]) {
+        await productApi.deleteImage(productId!, imgId);
+        setDeletedImageIds(prev => prev.filter(id => id !== imgId));
+        setExistingImages(prev => prev.filter(i => i.id !== imgId));
+      }
+
       refetchProducts();
       queryClient.invalidateQueries({ queryKey: ["products", "public"] });
       closeModal();
-    } catch (err) { console.error(err); alert("Loi khi luu san pham!"); }
-    finally { setIsSavingProduct(false); setUploadingImages(false); }
+    } catch (err) {
+      console.error(err);
+      alert(`Lỗi khi lưu sản phẩm!\n${err instanceof Error ? err.message : ""}`.trim());
+      // Đã tạo/đã sửa được một phần → đồng bộ lại danh sách để không hiển thị dữ liệu cũ
+      if (touchedServer) {
+        refetchProducts();
+        queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+      }
+    } finally { setIsSavingProduct(false); setUploadingImages(false); }
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -193,7 +260,7 @@ export default function ContentCMS() {
       refetchProducts();
       queryClient.invalidateQueries({ queryKey: ["products", "public"] });
     }
-    catch { alert("Loi khi xoa san pham!"); }
+    catch (err) { alert(`Lỗi khi xóa sản phẩm!\n${err instanceof Error ? err.message : ""}`.trim()); }
   };
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -202,8 +269,27 @@ export default function ContentCMS() {
     { key: "banner",   label: "🖼️ Ảnh Banner",         icon: <ImageIcon className="w-4 h-4" /> },
   ];
 
+  // UI khi không tải được nội dung — không render form rỗng để tránh admin
+  // ghi đè dữ liệu thật bằng giá trị trống.
+  const contentErrorBlock = (
+    <div className="p-10 flex flex-col items-center gap-3 text-center">
+      <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 flex items-center justify-center">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold">Không tải được nội dung website</p>
+        <p className="text-sm text-muted-foreground max-w-md">
+          {contentError instanceof Error ? contentError.message : "Không kết nối được máy chủ. Vui lòng thử lại."}
+        </p>
+      </div>
+      <button onClick={() => refetchContents()} className="border hover:bg-muted px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+        <RefreshCw className="w-4 h-4" /> Thử lại
+      </button>
+    </div>
+  );
+
   const saved = contents["HeroBannerUrl"];
-  const currentBannerSrc = saved ? (saved.startsWith("http") ? saved : `${API_URL}${saved}`) : null;
+  const currentBannerSrc = saved ? (isRemoteUrl(saved) ? saved : `${API_URL}${saved}`) : null;
 
   return (
     <div className="space-y-6">
@@ -228,7 +314,7 @@ export default function ContentCMS() {
             <h3 className="font-semibold">Chỉnh sửa văn bản trên Landing Page</h3>
             <p className="text-sm text-muted-foreground">Thay đổi ngay lập tức, không cần deploy lại</p>
           </div>
-          {isLoadingText ? <div className="flex justify-center p-10"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : (
+          {isLoadingText ? <div className="flex justify-center p-10"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : isErrorText && !fetchedContents ? contentErrorBlock : (
             <div className="p-6 space-y-7">
               {TEXT_KEYS.map(field => (
                 <div key={field.key} className="space-y-2">
@@ -273,6 +359,13 @@ export default function ContentCMS() {
               <tbody className="divide-y">
                 {isLoadingProducts ? (
                   <tr><td colSpan={7} className="px-5 py-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></td></tr>
+                ) : isErrorProducts && products.length === 0 ? (
+                  <tr><td colSpan={7} className="px-5 py-8 text-center space-y-2">
+                    <p className="text-sm font-medium">Không tải được danh sách sản phẩm.</p>
+                    <button onClick={() => refetchProducts()} className="border hover:bg-muted px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors">
+                      <RefreshCw className="w-4 h-4" /> Thử lại
+                    </button>
+                  </td></tr>
                 ) : products.length === 0 ? (
                   <tr><td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">Chưa có sản phẩm. Hãy thêm mới!</td></tr>
                 ) : products.map(p => (
@@ -322,7 +415,7 @@ export default function ContentCMS() {
               )}
             </div>
 
-            {isLoadingText ? <div className="flex justify-center p-12"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : (
+            {isLoadingText ? <div className="flex justify-center p-12"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : isErrorText && !fetchedContents ? contentErrorBlock : (
               <div className="p-6 space-y-6">
 
                 {/* PREVIEW */}
@@ -341,9 +434,17 @@ export default function ContentCMS() {
                     <div className={`relative rounded-xl overflow-hidden border-2 aspect-video bg-muted ${bannerPreviewUrl ? "border-dashed border-accent/60" : "border-border"}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={bannerPreviewUrl ?? currentBannerSrc!} alt="Banner preview" className="w-full h-full object-cover"
-                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                      {bannerPreviewUrl && <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Chưa upload</div>}
-                      {!bannerPreviewUrl && currentBannerSrc && <div className="absolute top-3 left-3 bg-green-600/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Đang hiển thị</div>}
+                        onLoad={e => { e.currentTarget.style.display = ""; setBannerLoadFailed(false); }}
+                        onError={e => { e.currentTarget.style.display = "none"; setBannerLoadFailed(true); }} />
+                      {bannerLoadFailed && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-6 bg-muted">
+                          <AlertCircle className="w-6 h-6 text-red-400" />
+                          <p className="text-sm font-semibold text-red-600">Không tải được ảnh banner</p>
+                          <p className="text-xs text-muted-foreground">Kiểm tra lại URL (link chia sẻ Google Drive / OneDrive không hiển thị trực tiếp) hoặc chọn file khác.</p>
+                        </div>
+                      )}
+                      {!bannerLoadFailed && bannerPreviewUrl && <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Chưa upload</div>}
+                      {!bannerLoadFailed && !bannerPreviewUrl && currentBannerSrc && <div className="absolute top-3 left-3 bg-green-600/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Đang hiển thị</div>}
                     </div>
                   </div>
                 )}
@@ -487,10 +588,10 @@ export default function ContentCMS() {
                       {existingImages[0]?.id === img.id && <span className="absolute bottom-1 left-1 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-medium">Chính</span>}
                     </div>
                   ))}
-                  {pendingImages.map((file, idx) => (
-                    <div key={`pending-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-accent/50 group">
+                  {pendingImages.map((item, idx) => (
+                    <div key={item.url} className="relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-accent/50 group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                      <img src={item.url} alt="" className="w-full h-full object-cover" />
                       <button type="button" onClick={() => removePendingImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                       <span className="absolute bottom-1 left-1 bg-accent text-white text-[10px] px-1.5 py-0.5 rounded font-medium">Mới</span>
                     </div>

@@ -86,12 +86,20 @@ public class ProductsController : ControllerBase
         if (!allowedTypes.Contains(file.ContentType.ToLower()))
             return BadRequest("Chỉ chấp nhận file ảnh (JPG, PNG, WEBP, GIF).");
 
+        // Content-Type chỉ là header do client khai báo, còn đuôi file lấy từ tên file
+        // khách gửi lên. Bắt buộc đuôi file thuộc whitelist để không lưu được
+        // file .html/.js vào wwwroot (bị serve tĩnh → chạy script trên origin API).
+        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var fileName = file.FileName ?? string.Empty;
+        if (!allowedExts.Contains(Path.GetExtension(fileName).ToLowerInvariant()))
+            return BadRequest("Tên file phải có đuôi .jpg, .jpeg, .png, .webp hoặc .gif.");
+
         // Kiểm tra sản phẩm tồn tại
         var product = await _productService.GetByIdAsync(id);
         if (product == null) return NotFound("Không tìm thấy sản phẩm.");
 
         using var stream = file.OpenReadStream();
-        var result = await _productService.AddImageAsync(id, stream, file.FileName);
+        var result = await _productService.AddImageAsync(id, stream, fileName);
 
         return Ok(result);
     }

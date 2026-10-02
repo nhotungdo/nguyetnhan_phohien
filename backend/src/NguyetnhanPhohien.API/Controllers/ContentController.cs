@@ -40,13 +40,18 @@ public class ContentController : ControllerBase
     /// <summary>
     /// [ADMIN] Cập nhật nội dung website (ảnh, text...).
     /// Dùng Upsert: nếu key chưa có thì tạo mới, đã có thì cập nhật.
+    /// Chỉ Key là bắt buộc — Value được phép rỗng để admin xóa nội dung trên Landing Page.
     /// </summary>
     [HttpPut]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpsertContent([FromBody] UpdateContentRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Key) || string.IsNullOrWhiteSpace(request.Value))
-            return BadRequest(new { message = "Key và Value không được để trống." });
+        if (string.IsNullOrWhiteSpace(request.Key))
+            return BadRequest(new { message = "Key không được để trống." });
+
+        // JSON có thể gửi "value": null → chuẩn hóa về rỗng để không ghi null vào cột NOT NULL.
+        if (request.Value is null)
+            request.Value = string.Empty;
 
         var result = await _contentService.UpsertContentAsync(request);
         return Ok(result);
@@ -70,8 +75,16 @@ public class ContentController : ControllerBase
         if (!allowedTypes.Contains(file.ContentType.ToLower()))
             return BadRequest(new { message = "Chỉ chấp nhận file ảnh (JPG, PNG, WEBP, GIF)." });
 
+        // Content-Type chỉ là header do client khai báo, còn đuôi file lấy từ tên file
+        // khách gửi lên. Bắt buộc đuôi file thuộc whitelist để không lưu được
+        // file .html/.js vào wwwroot (bị serve tĩnh → chạy script trên origin API).
+        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var fileName = file.FileName ?? string.Empty;
+        if (!allowedExts.Contains(Path.GetExtension(fileName).ToLowerInvariant()))
+            return BadRequest(new { message = "Tên file phải có đuôi .jpg, .jpeg, .png, .webp hoặc .gif." });
+
         using var stream = file.OpenReadStream();
-        var path = await _contentService.UploadBannerImageAsync(stream, file.FileName);
+        var path = await _contentService.UploadBannerImageAsync(stream, fileName);
         return Ok(new { imagePath = path, message = "Upload banner thành công!" });
     }
 }

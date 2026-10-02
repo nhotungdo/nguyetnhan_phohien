@@ -43,6 +43,8 @@ interface TopProduct {
   sharePct: number;     // % số lượng so với sản phẩm dẫn đầu (vẽ progress bar)
 }
 
+const EMPTY_ORDERS: OrderResponse[] = [];
+
 export default function Dashboard() {
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
@@ -85,7 +87,7 @@ export default function Dashboard() {
     unreadMessages: 0,
     revenue: 0,
   };
-  const orders = data?.orders || [];
+  const orders = data?.orders || EMPTY_ORDERS;
 
   /** Chuỗi dữ liệu N ngày gần nhất: doanh thu (đơn Completed) & số đơn theo ngày */
   const chartData = useMemo<DayPoint[]>(() => {

@@ -57,8 +57,11 @@ public class ContentService : IContentService
         var bannersDir = Path.Combine(wwwroot, "uploads", "banners");
         Directory.CreateDirectory(bannersDir);
 
-        // Tạo tên file unique
+        // Tạo tên file unique — chỉ giữ đuôi file thuộc whitelist (phòng hờ nếu caller
+        // quên validate ở controller): không bao giờ ghi được .html/.js vào wwwroot.
+        var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        if (!allowedExts.Contains(ext)) ext = ".jpg";
         var uniqueFileName = $"banner_{Guid.NewGuid():N}{ext}";
         var filePath = Path.Combine(bannersDir, uniqueFileName);
 
@@ -70,12 +73,29 @@ public class ContentService : IContentService
 
         var relativePath = $"/uploads/banners/{uniqueFileName}";
 
+        // Đọc URL banner cũ TRƯỚC khi upsert, để dọn file cũ sau khi đã lưu xong.
+        var oldRelativePath = (await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == "HeroBannerUrl"))?.Value;
+
         // Upsert key HeroBannerUrl
         await UpsertContentAsync(new UpdateContentRequest
         {
             Key = "HeroBannerUrl",
             Value = relativePath
         });
+
+        // Dọn file banner cũ: mỗi lần upload là một file mới nên không dọn thì
+        // wwwroot/uploads/banners phình vô hạn. Chỉ đụng file nằm trong thư mục
+        // banners (Path.GetFileName chặn traversal) và không phải file vừa lưu.
+        if (!string.IsNullOrWhiteSpace(oldRelativePath)
+            && oldRelativePath.StartsWith("/uploads/banners/", StringComparison.OrdinalIgnoreCase))
+        {
+            var oldFilePath = Path.Combine(bannersDir, Path.GetFileName(oldRelativePath));
+            if (!string.Equals(oldFilePath, filePath, StringComparison.OrdinalIgnoreCase) && File.Exists(oldFilePath))
+            {
+                try { File.Delete(oldFilePath); }
+                catch { /* file đang bị mở hoặc đã bị dọn trước đó — bỏ qua */ }
+            }
+        }
 
         return relativePath;
     }

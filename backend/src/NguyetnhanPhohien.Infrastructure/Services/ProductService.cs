@@ -106,14 +106,17 @@ public class ProductService : IProductService
             await imageStream.CopyToAsync(fs);
         }
 
-        // Đếm ảnh hiện tại để set DisplayOrder
-        var existingCount = await _db.ProductImages.CountAsync(pi => pi.ProductId == productId);
+        // Lấy DisplayOrder lớn nhất hiện có — KHÔNG dùng Count: sau khi xóa ảnh ở giữa
+        // danh sách, Count sẽ trùng thứ tự với ảnh còn lại và thứ tự hiển thị không xác định.
+        var maxOrder = await _db.ProductImages
+            .Where(pi => pi.ProductId == productId)
+            .MaxAsync(pi => (int?)pi.DisplayOrder);
 
         var image = new ProductImage
         {
             ProductId = productId,
             ImagePath = $"/uploads/products/{uniqueFileName}",
-            DisplayOrder = existingCount,
+            DisplayOrder = (maxOrder ?? -1) + 1,
             CreatedAt = DateTime.UtcNow
         };
 
