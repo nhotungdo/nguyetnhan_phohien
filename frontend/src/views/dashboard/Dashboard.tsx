@@ -14,6 +14,7 @@ import {
   Tooltip,
 } from "recharts"
 import { orderApi, chatApi } from "@/services/api.service"
+import type { OrderResponse } from "@/types/api.types"
 
 const RANGES = [7, 14, 30] as const;
 
