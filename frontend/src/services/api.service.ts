@@ -176,7 +176,25 @@ export const contentApi = {
       body: JSON.stringify(data),
       headers: getAdminHeaders(),
     }),
+
+  /** [ADMIN] Upload ảnh banner trực tiếp từ thiết bị lên server */
+  uploadBannerImage: async (file: File): Promise<{ imagePath: string; message: string }> => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_URL}/api/content/upload-banner`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message || `Upload banner lỗi ${res.status}`);
+    }
+    return res.json();
+  },
 };
+
 
 // ===== PRODUCT API =====
 export const productApi = {

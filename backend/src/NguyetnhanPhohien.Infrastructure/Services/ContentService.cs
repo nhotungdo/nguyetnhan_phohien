@@ -50,6 +50,36 @@ public class ContentService : IContentService
         return MapToResponse(existing);
     }
 
+    public async Task<string> UploadBannerImageAsync(Stream imageStream, string fileName)
+    {
+        // Xác định thư mục lưu ảnh banner
+        var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var bannersDir = Path.Combine(wwwroot, "uploads", "banners");
+        Directory.CreateDirectory(bannersDir);
+
+        // Tạo tên file unique
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        var uniqueFileName = $"banner_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(bannersDir, uniqueFileName);
+
+        // Lưu file
+        using (var fs = File.Create(filePath))
+        {
+            await imageStream.CopyToAsync(fs);
+        }
+
+        var relativePath = $"/uploads/banners/{uniqueFileName}";
+
+        // Upsert key HeroBannerUrl
+        await UpsertContentAsync(new UpdateContentRequest
+        {
+            Key = "HeroBannerUrl",
+            Value = relativePath
+        });
+
+        return relativePath;
+    }
+
     private static WebsiteContentResponse MapToResponse(WebsiteContent c) => new()
     {
         Key = c.Key,

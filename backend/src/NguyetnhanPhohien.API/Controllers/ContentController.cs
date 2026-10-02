@@ -51,4 +51,28 @@ public class ContentController : ControllerBase
         var result = await _contentService.UpsertContentAsync(request);
         return Ok(result);
     }
+
+    /// <summary>
+    /// [ADMIN] Upload ảnh banner trực tiếp từ thiết bị.
+    /// Lưu ảnh vào wwwroot/uploads/banners và tự động cập nhật key HeroBannerUrl.
+    /// </summary>
+    [HttpPost("upload-banner")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UploadBannerImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Không có file nào được gửi lên." });
+
+        if (file.Length > 10 * 1024 * 1024)
+            return BadRequest(new { message = "File ảnh không được vượt quá 10MB." });
+
+        var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp", "image/gif" };
+        if (!allowedTypes.Contains(file.ContentType.ToLower()))
+            return BadRequest(new { message = "Chỉ chấp nhận file ảnh (JPG, PNG, WEBP, GIF)." });
+
+        using var stream = file.OpenReadStream();
+        var path = await _contentService.UploadBannerImageAsync(stream, file.FileName);
+        return Ok(new { imagePath = path, message = "Upload banner thành công!" });
+    }
 }
+

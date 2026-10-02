@@ -1,25 +1,12 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/api.service";
-import type { ProductResponse } from "@/types/api.types";
 
 export function useProducts() {
-  const [products, setProducts] = useState<ProductResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: products = [], isLoading, error } = useQuery({
+    queryKey: ["products", "public"],
+    queryFn: () => productApi.getAllPublic(),
+  });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await productApi.getAllPublic();
-        setProducts(data);
-      } catch (err) {
-        console.warn("Failed to load products:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  return { products, isLoading };
+  return { products, isLoading, error };
 }
+
