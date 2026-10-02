@@ -19,6 +19,40 @@ export interface AdminLoginResponse {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
+// ===== SHARED ERROR HELPERS =====
+//
+// True khi trang chạy ở nơi KHÔNG phải localhost (vd Vercel) nhưng
+// NEXT_PUBLIC_API_URL chưa được cấu hình → mọi call trỏ về http://localhost:5050
+// và chắc chắn fail với "Failed to fetch".
+function isMissingApiUrlConfig(): boolean {
+  if (typeof window === "undefined" || !API_URL.startsWith("http://localhost")) return false;
+  return !["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+function connectionErrorMessage(): string {
+  return `Không kết nối được API tại ${API_URL}. Kiểm tra backend đã chạy chưa và origin của trang có nằm trong AllowedOrigins không.${configHint()}`;
+}
+
+// Chỉ ra nguyên nhân phổ biến nhất gây ra "Failed to fetch" trên môi trường deploy.
+function configHint(): string {
+  if (typeof window === "undefined") return "";
+  if (isMissingApiUrlConfig()) {
+    return " NEXT_PUBLIC_API_URL chưa được cấu hình ở môi trường này nên đang mặc định là http://localhost:5050 — hãy set nó trên Vercel trỏ tới backend đã deploy.";
+  }
+  if (window.location.protocol === "https:" && API_URL.startsWith("http://") && !isMissingApiUrlConfig()) {
+    return " Trang đang chạy HTTPS còn API là HTTP → trình duyệt chặn (mixed content). Hãy đặt backend ở https://.";
+  }
+  return "";
+}
+
+// Backend có thể trả { message: "..." } hoặc một string trần (vd ProductsController
+// trả BadRequest("...")). Đọc cả hai dạng để không lộ "API Error 400" thô.
+async function readApiError(res: Response): Promise<Error> {
+  const body = await res.json().catch(() => null);
+  const message = typeof body === "string" ? body : body?.message;
+  return new Error(message || `API Error ${res.status}: ${res.statusText}`);
+}
+
 // ===== BASE FETCH HELPER =====
 async function apiFetch<T>(
   path: string,
@@ -38,21 +72,37 @@ async function apiFetch<T>(
   } catch {
     // Lỗi mạng / CORS / backend chưa chạy → fetch ném TypeError "Failed to fetch".
     // Chuyển thành thông báo rõ nguyên nhân thay vì để lỗi trần lọt ra console.
-    throw new Error(
-      `Không kết nối được API tại ${API_URL}. Kiểm tra backend đã chạy chưa và origin của trang có nằm trong AllowedOrigins không.`
-    );
+    throw new Error(connectionErrorMessage());
   }
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(
-      errData?.message || `API Error ${res.status}: ${res.statusText}`
-    );
-  }
+  if (!res.ok) throw await readApiError(res);
 
   // Handle 204 No Content
   if (res.status === 204) return undefined as T;
 
+  return res.json();
+}
+
+// Upload multipart/form-data — dùng chung cách báo lỗi với apiFetch.
+// Nếu để raw fetch ở từng chỗ thì lỗi CORS/mạng sẽ ném ra "Failed to fetch"
+// (tiếng Anh, không dấu) rồi hiện nguyên trong alert.
+async function uploadFetch<T>(path: string, file: File): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+  } catch {
+    throw new Error(connectionErrorMessage());
+  }
+
+  if (!res.ok) throw await readApiError(res);
   return res.json();
 }
 
@@ -178,21 +228,8 @@ export const contentApi = {
     }),
 
   /** [ADMIN] Upload ảnh banner trực tiếp từ thiết bị lên server */
-  uploadBannerImage: async (file: File): Promise<{ imagePath: string; message: string }> => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${API_URL}/api/content/upload-banner`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message || `Upload banner lỗi ${res.status}`);
-    }
-    return res.json();
-  },
+  uploadBannerImage: (file: File): Promise<{ imagePath: string; message: string }> =>
+    uploadFetch("/api/content/upload-banner", file),
 };
 
 
@@ -230,21 +267,8 @@ export const productApi = {
     }),
 
   /** [ADMIN] Upload ảnh cho sản phẩm (từ thiết bị) */
-  uploadImage: async (productId: string, file: File): Promise<import("@/types/api.types").ProductImageResponse> => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${API_URL}/api/products/${productId}/images`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.message || `Upload lỗi ${res.status}`);
-    }
-    return res.json();
-  },
+  uploadImage: (productId: string, file: File): Promise<import("@/types/api.types").ProductImageResponse> =>
+    uploadFetch(`/api/products/${productId}/images`, file),
 
   /** [ADMIN] Xóa ảnh của sản phẩm */
   deleteImage: (productId: string, imageId: string): Promise<void> =>
