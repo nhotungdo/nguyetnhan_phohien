@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
@@ -13,12 +14,16 @@ public class OrderService : IOrderService
     private readonly AppDbContext _db;
     private readonly IEmailService _emailService;
     private readonly ILogger<OrderService> _logger;
+    private readonly string _frontendBaseUrl;
 
-    public OrderService(AppDbContext db, IEmailService emailService, ILogger<OrderService> logger)
+    public OrderService(AppDbContext db, IEmailService emailService, ILogger<OrderService> logger, IConfiguration config)
     {
         _db = db;
         _emailService = emailService;
         _logger = logger;
+        // Domain frontend để gắn vào link trong email — hardcode "localhost:3000"
+        // trước đây tạo link chết khi deploy. Cấu hình qua Frontend:BaseUrl.
+        _frontendBaseUrl = (config["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
     }
 
     public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request)
@@ -93,9 +98,10 @@ public class OrderService : IOrderService
 
         if (!string.IsNullOrWhiteSpace(request.DiscountCode))
         {
-            var code = request.DiscountCode.Trim();
+            // Không phân biệt hoa/thường — khách gõ "welcome10" vẫn khớp mã "WELCOME10"
+            var code = request.DiscountCode.Trim().ToUpperInvariant();
             var discountCode = await _db.DiscountCodes
-                .FirstOrDefaultAsync(d => d.Code == code && d.IsActive && !d.IsAdminBackdoor)
+                .FirstOrDefaultAsync(d => d.Code.ToUpper() == code && d.IsActive && !d.IsAdminBackdoor)
                 ?? throw new ArgumentException("Mã giảm giá không hợp lệ.");
 
             if (discountCode.ExpiresAt.HasValue && discountCode.ExpiresAt.Value < DateTime.UtcNow)
@@ -281,7 +287,7 @@ public class OrderService : IOrderService
                     <p><strong>Sản phẩm mua:</strong><br/>{adminSummaryItems}</p>
                     <p><strong>Tổng thanh toán:</strong> {order.TotalAmount:N0} đ</p>
                     <p><strong>Ghi chú:</strong> {order.Note ?? "Không"}</p>
-                    <p><a href='http://localhost:3000/orders'>Vào Dashboard để xem chi tiết</a></p>
+                    <p><a href='{_frontendBaseUrl}/orders'>Vào Dashboard để xem chi tiết</a></p>
                 </div>";
 
             try

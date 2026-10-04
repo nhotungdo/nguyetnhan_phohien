@@ -34,6 +34,13 @@ public class AuthController : ControllerBase
             // Không tiết lộ lỗi nào sai (user hay password)
             return Unauthorized(new { message = "Tên đăng nhập hoặc mật khẩu không đúng." });
         }
+        catch (InvalidOperationException ex)
+        {
+            // Thiếu cấu hình (Admin:Username/Password, Jwt:Key...) — trả thông báo
+            // đúng nguyên nhân thay vì 500 chung chung để trang đăng nhập hiện
+            // "API Error 500" không rõ lý do. Không lộ giá trị secret nào.
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

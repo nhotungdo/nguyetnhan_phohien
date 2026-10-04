@@ -50,7 +50,10 @@ public class AuthService : IAuthService
 
     private string GenerateAdminJwt(string username)
     {
-        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
+        // Bắt cả chuỗi rỗng (?? throw chỉ chặn null)
+        var jwtKey = _config["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
+            throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
         var issuer = _config["Jwt:Issuer"] ?? "NguyetNhanPhoHien";
         var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
 

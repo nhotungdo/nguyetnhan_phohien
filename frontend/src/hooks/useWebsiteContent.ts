@@ -18,10 +18,12 @@ export function useWebsiteContent() {
     queryFn: async () => {
       const data = await contentApi.getAll();
       const mapped = { ...defaultContents };
+      // Ghi đè CẢ khi value rỗng: backend cho phép admin lưu chuỗi rỗng để xóa
+      // nội dung, mà `if (item.value)` cũ bỏ qua giá trị rỗng nên nội dung
+      // "đã xóa" luôn bị khôi phục về default. Khi API lỗi thì data undefined
+      // → mặc định defaultContents giữ vai trò fallback hiển thị.
       data.forEach((item: WebsiteContentResponse) => {
-        if (item.value) {
-          mapped[item.key] = item.value;
-        }
+        mapped[item.key] = item.value ?? "";
       });
       return mapped;
     },

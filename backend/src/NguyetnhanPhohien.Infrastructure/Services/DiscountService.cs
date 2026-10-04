@@ -36,8 +36,13 @@ public class DiscountService : IDiscountService
             };
         }
 
+        // So khớp KHÔNG phân biệt hoa/thường: mã lưu dạng IN (admin UI luôn ép IN),
+        // khách có thể gõ thường — trước đây so sánh cứng làm khách gõ ĐÚNG mã
+        // vẫn bị báo "Mã không hợp lệ hoặc đã hết hạn".
+        var normalized = code.Trim().ToUpperInvariant();
+
         var discountCode = await _db.DiscountCodes
-            .FirstOrDefaultAsync(d => d.Code == code && d.IsActive && !d.IsAdminBackdoor);
+            .FirstOrDefaultAsync(d => d.Code.ToUpper() == normalized && d.IsActive && !d.IsAdminBackdoor);
 
         if (discountCode == null)
         {
@@ -117,7 +122,13 @@ public class DiscountService : IDiscountService
 
     public async Task<DiscountDto> CreateAsync(CreateDiscountRequest request)
     {
-        if (await _db.DiscountCodes.AnyAsync(d => d.Code == request.Code))
+        // Chuẩn hóa: trim + IN hoa để mã lưu trong DB luôn đúng dạng
+        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        if (normalizedCode.Length == 0)
+            throw new Exception("Mã giảm giá không được để trống.");
+
+        // Kiểm tra trùng KHÔNG phân biệt hoa/thường (cũ cho phép "VIP" và "vip" cùng tồn tại)
+        if (await _db.DiscountCodes.AnyAsync(d => d.Code.ToUpper() == normalizedCode))
         {
             throw new Exception("Mã giảm giá đã tồn tại.");
         }
@@ -126,7 +137,7 @@ public class DiscountService : IDiscountService
 
         var discount = new Domain.Entities.DiscountCode
         {
-            Code = request.Code,
+            Code = normalizedCode,
             PercentOff = request.PercentOff,
             AmountOff = request.AmountOff,
             ExpiresAt = request.ExpiresAt,
@@ -146,13 +157,18 @@ public class DiscountService : IDiscountService
         var discount = await _db.DiscountCodes.FindAsync(id);
         if (discount == null) throw new Exception("Không tìm thấy mã giảm giá.");
 
-        // Nếu đổi mã code, check xem trùng không
-        if (discount.Code != request.Code && await _db.DiscountCodes.AnyAsync(d => d.Code == request.Code))
+        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        if (normalizedCode.Length == 0)
+            throw new Exception("Mã giảm giá không được để trống.");
+
+        // Đổi mã thì check trùng — loại trừ chính nó, không phân biệt hoa/thường
+        if (!string.Equals(discount.Code, normalizedCode, StringComparison.Ordinal)
+            && await _db.DiscountCodes.AnyAsync(d => d.Id != id && d.Code.ToUpper() == normalizedCode))
         {
             throw new Exception("Mã giảm giá đã tồn tại.");
         }
 
-        discount.Code = request.Code;
+        discount.Code = normalizedCode;
         discount.PercentOff = request.PercentOff;
         discount.AmountOff = request.AmountOff;
         discount.IsActive = request.IsActive;
@@ -196,7 +212,11 @@ public class DiscountService : IDiscountService
 
     private string GenerateAdminJwt()
     {
-        var jwtKey = _config["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_JWT_SIGNING_12345";
+        // Không còn secret fallback hardcode — thiếu cấu hình thì fail rõ ràng
+        // (Program.cs cũng chặn Jwt:Key rỗng ngay khi khởi động).
+        var jwtKey = _config["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
+            throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
         var issuer = _config["Jwt:Issuer"] ?? "NguyetNhanPhoHien";
         var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
         var adminUsername = _config["Admin:Username"] ?? "NguyetNhanPhoHienAdmin";

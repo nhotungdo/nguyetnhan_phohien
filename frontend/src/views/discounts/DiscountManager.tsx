@@ -5,6 +5,19 @@ import { useDiscounts, DiscountDto } from "@/hooks/useDiscounts";
 import { Ticket, Plus, Trash2, Edit, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Chuyển ngày hết hạn (UTC từ server) thành chuỗi cho input `datetime-local`.
+ * Input này ĐỌC theo giờ máy khách nên bắt buộc phải dùng giờ LOCAL.
+ * Trước đây dùng toISOString().slice(0, 16) (giờ UTC) khiến ô hiển thị lệch 7h với
+ * Việt Nam và mỗi lần bấm Lưu không sửa gì là ExpiresAt bị đẩy lùi thêm 7 giờ.
+ */
+const toDateTimeLocalValue = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+};
+
 export function DiscountManager() {
   const { discounts, isLoading, createDiscount, updateDiscount, deleteDiscount } = useDiscounts();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,7 +52,7 @@ export function DiscountManager() {
       type: discount.percentOff != null ? "percent" : "amount",
       value: discount.percentOff ?? discount.amountOff ?? 0,
       maxUsageCount: discount.maxUsageCount?.toString() ?? "",
-      expiresAt: discount.expiresAt ? new Date(discount.expiresAt).toISOString().slice(0, 16) : "",
+      expiresAt: discount.expiresAt ? toDateTimeLocalValue(discount.expiresAt) : "",
       isActive: discount.isActive,
     });
     setIsModalOpen(true);

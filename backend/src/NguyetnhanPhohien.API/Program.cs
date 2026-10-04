@@ -15,8 +15,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ===== JWT AUTHENTICATION =====
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("Jwt:Key chưa được cấu hình trong appsettings.");
+// Bắt cả chuỗi RỖNG: appsettings để "" khi chưa cấu hình user-secrets/biến môi trường,
+// nếu chỉ so sánh null (?? throw) thì app vẫn khởi động với key ký rỗng và mọi
+// request JWT lỗi 500 về sau — khó chẩn hơn nhiều là dừng ngay ở đây với thông báo rõ.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException(
+        "Jwt:Key chưa được cấu hình (dùng user-secrets hoặc biến môi trường Jwt__Key). App dừng lại thay vì chạy với key rỗng.");
+}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

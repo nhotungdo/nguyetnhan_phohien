@@ -171,7 +171,7 @@ public class WeeklyReportBackgroundService : BackgroundService
                       $"Doanh thu {revenue:N0}đ - Nguyệt Nhãn Phố Hiến";
         var html = BuildReportHtml(periodStartVn, periodEndVn.AddDays(-1),
             orders.Count, revenue, completedOrders.Count, avgOrderValue,
-            statusSummary, byDay, topProducts);
+            statusSummary, byDay, topProducts, FrontendBaseUrl);
 
         await _emailService.SendEmailAsync(recipient, subject, html);
 
@@ -185,7 +185,8 @@ public class WeeklyReportBackgroundService : BackgroundService
         int totalOrders, decimal revenue, int completedCount, decimal avgOrderValue,
         string statusSummary,
         List<(string DayLabel, int Orders, decimal Revenue)> byDay,
-        List<(string Name, string Size, int Quantity, decimal Revenue)> topProducts)
+        List<(string Name, string Size, int Quantity, decimal Revenue)> topProducts,
+        string frontendBaseUrl)
     {
         string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
 
@@ -263,7 +264,7 @@ public class WeeklyReportBackgroundService : BackgroundService
                     </table>
 
                     <p style='margin-top: 25px; text-align: center;'>
-                        <a href='http://localhost:3000/dashboard' style='color: #2E7D32;'>Xem chi tiết trên Dashboard</a>
+                        <a href='{frontendBaseUrl}/dashboard' style='color: #2E7D32;'>Xem chi tiết trên Dashboard</a>
                     </p>
                     <p style='text-align: center; color: #999; font-size: 12px; margin-top: 20px;'>
                         Email tự động từ hệ thống Nguyệt Nhãn Phố Hiến
@@ -272,6 +273,11 @@ public class WeeklyReportBackgroundService : BackgroundService
     }
 
     // ===== LỊCH GỬI & CẤU HÌNH =====
+
+    /// <summary>Domain frontend cho link trong email — lấy từ Frontend:BaseUrl (mặc định localhost khi dev).</summary>
+    private string FrontendBaseUrl =>
+        (_config["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
+
     private TimeSpan GetDelayUntilNextSend()
     {
         var sendDay = Enum.TryParse<DayOfWeek>(_config["WeeklyReport:SendOnDay"], true, out var d)
