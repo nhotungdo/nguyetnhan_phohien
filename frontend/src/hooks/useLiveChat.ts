@@ -7,6 +7,11 @@ import type { ChatMessageResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
+/** Chỉ gửi tín hiệu "đang gõ" tối đa mỗi TYPING_THROTTLE_MS để không spam hub. */
+const TYPING_THROTTLE_MS = 1500;
+/** Tự ẩn chỉ báo "admin đang gõ" nếu không nhận được tín hiệu mới. */
+const TYPING_HIDE_MS = 4000;
+
 // Tạo hoặc lấy sessionId từ sessionStorage
 function getOrCreateSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -23,19 +28,40 @@ export function useLiveChat() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  /** Admin đang gõ — tự ẩn sau TYPING_HIDE_MS nếu không có tín hiệu mới. */
+  const [isAdminTyping, setIsAdminTyping] = useState(false);
+
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const sessionId = useRef<string>("");
+  const messagesRef = useRef<ChatMessageResponse[]>([]);
+  const adminTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
 
   // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
   // mà không cần re-register handlers
   const guestInfoRef = useRef<{ name?: string; phone?: string }>({});
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   // Kết nối SignalR
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
-    if (connectionRef.current?.state === signalR.HubConnectionState.Connected) return;
+    guestInfoRef.current = { name: guestName, phone: guestPhone };
+
+    // Đã kết nối rồi: chỉ cập nhật thông tin khách (tên/SĐT nhập ở lần bắt đầu chat)
+    // bằng cách join lại — backend sẽ ghi đè lên phiên trong DB.
+    if (connectionRef.current?.state === signalR.HubConnectionState.Connected) {
+      sessionId.current = getOrCreateSessionId();
+      if (guestName || guestPhone) {
+        connectionRef.current
+          .invoke("JoinAsGuest", sessionId.current, guestName ?? null, guestPhone ?? null)
+          .catch(() => {});
+      }
+      return;
+    }
 
     sessionId.current = getOrCreateSessionId();
-    guestInfoRef.current = { name: guestName, phone: guestPhone };
 
     // Load lịch sử trước khi kết nối
     setIsLoading(true);
@@ -58,7 +84,7 @@ export function useLiveChat() {
 
     // Nhận tin nhắn từ Admin — event name phải khớp ChatHub.AdminReply
     connection.on("ReceiveAdminMessage", (message: ChatMessageResponse) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
     });
 
     // Echo xác nhận tin nhắn của chính khách đã được lưu
@@ -68,6 +94,25 @@ export function useLiveChat() {
         const exists = prev.some((m) => m.id === message.id);
         return exists ? prev : [...prev, message];
       });
+    });
+
+    // Admin đã mở phiên => tin của khách được xem → hiện "Đã xem"
+    connection.on("MessagesRead", () => {
+      setMessages((prev) =>
+        prev.map((m) => (m.senderType === "Guest" ? { ...m, isRead: true } : m))
+      );
+    });
+
+    // Admin đang gõ
+    connection.on("AdminTyping", (isTyping: boolean) => {
+      setIsAdminTyping(isTyping);
+      if (adminTypingTimeoutRef.current) clearTimeout(adminTypingTimeoutRef.current);
+      if (isTyping) {
+        adminTypingTimeoutRef.current = setTimeout(
+          () => setIsAdminTyping(false),
+          TYPING_HIDE_MS
+        );
+      }
     });
 
     connection.onclose(() => setIsConnected(false));
@@ -113,32 +158,71 @@ export function useLiveChat() {
     }
   }, []);
 
-  // Gửi tin nhắn: ưu tiên SignalR realtime, fallback REST nếu WebSocket/SignalR bị chặn
-  const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string) => {
-    if (!content.trim()) return;
+  // Báo cho admin biết khách đang gõ (throttle, chỉ khi hub đang kết nối)
+  const notifyTyping = useCallback(() => {
+    const conn = connectionRef.current;
+    if (conn?.state !== signalR.HubConnectionState.Connected || !sessionId.current) return;
+
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < TYPING_THROTTLE_MS) return;
+    lastTypingSentRef.current = now;
+
+    conn.invoke("GuestTyping", sessionId.current, true).catch(() => {});
+  }, []);
+
+  // Xác nhận khách đã xem tin của Admin (chỉ gọi khi widget đang mở).
+  // Backend broadcast "GuestReadMessages" để admin hiện "Đã xem" realtime.
+  const markMessagesRead = useCallback(async () => {
+    const sid = sessionId.current;
+    if (!sid) return;
+
+    const hasUnreadAdminMessage = messagesRef.current.some(
+      (m) => m.senderType === "Admin" && !m.isRead
+    );
+    if (!hasUnreadAdminMessage) return;
+
+    try {
+      await chatApi.markGuestMessagesRead(sid);
+    } catch (err) {
+      console.warn("Mark messages read failed:", err);
+    }
+  }, []);
+
+  // Gửi tin nhắn: ưu tiên SignalR realtime, fallback REST nếu WebSocket/SignalR bị chặn.
+  // Trả về true nếu tin đã được gửi thành công (client giữ nguyên input khi false).
+  const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string): Promise<boolean> => {
+    if (!content.trim()) return false;
 
     setIsSending(true);
     try {
-      const connected = connectionRef.current?.state === signalR.HubConnectionState.Connected;
+      const conn = connectionRef.current;
+      const connected = conn?.state === signalR.HubConnectionState.Connected;
+
       if (connected) {
-        await connectionRef.current?.invoke("SendGuestMessage", sessionId.current, content.trim());
-      } else {
-        // SignalR chưa kết nối (mạng chặn WebSocket, server restart...):
-        // gửi qua REST — tin nhắn vẫn được lưu và admin vẫn thấy qua danh sách phiên.
-        if (!sessionId.current) sessionId.current = getOrCreateSessionId();
-        const saved = await chatApi.sendMessage({
-          sessionId: sessionId.current,
-          content: content.trim(),
-          guestName: guestName || guestInfoRef.current.name,
-          guestPhone: guestPhone || guestInfoRef.current.phone,
-        });
-        // Hiển thị ngay tin đã lưu (không chờ realtime echo)
-        setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
-        // Cố gắng kết nối lại nền để các tin sau nhận realtime bình thường
-        connect(guestName, guestPhone).catch(() => {});
+        await conn.invoke("SendGuestMessage", sessionId.current, content.trim());
+        // Không cần hiển thị "đang gõ" nữa sau khi tin đã gửi
+        conn.invoke("GuestTyping", sessionId.current, false).catch(() => {});
+        return true;
       }
+
+      // SignalR chưa kết nối (mạng chặn WebSocket, server restart...):
+      // gửi qua REST — tin nhắn vẫn được lưu và admin vẫn thấy realtime
+      // (backend broadcast qua hub ngay trong controller).
+      if (!sessionId.current) sessionId.current = getOrCreateSessionId();
+      const saved = await chatApi.sendMessage({
+        sessionId: sessionId.current,
+        content: content.trim(),
+        guestName: guestName || guestInfoRef.current.name,
+        guestPhone: guestPhone || guestInfoRef.current.phone,
+      });
+      // Hiển thị ngay tin đã lưu (không chờ realtime echo)
+      setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
+      // Cố gắng kết nối lại nền để các tin sau nhận realtime bình thường
+      connect(guestName, guestPhone).catch(() => {});
+      return true;
     } catch (err) {
       console.error("Send message error:", err);
+      return false;
     } finally {
       setIsSending(false);
     }
@@ -147,6 +231,7 @@ export function useLiveChat() {
   // Disconnect khi unmount
   useEffect(() => {
     return () => {
+      if (adminTypingTimeoutRef.current) clearTimeout(adminTypingTimeoutRef.current);
       connectionRef.current?.stop().catch(() => {});
     };
   }, []);
@@ -156,7 +241,10 @@ export function useLiveChat() {
     isConnected,
     isLoading,
     isSending,
+    isAdminTyping,
     connect,
+    notifyTyping,
+    markMessagesRead,
     sendMessage,
   };
 }

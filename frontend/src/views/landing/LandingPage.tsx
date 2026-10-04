@@ -46,7 +46,7 @@ export default function LandingPage() {
     submitStatus, errorMessage, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(products);
 
-  const { messages, isConnected, isSending, connect, sendMessage } = useLiveChat();
+  const { messages, isConnected, isSending, isAdminTyping, connect, notifyTyping, markMessagesRead, sendMessage } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
 
@@ -74,6 +74,13 @@ export default function LandingPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Xác nhận đã xem tin của Admin (read receipt) khi widget đang mở —
+  // backend sẽ broadcast "GuestReadMessages" để admin hiện "Đã xem" realtime.
+  useEffect(() => {
+    if (!isChatOpen || !chatStarted) return;
+    markMessagesRead();
+  }, [isChatOpen, chatStarted, messages, markMessagesRead]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
@@ -94,9 +101,16 @@ export default function LandingPage() {
 
   const handleSendChatMessage = async () => {
     if (!chatInput.trim()) return;
-    await sendMessage(chatInput, guestName, guestPhone);
-    setChatInput("");
+    const ok = await sendMessage(chatInput, guestName, guestPhone);
+    // Chỉ xóa ô nhập khi tin đã gửi thành công — giữ lại nội dung nếu lỗi
+    if (ok) setChatInput("");
   };
+
+  // Index của tin nhắn khách cuối cùng (chỉ hiện "Đã xem" ở tin đó)
+  const lastGuestMessageIndex = messages.reduce(
+    (acc, msg, idx) => (msg.senderType === "Guest" ? idx : acc),
+    -1
+  );
 
   const { base, discount, final } = calculateTotal();
 
@@ -937,7 +951,7 @@ export default function LandingPage() {
                       Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
                     </div>
                   )}
-                  {messages.map((msg) => (
+                  {messages.map((msg, idx) => (
                     <div
                       key={msg.id}
                       className={`p-3 rounded-2xl text-sm max-w-[80%] shadow-sm ${msg.senderType === 'Guest'
@@ -948,9 +962,22 @@ export default function LandingPage() {
                       <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                       <span className={`text-[10px] block mt-1 opacity-70 ${msg.senderType === 'Guest' ? 'text-right' : ''}`}>
                         {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                        {idx === lastGuestMessageIndex && msg.isRead && (
+                          <span className="ml-1">· {language === "en" ? "Seen" : "Đã xem"}</span>
+                        )}
                       </span>
                     </div>
                   ))}
+                  {isAdminTyping && (
+                    <div className="bg-white border p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:0ms]"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:150ms]"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:300ms]"></span>
+                      <span className="ml-2 text-xs text-foreground/60">
+                        {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
+                      </span>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
                 <div className="p-3 bg-white border-t">
@@ -958,7 +985,10 @@ export default function LandingPage() {
                     <input
                       type="text"
                       value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
+                      onChange={(e) => {
+                        setChatInput(e.target.value);
+                        if (e.target.value.trim()) notifyTyping();
+                      }}
                       onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
                       placeholder={t.chat.placeholder}
                       className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-4 pr-12 py-2.5 text-sm outline-none transition-all"

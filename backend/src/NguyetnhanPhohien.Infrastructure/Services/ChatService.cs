@@ -63,7 +63,8 @@ public class ChatService : IChatService
             ChatSessionId = sessionId,
             Content = content,
             SenderType = senderType,
-            IsRead = senderType == "Admin" // Admin gửi thì coi như đã đọc
+            // Chưa đọc: tin của Admin chờ khách xác nhận đã xem, tin của Guest chờ Admin mở phiên
+            IsRead = false
         };
 
         _db.ChatMessages.Add(message);
@@ -72,6 +73,11 @@ public class ChatService : IChatService
         session.LastMessageAt = DateTime.UtcNow;
         if (senderType == "Guest")
             session.HasUnreadMessages = true;
+
+        // Tin nhắn mới = phiên đang hoạt động lại → tự mở phiên đã phân giải
+        // (khách quay lại hỏi sau khi admin đã đóng, hoặc admin gửi thêm sau khi đóng)
+        if (session.IsResolved)
+            session.IsResolved = false;
 
         await _db.SaveChangesAsync();
 
@@ -85,7 +91,7 @@ public class ChatService : IChatService
         };
     }
 
-    public async Task<ChatMessageResponse> SendGuestMessageAsync(string sessionId, string content, string? guestName, string? guestPhone)
+    public async Task<GuestChatMessageResponse> SendGuestMessageAsync(string sessionId, string content, string? guestName, string? guestPhone)
     {
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
             throw new ArgumentException("SessionId không hợp lệ.");
@@ -93,7 +99,9 @@ public class ChatService : IChatService
             throw new ArgumentException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
 
         var session = await GetOrCreateSessionAsync(sessionId, guestName, guestPhone);
-        return await SaveMessageAsync(session.Id, content.Trim(), "Guest");
+        var message = await SaveMessageAsync(session.Id, content.Trim(), "Guest");
+
+        return new GuestChatMessageResponse { Session = session, Message = message };
     }
 
     public async Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync()
@@ -140,10 +148,67 @@ public class ChatService : IChatService
         if (session == null) return;
 
         session.HasUnreadMessages = false;
-        foreach (var msg in session.Messages.Where(m => !m.IsRead))
+        // Admin mở phiên => chỉ tin của KHÁCH được xem là đã đọc.
+        // Tin của Admin do chính khách xác nhận đọc (MarkMessagesReadByGuestAsync).
+        foreach (var msg in session.Messages.Where(m => m.SenderType == "Guest" && !m.IsRead))
             msg.IsRead = true;
 
         await _db.SaveChangesAsync();
+    }
+
+    public async Task<Guid?> MarkMessagesReadByGuestAsync(string sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId)) return null;
+
+        var session = await _db.ChatSessions
+            .Include(cs => cs.Messages)
+            .FirstOrDefaultAsync(cs => cs.SessionId == sessionId);
+
+        if (session == null) return null;
+
+        var unreadAdminMessages = session.Messages.Where(m => m.SenderType == "Admin" && !m.IsRead).ToList();
+        if (unreadAdminMessages.Count > 0)
+        {
+            foreach (var msg in unreadAdminMessages) msg.IsRead = true;
+            await _db.SaveChangesAsync();
+        }
+
+        return session.Id;
+    }
+
+    public async Task<ChatSessionResponse?> SetSessionResolvedAsync(Guid sessionId, bool isResolved)
+    {
+        var session = await _db.ChatSessions
+            .FirstOrDefaultAsync(cs => cs.Id == sessionId);
+
+        if (session == null) return null;
+
+        session.IsResolved = isResolved;
+        if (isResolved)
+        {
+            // Đóng phiên = coi như admin đã xử lý xong → không còn báo chưa đọc
+            session.HasUnreadMessages = false;
+        }
+
+        await _db.SaveChangesAsync();
+
+        var lastMessage = await _db.ChatMessages
+            .Where(m => m.ChatSessionId == sessionId)
+            .OrderByDescending(m => m.SentAt)
+            .Select(m => m.Content)
+            .FirstOrDefaultAsync();
+
+        return new ChatSessionResponse
+        {
+            Id = session.Id,
+            SessionId = session.SessionId,
+            GuestName = session.GuestName,
+            GuestPhone = session.GuestPhone,
+            HasUnreadMessages = session.HasUnreadMessages,
+            IsResolved = session.IsResolved,
+            LastMessageAt = session.LastMessageAt,
+            LastMessagePreview = lastMessage ?? string.Empty
+        };
     }
 
     private static ChatSessionResponse MapSessionToResponse(ChatSession session, string lastMessagePreview) => new()

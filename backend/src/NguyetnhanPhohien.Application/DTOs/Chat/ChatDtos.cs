@@ -29,6 +29,14 @@ public class ChatSessionResponse
     public string LastMessagePreview { get; set; } = string.Empty;
 }
 
+// Kết quả gửi tin nhắn của khách, kèm phiên chat chứa nó — để tầng ngoài
+// (controller REST fallback) broadcast realtime cho Admin mà không cần query lại.
+public class GuestChatMessageResponse
+{
+    public ChatSessionResponse Session { get; set; } = new();
+    public ChatMessageResponse Message { get; set; } = new();
+}
+
 // DTO tin nhắn đơn lẻ
 public class ChatMessageResponse
 {

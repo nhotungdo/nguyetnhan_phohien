@@ -192,6 +192,24 @@ export const chatApi = {
       body: JSON.stringify(data),
     }),
 
+  /**
+   * [PUBLIC] Xác nhận khách đã xem tin của Admin (read receipt).
+   * Backend broadcast về group admin để hiện "Đã xem" realtime.
+   */
+  markGuestMessagesRead: (sessionId: string): Promise<void> =>
+    apiFetch(`/api/chat/messages/${sessionId}/read`, { method: "PUT" }),
+
+  /**
+   * [ADMIN] Trả lời qua REST — fallback khi SignalR/WebSocket bị chặn.
+   * Backend vẫn broadcast realtime qua hub nên khách nhận được ngay.
+   */
+  adminReply: (data: { chatSessionId: string; content: string }): Promise<ChatMessageResponse> =>
+    apiFetch("/api/chat/admin-reply", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
+
   /** [ADMIN] Lấy tất cả phiên chat */
   getAllSessions: (): Promise<ChatSessionResponse[]> =>
     apiFetch("/api/chat/sessions", { headers: getAdminHeaders() }),
@@ -205,6 +223,16 @@ export const chatApi = {
   /** [ADMIN] Đánh dấu đã đọc */
   markRead: (sessionId: string): Promise<void> =>
     apiFetch(`/api/chat/sessions/${sessionId}/read`, {
+      method: "PUT",
+      headers: getAdminHeaders(),
+    }),
+
+  /**
+   * [ADMIN] Mở/đóng phiên chat (đã phân giải hay chưa).
+   * Backend broadcast "SessionResolved" để các tab admin khác cập nhật realtime.
+   */
+  setResolved: (sessionId: string, isResolved: boolean): Promise<ChatSessionResponse> =>
+    apiFetch(`/api/chat/sessions/${sessionId}/resolve?isResolved=${isResolved}`, {
       method: "PUT",
       headers: getAdminHeaders(),
     }),

@@ -1,11 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as signalR from "@microsoft/signalr";
 import { chatApi, adminAuth } from "@/services/api.service";
 import type { ChatSessionResponse, ChatMessageResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+
+/** Chỉ gửi tín hiệu "đang gõ" tối đa mỗi TYPING_THROTTLE_MS để không spam hub. */
+const TYPING_THROTTLE_MS = 1500;
+/** Tự ẩn chỉ báo "đang gõ" nếu không nhận được tín hiệu mới. */
+const TYPING_HIDE_MS = 4000;
+
+/** Bộ lọc trạng thái phiên chat ở danh sách admin. */
+export type ChatStatusFilter = "all" | "open" | "resolved";
+
+const sortSessions = (list: ChatSessionResponse[]) =>
+  [...list].sort(
+    (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
+  );
 
 export function useAdminChat() {
   const [sessions, setSessions] = useState<ChatSessionResponse[]>([]);
@@ -13,14 +26,20 @@ export function useAdminChat() {
   const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
-  
+  /** Id phiên mà khách đang gõ — Messenger chỉ hiện khi trùng phiên đang chọn. */
+  const [typingSessionId, setTypingSessionId] = useState<string | null>(null);
+  /** Bộ lọc trạng thái phiên chat: tất cả / chờ phản hồi / đã phân giải. */
+  const [statusFilter, setStatusFilter] = useState<ChatStatusFilter>("all");
+
   const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
 
   // 1. Load danh sách session ban đầu
   const fetchSessions = useCallback(async () => {
     try {
       const data = await chatApi.getAllSessions();
-      setSessions(data.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()));
+      setSessions(sortSessions(data));
     } catch (err) {
       console.warn("Failed to load chat sessions:", err);
     } finally {
@@ -31,13 +50,14 @@ export function useAdminChat() {
   // 2. Lấy tin nhắn của một session
   const selectSession = useCallback(async (sessionId: string) => {
     setSelectedSessionId(sessionId);
+    setTypingSessionId(null);
     try {
-      // Đánh dấu đã đọc
+      // Đánh dấu đã đọc (backend broadcast "MessagesRead" để khách thấy "Đã xem")
       await chatApi.markRead(sessionId);
-      
+
       // Update local state
-      setSessions((prev) => 
-        prev.map(s => s.id === sessionId ? { ...s, hasUnreadMessages: false } : s)
+      setSessions((prev) =>
+        prev.map((s) => (s.id === sessionId ? { ...s, hasUnreadMessages: false } : s))
       );
 
       const msgs = await chatApi.getSessionMessages(sessionId);
@@ -53,6 +73,77 @@ export function useAdminChat() {
     selectedSessionIdRef.current = selectedSessionId;
   }, [selectedSessionId]);
 
+  const sessionsRef = useRef(sessions);
+  useEffect(() => {
+    sessionsRef.current = sessions;
+  }, [sessions]);
+
+  // Cập nhật preview + thời gian ở danh sách hội thoại sau khi có tin mới
+  const applySessionUpdate = useCallback(
+    (
+      sessionId: string,
+      message: ChatMessageResponse,
+      hasUnread: boolean,
+      patch?: Partial<ChatSessionResponse>
+    ) => {
+      setSessions((prev) => {
+        if (!prev.some((s) => s.id === sessionId)) return prev;
+        return sortSessions(
+          prev.map((s) =>
+            s.id === sessionId
+              ? {
+                  ...s,
+                  ...patch,
+                  hasUnreadMessages: hasUnread,
+                  lastMessageAt: message.sentAt,
+                  lastMessagePreview: message.content,
+                }
+              : s
+          )
+        );
+      });
+    },
+    []
+  );
+
+  // Danh sách hiển thị theo bộ lọc trạng thái (Messenger lọc thêm theo ô tìm kiếm)
+  const visibleSessions = useMemo(
+    () =>
+      sessions.filter((s) =>
+        statusFilter === "all"
+          ? true
+          : statusFilter === "resolved"
+            ? s.isResolved
+            : !s.isResolved
+      ),
+    [sessions, statusFilter]
+  );
+
+  // 2b. Mở/đóng phiên chat (đánh dấu đã phân giải) — optimistic + đồng bộ server
+  const setSessionResolved = useCallback(
+    async (sessionId: string, isResolved: boolean): Promise<boolean> => {
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === sessionId
+            ? { ...s, isResolved, ...(isResolved ? { hasUnreadMessages: false } : {}) }
+            : s
+        )
+      );
+
+      try {
+        const updated = await chatApi.setResolved(sessionId, isResolved);
+        setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)));
+        return true;
+      } catch (err) {
+        console.error("Failed to update session resolved state:", err);
+        // Hoàn nguyên: lấy lại danh sách đúng từ server
+        fetchSessions();
+        return false;
+      }
+    },
+    [fetchSessions]
+  );
+
   // 3. Khởi tạo SignalR kết nối
   useEffect(() => {
     // eslint-disable-next-line
@@ -67,43 +158,80 @@ export function useAdminChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
-    // Lắng nghe khách gửi tin nhắn
-    connection.on("ReceiveGuestMessage", (data: { sessionId: string; message: ChatMessageResponse }) => {
-      if (selectedSessionIdRef.current === data.sessionId) {
-        setMessages((prev) => (prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]));
-        chatApi.markRead(data.sessionId).catch(console.error);
-        // Cập nhật preview + thời gian ở danh sách bên trái
-        setSessions((prev) => {
-          const updated = prev.map((s) =>
-            s.id === data.sessionId
-              ? { ...s, hasUnreadMessages: false, lastMessageAt: data.message.sentAt, lastMessagePreview: data.message.content }
-              : s
+    // Khách gửi tin nhắn (qua SignalR hoặc qua REST fallback — controller cũng broadcast)
+    connection.on(
+      "ReceiveGuestMessage",
+      (data: { sessionId: string; message: ChatMessageResponse }) => {
+        const isSelected = selectedSessionIdRef.current === data.sessionId;
+
+        if (isSelected) {
+          setMessages((prev) =>
+            prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]
           );
-          return updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
-        });
-      } else {
-        setSessions((prev) => {
-          const exists = prev.some((s) => s.id === data.sessionId);
-          if (!exists) {
-            // Khách chat LẦN ĐẦU hoặc phiên tạo sau khi reload — tải lại danh sách từ server
-            fetchSessions();
-            return prev;
-          }
-          const updated = prev.map((s) =>
-            s.id === data.sessionId
-              ? { ...s, hasUnreadMessages: true, lastMessageAt: data.message.sentAt, lastMessagePreview: data.message.content }
-              : s
-          );
-          return updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
-        });
+          // Đang mở phiên này => coi như admin đã đọc
+          chatApi.markRead(data.sessionId).catch(console.error);
+        }
+
+        // Khách chat LẦN ĐẦU hoặc phiên tạo sau khi reload — tải lại danh sách từ server
+        if (!sessionsRef.current.some((s) => s.id === data.sessionId)) {
+          fetchSessions();
+          return;
+        }
+
+        // Backend tự mở lại phiên khi khách nhắn tin sau khi admin đã đóng phiên
+        applySessionUpdate(data.sessionId, data.message, !isSelected, { isResolved: false });
       }
+    );
+
+    // Admin khác trong cùng phiên trả lời (kể cả echo tab của chính mình)
+    connection.on(
+      "AdminReplied",
+      (data: { sessionId: string; message: ChatMessageResponse }) => {
+        if (selectedSessionIdRef.current === data.sessionId) {
+          setMessages((prev) =>
+            prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]
+          );
+        }
+        applySessionUpdate(data.sessionId, data.message, false, { isResolved: false });
+      }
+    );
+
+    // Khách xác nhận đã xem tin của Admin -> hiện "Đã xem" realtime
+    connection.on("GuestReadMessages", (data: { sessionId: string }) => {
+      if (selectedSessionIdRef.current !== data.sessionId) return;
+      setMessages((prev) =>
+        prev.map((m) => (m.senderType === "Admin" ? { ...m, isRead: true } : m))
+      );
     });
 
-    connection.on("AdminReplied", (data: { sessionId: string; message: ChatMessageResponse }) => {
-       if (selectedSessionIdRef.current === data.sessionId) {
-         setMessages((prev) => [...prev, data.message]);
-       }
-    });
+    // Tab admin khác mở/đóng phiên -> đồng bộ bộ lọc & trạng thái realtime
+    connection.on(
+      "SessionResolved",
+      (data: { sessionId: string; isResolved: boolean; hasUnreadMessages: boolean }) => {
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === data.sessionId
+              ? { ...s, isResolved: data.isResolved, hasUnreadMessages: data.hasUnreadMessages }
+              : s
+          )
+        );
+      }
+    );
+
+    // Khách đang gõ
+    connection.on(
+      "GuestTyping",
+      (data: { sessionId: string; isTyping: boolean }) => {
+        setTypingSessionId(data.isTyping ? data.sessionId : null);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        if (data.isTyping) {
+          typingTimeoutRef.current = setTimeout(
+            () => setTypingSessionId(null),
+            TYPING_HIDE_MS
+          );
+        }
+      }
+    );
 
     connection.onclose(() => setIsConnected(false));
     connection.onreconnected(async () => {
@@ -134,32 +262,76 @@ export function useAdminChat() {
       });
 
     return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       connection.stop().catch(() => {});
     };
-  }, [fetchSessions]); // <-- BỎ selectedSessionId khỏi dependency array
+  }, [fetchSessions, applySessionUpdate]);
 
-  // 4. Hàm Admin reply
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !selectedSessionId) return;
-    
-    // Gửi qua SignalR (không cần gọi API POST vì Hub tự gọi Service lưu db)
-    try {
-      await connectionRef.current?.invoke("AdminReply", {
-        ChatSessionId: selectedSessionId, // Guid từ backend trả ra (session.id)
-        Content: content.trim()
-      });
-    } catch (err) {
-      console.error("Failed to send reply:", err);
-    }
-  }, [selectedSessionId]);
+  // 4. Báo "đang gõ" cho khách (throttle, chỉ gửi khi hub đang kết nối)
+  const notifyTyping = useCallback(() => {
+    const conn = connectionRef.current;
+    const targetSession = selectedSessionIdRef.current;
+    if (conn?.state !== signalR.HubConnectionState.Connected || !targetSession) return;
+
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < TYPING_THROTTLE_MS) return;
+    lastTypingSentRef.current = now;
+
+    conn.invoke("AdminTyping", targetSession, true).catch(() => {});
+  }, []);
+
+  // 5. Hàm Admin reply — trả về true nếu tin đã được gửi thành công
+  const sendMessage = useCallback(
+    async (content: string): Promise<boolean> => {
+      const trimmed = content.trim();
+      if (!trimmed || !selectedSessionId) return false;
+
+      const conn = connectionRef.current;
+      const connected = conn?.state === signalR.HubConnectionState.Connected;
+
+      try {
+        if (connected) {
+          // Gửi qua SignalR (Hub tự gọi Service lưu db)
+          await conn.invoke("AdminReply", {
+            ChatSessionId: selectedSessionId, // Guid từ backend trả ra (session.id)
+            Content: trimmed,
+          });
+          conn.invoke("AdminTyping", selectedSessionId, false).catch(() => {});
+          return true;
+        }
+
+        // Mất kết nối / WebSocket bị chặn -> gửi qua REST.
+        // Backend vẫn broadcast qua hub nên khách nhận được ngay.
+        const saved = await chatApi.adminReply({
+          chatSessionId: selectedSessionId,
+          content: trimmed,
+        });
+        setMessages((prev) =>
+          prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]
+        );
+        applySessionUpdate(selectedSessionId, saved, false, { isResolved: false });
+        return true;
+      } catch (err) {
+        console.error("Failed to send reply:", err);
+        return false;
+      }
+    },
+    [selectedSessionId, applySessionUpdate]
+  );
 
   return {
     sessions,
+    visibleSessions,
+    statusFilter,
+    setStatusFilter,
     selectedSessionId,
     messages,
     isConnected,
     isLoadingSessions,
+    typingSessionId,
     selectSession,
-    sendMessage
+    setSessionResolved,
+    notifyTyping,
+    sendMessage,
   };
 }
