@@ -9,7 +9,8 @@ public interface IContentService
     Task<WebsiteContentResponse> UpsertContentAsync(UpdateContentRequest request);
 
     /// <summary>
-    /// Upload ảnh banner lên server, tự động cập nhật key HeroBannerUrl và trả về đường dẫn ảnh.
+    /// Upload ảnh cho một slot ảnh của landing page (key thuộc whitelist),
+    /// tự cập nhật key nội dung và dọn file cũ. Trả về đường dẫn ảnh tương đối.
     /// </summary>
-    Task<string> UploadBannerImageAsync(Stream imageStream, string fileName);
+    Task<string> UploadImageAsync(Stream imageStream, string fileName, string contentKey);
 }

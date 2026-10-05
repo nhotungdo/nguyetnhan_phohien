@@ -113,4 +113,22 @@ public class ProductsController : ControllerBase
         if (!success) return NotFound();
         return NoContent();
     }
+
+    /// <summary>
+    /// [ADMIN] Sắp xếp thứ tự ảnh — id đầu tiên là ảnh đại diện (ảnh chính)
+    /// hiển thị trên Landing Page. Phải gửi đủ danh sách id ảnh hiện có.
+    /// </summary>
+    [HttpPut("{id}/images/order")]
+    [Authorize]
+    public async Task<ActionResult> ReorderImages(Guid id, [FromBody] ReorderImagesRequest request)
+    {
+        if (request.ImageIds == null || request.ImageIds.Count == 0)
+            return BadRequest(new { message = "Danh sách ảnh không hợp lệ." });
+
+        var success = await _productService.ReorderImagesAsync(id, request.ImageIds);
+        if (!success)
+            return BadRequest(new { message = "Danh sách ảnh không khớp với ảnh hiện có của sản phẩm." });
+
+        return NoContent();
+    }
 }

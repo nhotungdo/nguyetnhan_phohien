@@ -146,6 +146,32 @@ public class ProductService : IProductService
         return true;
     }
 
+    public async Task<bool> ReorderImagesAsync(Guid productId, IReadOnlyList<Guid> orderedImageIds)
+    {
+        var images = await _db.ProductImages
+            .Where(pi => pi.ProductId == productId)
+            .ToListAsync();
+
+        if (images.Count == 0) return false;
+
+        // Phải gửi ĐỦ id ảnh của sản phẩm, không trùng, không id lạ —
+        // tránh ghi đè DisplayOrder bằng danh sách thiếu/thừa làm thứ tự ảnh hỗn độn.
+        if (orderedImageIds.Count != images.Count
+            || orderedImageIds.Distinct().Count() != orderedImageIds.Count)
+            return false;
+
+        var imageSet = images.Select(i => i.Id).ToHashSet();
+        if (orderedImageIds.Any(id => !imageSet.Contains(id))) return false;
+
+        for (var i = 0; i < orderedImageIds.Count; i++)
+        {
+            images.First(x => x.Id == orderedImageIds[i]).DisplayOrder = i;
+        }
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     private static ProductResponse MapToResponse(Product product)
     {
         return new ProductResponse

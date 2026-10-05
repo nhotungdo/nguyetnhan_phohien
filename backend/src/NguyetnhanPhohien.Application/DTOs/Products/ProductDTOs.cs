@@ -38,3 +38,9 @@ public class UpdateProductRequest
     public bool IsActive { get; set; } = true;
     public int DisplayOrder { get; set; } = 0;
 }
+
+// Admin gửi thứ tự ảnh MỚI đầy đủ (id đầu tiên = ảnh đại diện trên landing page)
+public class ReorderImagesRequest
+{
+    public List<Guid> ImageIds { get; set; } = new();
+}

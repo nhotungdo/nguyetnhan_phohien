@@ -7,7 +7,8 @@ import type { WebsiteContentResponse, ProductResponse, ProductRequest } from "@/
 import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
-  CloudUpload, Link as LinkIcon, RefreshCw, AlertCircle
+  CloudUpload, Link as LinkIcon, RefreshCw, AlertCircle,
+  Star, BookOpen, ShoppingBag, Mail, Clock
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -18,18 +19,60 @@ const isRemoteUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.startsW
 
 const MAX_PRODUCT_IMAGE_MB = 5;
 
-const TEXT_KEYS = [
-  { key: "HeroTitle",    label: "Tiêu đề chính (Hero)",    icon: <Type className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Vd: Đặc Sản Long Nhãn Phố Hiến" },
-  { key: "HeroSubtitle", label: "Mô tả phụ (Hero)",        icon: <Type className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Vd: Hương vị truyền thống..." },
-  { key: "Hotline",      label: "Số hotline liên hệ",      icon: <Phone className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Vd: 090 123 4567" },
-  { key: "Address",      label: "Địa chỉ cửa hàng",        icon: <MapPin className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Vd: 123 Phố Hiến, Hưng Yên" },
-  { key: "FooterText",   label: "Nội dung chân trang",     icon: <Globe className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Vd: © 2026 Nguyệt Nhãn Phố Hiến" },
+type TextFieldDef = {
+  key: string;
+  label: string;
+  group: string;
+  icon: React.ReactNode;
+  multiline?: boolean;
+  placeholder: string;
+};
+
+// Các ô văn bản admin sửa được trên Landing Page — `group` quyết định cách phân mục trong UI.
+// `placeholder` = nội dung mặc định đang hiển thị: ô trống thì Landing rơi về fallback cũ.
+const TEXT_KEYS: TextFieldDef[] = [
+  // Phần mở đầu
+  { key: "HeroTitle",    label: "Tiêu đề chính (Hero)", group: "Phần mở đầu (Hero)", icon: <Type className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Đặc Sản Long Nhãn Phố Hiến" },
+  { key: "HeroSubtitle", label: "Mô tả phụ (Hero)",     group: "Phần mở đầu (Hero)", icon: <Type className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Hương vị truyền thống, đậm đà bản sắc Hưng Yên." },
+  // Giới thiệu & sản phẩm
+  { key: "AboutTitle",       label: "Tiêu đề giới thiệu",         group: "Giới thiệu & Sản phẩm", icon: <Type className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Về Nguyệt Nhãn Phố Hiến" },
+  { key: "AboutDescription", label: "Nội dung giới thiệu",        group: "Giới thiệu & Sản phẩm", icon: <Globe className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến..." },
+  { key: "ProductsTitle",    label: "Tiêu đề danh sách sản phẩm", group: "Giới thiệu & Sản phẩm", icon: <Package className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Sản Phẩm Của Chúng Tôi" },
+  { key: "ProductsSubtitle", label: "Mô tả danh sách sản phẩm",   group: "Giới thiệu & Sản phẩm", icon: <Package className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Món quà sức khỏe dành tặng người thân yêu" },
+  // Câu chuyện
+  { key: "StoryTitle",       label: "Tiêu đề câu chuyện",  group: "Câu chuyện tiến vua", icon: <BookOpen className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Thứ Quả Tiến Vua Trứ Danh" },
+  { key: "StoryDescription", label: "Nội dung câu chuyện", group: "Câu chuyện tiến vua", icon: <BookOpen className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến..." },
+  // Khối đặt hàng
+  { key: "OrderTitle",       label: "Tiêu đề khối đặt hàng (mỗi dòng = 1 dòng hiển thị)", group: "Khối đặt hàng", icon: <ShoppingBag className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Thưởng Thức\nHương Vị Tinh Túy" },
+  { key: "OrderDescription", label: "Mô tả khối đặt hàng", group: "Khối đặt hàng", icon: <ShoppingBag className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất..." },
+  { key: "Hotline",          label: "Số hotline liên hệ",     group: "Khối đặt hàng", icon: <Phone className="w-4 h-4 text-primary" />, multiline: false, placeholder: "090 123 4567" },
+  { key: "Address",          label: "Địa chỉ xưởng sản xuất", group: "Khối đặt hàng", icon: <MapPin className="w-4 h-4 text-primary" />, multiline: false, placeholder: "Số 1, Đường Phố Hiến, Tp. Hưng Yên" },
+  // Chân trang & liên hệ
+  { key: "FooterHotline", label: "Hotline/Zalo (chân trang)", group: "Chân trang & Liên hệ", icon: <Phone className="w-4 h-4 text-primary" />, multiline: false, placeholder: "0982.072.601" },
+  { key: "FooterAddress", label: "Địa chỉ (chân trang)",      group: "Chân trang & Liên hệ", icon: <MapPin className="w-4 h-4 text-primary" />, multiline: false, placeholder: "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên" },
+  { key: "ContactEmail",  label: "Email liên hệ",             group: "Chân trang & Liên hệ", icon: <Mail className="w-4 h-4 text-primary" />, multiline: false, placeholder: "hello@nguyetnhan.vn" },
+  { key: "ContactHours",  label: "Giờ mở cửa",                group: "Chân trang & Liên hệ", icon: <Clock className="w-4 h-4 text-primary" />, multiline: false, placeholder: "08:00 - 20:00 (T2-CN)" },
+  { key: "FooterText",    label: "Nội dung chân trang",       group: "Chân trang & Liên hệ", icon: <Globe className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "© 2026 Nguyệt Nhãn Phố Hiến. Tất cả các quyền được bảo lưu." },
+];
+
+// Thứ tự nhóm hiển thị trong UI (lấy theo thứ tự xuất hiện của TEXT_KEYS)
+const TEXT_GROUPS = Array.from(new Set(TEXT_KEYS.map(f => f.group)));
+
+type ImageSlot = { key: string; label: string; hint: string; boxClass: string };
+
+// Ô ảnh admin thay được trên Landing Page — key phải khớp whitelist phía backend
+// (ContentService.ImageKeys). boxClass = kiểu khung preview cho khớp tỷ lệ ảnh thật.
+const IMAGE_SLOTS: ImageSlot[] = [
+  { key: "SiteLogo",      label: "Logo thương hiệu",       hint: "Hiện ở header và footer. Để trống sẽ dùng logo mặc định /logo.jpg.", boxClass: "w-28 h-28 rounded-full" },
+  { key: "HeroBannerUrl", label: "Ảnh banner Hero",        hint: "Ảnh lớn ở phần mở đầu trang.", boxClass: "w-full aspect-video rounded-xl" },
+  { key: "StoryImage",    label: "Ảnh câu chuyện",         hint: "Bên cạnh tiêu đề “Thứ Quả Tiến Vua Trứ Danh”.", boxClass: "w-40 aspect-[4/5] rounded-xl" },
+  { key: "CultureImage",  label: "Ảnh văn hóa thưởng trà", hint: "Bên cạnh khối tròn ở mục Văn hóa.", boxClass: "w-40 h-40 rounded-full" },
 ];
 
 const EMPTY_FORM: ProductRequest = { name: "", price: 0, size: "", description: "", isActive: true, displayOrder: 0 };
 
-type Tab = "text" | "products" | "banner";
-type BannerInputMode = "upload" | "url";
+type Tab = "text" | "products" | "images";
+type ImageInputMode = "upload" | "url";
 
 export default function ContentCMS() {
   const [activeTab, setActiveTab] = useState<Tab>("text");
@@ -49,7 +92,7 @@ export default function ContentCMS() {
       const data = await contentApi.getAll();
       const mapped: Record<string, string> = {};
       data.forEach((item: WebsiteContentResponse) => { mapped[item.key] = item.value; });
-      [...TEXT_KEYS, { key: "HeroBannerUrl" }].forEach(f => { if (mapped[f.key] === undefined) mapped[f.key] = ""; });
+      [...TEXT_KEYS, ...IMAGE_SLOTS].forEach(f => { if (mapped[f.key] === undefined) mapped[f.key] = ""; });
       return mapped;
     }
   });
@@ -79,20 +122,6 @@ export default function ContentCMS() {
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [bannerInputMode, setBannerInputMode] = useState<BannerInputMode>("upload");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
-  const [bannerUploadSuccess, setBannerUploadSuccess] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [bannerLoadFailed, setBannerLoadFailed] = useState(false);
-  const bannerFileInputRef = useRef<HTMLInputElement>(null);
-
-
-
-  useEffect(() => {
-    return () => { if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl); };
-  }, [bannerPreviewUrl]);
 
   const handleSaveText = async (key: string) => {
     setIsSaving(key);
@@ -107,56 +136,11 @@ export default function ContentCMS() {
     finally { setIsSaving(null); }
   };
 
-  const handleBannerFileSelect = (file: File) => {
-    if (!file.type.startsWith("image/")) { alert("Vui lòng chọn file ảnh."); return; }
-    if (file.size > 10 * 1024 * 1024) { alert("Ảnh vượt quá 10MB."); return; }
-    if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
-    setBannerFile(file);
-    setBannerPreviewUrl(URL.createObjectURL(file));
-    setBannerUploadSuccess(false);
-    setBannerLoadFailed(false);
-  };
-
-  const handleBannerInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
-    handleBannerFileSelect(e.target.files[0]);
-    e.target.value = "";
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleBannerFileSelect(file);
-  };
-
-  const handleUploadBanner = async () => {
-    if (!bannerFile) return;
-    setIsUploadingBanner(true); setBannerUploadSuccess(false);
-    try {
-      const result = await contentApi.uploadBannerImage(bannerFile);
-      setContents(prev => ({ ...prev, HeroBannerUrl: result.imagePath }));
-      queryClient.invalidateQueries({ queryKey: ["website", "content"] });
-      if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
-      setBannerFile(null); setBannerPreviewUrl(null); setBannerLoadFailed(false);
-      setBannerUploadSuccess(true); setTimeout(() => setBannerUploadSuccess(false), 4000);
-    } catch (err) { alert(err instanceof Error ? err.message : "Lỗi khi upload banner!"); }
-    finally { setIsUploadingBanner(false); }
-  };
-
-  const handleSaveBannerUrl = async () => {
-    setIsSaving("HeroBannerUrl");
-    try {
-      await contentApi.upsert({ key: "HeroBannerUrl", value: contents["HeroBannerUrl"] || "" });
-      queryClient.invalidateQueries({ queryKey: ["website", "content"] });
-      setBannerLoadFailed(false);
-      setSaveSuccess("HeroBannerUrl"); setTimeout(() => setSaveSuccess(null), 3000);
-    } catch (err) { alert(`Lỗi khi lưu URL banner!\n${err instanceof Error ? err.message : ""}`.trim()); }
-    finally { setIsSaving(null); }
-  };
-
-  const handleResetBanner = () => {
-    if (bannerPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(bannerPreviewUrl);
-    setBannerFile(null); setBannerPreviewUrl(null); setBannerUploadSuccess(false); setBannerLoadFailed(false);
+  // Sau khi một ô ảnh lưu thành công (upload hoặc URL): cập nhật state +
+  // invalidate cache để Landing Page thấy ngay thay đổi.
+  const handleSlotSaved = (key: string, path: string) => {
+    setContents(prev => ({ ...prev, [key]: path }));
+    queryClient.invalidateQueries({ queryKey: ["website", "content"] });
   };
 
   // Giải phóng toàn bộ blob URL của ảnh đang chờ upload
@@ -202,6 +186,26 @@ export default function ContentCMS() {
   const removeExistingImage = (imgId: string) => {
     setExistingImages(prev => prev.filter(i => i.id !== imgId));
     setDeletedImageIds(prev => [...prev, imgId]);
+  };
+
+  // Đặt 1 ảnh ĐÃ LƯU làm ảnh đại diện: chuyển lên đầu rồi đồng bộ thứ tự lên server.
+  const setMainImage = async (imgId: string) => {
+    if (!editingId) return;
+    const previous = existingImages;
+    const idx = previous.findIndex(i => i.id === imgId);
+    if (idx <= 0) return;
+    const next = [...previous];
+    const [moved] = next.splice(idx, 1);
+    next.unshift(moved);
+    setExistingImages(next);
+    try {
+      await productApi.reorderImages(editingId, next.map(i => i.id));
+      refetchProducts();
+      queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+    } catch (err) {
+      setExistingImages(previous); // server từ chối → hoàn nguyên lại thứ tự cũ
+      alert(`Lỗi khi đặt ảnh chính!\n${err instanceof Error ? err.message : ""}`.trim());
+    }
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -266,7 +270,7 @@ export default function ContentCMS() {
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "text",     label: "📝 Văn bản & Thông tin", icon: <Type className="w-4 h-4" /> },
     { key: "products", label: "📦 Sản phẩm",            icon: <Package className="w-4 h-4" /> },
-    { key: "banner",   label: "🖼️ Ảnh Banner",         icon: <ImageIcon className="w-4 h-4" /> },
+    { key: "images",   label: "🖼️ Ảnh Landing Page",   icon: <ImageIcon className="w-4 h-4" /> },
   ];
 
   // UI khi không tải được nội dung — không render form rỗng để tránh admin
@@ -287,9 +291,6 @@ export default function ContentCMS() {
       </button>
     </div>
   );
-
-  const saved = contents["HeroBannerUrl"];
-  const currentBannerSrc = saved ? (isRemoteUrl(saved) ? saved : `${API_URL}${saved}`) : null;
 
   return (
     <div className="space-y-6">
@@ -315,19 +316,27 @@ export default function ContentCMS() {
             <p className="text-sm text-muted-foreground">Thay đổi ngay lập tức, không cần deploy lại</p>
           </div>
           {isLoadingText ? <div className="flex justify-center p-10"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : isErrorText && !fetchedContents ? contentErrorBlock : (
-            <div className="p-6 space-y-7">
-              {TEXT_KEYS.map(field => (
-                <div key={field.key} className="space-y-2">
-                  <label className="flex items-center gap-2 font-medium text-sm">{field.icon}{field.label}</label>
-                  <div className="flex gap-3 items-start">
-                    {field.multiline
-                      ? <textarea value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} rows={3} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y" />
-                      : <input type="text" value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />}
-                    <button onClick={() => handleSaveText(field.key)} disabled={isSaving === field.key} className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm shrink-0">
-                      {isSaving === field.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Lưu...</> : saveSuccess === field.key ? <><CheckCircle2 className="w-4 h-4" /> Đã lưu</> : <><Save className="w-4 h-4" /> Lưu lại</>}
-                    </button>
+            <div className="p-6 space-y-9">
+              {TEXT_GROUPS.map(group => (
+                <section key={group} className="space-y-5">
+                  <div className="flex items-center gap-3">
+                    <h4 className="text-sm font-bold uppercase tracking-wide text-primary">{group}</h4>
+                    <div className="h-px flex-1 bg-border" />
                   </div>
-                </div>
+                  {TEXT_KEYS.filter(f => f.group === group).map(field => (
+                    <div key={field.key} className="space-y-2">
+                      <label className="flex items-center gap-2 font-medium text-sm">{field.icon}{field.label}</label>
+                      <div className="flex gap-3 items-start">
+                        {field.multiline
+                          ? <textarea value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} rows={3} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y" />
+                          : <input type="text" value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />}
+                        <button onClick={() => handleSaveText(field.key)} disabled={isSaving === field.key} className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm shrink-0">
+                          {isSaving === field.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Lưu...</> : saveSuccess === field.key ? <><CheckCircle2 className="w-4 h-4" /> Đã lưu</> : <><Save className="w-4 h-4" /> Lưu lại</>}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </section>
               ))}
             </div>
           )}
@@ -399,143 +408,33 @@ export default function ContentCMS() {
         </div>
       )}
 
-      {/* TAB 3: ANH BANNER */}
-      {activeTab === "banner" && (
+      {/* TAB 3: ANH LANDING PAGE (logo, hero, cau chuyen, van hoa) */}
+      {activeTab === "images" && (
         <div className="space-y-5 max-w-3xl">
-          <div className="bg-card border shadow-sm rounded-xl overflow-hidden">
-            <div className="p-5 border-b bg-muted/20 flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold flex items-center gap-2"><ImageIcon className="w-4 h-4 text-primary" /> Ảnh Banner Trang Chủ</h3>
-                <p className="text-sm text-muted-foreground mt-0.5">Nhập ảnh hiển thị nổi bật trên hero section của Landing Page.</p>
-              </div>
-              {bannerUploadSuccess && (
-                <div className="flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-sm font-medium">
-                  <CheckCircle2 className="w-4 h-4" /> Đã cập nhật thành công!
-                </div>
-              )}
-            </div>
-
-            {isLoadingText ? <div className="flex justify-center p-12"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : isErrorText && !fetchedContents ? contentErrorBlock : (
-              <div className="p-6 space-y-6">
-
-                {/* PREVIEW */}
-                {(bannerPreviewUrl || currentBannerSrc) && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        {bannerPreviewUrl ? "Xem trước ảnh mới (chưa lưu)" : "Banner hiện tại trên website"}
-                      </p>
-                      {bannerPreviewUrl && (
-                        <button onClick={handleResetBanner} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border px-2.5 py-1 rounded-lg hover:bg-muted">
-                          <RefreshCw className="w-3 h-3" /> Đặt lại
-                        </button>
-                      )}
-                    </div>
-                    <div className={`relative rounded-xl overflow-hidden border-2 aspect-video bg-muted ${bannerPreviewUrl ? "border-dashed border-accent/60" : "border-border"}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={bannerPreviewUrl ?? currentBannerSrc!} alt="Banner preview" className="w-full h-full object-cover"
-                        onLoad={e => { e.currentTarget.style.display = ""; setBannerLoadFailed(false); }}
-                        onError={e => { e.currentTarget.style.display = "none"; setBannerLoadFailed(true); }} />
-                      {bannerLoadFailed && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-6 bg-muted">
-                          <AlertCircle className="w-6 h-6 text-red-400" />
-                          <p className="text-sm font-semibold text-red-600">Không tải được ảnh banner</p>
-                          <p className="text-xs text-muted-foreground">Kiểm tra lại URL (link chia sẻ Google Drive / OneDrive không hiển thị trực tiếp) hoặc chọn file khác.</p>
-                        </div>
-                      )}
-                      {!bannerLoadFailed && bannerPreviewUrl && <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Chưa upload</div>}
-                      {!bannerLoadFailed && !bannerPreviewUrl && currentBannerSrc && <div className="absolute top-3 left-3 bg-green-600/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Đang hiển thị</div>}
-                    </div>
-                  </div>
-                )}
-
-                {/* MODE SWITCHER */}
-                <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
-                  <button onClick={() => setBannerInputMode("upload")} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${bannerInputMode === "upload" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    <CloudUpload className="w-4 h-4" /> Upload từ máy
-                  </button>
-                  <button onClick={() => setBannerInputMode("url")} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${bannerInputMode === "url" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                    <LinkIcon className="w-4 h-4" /> Dùng URL
-                  </button>
-                </div>
-
-                {/* UPLOAD MODE */}
-                {bannerInputMode === "upload" && (
-                  <div className="space-y-4">
-                    <div
-                      onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
-                      onDragLeave={() => setIsDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => bannerFileInputRef.current?.click()}
-                      className={`relative cursor-pointer rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-14 transition-all select-none ${isDragOver ? "border-primary bg-primary/5 scale-[1.01] shadow-md" : "border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/30"}`}
-                    >
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isDragOver ? "bg-primary/10 scale-110" : "bg-muted"}`}>
-                        <CloudUpload className={`w-8 h-8 transition-colors ${isDragOver ? "text-primary" : "text-muted-foreground"}`} />
-                      </div>
-                      <div className="text-center space-y-1">
-                        <p className="font-semibold text-sm">{isDragOver ? "Thả ảnh vào đây..." : "Kéo & thả ảnh vào đây"}</p>
-                        <p className="text-xs text-muted-foreground">hoặc <span className="text-primary font-semibold underline underline-offset-2">click để chọn file</span></p>
-                      </div>
-                      <p className="text-xs text-muted-foreground/70">JPG, PNG, WEBP, GIF · Tối đa 10MB</p>
-                    </div>
-                    <input ref={bannerFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerInputChange} />
-
-                    {bannerFile && (
-                      <div className="flex items-center gap-3 p-3.5 bg-muted/50 rounded-xl border">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted border flex-shrink-0 shadow-sm">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={bannerPreviewUrl!} alt="" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{bannerFile.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{(bannerFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                        <button onClick={e => { e.stopPropagation(); handleResetBanner(); }} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-
-                    <button onClick={handleUploadBanner} disabled={!bannerFile || isUploadingBanner}
-                      className="w-full bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-[0.99]">
-                      {isUploadingBanner ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang upload lên server...</> : <><Upload className="w-4 h-4" /> Upload & Cập nhật Banner</>}
-                    </button>
-                    <p className="text-xs text-center text-muted-foreground">💾 Ảnh sẽ được lưu trên server và cập nhật tự động lên Landing Page.</p>
-                  </div>
-                )}
-
-                {/* URL MODE */}
-                {bannerInputMode === "url" && (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2"><LinkIcon className="w-4 h-4 text-muted-foreground" /> URL Ảnh Banner</label>
-                      <input type="url" value={contents["HeroBannerUrl"] || ""} onChange={e => setContents(p => ({ ...p, HeroBannerUrl: e.target.value }))}
-                        placeholder="https://i.imgur.com/... hoặc CDN khác"
-                        className="w-full bg-background border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-                      <p className="text-xs text-muted-foreground">Dán link ảnh từ Imgur, Google Drive, Cloudinary hoặc bất kỳ CDN công khai nào.</p>
-                    </div>
-                    <button onClick={handleSaveBannerUrl} disabled={isSaving === "HeroBannerUrl"}
-                      className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all shadow-sm">
-                      {isSaving === "HeroBannerUrl" ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang lưu...</>
-                        : saveSuccess === "HeroBannerUrl" ? <><CheckCircle2 className="w-4 h-4" /> Đã lưu!</>
-                        : <><Save className="w-4 h-4" /> Cập nhật Banner</>}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {isLoadingText ? (
+            <div className="flex justify-center p-12"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
+          ) : isErrorText && !fetchedContents ? contentErrorBlock : (
+            IMAGE_SLOTS.map(slot => (
+              <ImageSlotEditor
+                key={slot.key}
+                slot={slot}
+                value={contents[slot.key] || ""}
+                onSaved={handleSlotSaved}
+              />
+            ))
+          )}
 
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
             <p className="text-sm font-semibold text-blue-800">📌 Hướng dẫn sử dụng</p>
             <ul className="text-sm text-blue-700 space-y-1.5">
               <li><strong>Upload từ máy:</strong> Ảnh lưu trên server, không phụ thuộc dịch vụ bên ngoài. Kéo thả hoặc click chọn file.</li>
-              <li><strong>Dùng URL:</strong> Dán link từ Imgur, Google Drive, Cloudinary hoặc CDN khác.</li>
+              <li><strong>Dùng URL:</strong> Dán link từ Imgur, Cloudinary hoặc CDN khác — link chia sẻ Google Drive/OneDrive không hiển thị trực tiếp.</li>
               <li><strong>Tức thì:</strong> Thay đổi hiển thị ngay trên Landing Page, không cần build lại.</li>
             </ul>
           </div>
         </div>
       )}
+
 
       {/* MODAL THEM/SUA SAN PHAM */}
       {isModalOpen && (
@@ -577,13 +476,19 @@ export default function ContentCMS() {
               <div className="space-y-3 border-t pt-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold flex items-center gap-2"><ImageIcon className="w-4 h-4 text-primary" />Ảnh sản phẩm</label>
-                  <span className="text-xs text-muted-foreground">Ảnh đầu tiên = ảnh chính</span>
+                  <span className="text-xs text-muted-foreground">Ảnh đầu tiên = ảnh chính — hover ảnh, bấm ★ để đổi</span>
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   {existingImages.map(img => (
                     <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-border group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`${API_URL}${img.imagePath}`} alt="" className="w-full h-full object-cover" />
+                      {existingImages[0]?.id !== img.id && (
+                        <button type="button" title="Đặt làm ảnh chính" onClick={() => setMainImage(img.id)}
+                          className="absolute top-1 left-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Star className="w-3 h-3" />
+                        </button>
+                      )}
                       <button type="button" onClick={() => removeExistingImage(img.id)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"><X className="w-3 h-3" /></button>
                       {existingImages[0]?.id === img.id && <span className="absolute bottom-1 left-1 bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-medium">Chính</span>}
                     </div>
@@ -614,6 +519,232 @@ export default function ContentCMS() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Một ô ảnh trên Landing Page: preview + 2 cách nhập (upload từ máy / dán URL).
+ * Component tự quản lý state riêng; parent chỉ truyền giá trị đã lưu (`value`)
+ * và nhận callback `onSaved` khi có ảnh mới để cập nhật cache chung.
+ */
+function ImageSlotEditor({ slot, value, onSaved }: {
+  slot: ImageSlot;
+  value: string;
+  onSaved: (key: string, path: string) => void;
+}) {
+  const [mode, setMode] = useState<ImageInputMode>("upload");
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [urlDraft, setUrlDraft] = useState(value);
+  const [savingUrl, setSavingUrl] = useState(false);
+  const [urlSuccess, setUrlSuccess] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Đồng bộ giá trị đã lưu lên ô nhập URL (sau khi upload / refetch từ parent).
+  // Dùng pattern "điều chỉnh state khi prop đổi" thay cho useEffect để không
+  // gọi setState bên trong effect (lint react-hooks/set-state-in-effect).
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setUrlDraft(value);
+  }
+
+  // Giải phóng blob URL khi đổi ảnh hoặc unmount
+  useEffect(() => () => {
+    if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  // Dọn timer báo thành công khi unmount (tránh setState sau unmount)
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+  }, []);
+
+  const flashSuccess = (setter: (v: boolean) => void) => {
+    setter(true);
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    successTimerRef.current = setTimeout(() => setter(false), 4000);
+  };
+
+  const currentSrc = value ? (isRemoteUrl(value) ? value : `${API_URL}${value}`) : null;
+  const previewSrc = previewUrl ?? currentSrc;
+
+  const pickFile = (f: File) => {
+    if (!f.type.startsWith("image/")) { alert("Vui lòng chọn file ảnh."); return; }
+    if (f.size > 10 * 1024 * 1024) { alert("Ảnh vượt quá 10MB."); return; }
+    setFile(f);
+    setPreviewUrl(URL.createObjectURL(f));
+    setLoadFailed(false);
+    setUploadSuccess(false);
+  };
+
+  const resetPick = () => {
+    setFile(null);
+    setPreviewUrl(null); // blob cũ được effect dọn tự động
+    setLoadFailed(false);
+    setUploadSuccess(false);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+    setUploading(true); setUploadSuccess(false);
+    try {
+      const result = await contentApi.uploadImage(slot.key, file);
+      onSaved(slot.key, result.imagePath);
+      setFile(null);
+      setPreviewUrl(null);
+      setLoadFailed(false);
+      flashSuccess(setUploadSuccess);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : `Lỗi khi upload ${slot.label}!`);
+    } finally { setUploading(false); }
+  };
+
+  const handleSaveUrl = async () => {
+    setSavingUrl(true); setUrlSuccess(false);
+    try {
+      const nextValue = urlDraft.trim();
+      await contentApi.upsert({ key: slot.key, value: nextValue });
+      onSaved(slot.key, nextValue);
+      setLoadFailed(false);
+      flashSuccess(setUrlSuccess);
+    } catch (err) {
+      alert(`Lỗi khi lưu URL!\n${err instanceof Error ? err.message : ""}`.trim());
+    } finally { setSavingUrl(false); }
+  };
+
+  return (
+    <div className="bg-card border shadow-sm rounded-xl overflow-hidden">
+      <div className="p-5 border-b bg-muted/20 flex items-center justify-between gap-3">
+        <div>
+          <h4 className="font-semibold flex items-center gap-2"><ImageIcon className="w-4 h-4 text-primary" /> {slot.label}</h4>
+          <p className="text-sm text-muted-foreground mt-0.5">{slot.hint}</p>
+        </div>
+        {(uploadSuccess || urlSuccess) && (
+          <div className="flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-sm font-medium shrink-0">
+            <CheckCircle2 className="w-4 h-4" /> Đã cập nhật thành công!
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 space-y-5">
+        {/* PREVIEW */}
+        {previewSrc ? (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {previewUrl ? "Xem trước ảnh mới (chưa lưu)" : "Ảnh hiện tại trên website"}
+              </p>
+              {previewUrl && (
+                <button onClick={resetPick} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border px-2.5 py-1 rounded-lg hover:bg-muted">
+                  <RefreshCw className="w-3 h-3" /> Đặt lại
+                </button>
+              )}
+            </div>
+            <div className={`relative overflow-hidden border-2 bg-muted ${slot.boxClass} ${previewUrl ? "border-dashed border-accent/60" : "border-border"}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewSrc} alt={slot.label} className="w-full h-full object-cover"
+                onLoad={e => { e.currentTarget.style.display = ""; setLoadFailed(false); }}
+                onError={e => { e.currentTarget.style.display = "none"; setLoadFailed(true); }} />
+              {loadFailed && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-6 bg-muted">
+                  <AlertCircle className="w-6 h-6 text-red-400" />
+                  <p className="text-sm font-semibold text-red-600">Không tải được ảnh</p>
+                  <p className="text-xs text-muted-foreground">Link chia sẻ Google Drive/OneDrive không hiển thị trực tiếp — hãy upload từ máy hoặc dùng link CDN.</p>
+                </div>
+              )}
+              {!loadFailed && previewUrl && <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Chưa upload</div>}
+              {!loadFailed && !previewUrl && <div className="absolute top-3 left-3 bg-green-600/90 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-semibold shadow">Đang hiển thị</div>}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Chưa có ảnh cho ô này — Landing Page đang dùng ảnh mặc định/ô trang trí.</p>
+        )}
+
+        {/* MODE SWITCHER */}
+        <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
+          <button onClick={() => setMode("upload")} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === "upload" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <CloudUpload className="w-4 h-4" /> Upload từ máy
+          </button>
+          <button onClick={() => setMode("url")} className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${mode === "url" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <LinkIcon className="w-4 h-4" /> Dùng URL
+          </button>
+        </div>
+
+        {/* UPLOAD MODE */}
+        {mode === "upload" && (
+          <div className="space-y-4">
+            <div
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={e => {
+                e.preventDefault(); setDragOver(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) pickFile(f);
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative cursor-pointer rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-10 transition-all select-none ${dragOver ? "border-primary bg-primary/5 scale-[1.01] shadow-md" : "border-muted-foreground/30 hover:border-primary/60 hover:bg-muted/30"}`}
+            >
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${dragOver ? "bg-primary/10 scale-110" : "bg-muted"}`}>
+                <CloudUpload className={`w-7 h-7 transition-colors ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="font-semibold text-sm">{dragOver ? "Thả ảnh vào đây..." : "Kéo & thả ảnh vào đây"}</p>
+                <p className="text-xs text-muted-foreground">hoặc <span className="text-primary font-semibold underline underline-offset-2">click để chọn file</span></p>
+              </div>
+              <p className="text-xs text-muted-foreground/70">JPG, PNG, WEBP, GIF · Tối đa 10MB</p>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
+
+            {file && (
+              <div className="flex items-center gap-3 p-3.5 bg-muted/50 rounded-xl border">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted border flex-shrink-0 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl!} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{file.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                </div>
+                <button type="button" onClick={resetPick} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <button type="button" onClick={handleUpload} disabled={!file || uploading}
+              className="w-full bg-primary hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed text-primary-foreground py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-[0.99]">
+              {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang upload lên server...</> : <><Upload className="w-4 h-4" /> Upload & Cập nhật ảnh</>}
+            </button>
+            <p className="text-xs text-center text-muted-foreground">💾 Ảnh sẽ được lưu trên server và cập nhật tự động lên Landing Page.</p>
+          </div>
+        )}
+
+        {/* URL MODE */}
+        {mode === "url" && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2"><LinkIcon className="w-4 h-4 text-muted-foreground" /> URL ảnh</label>
+              <input type="url" value={urlDraft} onChange={e => setUrlDraft(e.target.value)}
+                placeholder="https://i.imgur.com/... hoặc CDN khác"
+                className="w-full bg-background border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+              <p className="text-xs text-muted-foreground">Dán link ảnh từ Imgur, Cloudinary hoặc CDN công khai. Để trống = bỏ ảnh ô này.</p>
+            </div>
+            <button type="button" onClick={handleSaveUrl} disabled={savingUrl}
+              className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all shadow-sm">
+              {savingUrl ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang lưu...</>
+                : urlSuccess ? <><CheckCircle2 className="w-4 h-4" /> Đã lưu!</>
+                : <><Save className="w-4 h-4" /> Cập nhật ảnh</>}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

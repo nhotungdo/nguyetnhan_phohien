@@ -58,13 +58,17 @@ public class ContentController : ControllerBase
     }
 
     /// <summary>
-    /// [ADMIN] Upload ảnh banner trực tiếp từ thiết bị.
-    /// Lưu ảnh vào wwwroot/uploads/banners và tự động cập nhật key HeroBannerUrl.
+    /// [ADMIN] Ảnh upload từ thiết bị cho một slot ảnh của Landing Page
+    /// (SiteLogo, HeroBannerUrl, StoryImage, CultureImage — backend whitelist key).
+    /// Lưu vào wwwroot/uploads/content/{key} và tự cập nhật key nội dung tương ứng.
     /// </summary>
-    [HttpPost("upload-banner")]
+    [HttpPost("upload-image")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UploadBannerImage(IFormFile file)
+    public async Task<IActionResult> UploadImage([FromQuery] string key, IFormFile file)
     {
+        if (string.IsNullOrWhiteSpace(key))
+            return BadRequest(new { message = "Thiếu key ảnh cần cập nhật." });
+
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Không có file nào được gửi lên." });
 
@@ -83,9 +87,17 @@ public class ContentController : ControllerBase
         if (!allowedExts.Contains(Path.GetExtension(fileName).ToLowerInvariant()))
             return BadRequest(new { message = "Tên file phải có đuôi .jpg, .jpeg, .png, .webp hoặc .gif." });
 
-        using var stream = file.OpenReadStream();
-        var path = await _contentService.UploadBannerImageAsync(stream, fileName);
-        return Ok(new { imagePath = path, message = "Upload banner thành công!" });
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var path = await _contentService.UploadImageAsync(stream, fileName, key);
+            return Ok(new { imagePath = path, message = "Upload ảnh thành công!" });
+        }
+        catch (ArgumentException ex)
+        {
+            // Key ngoài whitelist (không phải ô ảnh) → thông báo rõ, không ghi gì
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }
 

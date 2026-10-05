@@ -255,9 +255,10 @@ export const contentApi = {
       headers: getAdminHeaders(),
     }),
 
-  /** [ADMIN] Upload ảnh banner trực tiếp từ thiết bị lên server */
-  uploadBannerImage: (file: File): Promise<{ imagePath: string; message: string }> =>
-    uploadFetch("/api/content/upload-banner", file),
+  /** [ADMIN] Ảnh upload từ thiết bị cho một ô ảnh của Landing Page
+   * (SiteLogo, HeroBannerUrl, StoryImage, CultureImage — backend whitelist key) */
+  uploadImage: (key: string, file: File): Promise<{ imagePath: string; message: string }> =>
+    uploadFetch(`/api/content/upload-image?key=${encodeURIComponent(key)}`, file),
 };
 
 
@@ -302,6 +303,14 @@ export const productApi = {
   deleteImage: (productId: string, imageId: string): Promise<void> =>
     apiFetch(`/api/products/${productId}/images/${imageId}`, {
       method: "DELETE",
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Sắp xếp thứ tự ảnh — id đầu tiên là ảnh đại diện trên Landing Page */
+  reorderImages: (productId: string, imageIds: string[]): Promise<void> =>
+    apiFetch(`/api/products/${productId}/images/order`, {
+      method: "PUT",
+      body: JSON.stringify({ imageIds }),
       headers: getAdminHeaders(),
     }),
 };

@@ -50,46 +50,59 @@ public class ContentService : IContentService
         return MapToResponse(existing);
     }
 
-    public async Task<string> UploadBannerImageAsync(Stream imageStream, string fileName)
+    /// <summary>
+    /// Các key nội dung là Ô ẢNH trên landing page — chỉ key này mới nhận upload,
+    /// tránh ghi đè key văn bản tùy ý (vd "HeroTitle") bằng đường dẫn file.
+    /// </summary>
+    private static readonly string[] ImageKeys =
     {
-        // Xác định thư mục lưu ảnh banner
-        var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var bannersDir = Path.Combine(wwwroot, "uploads", "banners");
-        Directory.CreateDirectory(bannersDir);
+        "SiteLogo",       // logo header + footer
+        "HeroBannerUrl",  // ảnh banner hero
+        "StoryImage",     // ảnh mục câu chuyện
+        "CultureImage"    // ảnh mục văn hóa
+    };
 
-        // Tạo tên file unique — chỉ giữ đuôi file thuộc whitelist (phòng hờ nếu caller
+    public async Task<string> UploadImageAsync(Stream imageStream, string fileName, string contentKey)
+    {
+        if (string.IsNullOrWhiteSpace(contentKey) || !ImageKeys.Contains(contentKey, StringComparer.OrdinalIgnoreCase))
+            throw new ArgumentException($"Key ảnh không hợp lệ: {contentKey}");
+
+        var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var contentDir = Path.Combine(wwwroot, "uploads", "content", contentKey.ToLowerInvariant());
+        Directory.CreateDirectory(contentDir);
+
+        // Chỉ giữ đuôi file thuộc whitelist (phòng hờ nếu caller
         // quên validate ở controller): không bao giờ ghi được .html/.js vào wwwroot.
         var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         if (!allowedExts.Contains(ext)) ext = ".jpg";
-        var uniqueFileName = $"banner_{Guid.NewGuid():N}{ext}";
-        var filePath = Path.Combine(bannersDir, uniqueFileName);
+        var uniqueFileName = $"{contentKey}_{Guid.NewGuid():N}{ext}";
+        var filePath = Path.Combine(contentDir, uniqueFileName);
 
-        // Lưu file
         using (var fs = File.Create(filePath))
         {
             await imageStream.CopyToAsync(fs);
         }
 
-        var relativePath = $"/uploads/banners/{uniqueFileName}";
+        var relativePath = $"/uploads/content/{contentKey.ToLowerInvariant()}/{uniqueFileName}";
 
-        // Đọc URL banner cũ TRƯỚC khi upsert, để dọn file cũ sau khi đã lưu xong.
-        var oldRelativePath = (await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == "HeroBannerUrl"))?.Value;
+        // Đọc URL ảnh cũ TRƯỚC khi upsert, để dọn file cũ sau khi đã lưu xong.
+        var oldRelativePath = (await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == contentKey))?.Value;
 
-        // Upsert key HeroBannerUrl
         await UpsertContentAsync(new UpdateContentRequest
         {
-            Key = "HeroBannerUrl",
+            Key = contentKey,
             Value = relativePath
         });
 
-        // Dọn file banner cũ: mỗi lần upload là một file mới nên không dọn thì
-        // wwwroot/uploads/banners phình vô hạn. Chỉ đụng file nằm trong thư mục
-        // banners (Path.GetFileName chặn traversal) và không phải file vừa lưu.
+        // Dọn ảnh cũ: mỗi lần upload là một file mới nên không dọn thì wwwroot phình vô hạn.
+        // Chỉ đụng file nằm trong /uploads/ và không chứa ".." (chặn path traversal).
         if (!string.IsNullOrWhiteSpace(oldRelativePath)
-            && oldRelativePath.StartsWith("/uploads/banners/", StringComparison.OrdinalIgnoreCase))
+            && oldRelativePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+            && !oldRelativePath.Contains("..", StringComparison.Ordinal))
         {
-            var oldFilePath = Path.Combine(bannersDir, Path.GetFileName(oldRelativePath));
+            var oldFilePath = Path.Combine(wwwroot,
+                oldRelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
             if (!string.Equals(oldFilePath, filePath, StringComparison.OrdinalIgnoreCase) && File.Exists(oldFilePath))
             {
                 try { File.Delete(oldFilePath); }

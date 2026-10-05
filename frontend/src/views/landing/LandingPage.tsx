@@ -27,6 +27,16 @@ import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
+// Ghép URL ảnh từ CMS: link tuyệt đối (http/https/protocol-relative/data) dùng nguyên,
+// còn lại (vd /uploads/content/...) là đường dẫn tương đối trên server API.
+// null-safe: key chưa có trong CMS (API lỗi, trang prerender) → chuỗi rỗng, caller tự fallback.
+const resolveCmsImage = (url?: string) =>
+  !url
+    ? ""
+    : /^(https?:)?\/\//i.test(url) || url.startsWith("data:")
+      ? url
+      : `${API_URL}${url}`;
+
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -138,7 +148,7 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-border shadow-sm relative">
               <span className="absolute text-accent font-bold text-xs">NN</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.jpg" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <img src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
             </div>
             <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-[28px] tracking-wide transition-colors ${isScrolled ? "text-primary" : "text-primary"}`}>
               Nguyệt Nhãn Phố Hiến
@@ -332,9 +342,9 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
               className="max-w-3xl mx-auto text-center space-y-6"
             >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary">{t.about.title}</h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}</h2>
               <p className="text-lg text-foreground/80 leading-relaxed">
-                {t.about.desc}
+                {language === "en" ? t.about.desc : cmsContent.AboutDescription || t.about.desc}
               </p>
             </motion.div>
 
@@ -371,8 +381,8 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
               className="text-center mb-16"
             >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">{t.products.title}</h2>
-              <p className="text-foreground/80">{t.products.subtitle}</p>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">{language === "en" ? t.products.title : cmsContent.ProductsTitle || t.products.title}</h2>
+              <p className="text-foreground/80">{language === "en" ? t.products.subtitle : cmsContent.ProductsSubtitle || t.products.subtitle}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -456,16 +466,25 @@ export default function LandingPage() {
               <div className="flex-1 relative">
                 <div className="aspect-square rounded-full bg-secondary absolute -top-10 -left-10 w-full h-full -z-10 blur-3xl opacity-50"></div>
                 <div className="w-full aspect-[4/5] rounded-[3rem] bg-[#FDE68A]/30 overflow-hidden relative border-8 border-white shadow-2xl">
-                  {/* Story Image Placeholder */}
+                  {/* Placeholder phía dưới — admin chưa đặt ảnh (hoặc ảnh lỗi) vẫn thấy khung gợi ý */}
                   <div className="absolute inset-0 flex items-center justify-center text-accent font-medium">
                     [ Ảnh Người Nông Dân / Vườn Nhãn ]
                   </div>
+                  {cmsContent.StoryImage && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveCmsImage(cmsContent.StoryImage)}
+                      alt="Câu chuyện Nguyệt Nhãn"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => e.currentTarget.style.display = 'none'}
+                    />
+                  )}
                 </div>
               </div>
               <div className="flex-1 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : "Thứ Quả Tiến Vua Trứ Danh"}</h2>
+                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}</h2>
                 <p className="text-lg text-foreground/80 leading-relaxed">
-                  {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
+                  {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : cmsContent.StoryDescription || "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
                 <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
                   <p className="text-foreground/80 italic">
@@ -549,10 +568,20 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative">
-                <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
-                <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold">
+                <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold relative overflow-hidden">
                   [ Ảnh Văn Hóa Thưởng Trà ]
+                  {cmsContent.CultureImage && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveCmsImage(cmsContent.CultureImage)}
+                      alt="Văn hóa thưởng trà Phố Hiến"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => e.currentTarget.style.display = 'none'}
+                    />
+                  )}
                 </div>
+                {/* Vòng trang trí quay — đặt SAU để luôn nổi lên trên ảnh */}
+                <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
               </div>
             </div>
           </div>
@@ -566,11 +595,15 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-                  {language === "en" ? "Enjoy the Essence" : "Thưởng Thức"}<br />
-                  {language === "en" ? "of Flavor" : "Hương Vị Tinh Túy"}
+                  {(language === "en"
+                    ? "Enjoy the Essence\nof Flavor"
+                    : cmsContent.OrderTitle || "Thưởng Thức\nHương Vị Tinh Túy"
+                  ).split("\n").filter(Boolean).map((line, i) => (
+                    <span key={i}>{i > 0 && <br />}{line}</span>
+                  ))}
                 </h2>
                 <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
-                  {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
+                  {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : cmsContent.OrderDescription || "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                 </p>
 
                 <div className="space-y-6">
@@ -840,7 +873,7 @@ export default function LandingPage() {
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
                   <span className="absolute">NN</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo.jpg" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <img src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
                 </div>
                 <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
               </h3>
@@ -851,10 +884,10 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
               <ul className="space-y-2 text-muted-foreground text-sm">
-                <li>Hotline/Zalo: 0982.072.601</li>
-                <li>Email: hello@nguyetnhan.vn</li>
-                <li>Địa chỉ: 123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên</li>
-                <li>Giờ mở cửa: 08:00 - 20:00 (T2-CN)</li>
+                <li>Hotline/Zalo: {cmsContent.FooterHotline || "0982.072.601"}</li>
+                <li>Email: {cmsContent.ContactEmail || "hello@nguyetnhan.vn"}</li>
+                <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
+                <li>Giờ mở cửa: {cmsContent.ContactHours || "08:00 - 20:00 (T2-CN)"}</li>
               </ul>
             </div>
             <div className="space-y-4">
