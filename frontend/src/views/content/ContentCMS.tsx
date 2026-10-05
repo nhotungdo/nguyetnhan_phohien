@@ -1,5 +1,7 @@
 "use client";
 
+import imageCompression from 'browser-image-compression';
+
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { contentApi, productApi } from "@/services/api.service";
@@ -232,7 +234,21 @@ export default function ContentCMS() {
       if (pendingImages.length > 0) {
         setUploadingImages(true);
         for (const item of [...pendingImages]) {
-          await productApi.uploadImage(productId!, item.file);
+          // Compress the image before uploading to optimize speed and avoid size limits
+          const options = {
+            maxSizeMB: 1, // Max 1MB for product images
+            maxWidthOrHeight: 1280,
+            useWebWorker: true,
+            fileType: 'image/jpeg'
+          };
+          let fileToUpload = item.file;
+          try {
+            fileToUpload = await imageCompression(item.file, options);
+          } catch (error) {
+            console.error("Lỗi nén ảnh sản phẩm:", error);
+          }
+
+          await productApi.uploadImage(productId!, fileToUpload);
           URL.revokeObjectURL(item.url);
           // Bỏ dần khỏi danh sách chờ để retry không upload trùng lại ảnh đã lên
           setPendingImages(prev => prev.filter(p => p.url !== item.url));
@@ -593,7 +609,21 @@ function ImageSlotEditor({ slot, value, onSaved }: {
     if (!file) return;
     setUploading(true); setUploadSuccess(false);
     try {
-      const result = await contentApi.uploadImage(slot.key, file);
+      // Compress the image before uploading to optimize speed and avoid size limits
+      const options = {
+        maxSizeMB: 1.5, // Max 1.5MB for content images like banners
+        maxWidthOrHeight: 1920, // Keep good resolution for banners
+        useWebWorker: true,
+        fileType: 'image/jpeg'
+      };
+      let fileToUpload = file;
+      try {
+        fileToUpload = await imageCompression(file, options);
+      } catch (error) {
+        console.error("Lỗi nén ảnh nội dung:", error);
+      }
+
+      const result = await contentApi.uploadImage(slot.key, fileToUpload);
       onSaved(slot.key, result.imagePath);
       setFile(null);
       setPreviewUrl(null);
