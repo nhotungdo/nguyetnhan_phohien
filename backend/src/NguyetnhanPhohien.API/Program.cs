@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NguyetnhanPhohien.API.Controllers;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Infrastructure.Persistence;
@@ -58,6 +61,44 @@ builder.Services.AddAuthorization();
 // ===== SIGNALR =====
 builder.Services.AddSignalR();
 
+// ===== RESPONSE COMPRESSION (giảm dung lượng JSON trả về cho Frontend) =====
+// Danh sách MIME chỉ gồm JSON/text — ảnh (jpeg/png/webp/gif) đã nén sẵn nên
+// không đưa vào để không tốn CPU nén lại và tránh hỏng header Content-Length.
+builder.Services.AddResponseCompression(options =>
+{
+    // Prod chạy HTTPS vẫn phải nén (mặc định middleware BỎ QUA request https
+    // nếu không bật cờ này → JSON trả về nặng y nguyên khi deploy).
+    options.EnableForHttps = true;
+    options.MimeTypes = new[]
+    {
+        "application/json",
+        "application/json; charset=utf-8",
+        "application/problem+json",
+        "text/plain",
+        "text/plain; charset=utf-8",
+        "text/html"
+    };
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    options.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    options.Level = System.IO.Compression.CompressionLevel.Fastest);
+
+// ===== OUTPUT CACHE (GET công khai trả lời từ RAM, không đụng DB) =====
+// Tag "products" / "content" được evict NGAY trong controller mỗi khi admin sửa
+// dữ liệu → kết hợp realtime SignalR, client refetch luôn nhận bản mới nhất.
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy(ProductsController.PublicCachePolicy, policy => policy
+        .Expire(TimeSpan.FromSeconds(60))
+        .Tag(ProductsController.CacheTag));
+    options.AddPolicy(ContentController.PublicCachePolicy, policy => policy
+        .Expire(TimeSpan.FromSeconds(60))
+        .Tag(ContentController.CacheTag));
+});
+
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
@@ -100,6 +141,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // ===== MIDDLEWARE PIPELINE =====
+// Nén xếp NGOÀI CÙNG để response lấy ra từ output-cache / static file vẫn được nén.
+app.UseResponseCompression();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -112,8 +156,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
+// Output cache phải đứng TRƯỚC static files & controller để cache được response JSON.
+app.UseOutputCache();
+
 // ===== STATIC FILES (phục vụ ảnh upload) =====
-app.UseStaticFiles();
+// Ảnh trong /uploads không bao giờ đổi nội dung theo URL: ProductService và
+// ContentService luôn sinh tên file MỚI (kèm Guid) khi upload → cache vĩnh viễn
+// an toàn. Nhờ đó lần mở trang sau trình duyệt dùng lại ảnh ngay, không tải lại.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.Context.Request.Path.StartsWithSegments("/uploads"))
+        {
+            ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        }
+    }
+});
 
 if (!app.Environment.IsDevelopment())
 {
@@ -127,6 +186,8 @@ app.UseAuthorization();
 app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1"));
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
+// Hub realtime sản phẩm/ảnh/nội dung — frontend invalidate React Query khi có thay đổi.
+app.MapHub<ProductsHub>("/hubs/products");
 
 // ===== AUTO MIGRATE & SEED (non-fatal: API vẫn chạy nếu DB chưa kết nối được) =====
 try

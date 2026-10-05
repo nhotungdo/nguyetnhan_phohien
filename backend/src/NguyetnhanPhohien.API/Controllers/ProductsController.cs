@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.AspNetCore.SignalR;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Products;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -10,18 +13,63 @@ namespace NguyetnhanPhohien.API.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly IHubContext<ProductsHub> _hub;
+    private readonly IOutputCacheStore _outputCache;
+    private readonly ILogger<ProductsController> _logger;
 
-    public ProductsController(IProductService productService)
+    /// <summary>Policy output-cache cho GET danh sách sản phẩm công khai (xem Program.cs).</summary>
+    public const string PublicCachePolicy = "ProductsPublic";
+
+    /// <summary>Tag output-cache — evict khi ANY sản phẩm/ảnh đổi để GET công khai không đọc nhầm cache cũ.</summary>
+    public const string CacheTag = "products";
+
+    public ProductsController(
+        IProductService productService,
+        IHubContext<ProductsHub> hub,
+        IOutputCacheStore outputCache,
+        ILogger<ProductsController> logger)
     {
         _productService = productService;
+        _hub = hub;
+        _outputCache = outputCache;
+        _logger = logger;
     }
 
-    /// <summary>[PUBLIC] Lấy danh sách sản phẩm hiển thị (IsActive = true)</summary>
+    /// <summary>
+    /// [PUBLIC] Lấy danh sách sản phẩm hiển thị (IsActive = true).
+    /// Nằm trong output-cache (policy ProductsPublic, ~60s, tag "products"):
+    /// request kế tiếp trả lời từ bộ nhớ server, không đụng DB → TTFB ngắn hơn.
+    /// Cache được xóa ngay khi có thay đổi (BroadcastChangeAsync) nên dữ liệu luôn realtime.
+    /// </summary>
     [HttpGet]
+    [OutputCache(PolicyName = PublicCachePolicy)]
     public async Task<ActionResult<List<ProductResponse>>> GetAll()
     {
         var products = await _productService.GetAllAsync(includeInactive: false);
         return Ok(products);
+    }
+
+    /// <summary>
+    /// Xóa cache GET công khai + báo realtime cho mọi client (Landing Page, tab Admin khác)
+    /// để họ invalidate React Query và tải dữ liệu mới ngay lập tức.
+    /// Lỗi broadcast KHÔNG được làm fail request đã ghi DB thành công — chỉ log.
+    /// </summary>
+    private async Task BroadcastChangeAsync(string action, Guid productId)
+    {
+        try
+        {
+            await _outputCache.EvictByTagAsync(CacheTag, CancellationToken.None);
+            await _hub.Clients.All.SendAsync(ProductsHub.ProductsChangedEvent, new
+            {
+                action,
+                productId,
+                at = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không broadcast được sự kiện sản phẩm {Action} ({ProductId})", action, productId);
+        }
     }
 
     /// <summary>[ADMIN] Lấy TẤT CẢ sản phẩm kể cả ẩn</summary>
@@ -46,6 +94,7 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ProductResponse>> Create([FromBody] CreateProductRequest request)
     {
         var result = await _productService.CreateAsync(request);
+        await BroadcastChangeAsync("created", result.Id);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -55,6 +104,7 @@ public class ProductsController : ControllerBase
     {
         var result = await _productService.UpdateAsync(id, request);
         if (result == null) return NotFound();
+        await BroadcastChangeAsync("updated", id);
         return Ok(result);
     }
 
@@ -64,6 +114,7 @@ public class ProductsController : ControllerBase
     {
         var success = await _productService.DeleteAsync(id);
         if (!success) return NotFound();
+        await BroadcastChangeAsync("deleted", id);
         return NoContent();
     }
 
@@ -100,6 +151,7 @@ public class ProductsController : ControllerBase
 
         using var stream = file.OpenReadStream();
         var result = await _productService.AddImageAsync(id, stream, fileName);
+        await BroadcastChangeAsync("image-added", id);
 
         return Ok(result);
     }
@@ -111,6 +163,7 @@ public class ProductsController : ControllerBase
     {
         var success = await _productService.DeleteImageAsync(id, imageId);
         if (!success) return NotFound();
+        await BroadcastChangeAsync("image-deleted", id);
         return NoContent();
     }
 
@@ -129,6 +182,7 @@ public class ProductsController : ControllerBase
         if (!success)
             return BadRequest(new { message = "Danh sách ảnh không khớp với ảnh hiện có của sản phẩm." });
 
+        await BroadcastChangeAsync("images-reordered", id);
         return NoContent();
     }
 }

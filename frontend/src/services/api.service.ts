@@ -68,7 +68,11 @@ async function apiFetch<T>(
 
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${path}`, { ...options, headers });
+    // cache: "no-store" — khi Next prerender tĩnh (SSR), fetch mặc định bị đưa vào
+    // Data Cache của Next và trả lại JSON ĐÓNG BĂNG từ lần build trước (dữ liệu cũ
+    // trong HTML mãi không cập nhật). no-store = luôn đọc bản mới nhất từ API;
+    // phần "giữ cho nhanh" do React Query (client) + output-cache của backend đảm nhiệm.
+    res = await fetch(`${API_URL}${path}`, { cache: "no-store", ...options, headers });
   } catch {
     // Lỗi mạng / CORS / backend chưa chạy → fetch ném TypeError "Failed to fetch".
     // Chuyển thành thông báo rõ nguyên nhân thay vì để lỗi trần lọt ra console.

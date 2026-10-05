@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.AspNetCore.SignalR;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Content;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -10,20 +13,63 @@ namespace NguyetnhanPhohien.API.Controllers;
 public class ContentController : ControllerBase
 {
     private readonly IContentService _contentService;
+    private readonly IHubContext<ProductsHub> _hub;
+    private readonly IOutputCacheStore _outputCache;
+    private readonly ILogger<ContentController> _logger;
 
-    public ContentController(IContentService contentService)
+    /// <summary>Policy output-cache cho GET toàn bộ nội dung công khai (xem Program.cs).</summary>
+    public const string PublicCachePolicy = "ContentPublic";
+
+    /// <summary>Tag output-cache — evict khi nội dung/ảnh Landing Page đổi.</summary>
+    public const string CacheTag = "content";
+
+    public ContentController(
+        IContentService contentService,
+        IHubContext<ProductsHub> hub,
+        IOutputCacheStore outputCache,
+        ILogger<ContentController> logger)
     {
         _contentService = contentService;
+        _hub = hub;
+        _outputCache = outputCache;
+        _logger = logger;
     }
 
     /// <summary>
     /// [PUBLIC] Lấy toàn bộ nội dung để hiển thị trên Landing Page.
+    /// Nằm trong output-cache (policy ContentPublic, tag "content") để trả lời từ
+    /// bộ nhớ server thay vì truy vấn DB mỗi lần tải trang; cache tự xóa ngay khi
+    /// admin lưu (BroadcastChangeAsync) nên không bao giờ trả nội dung cũ.
     /// </summary>
     [HttpGet]
+    [OutputCache(PolicyName = PublicCachePolicy)]
     public async Task<IActionResult> GetAllContent()
     {
         var content = await _contentService.GetAllContentAsync();
         return Ok(content);
+    }
+
+    /// <summary>
+    /// Xóa cache GET nội dung + báo realtime để Landing Page / tab Admin khác
+    /// invalidate React Query và hiển thị text/ảnh mới ngay (kể cả ảnh CMS
+    /// như HeroBanner, Logo, Story, Culture).
+    /// Lỗi broadcast KHÔNG làm fail request đã ghi DB thành công — chỉ log.
+    /// </summary>
+    private async Task BroadcastContentChangedAsync(string key)
+    {
+        try
+        {
+            await _outputCache.EvictByTagAsync(CacheTag, CancellationToken.None);
+            await _hub.Clients.All.SendAsync(ProductsHub.ContentChangedEvent, new
+            {
+                key,
+                at = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không broadcast được sự kiện nội dung {Key}", key);
+        }
     }
 
     /// <summary>
@@ -54,6 +100,7 @@ public class ContentController : ControllerBase
             request.Value = string.Empty;
 
         var result = await _contentService.UpsertContentAsync(request);
+        await BroadcastContentChangedAsync(request.Key);
         return Ok(result);
     }
 
@@ -91,6 +138,7 @@ public class ContentController : ControllerBase
         {
             using var stream = file.OpenReadStream();
             var path = await _contentService.UploadImageAsync(stream, fileName, key);
+            await BroadcastContentChangedAsync(key);
             return Ok(new { imagePath = path, message = "Upload ảnh thành công!" });
         }
         catch (ArgumentException ex)

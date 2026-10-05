@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { contentApi, productApi } from "@/services/api.service";
 import type { WebsiteContentResponse, ProductResponse, ProductRequest } from "@/types/api.types";
+import { FastImage } from "@/components/FastImage";
 import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
@@ -382,8 +383,7 @@ export default function ContentCMS() {
                     <td className="px-5 py-3.5">
                       <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
                         {p.images[0]
-                          // eslint-disable-next-line @next/next/no-img-element
-                          ? <img src={`${API_URL}${p.images[0].imagePath}`} alt={p.name} className="w-full h-full object-cover" />
+                          ? <FastImage src={`${API_URL}${p.images[0].imagePath}`} alt={p.name} width={44} height={44} loading="lazy" className="w-full h-full object-cover" />
                           : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
                       </div>
                     </td>
@@ -481,8 +481,7 @@ export default function ContentCMS() {
                 <div className="grid grid-cols-4 gap-3">
                   {existingImages.map(img => (
                     <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-border group">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`${API_URL}${img.imagePath}`} alt="" className="w-full h-full object-cover" />
+                      <FastImage src={`${API_URL}${img.imagePath}`} alt="" fill sizes="140px" loading="lazy" className="w-full h-full object-cover" />
                       {existingImages[0]?.id !== img.id && (
                         <button type="button" title="Đặt làm ảnh chính" onClick={() => setMainImage(img.id)}
                           className="absolute top-1 left-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

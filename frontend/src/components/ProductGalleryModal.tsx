@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { FastImage } from "@/components/FastImage";
 import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -55,10 +56,12 @@ export function ProductGalleryModal({ product, language, onClose, onOrder }: Pro
         {/* Main image */}
         <div className="relative bg-[#FDE68A]/10 aspect-[16/9] flex items-center justify-center overflow-hidden">
           {images.length > 0 ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <FastImage
               src={`${API_URL}${images[currentIdx].imagePath}`}
               alt={`${product.name} - ảnh ${currentIdx + 1}`}
+              fill
+              priority
+              sizes="(max-width: 768px) 96vw, 720px"
               className="w-full h-full object-contain"
             />
           ) : (
@@ -92,8 +95,14 @@ export function ProductGalleryModal({ product, language, onClose, onOrder }: Pro
                 onClick={() => setCurrentIdx(idx)}
                 className={`w-14 h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${idx === currentIdx ? "border-accent shadow-md scale-105" : "border-transparent opacity-60 hover:opacity-90"}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${API_URL}${img.imagePath}`} alt="" className="w-full h-full object-cover" />
+                <FastImage
+                  src={`${API_URL}${img.imagePath}`}
+                  alt=""
+                  width={56}
+                  height={56}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>

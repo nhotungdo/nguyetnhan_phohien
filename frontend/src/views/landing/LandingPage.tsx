@@ -23,6 +23,7 @@ import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductGalleryModal } from "@/components/ProductGalleryModal";
+import { FastImage } from "@/components/FastImage";
 import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -147,8 +148,14 @@ export default function LandingPage() {
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => scrollToSection("hero")}>
             <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-border shadow-sm relative">
               <span className="absolute text-accent font-bold text-xs">NN</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <FastImage
+                src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
+                alt="Nguyệt Nhãn Phố Hiến"
+                fill
+                sizes="48px"
+                className="w-full h-full object-cover z-10"
+                onError={(e) => e.currentTarget.style.display = 'none'}
+              />
             </div>
             <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-[28px] tracking-wide transition-colors ${isScrolled ? "text-primary" : "text-primary"}`}>
               Nguyệt Nhãn Phố Hiến
@@ -302,11 +309,23 @@ export default function LandingPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
                   {cmsContent.HeroBannerUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={/^(https?:)?\/\//i.test(cmsContent.HeroBannerUrl) || cmsContent.HeroBannerUrl.startsWith("data:") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover" />
+                    <FastImage
+                      src={/^(https?:)?\/\//i.test(cmsContent.HeroBannerUrl) || cmsContent.HeroBannerUrl.startsWith("data:") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`}
+                      alt="Nguyệt Nhãn Phố Hiến"
+                      fill
+                      priority
+                      sizes="(max-width: 768px) 90vw, 400px"
+                      className="w-full h-full object-cover"
+                    />
                   ) : products[0]?.images?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`${API_URL}${products[0].images[0].imagePath}`} alt={products[0].name} className="w-full h-full object-cover" />
+                    <FastImage
+                      src={`${API_URL}${products[0].images[0].imagePath}`}
+                      alt={products[0].name}
+                      fill
+                      priority
+                      sizes="(max-width: 768px) 90vw, 400px"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <>
                       <div className="absolute inset-0 bg-[#FDE68A]/30"></div>
@@ -406,8 +425,15 @@ export default function LandingPage() {
                     >
                       <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
                         {mainImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={`${API_URL}${mainImage.imagePath}`} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          // 3 ảnh đầu tải eager (nằm gần viewport), phần còn lại lazy
+                          <FastImage
+                            src={`${API_URL}${mainImage.imagePath}`}
+                            alt={prod.name}
+                            fill
+                            sizes="(max-width: 768px) 92vw, (max-width: 1024px) 50vw, 360px"
+                            loading={i < 3 ? "eager" : "lazy"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
                         ) : (
                           <div className="text-accent font-medium flex flex-col items-center gap-2">
                             <span className="text-4xl">📷</span>
@@ -471,11 +497,13 @@ export default function LandingPage() {
                     [ Ảnh Người Nông Dân / Vườn Nhãn ]
                   </div>
                   {cmsContent.StoryImage && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <FastImage
                       src={resolveCmsImage(cmsContent.StoryImage)}
                       alt="Câu chuyện Nguyệt Nhãn"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 92vw, 45vw"
+                      loading="lazy"
+                      className="w-full h-full object-cover"
                       onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   )}
@@ -571,11 +599,13 @@ export default function LandingPage() {
                 <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold relative overflow-hidden">
                   [ Ảnh Văn Hóa Thưởng Trà ]
                   {cmsContent.CultureImage && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <FastImage
                       src={resolveCmsImage(cmsContent.CultureImage)}
                       alt="Văn hóa thưởng trà Phố Hiến"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 92vw, 560px"
+                      loading="lazy"
+                      className="w-full h-full object-cover"
                       onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   )}
@@ -872,8 +902,14 @@ export default function LandingPage() {
               <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
                   <span className="absolute">NN</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"} alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <FastImage
+                    src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
+                    alt="Nguyệt Nhãn Phố Hiến"
+                    fill
+                    sizes="48px"
+                    className="w-full h-full object-cover z-10"
+                    onError={(e) => e.currentTarget.style.display = 'none'}
+                  />
                 </div>
                 <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
               </h3>
