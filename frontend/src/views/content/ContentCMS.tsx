@@ -238,12 +238,16 @@ export default function ContentCMS() {
           const options = {
             maxSizeMB: 1, // Max 1MB for product images
             maxWidthOrHeight: 1280,
-            useWebWorker: true,
-            fileType: 'image/jpeg'
+            useWebWorker: true
           };
           let fileToUpload = item.file;
           try {
-            fileToUpload = await imageCompression(item.file, options);
+            const compressed = await imageCompression(item.file, options);
+            // Re-create the File object to ensure the 'name' property is preserved
+            fileToUpload = new File([compressed], item.file.name, {
+              type: compressed.type,
+              lastModified: Date.now(),
+            });
           } catch (error) {
             console.error("Lỗi nén ảnh sản phẩm:", error);
           }
@@ -613,12 +617,16 @@ function ImageSlotEditor({ slot, value, onSaved }: {
       const options = {
         maxSizeMB: 1.5, // Max 1.5MB for content images like banners
         maxWidthOrHeight: 1920, // Keep good resolution for banners
-        useWebWorker: true,
-        fileType: 'image/jpeg'
+        useWebWorker: true
       };
       let fileToUpload = file;
       try {
-        fileToUpload = await imageCompression(file, options);
+        const compressed = await imageCompression(file, options);
+        // Re-create the File object to ensure the 'name' property is preserved
+        fileToUpload = new File([compressed], file.name, {
+          type: compressed.type,
+          lastModified: Date.now(),
+        });
       } catch (error) {
         console.error("Lỗi nén ảnh nội dung:", error);
       }
