@@ -53,18 +53,24 @@ export interface ApplyDiscountRequest {
   code: string;
 }
 
+// Mã giảm giá KHÔNG bao giờ cấp quyền admin — không có token/backdoor ở đây.
 export interface DiscountResult {
   isValid: boolean;
   message?: string;
   percentOff?: number;
   amountOff?: number;
-  isAdminBackdoor?: boolean;
-  token?: string;
 }
 
 // ===== CHAT TYPES =====
+/** Phiên chat do server cấp: SessionId ngẫu nhiên + token chứng minh quyền truy cập phiên. */
+export interface ChatSessionCredentials {
+  sessionId: string;
+  sessionToken: string;
+}
+
 export interface SendMessageRequest {
   sessionId: string;
+  sessionToken: string;
   content: string;
   guestName?: string;
   guestPhone?: string;

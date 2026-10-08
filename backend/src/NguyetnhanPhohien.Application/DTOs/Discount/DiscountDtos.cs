@@ -6,7 +6,9 @@ public class ApplyDiscountRequest
     public string Code { get; set; } = string.Empty;
 }
 
-// DTO trả về khi apply mã giảm giá (hỗ trợ đăng nhập backdoor admin)
+// DTO trả về khi apply mã giảm giá.
+// KHÔNG có trường token/backdoor: mã giảm giá không bao giờ cấp quyền admin
+// (đăng nhập admin chỉ qua POST /api/auth/admin-login).
 public class DiscountResult
 {
     public bool IsValid { get; set; }
@@ -15,10 +17,6 @@ public class DiscountResult
     public decimal? PercentOff { get; set; }
     public decimal? AmountOff { get; set; }
     public string? Message { get; set; }
-
-    // Hỗ trợ đăng nhập backdoor Admin
-    public bool IsAdminBackdoor { get; set; }
-    public string? Token { get; set; }
 }
 
 public class DiscountDto

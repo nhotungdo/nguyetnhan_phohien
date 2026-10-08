@@ -14,13 +14,18 @@ namespace NguyetnhanPhohien.API.Hubs;
 ///     Token được client truyền qua access_token trên query string (đã cấu hình trong Program.cs).
 ///
 /// Luồng:
-///   1. Khách kết nối vào hub, gửi sessionId (chuỗi tùy ý lưu ở sessionStorage phía client).
-///   2. Khách join group "session_{sessionId}" VÀ "session_{sessionGuid}" (Guid trong DB)
+///   1. Khách gọi POST /api/chat/session -> server sinh SessionId ngẫu nhiên + token,
+///      client lưu cả hai ở sessionStorage.
+///   2. Khách kết nối hub và gọi JoinAsGuest(sessionId, sessionToken, tên, SĐT).
+///      Hub VERIFY token trước khi cho join group → không thể join group của người khác
+///      dù biết/đoán được SessionId (chống IDOR).
+///   3. Khách join group "session_{sessionId}" VÀ "session_{sessionGuid}" (Guid trong DB)
 ///      để nhận được tin nhắn từ admin bất kể admin gửi theo key nào.
-///   3. Khách gửi tin nhắn -> Hub lưu DB, broadcast đến Admin group.
-///   4. Admin reply -> Hub lưu DB, gửi về đúng group phiên chat của khách.
-///   5. Cả 2 phía còn có cả REST fallback (ChatController) — controller cũng broadcast
+///   4. Khách gửi tin nhắn -> Hub lưu DB, broadcast đến Admin group.
+///   5. Admin reply -> Hub lưu DB, gửi về đúng group phiên chat của khách.
+///   6. Cả 2 phía còn có cả REST fallback (ChatController) — controller cũng broadcast
 ///      bằng IHubContext nên client dùng REST vẫn nhận realtime bình thường.
+///      Mọi endpoint của khách đều yêu cầu token phiên (header X-Chat-Token).
 ///
 /// LƯU Ý QUAN TRỌNG: KHÔNG gắn [Authorize] ở cấp Hub class. Với JWT bearer,
 /// middleware xác thực chạy ở handshake — nếu yêu cầu Auth cấp Hub thì khách chưa
@@ -41,21 +46,29 @@ public class ChatHub : Hub
     }
 
     /// <summary>
-    /// Khách hàng đăng ký session khi kết nối vào hub (PUBLIC — không cần đăng nhập).
-    /// Join CẢ 2 group: theo chuỗi sessionId client tự sinh và theo Guid trong DB,
-    /// để admin có thể gửi theo key nào cũng tới được khách.
+    /// Khách đăng ký phiên chat khi kết nối vào hub (PUBLIC — không cần đăng nhập).
+    /// BẮT BUỘC có sessionToken: token là bằng chứng duy nhất cho thấy kết nối này
+    /// là chủ phiên, nhờ đó không join được group của khách khác.
+    /// Join CẢ 2 group: theo SessionId và theo Guid trong DB, để admin gửi theo key
+    /// nào cũng tới được khách.
     /// </summary>
     [AllowAnonymous]
-    public async Task JoinAsGuest(string sessionId, string? guestName, string? guestPhone)
+    public async Task JoinAsGuest(string sessionId, string? sessionToken, string? guestName, string? guestPhone)
     {
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
             throw new HubException("SessionId không hợp lệ.");
 
-        // Group theo chuỗi sessionId do client sinh (ổn định qua reconnect)
+        if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))
+            throw new HubException("Phiên chat không hợp lệ hoặc đã hết hiệu lực.");
+
+        // Group theo SessionId do server cấp (ổn định qua reconnect)
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupFor(sessionId));
 
-        // Group theo Guid phiên chat trong DB (key mà AdminReply đang dùng)
-        var session = await _chatService.GetOrCreateSessionAsync(sessionId, guestName, guestPhone);
+        // Group theo Guid phiên chat trong DB (key mà AdminReply đang dùng).
+        // Phiên phải tồn tại sẵn — hub không tạo phiên mới.
+        var session = await _chatService.FindSessionAsync(sessionId, guestName, guestPhone)
+            ?? throw new HubException("Phiên chat không tồn tại.");
+
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupFor(session.Id.ToString()));
     }
 
@@ -73,18 +86,24 @@ public class ChatHub : Hub
     public static string GroupFor(string key) => $"session_{key}";
 
     /// <summary>
-    /// Khách gửi tin nhắn lên server (PUBLIC — không cần đăng nhập).
+    /// Khách gửi tin nhắn lên server (PUBLIC — không cần đăng nhập, nhưng phải có
+    /// token phiên do server cấp thì mới gửi được vào phiên đó).
     /// </summary>
     [AllowAnonymous]
-    public async Task SendGuestMessage(string sessionId, string content)
+    public async Task SendGuestMessage(string sessionId, string? sessionToken, string content)
     {
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
             throw new HubException("SessionId không hợp lệ.");
 
+        if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))
+            throw new HubException("Phiên chat không hợp lệ hoặc đã hết hiệu lực.");
+
         if (string.IsNullOrWhiteSpace(content) || content.Length > 2000)
             throw new HubException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
 
-        var session = await _chatService.GetOrCreateSessionAsync(sessionId, null, null);
+        var session = await _chatService.FindSessionAsync(sessionId)
+            ?? throw new HubException("Phiên chat không tồn tại.");
+
         var message = await _chatService.SaveMessageAsync(session.Id, content, "Guest");
 
         // Gửi đến Admin group
@@ -142,14 +161,20 @@ public class ChatHub : Hub
 
     /// <summary>
     /// Khách báo “đang gõ” -> chuyển tới toàn bộ Admin đang online.
+    /// Cũng yêu cầu token phiên để không ai bắn tín hiệu giả danh khách khác.
     /// </summary>
     [AllowAnonymous]
-    public async Task GuestTyping(string sessionId, bool isTyping)
+    public async Task GuestTyping(string sessionId, string? sessionToken, bool isTyping)
     {
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
             throw new HubException("SessionId không hợp lệ.");
 
-        var session = await _chatService.GetOrCreateSessionAsync(sessionId, null, null);
+        if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))
+            throw new HubException("Phiên chat không hợp lệ hoặc đã hết hiệu lực.");
+
+        var session = await _chatService.FindSessionAsync(sessionId)
+            ?? throw new HubException("Phiên chat không tồn tại.");
+
         await Clients.Group(AdminGroup).SendAsync("GuestTyping", new
         {
             sessionId = session.Id,

@@ -190,72 +190,128 @@ public class OrderService : IOrderService
 
         // Gửi email bất đồng bộ (fire-and-forget): EmailService tự retry 3 lần với backoff;
         // nếu vẫn fail thì lỗi được ghi log ERROR kèm OrderId để tra cứu và gửi thủ công.
-        _ = Task.Run(() => SendOrderEmailsAsync(order));
+        _ = Task.Run(() => SendOrderEmailsAsync(order, adminNotify: true));
 
         return MapToResponse(order);
     }
 
-    private async Task SendOrderEmailsAsync(Order order)
+    private async Task SendOrderEmailsAsync(Order order, bool adminNotify = true, bool throwOnFailure = false)
     {
         try
         {
             string adminEmail = "nhotungdo89@gmail.com";
 
-            // Render HTML bảng danh sách các mặt hàng
+            // Render HTML bảng danh sách các mặt hàng (Phong cách Premium Specialty)
             var itemsHtmlRows = string.Join("", order.Items.Select((item, idx) => $@"
                 <tr>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: center;'>{idx + 1}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd;'>{item.ProductName} {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"({item.ProductSize})")}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>{item.UnitPrice:N0} đ</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: center;'>{item.Quantity}</td>
-                    <td style='padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;'>{item.TotalPrice:N0} đ</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{idx + 1}</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
+                        <strong style='font-weight: 600;'>{item.ProductName}</strong>
+                        {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #7B6858;'>Phân loại: {item.ProductSize}</span>")}
+                    </td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: right;'>{item.UnitPrice:N0}đ</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{item.Quantity}</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #31572C; text-align: right; font-weight: 700;'>{item.TotalPrice:N0}đ</td>
                 </tr>"));
 
+            // Mã QR thanh toán VietQR động. (Tạm dùng mẫu MBBank, anh sẽ cập nhật Tên TK / Số TK sau)
+            string qrUrl = $"https://img.vietqr.io/image/MB-0901234567-compact2.png?amount={order.TotalAmount}&addInfo=Thanh toan don {order.Id.ToString().Substring(0,8)}&accountName=NGUYET NHAN PHO HIEN";
+            
             string invoiceHtml = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
-                    <h2 style='color: #4CAF50; text-align: center;'>Hóa đơn mua hàng - Nguyệt Nhãn Phố Hiến</h2>
-                    <p>Xin chào <strong>{order.CustomerName}</strong>,</p>
-                    <p>Cảm ơn bạn đã đặt hàng tại Nguyệt Nhãn Phố Hiến. Dưới đây là thông tin đơn hàng của bạn:</p>
-                    
-                    <p style='margin-top: 15px;'><strong>Mã đơn hàng:</strong> {order.Id}</p>
-                    <p><strong>Điện thoại:</strong> {order.CustomerPhone}</p>
-                    <p><strong>Địa chỉ nhận:</strong> {order.CustomerAddress}</p>
-                    <p><strong>Ghi chú:</strong> {order.Note ?? "Không"}</p>
+                <div style='background-color: #F7F2E8; padding: 40px 10px; font-family: ""Inter"", ""Segoe UI"", Tahoma, Geneva, sans-serif;'>
+                    <div style='max-width: 620px; margin: auto; background-color: #FFF9ED; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 48, 40, 0.1); border: 1px solid #E2D5C4;'>
+                        
+                        <!-- Header & Logo -->
+                        <div style='background-color: #31572C; padding: 40px 30px; text-align: center; color: #FFF9ED; position: relative;'>
+                            <img src='https://files.catbox.moe/wyfzaf.jpg' alt='Nguyệt Nhãn Phố Hiến' style='width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #E9B949; margin-bottom: 15px;' />
+                            <h1 style='margin: 0; font-size: 28px; font-family: ""Playfair Display"", ""Georgia"", serif; font-weight: 600; letter-spacing: 1px; color: #FFF9ED;'>Nguyệt Nhãn Phố Hiến</h1>
+                            <p style='margin: 8px 0 0 0; font-size: 15px; color: #E9B949; font-style: italic;'>Tinh hoa từ vùng đất Phố Hiến</p>
+                        </div>
 
-                    <h4 style='margin-top: 20px; color: #2E7D32;'>Danh sách sản phẩm</h4>
-                    <table style='width: 100%; border-collapse: collapse;'>
-                        <thead>
-                            <tr style='background-color: #f2f2f2;'>
-                                <th style='padding: 8px; border: 1px solid #ddd; width: 40px;'>STT</th>
-                                <th style='padding: 8px; border: 1px solid #ddd;'>Sản phẩm</th>
-                                <th style='padding: 8px; border: 1px solid #ddd; width: 100px;'>Đơn giá</th>
-                                <th style='padding: 8px; border: 1px solid #ddd; width: 60px;'>SL</th>
-                                <th style='padding: 8px; border: 1px solid #ddd; width: 110px;'>Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {itemsHtmlRows}
-                        </tbody>
-                    </table>
+                        <!-- Body -->
+                        <div style='padding: 35px 40px;'>
+                            <h2 style='color: #31572C; font-size: 22px; font-family: ""Playfair Display"", ""Georgia"", serif; margin-top: 0; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;'>Hóa đơn đặt hàng</h2>
+                            <p style='text-align: center; color: #7B6858; font-size: 14px; margin-top: 0; margin-bottom: 30px;'>#{order.Id.ToString().Substring(0, 8).ToUpper()} &bull; {order.CreatedAt:dd/MM/yyyy}</p>
+                            
+                            <!-- Customer Info -->
+                            <div style='background-color: #FFFFFF; border: 1px solid #E2D5C4; padding: 20px; border-radius: 12px; margin-bottom: 30px;'>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Người nhận:</span> <strong>{order.CustomerName}</strong></p>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Điện thoại:</span> <strong>{order.CustomerPhone}</strong></p>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Địa chỉ:</span> <strong>{order.CustomerAddress}</strong></p>
+                                <p style='margin: 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Trạng thái:</span> <strong style='color: #31572C;'>Đã xác nhận</strong></p>
+                            </div>
 
-                    <table style='width: 100%; margin-top: 15px; border-collapse: collapse;'>
-                        <tr>
-                            <td style='padding: 6px; text-align: right;'><strong>Tổng tiền hàng:</strong></td>
-                            <td style='padding: 6px; text-align: right; width: 130px;'>{order.BaseAmount:N0} đ</td>
-                        </tr>
-                        {(order.DiscountAmount > 0 ? $@"
-                        <tr>
-                            <td style='padding: 6px; text-align: right; color: #E53935;'><strong>Giảm giá ({order.DiscountCodeApplied}):</strong></td>
-                            <td style='padding: 6px; text-align: right; color: #E53935;'>- {order.DiscountAmount:N0} đ</td>
-                        </tr>" : "")}
-                        <tr>
-                            <td style='padding: 8px; text-align: right; font-size: 16px;'><strong>Tổng thanh toán:</strong></td>
-                            <td style='padding: 8px; text-align: right; font-size: 16px; font-weight: bold; color: #2E7D32;'>{order.TotalAmount:N0} đ</td>
-                        </tr>
-                    </table>
+                            <!-- Products -->
+                            <h3 style='color: #3D3028; font-size: 16px; margin-top: 0; border-bottom: 2px solid #E2D5C4; padding-bottom: 10px;'>SẢN PHẨM</h3>
+                            <table style='width: 100%; border-collapse: collapse; margin-top: 10px;'>
+                                <thead>
+                                    <tr style='color: #7B6858; font-size: 13px;'>
+                                        <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 5%;'>#</th>
+                                        <th style='padding: 10px 8px; text-align: left; font-weight: 500; width: 45%;'>Sản phẩm</th>
+                                        <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Đơn giá</th>
+                                        <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 10%;'>SL</th>
+                                        <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Tổng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {itemsHtmlRows}
+                                </tbody>
+                            </table>
 
-                    <p style='margin-top: 25px;'>Chúng tôi sẽ sớm liên hệ với bạn để xác nhận và giao hàng.</p>
-                    <p>Trân trọng,<br/><strong>Nguyệt Nhãn Phố Hiến</strong></p>
+                            <!-- Total -->
+                            <div style='margin-top: 15px; padding-top: 15px;'>
+                                <table style='width: 100%; border-collapse: collapse;'>
+                                    <tr>
+                                        <td style='padding: 6px; text-align: right; color: #7B6858;'>Tạm tính:</td>
+                                        <td style='padding: 6px; text-align: right; width: 130px; color: #3D3028; font-weight: 600;'>{order.BaseAmount:N0} đ</td>
+                                    </tr>
+                                    {(order.DiscountAmount > 0 ? $@"
+                                    <tr>
+                                        <td style='padding: 6px; text-align: right; color: #E9B949;'>Giảm giá ({order.DiscountCodeApplied}):</td>
+                                        <td style='padding: 6px; text-align: right; color: #E9B949; font-weight: 600;'>- {order.DiscountAmount:N0} đ</td>
+                                    </tr>" : "")}
+                                    <tr>
+                                        <td style='padding: 6px; text-align: right; color: #7B6858;'>Phí vận chuyển:</td>
+                                        <td style='padding: 6px; text-align: right; width: 130px; color: #3D3028; font-weight: 600;'>Thỏa thuận</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan='2'><div style='border-top: 1px solid #E2D5C4; margin: 10px 0;'></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 8px 6px; text-align: right; font-size: 18px; font-weight: 700; color: #3D3028;'>TỔNG CỘNG:</td>
+                                        <td style='padding: 8px 6px; text-align: right; font-size: 20px; font-weight: 800; color: #31572C;'>{order.TotalAmount:N0} đ</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- QR Code Payment -->
+                            <div style='margin-top: 40px; text-align: center; border: 2px dashed #31572C; border-radius: 12px; padding: 25px; background-color: #FFFFFF;'>
+                                <p style='color: #31572C; font-weight: 700; font-size: 16px; margin: 0 0 15px 0;'>[ QR THANH TOÁN ]</p>
+                                <img src='{qrUrl}' alt='QR Code Thanh Toán' style='width: 250px; height: 250px; margin: 0 auto; display: block;' />
+                                <p style='color: #7B6858; font-size: 14px; margin: 15px 0 0 0;'>Quét mã bằng ứng dụng ngân hàng để thanh toán tự động</p>
+                            </div>
+
+                            <!-- Thank you note -->
+                            <div style='margin-top: 40px; text-align: center;'>
+                                <p style='color: #31572C; font-family: ""Playfair Display"", ""Georgia"", serif; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;'>🌿 Cảm ơn bạn đã lựa chọn đặc sản Hưng Yên</p>
+                                <p style='color: #7B6858; font-size: 14px; line-height: 1.6; margin: 0; padding: 0 20px;'>Mỗi đơn hàng của bạn là một cách để những giá trị nông sản quê hương được tiếp tục gìn giữ và lan tỏa.</p>
+                                
+                                <!-- Second QR / Story link -->
+                                <div style='margin-top: 25px;'>
+                                    <a href='{_frontendBaseUrl}' style='display: inline-block; background-color: #E9B949; color: #3D3028; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;'>Khám phá câu chuyện Long nhãn Hưng Yên</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div style='background-color: #31572C; padding: 25px; text-align: center;'>
+                            <p style='margin: 0 0 5px 0; color: #E9B949; font-weight: 600; font-size: 14px;'>Nguyệt Nhãn Phố Hiến</p>
+                            <p style='margin: 0; color: #FFF9ED; font-size: 13px; opacity: 0.8;'>Mang hương vị quê hương đến căn bếp Việt</p>
+                            <div style='margin-top: 15px; font-size: 12px; color: #FFF9ED; opacity: 0.6;'>
+                                <a href='{_frontendBaseUrl}' style='color: #FFF9ED; text-decoration: underline;'>Website</a> &bull; Hotline: 09xx xxx xxx
+                            </div>
+                        </div>
+                    </div>
                 </div>";
 
             // Gửi cho khách và admin TÁCH RIÊNG: một bên fail không chặn bên còn lại.
@@ -273,12 +329,16 @@ public class OrderService : IOrderService
                         ex,
                         "GỬI THẤT BẠI email xác nhận cho khách {Email} (đơn {OrderId}) sau 3 lần thử — email có thể bị mất, cần gửi thủ công!",
                         order.CustomerEmail, order.Id);
+
+                    if (throwOnFailure) throw;
                 }
             }
 
-            // Send to Admin
-            string adminSummaryItems = string.Join("<br/>", order.Items.Select(i => $"- {i.ProductName} {(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $"({i.ProductSize})")} x{i.Quantity} ({i.TotalPrice:N0}đ)"));
-            string adminHtml = $@"
+            // Send to Admin (chỉ khi tạo đơn mới, không gửi khi Admin gửi lại hóa đơn thủ công)
+            if (adminNotify)
+            {
+                string adminSummaryItems = string.Join("<br/>", order.Items.Select(i => $"- {i.ProductName} {(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $"({i.ProductSize})")} x{i.Quantity} ({i.TotalPrice:N0}đ)"));
+                string adminHtml = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #ddd;'>
                     <h2 style='color: #E53935;'>CÓ ĐƠN HÀNG MỚI ({order.Items.Count} loại sản phẩm)</h2>
                     <p><strong>Khách hàng:</strong> {order.CustomerName} ({order.CustomerPhone})</p>
@@ -290,22 +350,26 @@ public class OrderService : IOrderService
                     <p><a href='{_frontendBaseUrl}/orders'>Vào Dashboard để xem chi tiết</a></p>
                 </div>";
 
-            try
-            {
-                await _emailService.SendEmailAsync(adminEmail, $"Đơn hàng mới từ {order.CustomerName}", adminHtml);
-                _logger.LogInformation("Đã gửi email thông báo đơn {OrderId} tới admin {AdminEmail}.", order.Id, adminEmail);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "GỬI THẤT BẠI email thông báo cho ADMIN (đơn {OrderId}) sau 3 lần thử — đơn này có thể chưa được chủ cửa hàng biết đến!",
-                    order.Id);
+                try
+                {
+                    await _emailService.SendEmailAsync(adminEmail, $"Đơn hàng mới từ {order.CustomerName}", adminHtml);
+                    _logger.LogInformation("Đã gửi email thông báo đơn {OrderId} tới admin {AdminEmail}.", order.Id, adminEmail);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "GỬI THẤT BẠI email thông báo cho ADMIN (đơn {OrderId}) sau 3 lần thử — đơn này có thể chưa được chủ cửa hàng biết đến!",
+                        order.Id);
+                }
             }
         }
-        catch (Exception ex)
+        // Lưới an toàn cuối cùng cho luồng fire-and-forget: không để lỗi trong Task.Run
+        // bị nuốt im lặng. CHỈ áp dụng khi throwOnFailure = false — nếu không, catch này
+        // sẽ nuốt luôn lỗi mà ResendInvoiceAsync cố tình ném ra và API lại trả 200
+        // "đã gửi thành công" trong khi email thất bại.
+        catch (Exception ex) when (!throwOnFailure)
         {
-            // Lưới an toàn cuối cùng — không để lỗi trong Task.Run bị nuốt im lặng.
             _logger.LogError(ex, "Lỗi bất ngờ khi xử lý email cho đơn {OrderId}.", order.Id);
         }
     }
@@ -344,6 +408,29 @@ public class OrderService : IOrderService
 
         await _db.SaveChangesAsync();
         return MapToResponse(order);
+    }
+
+    /// <summary>
+    /// [ADMIN] Gửi lại hóa đơn qua email cho khách hàng — dùng khi lần gửi tự động thất bại
+    /// hoặc khách yêu cầu nhận lại hóa đơn.
+    /// </summary>
+    public async Task ResendInvoiceAsync(Guid id)
+    {
+        var order = await _db.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id)
+            ?? throw new KeyNotFoundException($"Không tìm thấy đơn hàng với Id: {id}");
+
+        if (string.IsNullOrWhiteSpace(order.CustomerEmail))
+            throw new InvalidOperationException("Đơn hàng này không có email khách hàng để gửi hóa đơn.");
+
+        // Tái sử dụng toàn bộ logic render HTML hóa đơn,
+        // Yêu cầu NÉM LỖI (throwOnFailure: true) nếu cấu hình email sai/lỗi mạng,
+        // để API trả về mã lỗi 500 cho giao diện (hiện Toast đỏ thay vì báo gửi thành công ảo).
+        await SendOrderEmailsAsync(order, adminNotify: false, throwOnFailure: true);
+
+        _logger.LogInformation(
+            "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
     }
 
     private static OrderResponse MapToResponse(Order order)

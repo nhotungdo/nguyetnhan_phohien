@@ -83,14 +83,19 @@ public static class DbSeeder
             db.WebsiteContents.AddRange(contents);
         }
 
+        // KHÔNG UPDATE sản phẩm đã tồn tại ở đây.
+        // Khối UPDATE "Products" theo DisplayOrder (1,2,3) trước đây chạy MỖI lần
+        // khởi động và ghi đè Tên/Mô tả mà admin đã sửa trong Dashboard.
+        // Tên/mô tả mặc định nằm ở nhánh seed bên dưới — chỉ chạy khi bảng trống.
+
         // ===== SEED SẢN PHẨM MẶC ĐỊNH =====
         if (!await db.Products.AnyAsync())
         {
             var products = new List<Product>
             {
-                new() { Name = "Long Nhãn Đặc Biệt", Price = 350000, Size = "500g", Description = "Lựa chọn từ những quả nhãn lồng cùi dày, mọng nước nhất. Sấy khô tự nhiên bằng củi nhãn, giữ nguyên vị ngọt thanh và hương thơm đặc trưng.", DisplayOrder = 1 },
-                new() { Name = "Long Nhãn Túi Zip", Price = 320000, Size = "500g", Description = "Long nhãn sấy khô đóng trong túi zip tiện dụng, dễ dàng bảo quản. Lựa chọn tuyệt vời cho gia đình thưởng thức hàng ngày.", DisplayOrder = 2 },
-                new() { Name = "Set Quà Tặng Cao Cấp", Price = 850000, Size = "1kg", Description = "Hộp quà thiết kế sang trọng, bên trong là 1kg long nhãn loại 1 cao cấp nhất. Món quà sức khỏe ý nghĩa dành tặng đối tác, người thân.", DisplayOrder = 3 }
+                new() { Name = "\"Ngọc Nhãn Tiến Vua\" (Phiên bản Ngự Thiện)", Price = 350000, Size = "500g", Description = "Khẳng định đẳng cấp. Từ \"Ngự Thiện\" (đồ ăn của vua) khiến khách hàng tò mò muốn nếm thử hương vị mà ngày xưa chỉ vua chúa mới được ăn.", DisplayOrder = 1 },
+                new() { Name = "Gói \"Trân Châu Tứ Dã\"", Price = 320000, Size = "500g", Description = "\"Trân châu\" (ngọc quý) ngụ ý những viên nhãn và hạt chất lượng cao nhất được thu thập từ bốn phương (tứ dã) gói gọn trong một chiếc túi nhỏ bé.", DisplayOrder = 2 },
+                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\"", Price = 850000, Size = "1kg", Description = "Đưa người nhận xuyên không về Phố Hiến sầm uất thế kỷ 17. Mở hộp quà ra như mở ra một đêm ngắm trăng (Vọng nguyệt) bên bến thương cảng phồn hoa.", DisplayOrder = 3 }
             };
             db.Products.AddRange(products);
         }

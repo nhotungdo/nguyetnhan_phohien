@@ -144,6 +144,34 @@ export function useAdminChat() {
     [fetchSessions]
   );
 
+  /** Bỏ một phiên khỏi danh sách; nếu đang mở đúng phiên đó thì xoá cả khung chat. */
+  const dropSession = useCallback((sessionId: string) => {
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    if (selectedSessionIdRef.current === sessionId) {
+      setSelectedSessionId(null);
+      setMessages([]);
+    }
+    setTypingSessionId((prev) => (prev === sessionId ? null : prev));
+  }, []);
+
+  // 2c. Xoá hẳn phiên chat (kèm tin nhắn) — thao tác không thể hoàn tác nên UI phải
+  // xác nhận trước; hook chỉ chạy khi đã xác nhận.
+  const deleteSession = useCallback(
+    async (sessionId: string): Promise<boolean> => {
+      try {
+        await chatApi.deleteSession(sessionId);
+        dropSession(sessionId);
+        return true;
+      } catch (err) {
+        console.error("Failed to delete session:", err);
+        // Có thể tab admin khác đã xoá trước đó → lấy lại danh sách đúng từ server
+        fetchSessions();
+        return false;
+      }
+    },
+    [dropSession, fetchSessions]
+  );
+
   // 3. Khởi tạo SignalR kết nối
   useEffect(() => {
     // eslint-disable-next-line
@@ -218,6 +246,11 @@ export function useAdminChat() {
       }
     );
 
+    // Tab admin khác xoá phiên -> bỏ khỏi danh sách ngay, không cần tải lại
+    connection.on("SessionDeleted", (data: { sessionId: string; sessionKey: string }) => {
+      dropSession(data.sessionId);
+    });
+
     // Khách đang gõ
     connection.on(
       "GuestTyping",
@@ -265,7 +298,7 @@ export function useAdminChat() {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       connection.stop().catch(() => {});
     };
-  }, [fetchSessions, applySessionUpdate]);
+  }, [fetchSessions, applySessionUpdate, dropSession]);
 
   // 4. Báo "đang gõ" cho khách (throttle, chỉ gửi khi hub đang kết nối)
   const notifyTyping = useCallback(() => {
@@ -331,6 +364,7 @@ export function useAdminChat() {
     typingSessionId,
     selectSession,
     setSessionResolved,
+    deleteSession,
     notifyTyping,
     sendMessage,
   };

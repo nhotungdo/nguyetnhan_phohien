@@ -54,7 +54,7 @@ export default function LandingPage() {
 
   const {
     form, setField, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
-    submitStatus, errorMessage, applyDiscount, calculateTotal, handleSubmit
+    submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(products);
 
   const { messages, isConnected, isSending, isAdminTyping, connect, notifyTyping, markMessagesRead, sendMessage } = useLiveChat();
@@ -663,9 +663,18 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold text-primary mb-6">{t.order.title}</h3>
 
                 {submitStatus === "success" && (
-                  <div className="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl">
-                    <CheckCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">{t.order.success}</p>
+                  <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-xl">
+                    <div className="flex items-center gap-3 mb-1">
+                      <CheckCircle className="w-5 h-5 shrink-0" />
+                      <p className="font-medium">{t.order.success}</p>
+                    </div>
+                    {lastSubmittedEmail && (
+                      <p className="text-sm text-green-700 ml-8">
+                        {language === "en"
+                          ? `📧 Invoice sent to ${lastSubmittedEmail}`
+                          : `📧 Hóa đơn đã được gửi tới ${lastSubmittedEmail}`}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -779,7 +788,7 @@ export default function LandingPage() {
                     ))}
                   </div>
 
-                  {/* Mã giảm giá — cũng là cổng Admin */}
+                  {/* Mã giảm giá */}
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-foreground/80">{t.order.discount}</label>
                     <div className="flex gap-2">

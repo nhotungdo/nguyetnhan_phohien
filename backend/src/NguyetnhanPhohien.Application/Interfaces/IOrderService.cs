@@ -8,4 +8,5 @@ public interface IOrderService
     Task<IEnumerable<OrderResponse>> GetAllOrdersAsync();
     Task<OrderResponse?> GetOrderByIdAsync(Guid id);
     Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status);
+    Task ResendInvoiceAsync(Guid id);
 }

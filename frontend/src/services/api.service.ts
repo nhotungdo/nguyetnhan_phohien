@@ -5,6 +5,7 @@ import type {
   DiscountResult,
   ChatMessageResponse,
   ChatSessionResponse,
+  ChatSessionCredentials,
   SendMessageRequest,
   WebsiteContentResponse,
   UpdateContentRequest,
@@ -138,6 +139,13 @@ export const orderApi = {
       body: JSON.stringify({ status }),
       headers: getAdminHeaders(),
     }),
+
+  /** [ADMIN] Gửi lại hóa đơn qua email tới khách hàng */
+  resendInvoice: (id: string): Promise<{ message: string }> =>
+    apiFetch(`/api/orders/${id}/resend-invoice`, {
+      method: "POST",
+      headers: getAdminHeaders(),
+    }),
 };
 
 // ===== DISCOUNT API =====
@@ -185,9 +193,22 @@ export const discountApi = {
 
 // ===== CHAT API =====
 export const chatApi = {
-  /** [PUBLIC] Lấy lịch sử tin nhắn của session */
-  getGuestMessages: (sessionId: string): Promise<ChatMessageResponse[]> =>
-    apiFetch(`/api/chat/messages/${sessionId}`),
+  /**
+   * [PUBLIC] Bắt đầu phiên chat mới: server sinh SessionId ngẫu nhiên và trả về token.
+   * Client KHÔNG tự đặt SessionId — token là bằng chứng duy nhất để truy cập phiên
+   * (không có token thì không đọc/gửi được tin của phiên đó).
+   */
+  createSession: (data?: { guestName?: string; guestPhone?: string }): Promise<ChatSessionCredentials> =>
+    apiFetch("/api/chat/session", {
+      method: "POST",
+      body: JSON.stringify({ guestName: data?.guestName, guestPhone: data?.guestPhone }),
+    }),
+
+  /** [PUBLIC] Lấy lịch sử tin nhắn của phiên (cần token phiên, gửi qua header) */
+  getGuestMessages: (sessionId: string, sessionToken: string): Promise<ChatMessageResponse[]> =>
+    apiFetch(`/api/chat/messages/${sessionId}`, {
+      headers: { "X-Chat-Token": sessionToken },
+    }),
 
   /** [PUBLIC] Gửi tin nhắn qua REST — fallback khi SignalR/WebSocket bị chặn */
   sendMessage: (data: SendMessageRequest): Promise<ChatMessageResponse> =>
@@ -197,11 +218,14 @@ export const chatApi = {
     }),
 
   /**
-   * [PUBLIC] Xác nhận khách đã xem tin của Admin (read receipt).
+   * [PUBLIC] Xác nhận khách đã xem tin của Admin (read receipt) — cần token phiên.
    * Backend broadcast về group admin để hiện "Đã xem" realtime.
    */
-  markGuestMessagesRead: (sessionId: string): Promise<void> =>
-    apiFetch(`/api/chat/messages/${sessionId}/read`, { method: "PUT" }),
+  markGuestMessagesRead: (sessionId: string, sessionToken: string): Promise<void> =>
+    apiFetch(`/api/chat/messages/${sessionId}/read`, {
+      method: "PUT",
+      headers: { "X-Chat-Token": sessionToken },
+    }),
 
   /**
    * [ADMIN] Trả lời qua REST — fallback khi SignalR/WebSocket bị chặn.
@@ -238,6 +262,16 @@ export const chatApi = {
   setResolved: (sessionId: string, isResolved: boolean): Promise<ChatSessionResponse> =>
     apiFetch(`/api/chat/sessions/${sessionId}/resolve?isResolved=${isResolved}`, {
       method: "PUT",
+      headers: getAdminHeaders(),
+    }),
+
+  /**
+   * [ADMIN] Xoá hẳn phiên chat kèm tin nhắn. Backend broadcast "SessionDeleted"
+   * để các tab admin khác bỏ phiên khỏi danh sách và widget của khách tự mở phiên mới.
+   */
+  deleteSession: (sessionId: string): Promise<void> =>
+    apiFetch(`/api/chat/sessions/${sessionId}`, {
+      method: "DELETE",
       headers: getAdminHeaders(),
     }),
 };

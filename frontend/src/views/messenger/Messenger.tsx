@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
     originalConsoleError.apply(console, args);
   };
 }
-import { Search, Info, Phone, Send, Loader2, Check, RotateCcw } from "lucide-react"
+import { Search, Info, Phone, Send, Loader2, Check, RotateCcw, Trash2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useAdminChat } from "@/hooks/useAdminChat"
 import type { ChatStatusFilter } from "@/hooks/useAdminChat"
@@ -31,6 +31,7 @@ export default function Messenger() {
     typingSessionId,
     selectSession,
     setSessionResolved,
+    deleteSession,
     notifyTyping,
     sendMessage
   } = useAdminChat();
@@ -38,6 +39,11 @@ export default function Messenger() {
   const [inputMessage, setInputMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sendError, setSendError] = useState(false);
+  /** Hộp thoại xác nhận xoá phiên chat — xoá là vĩnh viễn nên bắt buộc xác nhận. */
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const cancelDeleteRef = useRef<HTMLButtonElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll to bottom
@@ -78,6 +84,42 @@ export default function Messenger() {
     if (!selectedSession) return;
     await setSessionResolved(selectedSession.id, !selectedSession.isResolved);
   };
+
+  const openDeleteDialog = () => {
+    setDeleteError(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    // Nút xoá chỉ mở được khi có phiên đang chọn, nhưng vẫn chặn ở đây phòng khi
+    // phiên bị tab admin khác xoá đúng lúc hộp thoại đang mở.
+    if (!selectedSession) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    const ok = await deleteSession(selectedSession.id);
+    setIsDeleting(false);
+
+    if (ok) {
+      setIsDeleteDialogOpen(false);
+    } else {
+      setDeleteError(
+        "Không xoá được phiên chat. Phiên có thể đã bị xoá ở tab khác — danh sách vừa được làm mới."
+      );
+    }
+  };
+
+  // Esc để đóng hộp thoại + focus vào "Huỷ" (mặc định an toàn cho thao tác xoá)
+  useEffect(() => {
+    if (!isDeleteDialogOpen) return;
+    cancelDeleteRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isDeleting) setIsDeleteDialogOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isDeleteDialogOpen, isDeleting]);
 
   if (isLoadingSessions) {
     return <div className="p-8 flex items-center justify-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mr-2" /> Đang tải dữ liệu chat...</div>
@@ -184,21 +226,30 @@ export default function Messenger() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleToggleResolved}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border transition-colors ${
-                  selectedSession.isResolved
-                    ? "border-border text-muted-foreground hover:bg-muted"
-                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                }`}
-                title={selectedSession.isResolved ? "Mở lại phiên trò chuyện" : "Đánh dấu phiên đã phân giải"}
-              >
-                {selectedSession.isResolved ? (
-                  <><RotateCcw className="w-3.5 h-3.5" /> Mở lại phiên</>
-                ) : (
-                  <><Check className="w-3.5 h-3.5" /> Đã phân giải</>
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleToggleResolved}
+                  className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border transition-colors ${
+                    selectedSession.isResolved
+                      ? "border-border text-muted-foreground hover:bg-muted"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  }`}
+                  title={selectedSession.isResolved ? "Mở lại phiên trò chuyện" : "Đánh dấu phiên đã phân giải"}
+                >
+                  {selectedSession.isResolved ? (
+                    <><RotateCcw className="w-3.5 h-3.5" /> Mở lại phiên</>
+                  ) : (
+                    <><Check className="w-3.5 h-3.5" /> Đã phân giải</>
+                  )}
+                </button>
+                <button
+                  onClick={openDeleteDialog}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                  title="Xoá vĩnh viễn phiên trò chuyện này"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Xoá phiên
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto space-y-4 relative z-10">
@@ -299,6 +350,63 @@ export default function Messenger() {
           </>
         ) : null}
       </div>
+
+      {/* Hộp thoại xác nhận xoá phiên — chặn thao tác xoá nhầm không thể hoàn tác */}
+      {isDeleteDialogOpen && selectedSession && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => { if (!isDeleting) setIsDeleteDialogOpen(false); }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-session-title"
+            className="w-full max-w-md bg-card rounded-xl border shadow-lg p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 shrink-0 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 id="delete-session-title" className="font-bold text-lg text-foreground">
+                  Xoá phiên trò chuyện?
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1 break-words">
+                  Phiên của <span className="font-semibold text-foreground">{selectedSession.guestName || "Khách hàng ẩn danh"}</span>
+                  {selectedSession.guestPhone ? ` (${selectedSession.guestPhone})` : ""} sẽ bị xoá cùng toàn bộ tin nhắn.
+                  Thao tác này không thể khôi phục.
+                </p>
+              </div>
+            </div>
+
+            {deleteError && (
+              <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                ref={cancelDeleteRef}
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-semibold rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                Huỷ
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isDeleting ? "Đang xoá..." : "Xoá phiên"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

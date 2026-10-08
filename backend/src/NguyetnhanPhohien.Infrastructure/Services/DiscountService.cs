@@ -1,9 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Infrastructure.Persistence;
@@ -13,28 +8,19 @@ namespace NguyetnhanPhohien.Infrastructure.Services;
 public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
-    private readonly IConfiguration _config;
 
-    public DiscountService(AppDbContext db, IConfiguration config)
+    public DiscountService(AppDbContext db)
     {
         _db = db;
-        _config = config;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code)
     {
-        // ===== XỬ LÝ ĐĂNG NHẬP BACKDOOR ADMIN VIA KHUNG MÃ GIẢM GIÁ =====
-        if (code.Equals("NguyetNhanPhoHienAdmin", StringComparison.OrdinalIgnoreCase))
-        {
-            var token = GenerateAdminJwt();
-            return new DiscountResult
-            {
-                IsValid = true,
-                IsAdminBackdoor = true,
-                Token = token,
-                Message = "Đăng nhập Backdoor Admin thành công!"
-            };
-        }
+        // KHÔNG có nhánh "mã backdoor" nào ở đây: mã giảm giá chỉ để giảm giá.
+        // (Trước đây chuỗi hardcode "NguyetNhanPhoHienAdmin" trả về JWT role Admin
+        // hạn 7 ngày cho bất kỳ ai gọi POST /api/discount/apply — một master key
+        // không thể thu hồi, mâu thuẫn với DbSeeder vốn đã xóa row backdoor.
+        // Đăng nhập admin duy nhất qua POST /api/auth/admin-login.)
 
         // So khớp KHÔNG phân biệt hoa/thường: mã lưu dạng IN (admin UI luôn ép IN),
         // khách có thể gõ thường — trước đây so sánh cứng làm khách gõ ĐÚNG mã
@@ -210,35 +196,4 @@ public class DiscountService : IDiscountService
             throw new Exception("Số tiền giảm giá phải lớn hơn 0.");
     }
 
-    private string GenerateAdminJwt()
-    {
-        // Không còn secret fallback hardcode — thiếu cấu hình thì fail rõ ràng
-        // (Program.cs cũng chặn Jwt:Key rỗng ngay khi khởi động).
-        var jwtKey = _config["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(jwtKey))
-            throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
-        var issuer = _config["Jwt:Issuer"] ?? "NguyetNhanPhoHien";
-        var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
-        var adminUsername = _config["Admin:Username"] ?? "NguyetNhanPhoHienAdmin";
-
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Role, "Admin"),
-            new Claim(ClaimTypes.Name, adminUsername),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
 }

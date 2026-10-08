@@ -21,7 +21,20 @@ public class ChatController : ControllerBase
     }
 
     /// <summary>
-    /// [PUBLIC] Khách lấy lịch sử tin nhắn của session mình.
+    /// [PUBLIC] Khách bắt đầu phiên chat: server sinh SessionId ngẫu nhiên và trả về
+    /// token truy cập phiên. Client tự đặt SessionId trước đây khiến ai biết/đoán được
+    /// id của người khác là đọc được tin nhắn Admin trả lời cho người đó.
+    /// </summary>
+    [HttpPost("session")]
+    public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest? request)
+    {
+        var credentials = await _chatService.CreateGuestSessionAsync(request?.GuestName, request?.GuestPhone);
+        return Ok(credentials);
+    }
+
+    /// <summary>
+    /// [PUBLIC] Khách lấy lịch sử tin nhắn của phiên mình (CHỈ ĐỌC — không tạo phiên mới).
+    /// Yêu cầu token phiên qua header X-Chat-Token (không để trong URL vì URL bị ghi log).
     /// </summary>
     [HttpGet("messages/{sessionId}")]
     public async Task<IActionResult> GetGuestMessages(string sessionId)
@@ -29,7 +42,13 @@ public class ChatController : ControllerBase
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
             return BadRequest("SessionId không hợp lệ.");
 
-        var session = await _chatService.GetOrCreateSessionAsync(sessionId, null, null);
+        if (!_chatService.IsSessionTokenValid(sessionId, Request.Headers["X-Chat-Token"].FirstOrDefault()))
+            return Unauthorized(new { message = "Phiên chat không hợp lệ hoặc đã hết hiệu lực." });
+
+        var session = await _chatService.FindSessionAsync(sessionId);
+        if (session == null)
+            return NotFound(new { message = "Phiên chat không tồn tại." });
+
         var messages = await _chatService.GetSessionMessagesAsync(session.Id);
         return Ok(messages);
     }
@@ -38,6 +57,7 @@ public class ChatController : ControllerBase
     /// [PUBLIC] Khách gửi tin nhắn qua REST — fallback khi WebSocket/SignalR bị chặn
     /// (mạng công ty, proxy cũ...). Trả về tin nhắn đã lưu để client hiển thị ngay.
     /// Đồng thời broadcast qua SignalR để admin đang online thấy ngay (realtime 2 đường).
+    /// Bắt buộc kèm sessionToken do POST /api/chat/session cấp.
     /// </summary>
     [HttpPost("messages")]
     public async Task<IActionResult> SendGuestMessage([FromBody] SendMessageRequest request)
@@ -45,7 +65,7 @@ public class ChatController : ControllerBase
         try
         {
             var result = await _chatService.SendGuestMessageAsync(
-                request.SessionId, request.Content, request.GuestName, request.GuestPhone);
+                request.SessionId, request.SessionToken, request.Content, request.GuestName, request.GuestPhone);
 
             await _hub.Clients.Group(ChatHub.AdminGroup).SendAsync("ReceiveGuestMessage", new
             {
@@ -54,6 +74,14 @@ public class ChatController : ControllerBase
             });
 
             return Ok(result.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
@@ -103,12 +131,17 @@ public class ChatController : ControllerBase
     /// <summary>
     /// [PUBLIC] Khách xác nhận đã xem tin nhắn của Admin (read receipt).
     /// Broadcast về group các Admin để hiện “Đã xem” realtime.
+    /// Cũng yêu cầu token phiên — nếu không, người lạ đọc được ảnh hưởng trạng thái
+    /// "đã xem" của khách khác.
     /// </summary>
     [HttpPut("messages/{sessionId}/read")]
     public async Task<IActionResult> MarkGuestRead(string sessionId)
     {
         if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
             return BadRequest("SessionId không hợp lệ.");
+
+        if (!_chatService.IsSessionTokenValid(sessionId, Request.Headers["X-Chat-Token"].FirstOrDefault()))
+            return Unauthorized(new { message = "Phiên chat không hợp lệ hoặc đã hết hiệu lực." });
 
         var chatSessionId = await _chatService.MarkMessagesReadByGuestAsync(sessionId);
         if (chatSessionId == null)
@@ -179,5 +212,33 @@ public class ChatController : ControllerBase
         });
 
         return Ok(session);
+    }
+
+    /// <summary>
+    /// [ADMIN] Xoá hẳn một phiên chat kèm toàn bộ tin nhắn của phiên.
+    /// Xoá xong broadcast "SessionDeleted":
+    ///   - tới các tab Admin để bỏ phiên khỏi danh sách ngay (không phải F5),
+    ///   - tới group phiên của khách để widget đang mở tự xin phiên mới, thay vì
+    ///     gửi tin tiếp rồi nhận lỗi "Phiên chat không tồn tại".
+    /// </summary>
+    [HttpDelete("sessions/{sessionId:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteSession(Guid sessionId)
+    {
+        var session = await _chatService.DeleteSessionAsync(sessionId);
+        if (session == null)
+            return NotFound(new { message = "Phiên chat không tồn tại." });
+
+        var notification = new { sessionId = session.Id, sessionKey = session.SessionId };
+
+        await _hub.Clients.Group(ChatHub.AdminGroup).SendAsync("SessionDeleted", notification);
+
+        // Khách join CẢ group theo Guid (DB) lẫn theo SessionId do server cấp
+        await _hub.Clients.Group(ChatHub.GroupFor(session.Id.ToString()))
+            .SendAsync("SessionDeleted", notification);
+        await _hub.Clients.Group(ChatHub.GroupFor(session.SessionId))
+            .SendAsync("SessionDeleted", notification);
+
+        return NoContent();
     }
 }

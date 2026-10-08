@@ -1,9 +1,28 @@
 namespace NguyetnhanPhohien.Application.DTOs.Chat;
 
+// Khách xin mở phiên chat mới (server cấp SessionId + token)
+public class CreateSessionRequest
+{
+    public string? GuestName { get; set; }
+    public string? GuestPhone { get; set; }
+}
+
+// Thông tin truy cập phiên chat cấp cho khách — token là chìa khoá duy nhất,
+// không thể tự tính nếu không có secret nên không chiếm được phiên của người khác.
+public class ChatSessionCredentialsResponse
+{
+    public string SessionId { get; set; } = string.Empty;
+    public string SessionToken { get; set; } = string.Empty;
+}
+
 // Khách gửi tin nhắn mới
 public class SendMessageRequest
 {
     public string SessionId { get; set; } = string.Empty;
+
+    // Bắt buộc: token do POST /api/chat/session cấp
+    public string? SessionToken { get; set; }
+
     public string Content { get; set; } = string.Empty;
     public string? GuestName { get; set; }
     public string? GuestPhone { get; set; }

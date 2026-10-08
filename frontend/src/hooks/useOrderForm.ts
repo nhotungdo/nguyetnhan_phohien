@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { orderApi, discountApi, adminAuth } from "@/services/api.service";
+import { orderApi, discountApi } from "@/services/api.service";
 import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
 
 export interface OrderItemFormState {
@@ -22,7 +21,6 @@ export function useOrderForm(
   products: ProductResponse[],
   onSuccess?: () => void
 ) {
-  const router = useRouter();
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
@@ -38,6 +36,7 @@ export function useOrderForm(
   const [isApplyingCode, setIsApplyingCode] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [lastSubmittedEmail, setLastSubmittedEmail] = useState("");
 
   const setField = <K extends keyof OrderFormState>(field: K, value: OrderFormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -91,15 +90,9 @@ export function useOrderForm(
     setErrorMessage("");
 
     try {
+      // Mã giảm giá chỉ có tác dụng giảm giá — không có nhánh nào cấp quyền admin
+      // ở đây (đăng nhập admin duy nhất qua /admin-login).
       const result = await discountApi.apply({ code: form.discountCode.trim() });
-
-      // Nếu nhập mã Backdoor Admin -> Lưu token và chuyển hướng sang trang Quản lý đơn hàng (/orders)
-      if (result.isAdminBackdoor && result.token) {
-        adminAuth.login(result.token);
-        router.push("/orders");
-        return;
-      }
-
       setDiscountResult(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mã không hợp lệ.";
@@ -162,6 +155,7 @@ export function useOrderForm(
 
     try {
       await orderApi.create(payload);
+      setLastSubmittedEmail(form.customerEmail || "");
       setSubmitStatus("success");
       setForm({
         customerName: "",
@@ -195,6 +189,7 @@ export function useOrderForm(
     isApplyingCode,
     submitStatus,
     errorMessage,
+    lastSubmittedEmail,
     applyDiscount,
     calculateTotal,
     handleSubmit,

@@ -86,4 +86,31 @@ public class OrdersController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// [ADMIN] Gửi lại hóa đơn qua email tới khách hàng.
+    /// Dùng khi email tự động thất bại lần đầu hoặc khách yêu cầu nhận lại hóa đơn.
+    /// </summary>
+    [HttpPost("{id:guid}/resend-invoice")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ResendInvoice(Guid id)
+    {
+        try
+        {
+            await _orderService.ResendInvoiceAsync(id);
+            return Ok(new { message = "Hóa đơn đã được gửi lại thành công." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = $"Gửi hóa đơn thất bại: {ex.Message}" });
+        }
+    }
 }
