@@ -183,7 +183,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // ===== ROUTES =====
-app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1"));
+// Scalar UI chỉ được map ở môi trường Development → ở production route "/" trỏ vào
+// /scalar/v1 sẽ trả 404. Production trả JSON thông tin API thay vì redirect chết.
+if (app.Environment.IsDevelopment())
+    app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1"));
+else
+    app.MapGet("/", () => Results.Ok(new { service = "NguyetNhanPhoHien API", status = "ok" }));
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
 // Hub realtime sản phẩm/ảnh/nội dung — frontend invalidate React Query khi có thay đổi.

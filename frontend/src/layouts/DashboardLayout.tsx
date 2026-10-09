@@ -12,6 +12,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!isAuthorized) {
+    // Chưa có JWT → useAdminGuard đã replace về trang chủ, không render gì thêm
+    // (không có màn hình đăng nhập chiếm toàn màn hình trong khu quản trị nữa).
     return null;
   }
 

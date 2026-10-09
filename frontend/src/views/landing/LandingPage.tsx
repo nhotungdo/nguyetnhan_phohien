@@ -681,7 +681,10 @@ export default function LandingPage() {
                 {submitStatus === "error" && (
                   <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
                     <AlertCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">{t.order.error}</p>
+                    {/* Hiện đúng nguyên nhân từ server (mã hết hạn, số lượng sai...)
+                        thay vì câu chung chung — trước đây errorMessage bị ẩn đúng
+                        lúc cần nhất vì khối dưới chỉ render khi KHÔNG có lỗi submit. */}
+                    <p className="font-medium">{errorMessage || t.order.error}</p>
                   </div>
                 )}
 

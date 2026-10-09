@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ public class OrderService : IOrderService
     private readonly IEmailService _emailService;
     private readonly ILogger<OrderService> _logger;
     private readonly string _frontendBaseUrl;
+    private readonly string _adminNotifyEmail;
 
     public OrderService(AppDbContext db, IEmailService emailService, ILogger<OrderService> logger, IConfiguration config)
     {
@@ -24,6 +26,9 @@ public class OrderService : IOrderService
         // Domain frontend để gắn vào link trong email — hardcode "localhost:3000"
         // trước đây tạo link chết khi deploy. Cấu hình qua Frontend:BaseUrl.
         _frontendBaseUrl = (config["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
+        // Email nhận thông báo đơn mới — cấu hình qua Order:AdminNotifyEmail để đổi
+        // người nhận không cần deploy lại.
+        _adminNotifyEmail = config["Order:AdminNotifyEmail"] ?? "nhotungdo89@gmail.com";
     }
 
     public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request)
@@ -197,17 +202,22 @@ public class OrderService : IOrderService
 
     private async Task SendOrderEmailsAsync(Order order, bool adminNotify = true, bool throwOnFailure = false)
     {
+        // Escape mọi dữ liệu người dùng nhập trước khi ghép vào HTML email:
+        // tên/địa chỉ/ghi chú chứa thẻ HTML sẽ bị chèn thẳng vào mail admin
+        // (HTML injection), trong khi báo cáo tuần đã escape đúng cách.
+        static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
+
         try
         {
-            string adminEmail = "nhotungdo89@gmail.com";
+            string adminEmail = _adminNotifyEmail;
 
             // Render HTML bảng danh sách các mặt hàng (Phong cách Premium Specialty)
             var itemsHtmlRows = string.Join("", order.Items.Select((item, idx) => $@"
                 <tr>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{idx + 1}</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
-                        <strong style='font-weight: 600;'>{item.ProductName}</strong>
-                        {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #7B6858;'>Phân loại: {item.ProductSize}</span>")}
+                        <strong style='font-weight: 600;'>{Esc(item.ProductName)}</strong>
+                        {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #7B6858;'>Phân loại: {Esc(item.ProductSize)}</span>")}
                     </td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: right;'>{item.UnitPrice:N0}đ</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{item.Quantity}</td>
@@ -235,9 +245,9 @@ public class OrderService : IOrderService
                             
                             <!-- Customer Info -->
                             <div style='background-color: #FFFFFF; border: 1px solid #E2D5C4; padding: 20px; border-radius: 12px; margin-bottom: 30px;'>
-                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Người nhận:</span> <strong>{order.CustomerName}</strong></p>
-                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Điện thoại:</span> <strong>{order.CustomerPhone}</strong></p>
-                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Địa chỉ:</span> <strong>{order.CustomerAddress}</strong></p>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Người nhận:</span> <strong>{Esc(order.CustomerName)}</strong></p>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Điện thoại:</span> <strong>{Esc(order.CustomerPhone)}</strong></p>
+                                <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Địa chỉ:</span> <strong>{Esc(order.CustomerAddress)}</strong></p>
                                 <p style='margin: 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Trạng thái:</span> <strong style='color: #31572C;'>Đã xác nhận</strong></p>
                             </div>
 
@@ -267,7 +277,7 @@ public class OrderService : IOrderService
                                     </tr>
                                     {(order.DiscountAmount > 0 ? $@"
                                     <tr>
-                                        <td style='padding: 6px; text-align: right; color: #E9B949;'>Giảm giá ({order.DiscountCodeApplied}):</td>
+                                        <td style='padding: 6px; text-align: right; color: #E9B949;'>Giảm giá ({Esc(order.DiscountCodeApplied)}):</td>
                                         <td style='padding: 6px; text-align: right; color: #E9B949; font-weight: 600;'>- {order.DiscountAmount:N0} đ</td>
                                     </tr>" : "")}
                                     <tr>
@@ -337,16 +347,16 @@ public class OrderService : IOrderService
             // Send to Admin (chỉ khi tạo đơn mới, không gửi khi Admin gửi lại hóa đơn thủ công)
             if (adminNotify)
             {
-                string adminSummaryItems = string.Join("<br/>", order.Items.Select(i => $"- {i.ProductName} {(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $"({i.ProductSize})")} x{i.Quantity} ({i.TotalPrice:N0}đ)"));
+                string adminSummaryItems = string.Join("<br/>", order.Items.Select(i => $"- {Esc(i.ProductName)} {(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $"({Esc(i.ProductSize)})")} x{i.Quantity} ({i.TotalPrice:N0}đ)"));
                 string adminHtml = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #ddd;'>
                     <h2 style='color: #E53935;'>CÓ ĐƠN HÀNG MỚI ({order.Items.Count} loại sản phẩm)</h2>
-                    <p><strong>Khách hàng:</strong> {order.CustomerName} ({order.CustomerPhone})</p>
-                    <p><strong>Email:</strong> {order.CustomerEmail ?? "Không có"}</p>
-                    <p><strong>Địa chỉ:</strong> {order.CustomerAddress}</p>
+                    <p><strong>Khách hàng:</strong> {Esc(order.CustomerName)} ({Esc(order.CustomerPhone)})</p>
+                    <p><strong>Email:</strong> {Esc(order.CustomerEmail ?? "Không có")}</p>
+                    <p><strong>Địa chỉ:</strong> {Esc(order.CustomerAddress)}</p>
                     <p><strong>Sản phẩm mua:</strong><br/>{adminSummaryItems}</p>
                     <p><strong>Tổng thanh toán:</strong> {order.TotalAmount:N0} đ</p>
-                    <p><strong>Ghi chú:</strong> {order.Note ?? "Không"}</p>
+                    <p><strong>Ghi chú:</strong> {Esc(order.Note ?? "Không")}</p>
                     <p><a href='{_frontendBaseUrl}/orders'>Vào Dashboard để xem chi tiết</a></p>
                 </div>";
 
@@ -400,7 +410,11 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(o => o.Id == id)
             ?? throw new KeyNotFoundException($"Không tìm thấy đơn hàng với Id: {id}");
 
-        if (!Enum.TryParse<OrderStatus>(status, true, out var newStatus))
+        // Enum.TryParse KHÔNG kiểm tra giá trị có nằm trong danh sách hợp lệ:
+        // "99" hay "5" đều parse "thành công" và ghi thẳng (OrderStatus)99 vào DB
+        // → UI mất nhãn/màu trạng thái, báo cáo tuần không đếm được đơn đó.
+        // Bắt buộc thêm Enum.IsDefined để chỉ nhận các trạng thái hợp lệ.
+        if (!Enum.TryParse<OrderStatus>(status, true, out var newStatus) || !Enum.IsDefined(newStatus))
             throw new ArgumentException($"Trạng thái không hợp lệ: {status}");
 
         order.Status = newStatus;

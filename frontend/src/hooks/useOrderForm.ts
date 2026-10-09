@@ -91,7 +91,7 @@ export function useOrderForm(
 
     try {
       // Mã giảm giá chỉ có tác dụng giảm giá — không có nhánh nào cấp quyền admin
-      // ở đây (đăng nhập admin duy nhất qua /admin-login).
+      // ở đây (đăng nhập admin duy nhất qua trang /admin-login → POST /api/auth/admin-login).
       const result = await discountApi.apply({ code: form.discountCode.trim() });
       setDiscountResult(result);
     } catch (err: unknown) {

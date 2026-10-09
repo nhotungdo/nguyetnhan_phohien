@@ -74,7 +74,7 @@ public class ProductsController : ControllerBase
 
     /// <summary>[ADMIN] Lấy TẤT CẢ sản phẩm kể cả ẩn</summary>
     [HttpGet("admin")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<ProductResponse>>> GetAllAdmin()
     {
         var products = await _productService.GetAllAsync(includeInactive: true);
@@ -85,12 +85,14 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ProductResponse>> GetById(Guid id)
     {
         var product = await _productService.GetByIdAsync(id);
-        if (product == null) return NotFound();
+        // Sản phẩm admin đã “Ẩn” (IsActive = false) không được lộ qua API public
+        // dù biết GUID — trước đây chỉ cần có id là xem được cả sản phẩm đang ẩn.
+        if (product == null || !product.IsActive) return NotFound();
         return Ok(product);
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductResponse>> Create([FromBody] CreateProductRequest request)
     {
         var result = await _productService.CreateAsync(request);
@@ -99,7 +101,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductResponse>> Update(Guid id, [FromBody] UpdateProductRequest request)
     {
         var result = await _productService.UpdateAsync(id, request);
@@ -109,7 +111,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var success = await _productService.DeleteAsync(id);
@@ -122,7 +124,7 @@ public class ProductsController : ControllerBase
 
     /// <summary>[ADMIN] Upload ảnh cho sản phẩm</summary>
     [HttpPost("{id}/images")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductImageResponse>> UploadImage(Guid id, IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -158,7 +160,7 @@ public class ProductsController : ControllerBase
 
     /// <summary>[ADMIN] Xóa ảnh của sản phẩm</summary>
     [HttpDelete("{id}/images/{imageId}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteImage(Guid id, Guid imageId)
     {
         var success = await _productService.DeleteImageAsync(id, imageId);
@@ -172,7 +174,7 @@ public class ProductsController : ControllerBase
     /// hiển thị trên Landing Page. Phải gửi đủ danh sách id ảnh hiện có.
     /// </summary>
     [HttpPut("{id}/images/order")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> ReorderImages(Guid id, [FromBody] ReorderImagesRequest request)
     {
         if (request.ImageIds == null || request.ImageIds.Count == 0)

@@ -5,8 +5,9 @@ import imageCompression from 'browser-image-compression';
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { contentApi, productApi } from "@/services/api.service";
-import type { WebsiteContentResponse, ProductResponse, ProductRequest } from "@/types/api.types";
+import type { ProductResponse, ProductRequest } from "@/types/api.types";
 import { FastImage } from "@/components/FastImage";
+import { fetchWebsiteContent } from "@/lib/contentQuery";
 import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
@@ -21,6 +22,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 const isRemoteUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.startsWith("data:");
 
 const MAX_PRODUCT_IMAGE_MB = 5;
+
+// Server chỉ nhận các đuôi này (whitelist ở ProductsController/ContentController).
+// Kiểm tra ngay ở client để ảnh HEIC/BMP/SVG không lọt qua bước nén rồi bị server
+// trả 400 SAU khi sản phẩm đã được lưu (admin tưởng "Lưu sản phẩm" thất bại).
+const PRODUCT_IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+const hasAllowedImageExt = (name: string) =>
+  PRODUCT_IMAGE_EXTS.some((ext) => name.toLowerCase().endsWith(ext));
 
 type TextFieldDef = {
   key: string;
@@ -92,9 +100,11 @@ export default function ContentCMS() {
   } = useQuery({
     queryKey: ["website", "content"],
     queryFn: async () => {
-      const data = await contentApi.getAll();
-      const mapped: Record<string, string> = {};
-      data.forEach((item: WebsiteContentResponse) => { mapped[item.key] = item.value; });
+      // Dùng CHUNG queryFn với Landing Page (fetchWebsiteContent) cho cùng query key:
+      // nếu mỗi nơi tự map một kiểu thì React Query lấy bản của observer chạy trước →
+      // mở /content rồi điều hướng sang / có thể nhận bản THIẾU defaultContents và
+      // làm mất text mặc định trên Landing Page.
+      const mapped = await fetchWebsiteContent();
       [...TEXT_KEYS, ...IMAGE_SLOTS].forEach(f => { if (mapped[f.key] === undefined) mapped[f.key] = ""; });
       return mapped;
     }
@@ -158,7 +168,10 @@ export default function ContentCMS() {
       setExistingImages([...product.images]);
     } else {
       setEditingId(null);
-      setFormData({ ...EMPTY_FORM, displayOrder: products.length + 1 });
+      // Số thứ tự kế tiếp phải lấy theo giá trị LỚN NHẤT hiện có, không dùng
+      // products.length + 1 (xóa sản phẩm ở giữa rồi thêm mới → trùng thứ tự).
+      const maxDisplayOrder = products.reduce((max, p) => Math.max(max, p.displayOrder), 0);
+      setFormData({ ...EMPTY_FORM, displayOrder: maxDisplayOrder + 1 });
       setExistingImages([]);
     }
     clearPendingImages(); setDeletedImageIds([]); setIsModalOpen(true);
@@ -172,6 +185,10 @@ export default function ContentCMS() {
     const valid: { file: File; url: string }[] = [];
     for (const file of files) {
       if (!file.type.startsWith("image/")) { alert(`"${file.name}" không phải file ảnh.`); continue; }
+      if (!hasAllowedImageExt(file.name)) {
+        alert(`"${file.name}" không đúng định dạng. Chỉ nhận JPG, PNG, WEBP hoặc GIF.`);
+        continue;
+      }
       if (file.size > MAX_PRODUCT_IMAGE_MB * 1024 * 1024) {
         alert(`"${file.name}" vượt quá ${MAX_PRODUCT_IMAGE_MB}MB (${(file.size / 1024 / 1024).toFixed(1)}MB).`);
         continue;
@@ -202,7 +219,10 @@ export default function ContentCMS() {
     next.unshift(moved);
     setExistingImages(next);
     try {
-      await productApi.reorderImages(editingId, next.map(i => i.id));
+      // Ảnh đang chờ xóa (✕ đã bấm nhưng chưa lưu) vẫn tồn tại trên server, nên
+      // phải gửi kèm ở cuối danh sách — nếu không, server báo "danh sách ảnh không
+      // khớp" (400) và thao tác đặt ảnh chính luôn thất bại sau khi xóa ảnh.
+      await productApi.reorderImages(editingId, [...next.map(i => i.id), ...deletedImageIds]);
       refetchProducts();
       queryClient.invalidateQueries({ queryKey: ["products", "public"] });
     } catch (err) {
@@ -595,6 +615,7 @@ function ImageSlotEditor({ slot, value, onSaved }: {
 
   const pickFile = (f: File) => {
     if (!f.type.startsWith("image/")) { alert("Vui lòng chọn file ảnh."); return; }
+    if (!hasAllowedImageExt(f.name)) { alert("Chỉ nhận ảnh JPG, PNG, WEBP hoặc GIF."); return; }
     if (f.size > 10 * 1024 * 1024) { alert("Ảnh vượt quá 10MB."); return; }
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));

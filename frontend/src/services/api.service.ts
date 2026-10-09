@@ -386,7 +386,12 @@ export const adminAuth = {
     if (!token) return false;
     // Decode JWT expiry (basic check)
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      // JWT là base64url: "-"/"_" thay cho "+"/"/" và có thể thiếu padding.
+      // atob() với chuỗi base64url có thể ném lỗi → token còn hạn bị coi là hết hạn
+      // (useAdminGuard đá về trang đăng nhập oan). Chuyển về base64 chuẩn + bù "=".
+      const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+      const payload = JSON.parse(atob(padded));
       return payload.exp * 1000 > Date.now();
     } catch {
       return false;

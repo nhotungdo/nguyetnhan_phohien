@@ -11,6 +11,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 const TYPING_THROTTLE_MS = 1500;
 /** Tự ẩn chỉ báo "đang gõ" nếu không nhận được tín hiệu mới. */
 const TYPING_HIDE_MS = 4000;
+/** Thử khởi động lại SignalR sau khi auto-reconnect từ bỏ hẳn (backend restart/mất mạng lâu). */
+const RESTART_DELAY_MS = 10_000;
 
 /** Bộ lọc trạng thái phiên chat ở danh sách admin. */
 export type ChatStatusFilter = "all" | "open" | "resolved";
@@ -51,15 +53,20 @@ export function useAdminChat() {
   const selectSession = useCallback(async (sessionId: string) => {
     setSelectedSessionId(sessionId);
     setTypingSessionId(null);
+
+    // markRead lỗi (mạng/401) KHÔNG được chặn việc tải tin nhắn — trước đây hai
+    // bước nằm chung một try nên markRead fail là khung chat trắng trơn.
     try {
       // Đánh dấu đã đọc (backend broadcast "MessagesRead" để khách thấy "Đã xem")
       await chatApi.markRead(sessionId);
-
-      // Update local state
       setSessions((prev) =>
         prev.map((s) => (s.id === sessionId ? { ...s, hasUnreadMessages: false } : s))
       );
+    } catch (err) {
+      console.warn("Mark session read failed:", err);
+    }
 
+    try {
       const msgs = await chatApi.getSessionMessages(sessionId);
       setMessages(msgs);
     } catch (err) {
@@ -186,6 +193,26 @@ export function useAdminChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
+    // withAutomaticReconnect() chỉ thử ~1 phút rồi dừng hẳn — backend restart lâu
+    // hơn thì admin mất realtime chat âm thầm tới khi F5. Tự start() lại mỗi 10s.
+    let disposed = false;
+    let restartTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRestart = () => {
+      if (disposed || restartTimer) return;
+      restartTimer = setTimeout(() => {
+        restartTimer = null;
+        connection
+          .start()
+          .then(async () => {
+            setIsConnected(true);
+            connectionRef.current = connection;
+            await connection.invoke("JoinAsAdmin");
+            await fetchSessions();
+          })
+          .catch(() => scheduleRestart());
+      }, RESTART_DELAY_MS);
+    };
+
     // Khách gửi tin nhắn (qua SignalR hoặc qua REST fallback — controller cũng broadcast)
     connection.on(
       "ReceiveGuestMessage",
@@ -266,7 +293,10 @@ export function useAdminChat() {
       }
     );
 
-    connection.onclose(() => setIsConnected(false));
+    connection.onclose(() => {
+      setIsConnected(false);
+      scheduleRestart();
+    });
     connection.onreconnected(async () => {
       setIsConnected(true);
       try {
@@ -292,9 +322,13 @@ export function useAdminChat() {
         ) {
             console.error("SignalR Admin connection error:", err);
         }
+        // Backend chưa chạy / mạng chặn WS → vẫn thử lại định kỳ thay vì bỏ cuộc
+        scheduleRestart();
       });
 
     return () => {
+      disposed = true;
+      if (restartTimer) clearTimeout(restartTimer);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       connection.stop().catch(() => {});
     };

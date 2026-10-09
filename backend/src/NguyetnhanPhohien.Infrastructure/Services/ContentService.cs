@@ -67,8 +67,13 @@ public class ContentService : IContentService
         if (string.IsNullOrWhiteSpace(contentKey) || !ImageKeys.Contains(contentKey, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException($"Key ảnh không hợp lệ: {contentKey}");
 
+        // Chuẩn hóa về ĐÚNG key trong whitelist trước khi ghi DB: so khớp không phân
+        // biệt hoa/thường nhưng ghi key nguyên bản thì "herobannerurl" tạo row riêng,
+        // còn Landing Page chỉ đọc "HeroBannerUrl" → ảnh không bao giờ hiển thị.
+        var canonicalKey = ImageKeys.First(k => k.Equals(contentKey, StringComparison.OrdinalIgnoreCase));
+
         var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var contentDir = Path.Combine(wwwroot, "uploads", "content", contentKey.ToLowerInvariant());
+        var contentDir = Path.Combine(wwwroot, "uploads", "content", canonicalKey.ToLowerInvariant());
         Directory.CreateDirectory(contentDir);
 
         // Chỉ giữ đuôi file thuộc whitelist (phòng hờ nếu caller
@@ -76,7 +81,7 @@ public class ContentService : IContentService
         var allowedExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         if (!allowedExts.Contains(ext)) ext = ".jpg";
-        var uniqueFileName = $"{contentKey}_{Guid.NewGuid():N}{ext}";
+        var uniqueFileName = $"{canonicalKey}_{Guid.NewGuid():N}{ext}";
         var filePath = Path.Combine(contentDir, uniqueFileName);
 
         using (var fs = File.Create(filePath))
@@ -84,14 +89,14 @@ public class ContentService : IContentService
             await imageStream.CopyToAsync(fs);
         }
 
-        var relativePath = $"/uploads/content/{contentKey.ToLowerInvariant()}/{uniqueFileName}";
+        var relativePath = $"/uploads/content/{canonicalKey.ToLowerInvariant()}/{uniqueFileName}";
 
         // Đọc URL ảnh cũ TRƯỚC khi upsert, để dọn file cũ sau khi đã lưu xong.
-        var oldRelativePath = (await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == contentKey))?.Value;
+        var oldRelativePath = (await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == canonicalKey))?.Value;
 
         await UpsertContentAsync(new UpdateContentRequest
         {
-            Key = contentKey,
+            Key = canonicalKey,
             Value = relativePath
         });
 

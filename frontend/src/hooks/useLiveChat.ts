@@ -11,6 +11,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 const TYPING_THROTTLE_MS = 1500;
 /** Tự ẩn chỉ báo "admin đang gõ" nếu không nhận được tín hiệu mới. */
 const TYPING_HIDE_MS = 4000;
+/** Thử khởi động lại SignalR sau khi auto-reconnect từ bỏ hẳn (backend restart/mất mạng lâu). */
+const RESTART_DELAY_MS = 10_000;
 
 /** Khoá lưu phiên chat của tab hiện tại (id + token do server cấp). */
 const SESSION_ID_KEY = "chatSessionId";
@@ -54,6 +56,8 @@ export function useLiveChat() {
   const messagesRef = useRef<ChatMessageResponse[]>([]);
   const adminTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
+  /** Timer tự kết nối lại khi SignalR đóng hẳn (không còn auto-reconnect). */
+  const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
   // mà không cần re-register handlers
@@ -123,6 +127,37 @@ export function useLiveChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
+    // withAutomaticReconnect() chỉ thử ~1 phút rồi dừng hẳn. Khách đang mở widget
+    // mà backend restart lâu hơn sẽ không bao giờ nhận lại tin realtime (chỉ còn
+    // REST fallback). Tự start() lại mỗi 10s, kèm join lại group + tải bù lịch sử.
+    const scheduleRestart = () => {
+      if (restartTimerRef.current) return;
+      restartTimerRef.current = setTimeout(async () => {
+        restartTimerRef.current = null;
+        // Một kết nối khác (qua connect/REST fallback) đã nối lại → không tạo song song
+        if (connectionRef.current) return;
+        const current = sessionRef.current;
+        try {
+          await connection.start();
+          if (current) {
+            await connection.invoke(
+              "JoinAsGuest", current.id, current.token,
+              guestInfoRef.current.name ?? null, guestInfoRef.current.phone ?? null
+            );
+            try {
+              const history = await chatApi.getGuestMessages(current.id, current.token);
+              setMessages(history);
+            } catch { /* tải bù thất bại — lần mất kết nối sau sẽ thử lại */ }
+          }
+          setIsConnected(true);
+          connectionRef.current = connection;
+        } catch {
+          // Backend vẫn chưa lên — hẹn thử lại sau 10s
+          scheduleRestart();
+        }
+      }, RESTART_DELAY_MS);
+    };
+
     // Nhận tin nhắn từ Admin — event name phải khớp ChatHub.AdminReply
     connection.on("ReceiveAdminMessage", (message: ChatMessageResponse) => {
       setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
@@ -181,7 +216,12 @@ export function useLiveChat() {
       }
     });
 
-    connection.onclose(() => setIsConnected(false));
+    connection.onclose(() => {
+      setIsConnected(false);
+      // Kết nối này đã chết — bỏ tham chiếu để connect()/restart biết cần nối lại
+      if (connectionRef.current === connection) connectionRef.current = null;
+      scheduleRestart();
+    });
     connection.onreconnected(async () => {
       setIsConnected(true);
       // Sau reconnect, connection id mới => mất membership của group cũ.
@@ -211,6 +251,8 @@ export function useLiveChat() {
 
     try {
       await connection.start();
+      // Đã nối được: huỷ lịch thử lại đang chờ (nếu có)
+      if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
       // Tham gia vào group của phiên này (hub kiểm tra token trước khi cho join)
       await connection.invoke("JoinAsGuest", creds.id, creds.token, guestName || null, guestPhone || null);
       setIsConnected(true);
@@ -232,6 +274,7 @@ export function useLiveChat() {
         clearStoredSession();
         const fresh = await ensureSession(true, guestName, guestPhone);
         await connection.invoke("JoinAsGuest", fresh.id, fresh.token, guestName || null, guestPhone || null);
+        if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
         setIsConnected(true);
         connectionRef.current = connection;
       } catch {
@@ -318,6 +361,7 @@ export function useLiveChat() {
   useEffect(() => {
     return () => {
       if (adminTypingTimeoutRef.current) clearTimeout(adminTypingTimeoutRef.current);
+      if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
       connectionRef.current?.stop().catch(() => {});
     };
   }, []);
