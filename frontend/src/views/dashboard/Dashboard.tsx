@@ -18,9 +18,37 @@ import type { OrderResponse } from "@/types/api.types"
 
 const RANGES = [7, 14, 30] as const;
 
-/** Gom ngày theo giờ địa phương, dạng key YYYY-MM-DD */
-const dayKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Múi giờ Việt Nam là UTC+7 và KHÔNG có DST, nên cộng thẳng 7 giờ rồi đọc bằng
+ * các getter UTC là ra đúng giờ/ngày VN.
+ *
+ * Trước đây Dashboard gom ngày bằng `new Date(o.createdAt)` (getFullYear/getMonth/
+ * getDate) tức theo giờ MÁY KHÁCH, còn báo cáo tuần gửi email ở backend gom theo
+ * giờ VN (WeeklyReportBackgroundService) → cùng một kỳ mà hai nơi ra số khác nhau
+ * khi máy admin không ở UTC+7.
+ */
+const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** Dịch thời điểm sang "đồng hồ VN" để các hàm getUTC* trả về giờ/ngày Việt Nam. */
+const toVn = (d: Date) => new Date(d.getTime() + VN_OFFSET_MS);
+
+/** Khóa ngày theo GIỜ VIỆT NAM, dạng YYYY-MM-DD (so sánh chuỗi cũng đúng thứ tự). */
+const vnDayKey = (d: Date) => {
+  const v = toVn(d);
+  return `${v.getUTCFullYear()}-${pad2(v.getUTCMonth() + 1)}-${pad2(v.getUTCDate())}`;
+};
+
+/**
+ * Chuẩn hóa số điện thoại (chỉ giữ chữ số) để "0912 345 678" và "0912345678"
+ * được tính là CÙNG một khách hàng.
+ */
+const normalizePhone = (phone?: string) => {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  return digits || phone.trim();
+};
 
 const compactVnd = (v: number) => {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(".0", "")}tr`;
@@ -63,15 +91,17 @@ export default function Dashboard() {
 
       const unread = sessions.filter(s => s.hasUnreadMessages).length;
 
-      const uniquePhones = new Set([
-        ...ordersList.map(o => o.customerPhone),
-        ...sessions.map(s => s.guestPhone).filter(Boolean)
-      ]);
+      // "Khách hàng" = số SĐT đã THỰC SỰ ĐẶT HÀNG (đã chuẩn hóa).
+      // Trước đây cộng cả SĐT của khách chỉ mới mở widget chat → người chưa từng
+      // mua vẫn được tính là khách hàng và KPI bị thổi phồng.
+      const customerPhones = new Set(
+        ordersList.map(o => normalizePhone(o.customerPhone)).filter(Boolean)
+      );
 
       return {
         stats: {
           ordersCount: ordersList.length,
-          customersCount: uniquePhones.size,
+          customersCount: customerPhones.size,
           messagesCount: sessions.length,
           unreadMessages: unread,
           revenue: revenueVal,
@@ -90,25 +120,29 @@ export default function Dashboard() {
   };
   const orders = data?.orders || EMPTY_ORDERS;
 
-  /** Chuỗi dữ liệu N ngày gần nhất: doanh thu (đơn Completed) & số đơn theo ngày */
+  /**
+   * Chuỗi dữ liệu N ngày gần nhất (theo ngày VIỆT NAM): doanh thu (đơn Completed)
+   * & số đơn theo ngày.
+   */
   const chartData = useMemo<DayPoint[]>(() => {
     const buckets = new Map<string, DayPoint>();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayVn = toVn(new Date());
+    todayVn.setUTCHours(0, 0, 0, 0);
 
     for (let i = rangeDays - 1; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      buckets.set(dayKey(d), {
-        key: dayKey(d),
-        label: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+      const d = new Date(todayVn);
+      d.setUTCDate(d.getUTCDate() - i);
+      const key = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+      buckets.set(key, {
+        key,
+        label: `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}`,
         revenue: 0,
         orders: 0,
       });
     }
 
     for (const o of orders) {
-      const point = buckets.get(dayKey(new Date(o.createdAt)));
+      const point = buckets.get(vnDayKey(new Date(o.createdAt)));
       if (!point) continue;
       point.orders += 1;
       if (o.status === "Completed") point.revenue += o.totalAmount;
@@ -130,14 +164,17 @@ export default function Dashboard() {
 
   /** Top 5 sản phẩm bán chạy trong kỳ: gom từ order.items (đơn mới) + legacy 1 sản phẩm (đơn cũ) */
   const topProducts = useMemo<TopProduct[]>(() => {
-    const cutoff = new Date();
-    cutoff.setHours(0, 0, 0, 0);
-    cutoff.setDate(cutoff.getDate() - (rangeDays - 1));
+    // Kỳ N ngày tính theo ngày VIỆT NAM (giống biểu đồ và báo cáo tuần ở backend).
+    const todayVn = toVn(new Date());
+    todayVn.setUTCHours(0, 0, 0, 0);
+    todayVn.setUTCDate(todayVn.getUTCDate() - (rangeDays - 1));
+    const cutoffKey = `${todayVn.getUTCFullYear()}-${pad2(todayVn.getUTCMonth() + 1)}-${pad2(todayVn.getUTCDate())}`;
 
     const map = new Map<string, TopProduct>();
 
     for (const o of orders) {
-      if (new Date(o.createdAt) < cutoff) continue;
+      // So sánh khóa ngày (YYYY-MM-DD) nên không lệ thuộc múi giờ của máy khách.
+      if (vnDayKey(new Date(o.createdAt)) < cutoffKey) continue;
 
       if (o.items && o.items.length > 0) {
         for (const item of o.items) {
@@ -231,7 +268,7 @@ export default function Dashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${dayKey(new Date())}.csv`;
+    a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${vnDayKey(new Date())}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

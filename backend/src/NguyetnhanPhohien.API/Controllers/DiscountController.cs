@@ -25,7 +25,7 @@ public class DiscountController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Code))
             return BadRequest(new { message = "Vui lòng nhập mã." });
 
-        var result = await _discountService.ApplyCodeAsync(request.Code.Trim());
+        var result = await _discountService.ApplyCodeAsync(request.Code.Trim(), request.CustomerPhone);
 
         if (!result.IsValid)
             return BadRequest(new { message = result.Message });

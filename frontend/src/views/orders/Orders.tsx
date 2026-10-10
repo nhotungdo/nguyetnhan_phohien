@@ -68,11 +68,15 @@ export default function Orders() {
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
-      await orderApi.updateStatus(id, newStatus);
+      // Dùng LUÔN bản server trả về làm dữ liệu cache: một lần gọi API vừa ghi vừa
+      // trả về trạng thái thật. Trước đây code setQueryData bằng giá trị client tự
+      // đoán rồi `invalidateQueries` NGAY LẬP TỨC → React Query vừa nhận bản optimistic
+      // lại vừa gọi API lần thứ hai để ghi đè chính nó (thừa 1 request, giá trị
+      // optimistic trở nên vô nghĩa).
+      const updated = await orderApi.updateStatus(id, newStatus);
       queryClient.setQueryData(["orders", "admin"], (old: OrderResponse[] | undefined) =>
-        old ? old.map(order => order.id === id ? { ...order, status: newStatus } : order) : []
+        old ? old.map(order => (order.id === id ? updated : order)) : []
       );
-      queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
     } catch (err) {
       console.error("Update failed", err);
       addToast("error", "Cập nhật trạng thái thất bại!");

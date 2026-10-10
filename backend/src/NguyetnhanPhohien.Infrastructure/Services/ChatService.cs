@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using NguyetnhanPhohien.Application.Chat;
 using NguyetnhanPhohien.Application.DTOs.Chat;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Domain.Entities;
@@ -155,12 +156,12 @@ public class ChatService : IChatService
     public async Task<GuestChatMessageResponse> SendGuestMessageAsync(
         string sessionId, string? sessionToken, string content, string? guestName, string? guestPhone)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             throw new ArgumentException("SessionId không hợp lệ.");
         if (!IsSessionTokenValid(sessionId, sessionToken))
             throw new UnauthorizedAccessException("Phiên chat không hợp lệ hoặc đã hết hiệu lực.");
-        if (string.IsNullOrWhiteSpace(content) || content.Length > 2000)
-            throw new ArgumentException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
+        if (string.IsNullOrWhiteSpace(content) || content.Length > ChatRules.MaxMessageLength)
+            throw new ArgumentException($"Tin nhắn rỗng hoặc vượt quá {ChatRules.MaxMessageLength} ký tự.");
 
         // Không tạo phiên mới ở đây: phiên phải do CreateGuestSessionAsync cấp trước đó.
         var session = await FindSessionAsync(sessionId, guestName, guestPhone)

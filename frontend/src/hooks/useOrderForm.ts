@@ -40,15 +40,34 @@ export function useOrderForm(
 
   const setField = <K extends keyof OrderFormState>(field: K, value: OrderFormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    // Sửa mã giảm giá (hoặc SĐT) thì kết quả đã áp dụng không còn đúng nữa:
+    // nếu giữ lại, UI vẫn hiện "Giảm 10%" trong khi đơn gửi mã khác → khách
+    // thấy sai tiền, thậm chí bị 400 và không đặt được đơn.
+    if (field === "discountCode" || field === "customerPhone") setDiscountResult(null);
   };
+
+  /**
+   * Còn sản phẩm nào chưa được chọn ở dòng nào không?
+   * Dùng để disable nút "Thêm sản phẩm khác" — cho phép bấm khi đã hết sản phẩm
+   * chỉ tạo ra dòng trùng lặp (xem `addItem`).
+   */
+  const canAddItem = products.some(
+    (p) => !form.items.some((i) => i.productId === p.id)
+  );
 
   const addItem = () => {
     setForm((prev) => {
       const selectedIds = new Set(prev.items.map((i) => i.productId));
-      const nextProduct = products.find((p) => !selectedIds.has(p.id)) || products[0];
+      const nextProduct = products.find((p) => !selectedIds.has(p.id));
+      // Hết sản phẩm chưa chọn → KHÔNG thêm dòng.
+      // Trước đây có fallback `|| products[0]` nên dòng mới lặp lại sản phẩm đầu.
+      // Backend gom nhóm theo ProductId và CỘNG DỒN số lượng, nên khách thấy 2 dòng
+      // nhưng đơn chỉ có 1 dòng với SL gấp đôi; xóa 1 dòng cũng không bỏ được mặt
+      // hàng khỏi đơn (số lượng vẫn bị cộng vào dòng còn lại).
+      if (!nextProduct) return prev;
       return {
         ...prev,
-        items: [...prev.items, { productId: nextProduct?.id || "", quantity: 1 }],
+        items: [...prev.items, { productId: nextProduct.id, quantity: 1 }],
       };
     });
     setDiscountResult(null);
@@ -92,7 +111,10 @@ export function useOrderForm(
     try {
       // Mã giảm giá chỉ có tác dụng giảm giá — không có nhánh nào cấp quyền admin
       // ở đây (đăng nhập admin duy nhất qua trang /admin-login → POST /api/auth/admin-login).
-      const result = await discountApi.apply({ code: form.discountCode.trim() });
+      const result = await discountApi.apply({
+        code: form.discountCode.trim(),
+        customerPhone: form.customerPhone.trim() || undefined,
+      });
       setDiscountResult(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mã không hợp lệ.";
@@ -180,6 +202,7 @@ export function useOrderForm(
   return {
     form,
     setField,
+    canAddItem,
     addItem,
     removeItem,
     updateItem,

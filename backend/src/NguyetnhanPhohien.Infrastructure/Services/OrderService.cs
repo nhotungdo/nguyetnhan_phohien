@@ -4,9 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Domain;
 using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Domain.Enums;
 using NguyetnhanPhohien.Infrastructure.Persistence;
+using Npgsql;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
 
@@ -101,6 +103,10 @@ public class OrderService : IOrderService
         decimal discountAmount = 0;
         DiscountCode? appliedDiscount = null;
 
+        // SĐT đã chuẩn hóa (chỉ chữ số) — khóa chống dùng lại mã giảm giá.
+        // "0912 345 678" và "0912345678" phải là CÙNG một khách.
+        var normalizedPhone = PhoneNumber.Normalize(request.CustomerPhone);
+
         if (!string.IsNullOrWhiteSpace(request.DiscountCode))
         {
             // Không phân biệt hoa/thường — khách gõ "welcome10" vẫn khớp mã "WELCOME10"
@@ -131,6 +137,13 @@ public class OrderService : IOrderService
             {
                 throw new ArgumentException("Mã giảm giá không hợp lệ.");
             }
+
+            // ===== QUY TẮC: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
+            // Kiểm tra tường minh ở đây để trả thông báo rõ ràng; unique index
+            // (DiscountCodeId, CustomerPhone) bên dưới là chốt chặn cho race condition.
+            if (await _db.DiscountRedemptions.AnyAsync(r =>
+                    r.DiscountCodeId == discountCode.Id && r.CustomerPhone == normalizedPhone))
+                throw new ArgumentException("Số điện thoại này đã sử dụng mã giảm giá rồi.");
 
             appliedDiscount = discountCode;
         }
@@ -184,6 +197,29 @@ public class OrderService : IOrderService
 
             _db.Orders.Add(order);
             await _db.SaveChangesAsync();
+
+            if (appliedDiscount != null)
+            {
+                // Ghi dấu đã dùng mã cho SĐT này NGAY TRONG transaction. Nếu hai
+                // request cùng SĐT + cùng mã chạy song song, một request sẽ vướng
+                // unique index và bị chặn ở đây thay vì giảm giá lần thứ hai.
+                _db.DiscountRedemptions.Add(new DiscountRedemption
+                {
+                    DiscountCodeId = appliedDiscount.Id,
+                    Code = appliedDiscount.Code,
+                    CustomerPhone = normalizedPhone,
+                    OrderId = order.Id
+                });
+
+                try
+                {
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+                {
+                    throw new ArgumentException("Số điện thoại này đã sử dụng mã giảm giá rồi.", ex);
+                }
+            }
 
             await transaction.CommitAsync();
         }
@@ -445,6 +481,19 @@ public class OrderService : IOrderService
 
         _logger.LogInformation(
             "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
+    }
+
+    /// <summary>
+    /// Có phải lỗi vi phạm ràng buộc duy nhất của Postgres (SQLSTATE 23505) không.
+    /// Dùng để phân biệt "SĐT đã dùng mã" với các lỗi ghi DB khác.
+    /// </summary>
+    private static bool IsUniqueViolation(Exception? ex)
+    {
+        for (var e = ex; e != null; e = e.InnerException)
+        {
+            if (e is PostgresException { SqlState: "23505" }) return true;
+        }
+        return false;
     }
 
     private static OrderResponse MapToResponse(Order order)

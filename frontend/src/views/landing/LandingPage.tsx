@@ -53,7 +53,7 @@ export default function LandingPage() {
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
   const {
-    form, setField, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
+    form, setField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(products);
 
@@ -63,14 +63,22 @@ export default function LandingPage() {
 
   // Tiêu đề Hero lấy từ CMS (key HeroTitle), chia 2 dòng để giữ bố cục gradient.
   // Tiếng Việt lấy từ CMS như HeroSubtitle; tiếng Anh vẫn dùng locale.
-  const heroWords = (cmsContent.HeroTitle || "").trim().split(/\s+/).filter(Boolean);
-  const heroSplit = Math.ceil(heroWords.length / 2);
-  const heroLine1 = language === "en"
-    ? t.hero.title.split(" ")[0]
-    : heroWords.length > 0 ? heroWords.slice(0, heroSplit).join(" ") : "Hương Vị";
-  const heroLine2 = language === "en"
-    ? t.hero.title.split(" ").slice(1).join(" ")
-    : heroWords.length > 0 ? heroWords.slice(heroSplit).join(" ") : "Truyền Thống";
+  //
+  // Chỉ có MỘT từ thì KHÔNG tách dòng: `slice(1)` của mảng 1 phần tử là mảng rỗng,
+  // nên trước đây dòng 2 rỗng mà <br/> vẫn render → thừa một dòng trống giữa tiêu đề.
+  const heroLines = (() => {
+    if (language === "en") {
+      const parts = t.hero.title.split(" ").filter(Boolean);
+      return [parts[0] ?? "", parts.slice(1).join(" ")].filter(Boolean);
+    }
+    const words = (cmsContent.HeroTitle || "").trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return ["Hương Vị", "Truyền Thống"];
+    if (words.length === 1) return [words[0]];
+    const split = Math.ceil(words.length / 2);
+    return [words.slice(0, split).join(" "), words.slice(split).join(" ")];
+  })();
+  const heroLine1 = heroLines[0];
+  const heroLine2 = heroLines[1] ?? "";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -267,10 +275,15 @@ export default function LandingPage() {
                 Tinh túy đất Phố Hiến
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
-                {heroLine1} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
-                  {heroLine2}
-                </span>
+                {heroLine1}
+                {heroLine2 && (
+                  <>
+                    {" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
+                      {heroLine2}
+                    </span>
+                  </>
+                )}
               </h1>
               <p className="text-lg md:text-xl text-foreground/80 leading-relaxed">
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
@@ -740,7 +753,9 @@ export default function LandingPage() {
                       <button
                         type="button"
                         onClick={addItem}
-                        className="text-xs font-semibold text-accent hover:text-accent/80 flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all hover:scale-105"
+                        disabled={!canAddItem}
+                        title={canAddItem ? undefined : "Đã chọn hết sản phẩm đang bán"}
+                        className="text-xs font-semibold text-accent hover:text-accent/80 flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         {language === "en" ? "Add Product" : "Thêm sản phẩm khác"}

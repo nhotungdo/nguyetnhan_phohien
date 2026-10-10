@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using NguyetnhanPhohien.Application.Chat;
 using NguyetnhanPhohien.Application.DTOs.Chat;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -36,13 +37,35 @@ namespace NguyetnhanPhohien.API.Hubs;
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
+    private readonly IHubContext<ProductsHub> _eventsHub;
+    private readonly ILogger<ChatHub> _logger;
 
     /// <summary>Tên group SignalR chứa toàn bộ admin đang online (dùng chung với ChatController).</summary>
     public const string AdminGroup = "Admins";
 
-    public ChatHub(IChatService chatService)
+    public ChatHub(IChatService chatService, IHubContext<ProductsHub> eventsHub, ILogger<ChatHub> logger)
     {
         _chatService = chatService;
+        _eventsHub = eventsHub;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Báo cho group Admin rằng danh sách/trạng thái phiên chat đã đổi để trang
+    /// Tổng quan tự tải lại (số phiên, số tin chưa đọc) thay vì phải F5.
+    /// Tin nhắn qua SignalR và qua REST fallback đều phát cùng một sự kiện.
+    /// </summary>
+    private async Task NotifySessionsChangedAsync(string action)
+    {
+        try
+        {
+            await _eventsHub.Clients.Group(ProductsHub.AdminGroup)
+                .SendAsync(ProductsHub.SessionsChangedEvent, new { action, at = DateTime.UtcNow });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không broadcast được sự kiện phiên chat {Action}", action);
+        }
     }
 
     /// <summary>
@@ -55,7 +78,7 @@ public class ChatHub : Hub
     [AllowAnonymous]
     public async Task JoinAsGuest(string sessionId, string? sessionToken, string? guestName, string? guestPhone)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             throw new HubException("SessionId không hợp lệ.");
 
         if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))
@@ -92,14 +115,14 @@ public class ChatHub : Hub
     [AllowAnonymous]
     public async Task SendGuestMessage(string sessionId, string? sessionToken, string content)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             throw new HubException("SessionId không hợp lệ.");
 
         if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))
             throw new HubException("Phiên chat không hợp lệ hoặc đã hết hiệu lực.");
 
-        if (string.IsNullOrWhiteSpace(content) || content.Length > 2000)
-            throw new HubException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
+        if (string.IsNullOrWhiteSpace(content) || content.Length > ChatRules.MaxMessageLength)
+            throw new HubException($"Tin nhắn rỗng hoặc vượt quá {ChatRules.MaxMessageLength} ký tự.");
 
         var session = await _chatService.FindSessionAsync(sessionId)
             ?? throw new HubException("Phiên chat không tồn tại.");
@@ -115,6 +138,8 @@ public class ChatHub : Hub
 
         // Echo lại cho chính khách đó (xác nhận tin đã gửi)
         await Clients.Caller.SendAsync("MessageSent", message);
+
+        await NotifySessionsChangedAsync("message");
     }
 
     /// <summary>
@@ -126,8 +151,8 @@ public class ChatHub : Hub
         if (request.ChatSessionId == Guid.Empty)
             throw new HubException("Phiên chat không hợp lệ.");
 
-        if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 2000)
-            throw new HubException("Tin nhắn rỗng hoặc vượt quá 2000 ký tự.");
+        if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > ChatRules.MaxMessageLength)
+            throw new HubException($"Tin nhắn rỗng hoặc vượt quá {ChatRules.MaxMessageLength} ký tự.");
 
         ChatMessageResponse message;
         try
@@ -157,6 +182,8 @@ public class ChatHub : Hub
             sessionId = request.ChatSessionId,
             message
         });
+
+        await NotifySessionsChangedAsync("message");
     }
 
     /// <summary>
@@ -166,7 +193,7 @@ public class ChatHub : Hub
     [AllowAnonymous]
     public async Task GuestTyping(string sessionId, string? sessionToken, bool isTyping)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 128)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             throw new HubException("SessionId không hợp lệ.");
 
         if (!_chatService.IsSessionTokenValid(sessionId, sessionToken))

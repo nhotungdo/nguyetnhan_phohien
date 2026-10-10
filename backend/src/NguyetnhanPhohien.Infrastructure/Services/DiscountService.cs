@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Domain;
 using NguyetnhanPhohien.Infrastructure.Persistence;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
@@ -14,7 +15,7 @@ public class DiscountService : IDiscountService
         _db = db;
     }
 
-    public async Task<DiscountResult> ApplyCodeAsync(string code)
+    public async Task<DiscountResult> ApplyCodeAsync(string code, string? customerPhone = null)
     {
         // KHÔNG có nhánh "mã backdoor" nào ở đây: mã giảm giá chỉ để giảm giá.
         // (Trước đây chuỗi hardcode "NguyetNhanPhoHienAdmin" trả về JWT role Admin
@@ -54,6 +55,21 @@ public class DiscountService : IDiscountService
         // KHÔNG tăng UsageCount ở đây — lượt dùng chỉ được tính khi đơn hàng
         // thực sự được tạo (OrderService.CreateOrderAsync), tránh "đốt" lượt
         // dùng cho khách bấm Áp dụng rồi bỏ cuộc.
+
+        // ===== QUY TẮC: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
+        // Báo sớm ngay khi bấm Áp dụng. OrderService vẫn kiểm tra lại lúc tạo đơn
+        // (đó mới là chốt chặn thật, vì client có thể gửi thẳng API).
+        var normalizedPhone = PhoneNumber.Normalize(customerPhone);
+        if (normalizedPhone.Length > 0
+            && await _db.DiscountRedemptions.AnyAsync(r =>
+                r.DiscountCodeId == discountCode.Id && r.CustomerPhone == normalizedPhone))
+        {
+            return new DiscountResult
+            {
+                IsValid = false,
+                Message = "Số điện thoại này đã sử dụng mã giảm giá rồi."
+            };
+        }
 
         return new DiscountResult
         {

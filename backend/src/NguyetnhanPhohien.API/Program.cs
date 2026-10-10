@@ -102,6 +102,34 @@ builder.Services.AddOutputCache(options =>
 // ===== CONTROLLERS =====
 builder.Services.AddControllers();
 
+// ===== RATE LIMIT CHO ĐĂNG NHẬP ADMIN =====
+// Trước đây POST /api/auth/admin-login không có giới hạn nào → có thể dò mật khẩu
+// không hạn chế. Giới hạn theo IP: 5 lần / 5 phút, không xếp hàng (vượt là từ chối
+// ngay). Trả 429 kèm { message } để giao diện hiện đúng nguyên nhân.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("admin-login", context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0
+            }));
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
+        await context.HttpContext.Response.WriteAsync(
+            "{\"message\":\"Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau ít phút.\"}",
+            cancellationToken);
+    };
+});
+
 // ===== FILE UPLOAD CONFIG =====
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
@@ -181,6 +209,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Rate limiter phải nằm sau xác thực (để có HttpContext đầy đủ) và TRƯỚC khi vào endpoint.
+app.UseRateLimiter();
 
 // ===== ROUTES =====
 // Scalar UI chỉ được map ở môi trường Development → ở production route "/" trỏ vào

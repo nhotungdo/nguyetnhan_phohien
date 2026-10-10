@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace NguyetnhanPhohien.API.Hubs;
@@ -27,4 +28,32 @@ public class ProductsHub : Hub
 
     /// <summary>Nội dung CMS (text + ảnh Landing Page) đã thay đổi → client invalidate ["website","content"].</summary>
     public const string ContentChangedEvent = "ContentChanged";
+
+    /// <summary>
+    /// Đơn hàng đã tạo hoặc đổi trạng thái → client invalidate ["orders","admin"]
+    /// và ["dashboard","stats"]. Trước đây không có sự kiện nào cho đơn hàng nên
+    /// trang Đơn hàng / Tổng quan chỉ tải một lần lúc mount (staleTime 5 phút,
+    /// refetchOnWindowFocus = false) → phải F5 mới thấy đơn mới.
+    /// </summary>
+    public const string OrdersChangedEvent = "OrdersChanged";
+
+    /// <summary>
+    /// Phiên chat đã tạo / đổi trạng thái / có tin nhắn mới → client invalidate
+    /// ["dashboard","stats"] (số phiên và số chưa đọc trên Tổng quan).
+    /// </summary>
+    public const string SessionsChangedEvent = "SessionsChanged";
+
+    /// <summary>
+    /// Group chỉ chứa các tab Admin đã đăng nhập. Sự kiện đơn hàng / phiên chat
+    /// KHÔNG được phát cho khách vãng lai: chúng chỉ chứa thông tin vận hành nội bộ
+    /// (có đơn mới lúc nào), khách không cần biết.
+    /// </summary>
+    public const string AdminGroup = "Admins";
+
+    /// <summary>
+    /// Tab Admin tự đăng ký nhận sự kiện nội bộ. Yêu cầu JWT role Admin — token do
+    /// client gửi qua access_token trên query string (Program.cs đã bật cho /hubs).
+    /// </summary>
+    [Authorize(Roles = "Admin")]
+    public Task JoinAsAdmin() => Groups.AddToGroupAsync(Context.ConnectionId, AdminGroup);
 }

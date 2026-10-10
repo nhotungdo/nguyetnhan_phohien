@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
     public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
+    public DbSet<DiscountRedemption> DiscountRedemptions { get; set; } = null!;
     public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
@@ -121,6 +122,14 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DiscountCode>()
             .Property(d => d.AmountOff)
             .HasPrecision(18, 2);
+
+        // ===== DISCOUNT REDEMPTION (mỗi SĐT dùng một mã chỉ 1 lần) =====
+        modelBuilder.Entity<DiscountRedemption>().HasKey(r => r.Id);
+        modelBuilder.Entity<DiscountRedemption>()
+            .HasIndex(r => new { r.DiscountCodeId, r.CustomerPhone })
+            .IsUnique();
+        modelBuilder.Entity<DiscountRedemption>()
+            .HasIndex(r => r.Code);
 
         // ===== WEBSITE CONTENT =====
         modelBuilder.Entity<WebsiteContent>().HasKey(w => w.Id);

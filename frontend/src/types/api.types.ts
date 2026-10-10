@@ -51,6 +51,8 @@ export interface OrderResponse {
 // ===== DISCOUNT TYPES =====
 export interface ApplyDiscountRequest {
   code: string;
+  /** SĐT để backend báo sớm nếu số này đã dùng mã rồi (mỗi SĐT dùng mã 1 lần). */
+  customerPhone?: string;
 }
 
 // Mã giảm giá KHÔNG bao giờ cấp quyền admin — không có token/backdoor ở đây.
@@ -96,12 +98,13 @@ export interface ChatSessionResponse {
 }
 
 // ===== CONTENT TYPES =====
+// Backend chỉ trả Key/Value/Description (ContentService.MapToResponse).
+// Trước đây type còn khai `id` và `updatedAt` là bắt buộc → chúng luôn là
+// undefined, khiến người đọc code tưởng có dữ liệu mà thực tế không có.
 export interface WebsiteContentResponse {
-  id: string;
   key: string;
   value: string;
   description?: string;
-  updatedAt: string;
 }
 
 export interface UpdateContentRequest {
@@ -109,15 +112,6 @@ export interface UpdateContentRequest {
   value: string;
   description?: string;
 }
-
-// ===== WEBSITE CONTENT KEYS =====
-export type ContentKey =
-  | "hero_title"
-  | "hero_subtitle"
-  | "hero_banner_url"
-  | "about_text"
-  | "contact_phone"
-  | "contact_address";
 
 // ===== PRODUCT TYPES =====
 export interface ProductImageResponse {

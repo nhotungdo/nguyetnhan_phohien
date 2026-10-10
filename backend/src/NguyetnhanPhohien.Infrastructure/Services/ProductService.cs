@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using NguyetnhanPhohien.Application.DTOs.Products;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Domain.Entities;
@@ -9,19 +9,20 @@ namespace NguyetnhanPhohien.Infrastructure.Services;
 
 public class ProductService : IProductService
 {
+    /// <summary>Tiền tố URL công khai, khớp thư mục con dưới wwwroot.</summary>
+    private const string PublicUrlPrefix = "/uploads/products";
+
     private readonly AppDbContext _db;
     private readonly string _uploadsPath;
 
-    public ProductService(AppDbContext db, IConfiguration config)
+    public ProductService(AppDbContext db, IWebHostEnvironment env)
     {
         _db = db;
-        // Lấy đường dẫn uploads từ config (nếu có); mặc định là wwwroot của API
-        var configuredPath = config["FileStorage:UploadsPath"];
-        var basePath = string.IsNullOrWhiteSpace(configuredPath)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
-            : configuredPath;
-        _uploadsPath = Path.Combine(basePath, "uploads", "products");
-        Directory.CreateDirectory(_uploadsPath);
+
+        // MỘT nguồn duy nhất cho gốc lưu ảnh (xem UploadPathResolver). Ghi vào đúng
+        // thư mục mà UseStaticFiles phục vụ tại /uploads ⇒ URL công khai luôn khớp
+        // đường dẫn trên đĩa, không còn cảnh ảnh ghi được nhưng request trả 404.
+        _uploadsPath = UploadPathResolver.Directory(env, "uploads", "products");
     }
 
     public async Task<List<ProductResponse>> GetAllAsync(bool includeInactive = false)
@@ -82,15 +83,20 @@ public class ProductService : IProductService
         var product = await _db.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return false;
 
-        // Xóa file ảnh khỏi disk
-        foreach (var img in product.Images)
-        {
-            var filePath = Path.Combine(_uploadsPath, Path.GetFileName(img.ImagePath));
-            if (File.Exists(filePath)) File.Delete(filePath);
-        }
+        // LƯU DB TRƯỚC, xoá file SAU. Thứ tự cũ (xoá file trước khi SaveChanges) khiến
+        // một lỗi DB để lại row trỏ tới file đã mất → ảnh 404 vĩnh viễn dù đơn/DB còn.
+        // Đảo lại thì lỗi DB không gây hại, còn tệ nhất chỉ dư file rác trên đĩa.
+        var imagePaths = product.Images.Select(img => img.ImagePath).ToList();
 
         _db.Products.Remove(product);
         await _db.SaveChangesAsync();
+
+        foreach (var imagePath in imagePaths)
+        {
+            var filePath = Path.Combine(_uploadsPath, Path.GetFileName(imagePath));
+            if (File.Exists(filePath)) File.Delete(filePath);
+        }
+
         return true;
     }
 
@@ -115,13 +121,26 @@ public class ProductService : IProductService
         var image = new ProductImage
         {
             ProductId = productId,
-            ImagePath = $"/uploads/products/{uniqueFileName}",
+            ImagePath = $"{PublicUrlPrefix}/{uniqueFileName}",
             DisplayOrder = (maxOrder ?? -1) + 1,
             CreatedAt = DateTime.UtcNow
         };
 
         _db.ProductImages.Add(image);
-        await _db.SaveChangesAsync();
+
+        // Ghi DB lỗi thì dọn ngay file vừa tạo: nếu không, mỗi lần lỗi để lại một
+        // file rác vĩnh viễn trong wwwroot mà không row nào trỏ tới.
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            _db.Entry(image).State = EntityState.Detached;
+            try { if (File.Exists(filePath)) File.Delete(filePath); }
+            catch { /* không xoá được file thì thôi, lỗi gốc vẫn được ném ra */ }
+            throw;
+        }
 
         return new ProductImageResponse
         {
@@ -137,12 +156,13 @@ public class ProductService : IProductService
             .FirstOrDefaultAsync(pi => pi.Id == imageId && pi.ProductId == productId);
         if (image == null) return false;
 
-        // Xóa file
+        // LƯU DB TRƯỚC, xoá file SAU — xem giải thích ở DeleteAsync.
         var filePath = Path.Combine(_uploadsPath, Path.GetFileName(image.ImagePath));
-        if (File.Exists(filePath)) File.Delete(filePath);
 
         _db.ProductImages.Remove(image);
         await _db.SaveChangesAsync();
+
+        if (File.Exists(filePath)) File.Delete(filePath);
         return true;
     }
 

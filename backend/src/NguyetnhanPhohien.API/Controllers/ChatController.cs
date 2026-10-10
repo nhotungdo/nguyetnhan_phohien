@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using NguyetnhanPhohien.API.Hubs;
+using NguyetnhanPhohien.Application.Chat;
 using NguyetnhanPhohien.Application.DTOs.Chat;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -13,11 +14,37 @@ public class ChatController : ControllerBase
 {
     private readonly IChatService _chatService;
     private readonly IHubContext<ChatHub> _hub;
+    private readonly IHubContext<ProductsHub> _eventsHub;
+    private readonly ILogger<ChatController> _logger;
 
-    public ChatController(IChatService chatService, IHubContext<ChatHub> hub)
+    public ChatController(
+        IChatService chatService,
+        IHubContext<ChatHub> hub,
+        IHubContext<ProductsHub> eventsHub,
+        ILogger<ChatController> logger)
     {
         _chatService = chatService;
         _hub = hub;
+        _eventsHub = eventsHub;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Báo cho group Admin rằng danh sách/trạng thái phiên chat đã đổi, để trang
+    /// Tổng quan (số phiên, số chưa đọc) tự tải lại thay vì phải F5.
+    /// Lỗi broadcast KHÔNG làm fail request đã ghi DB thành công.
+    /// </summary>
+    private async Task NotifySessionsChangedAsync(string action)
+    {
+        try
+        {
+            await _eventsHub.Clients.Group(ProductsHub.AdminGroup)
+                .SendAsync(ProductsHub.SessionsChangedEvent, new { action, at = DateTime.UtcNow });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không broadcast được sự kiện phiên chat {Action}", action);
+        }
     }
 
     /// <summary>
@@ -29,6 +56,7 @@ public class ChatController : ControllerBase
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest? request)
     {
         var credentials = await _chatService.CreateGuestSessionAsync(request?.GuestName, request?.GuestPhone);
+        await NotifySessionsChangedAsync("created");
         return Ok(credentials);
     }
 
@@ -39,7 +67,7 @@ public class ChatController : ControllerBase
     [HttpGet("messages/{sessionId}")]
     public async Task<IActionResult> GetGuestMessages(string sessionId)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             return BadRequest("SessionId không hợp lệ.");
 
         if (!_chatService.IsSessionTokenValid(sessionId, Request.Headers["X-Chat-Token"].FirstOrDefault()))
@@ -73,6 +101,8 @@ public class ChatController : ControllerBase
                 message = result.Message
             });
 
+            await NotifySessionsChangedAsync("message");
+
             return Ok(result.Message);
         }
         catch (UnauthorizedAccessException ex)
@@ -100,8 +130,8 @@ public class ChatController : ControllerBase
         if (request.ChatSessionId == Guid.Empty)
             return BadRequest(new { message = "Phiên chat không hợp lệ." });
 
-        if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 2000)
-            return BadRequest(new { message = "Tin nhắn rỗng hoặc vượt quá 2000 ký tự." });
+        if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > ChatRules.MaxMessageLength)
+            return BadRequest(new { message = $"Tin nhắn rỗng hoặc vượt quá {ChatRules.MaxMessageLength} ký tự." });
 
         ChatMessageResponse message;
         try
@@ -125,6 +155,8 @@ public class ChatController : ControllerBase
             message
         });
 
+        await NotifySessionsChangedAsync("message");
+
         return Ok(message);
     }
 
@@ -137,7 +169,7 @@ public class ChatController : ControllerBase
     [HttpPut("messages/{sessionId}/read")]
     public async Task<IActionResult> MarkGuestRead(string sessionId)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > 100)
+        if (string.IsNullOrWhiteSpace(sessionId) || sessionId.Length > ChatRules.SessionIdMaxLength)
             return BadRequest("SessionId không hợp lệ.");
 
         if (!_chatService.IsSessionTokenValid(sessionId, Request.Headers["X-Chat-Token"].FirstOrDefault()))
@@ -211,6 +243,8 @@ public class ChatController : ControllerBase
             hasUnreadMessages = session.HasUnreadMessages
         });
 
+        await NotifySessionsChangedAsync("resolved");
+
         return Ok(session);
     }
 
@@ -238,6 +272,8 @@ public class ChatController : ControllerBase
             .SendAsync("SessionDeleted", notification);
         await _hub.Clients.Group(ChatHub.GroupFor(session.SessionId))
             .SendAsync("SessionDeleted", notification);
+
+        await NotifySessionsChangedAsync("deleted");
 
         return NoContent();
     }

@@ -15,22 +15,11 @@ public static class DbSeeder
     {
         await db.Database.MigrateAsync();
 
-        // Tự động Bật RLS (Row Level Security) cho tất cả các bảng để fix lỗi trên Supabase Security Advisor
-        await db.Database.ExecuteSqlRawAsync(@"
-            DO $$ 
-            DECLARE 
-                t record;
-            BEGIN
-                FOR t IN 
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    AND table_type = 'BASE TABLE'
-                LOOP
-                    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t.table_name);
-                END LOOP;
-            END $$;
-        ");
+        // RLS (Row Level Security) KHÔNG còn bật ở đây.
+        // Trước đây khối DDL nằm ngay chỗ này và chạy vô điều kiện MỖI lần khởi động,
+        // thay đổi hành vi truy cập toàn bộ DB ngoài lịch sử migration. Nay nó là
+        // migration một lần `EnableRowLevelSecurity` (đã có comment về mô hình
+        // deny-by-default và lý do không tạo policy).
 
         // Cleanup any legacy Admin Backdoor discount codes
         await db.Database.ExecuteSqlRawAsync(@"

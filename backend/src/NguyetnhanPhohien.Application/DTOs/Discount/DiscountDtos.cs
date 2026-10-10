@@ -1,9 +1,12 @@
 namespace NguyetnhanPhohien.Application.DTOs.Discount;
 
-// DTO khách gửi lên để xác thực mã
+// DTO khách gửi lên để xác thực mã.
+// CustomerPhone (không bắt buộc) cho phép báo sớm "SĐT này đã dùng mã rồi"
+// ngay khi bấm Áp dụng, thay vì đợi tới lúc gửi đơn mới báo lỗi.
 public class ApplyDiscountRequest
 {
     public string Code { get; set; } = string.Empty;
+    public string? CustomerPhone { get; set; }
 }
 
 // DTO trả về khi apply mã giảm giá.

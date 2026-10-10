@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using NguyetnhanPhohien.Application.DTOs.Content;
 using NguyetnhanPhohien.Application.Interfaces;
@@ -9,10 +10,12 @@ namespace NguyetnhanPhohien.Infrastructure.Services;
 public class ContentService : IContentService
 {
     private readonly AppDbContext _db;
+    private readonly IWebHostEnvironment _env;
 
-    public ContentService(AppDbContext db)
+    public ContentService(AppDbContext db, IWebHostEnvironment env)
     {
         _db = db;
+        _env = env;
     }
 
     public async Task<IEnumerable<WebsiteContentResponse>> GetAllContentAsync()
@@ -72,9 +75,10 @@ public class ContentService : IContentService
         // còn Landing Page chỉ đọc "HeroBannerUrl" → ảnh không bao giờ hiển thị.
         var canonicalKey = ImageKeys.First(k => k.Equals(contentKey, StringComparison.OrdinalIgnoreCase));
 
-        var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var contentDir = Path.Combine(wwwroot, "uploads", "content", canonicalKey.ToLowerInvariant());
-        Directory.CreateDirectory(contentDir);
+        // Cùng một nguồn gốc với ProductService (xem UploadPathResolver): ghi vào
+        // đúng thư mục UseStaticFiles phục vụ để URL /uploads/... luôn truy cập được.
+        var contentDir = UploadPathResolver.Directory(
+            _env, "uploads", "content", canonicalKey.ToLowerInvariant());
 
         // Chỉ giữ đuôi file thuộc whitelist (phòng hờ nếu caller
         // quên validate ở controller): không bao giờ ghi được .html/.js vào wwwroot.
@@ -102,17 +106,13 @@ public class ContentService : IContentService
 
         // Dọn ảnh cũ: mỗi lần upload là một file mới nên không dọn thì wwwroot phình vô hạn.
         // Chỉ đụng file nằm trong /uploads/ và không chứa ".." (chặn path traversal).
-        if (!string.IsNullOrWhiteSpace(oldRelativePath)
-            && oldRelativePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
-            && !oldRelativePath.Contains("..", StringComparison.Ordinal))
+        var oldFilePath = UploadPathResolver.ResolveUploadFile(_env, oldRelativePath);
+        if (oldFilePath != null
+            && !string.Equals(oldFilePath, filePath, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(oldFilePath))
         {
-            var oldFilePath = Path.Combine(wwwroot,
-                oldRelativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (!string.Equals(oldFilePath, filePath, StringComparison.OrdinalIgnoreCase) && File.Exists(oldFilePath))
-            {
-                try { File.Delete(oldFilePath); }
-                catch { /* file đang bị mở hoặc đã bị dọn trước đó — bỏ qua */ }
-            }
+            try { File.Delete(oldFilePath); }
+            catch { /* file đang bị mở hoặc đã bị dọn trước đó — bỏ qua */ }
         }
 
         return relativePath;
