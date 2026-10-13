@@ -9,6 +9,7 @@ import type {
   SendMessageRequest,
   WebsiteContentResponse,
   UpdateContentRequest,
+  PaymentSettings,
 } from "@/types/api.types";
 
 // Kết quả đăng nhập admin từ POST /api/auth/admin-login
@@ -365,6 +366,23 @@ export const authApi = {
   /** Kiểm tra token hiện tại còn hiệu lực */
   me: (): Promise<{ username: string; authenticated: boolean }> =>
     apiFetch("/api/auth/me", { headers: getAdminHeaders() }),
+};
+
+// ===== PAYMENT SETTINGS API =====
+// Thông tin nhận thanh toán (VietQR) in trong email hóa đơn. Chủ shop sửa ở /payment
+// nên đổi số tài khoản KHÔNG cần build lại hay sửa appsettings.
+export const paymentSettingsApi = {
+  /** [ADMIN] Lấy cấu hình nhận thanh toán hiện tại */
+  get: (): Promise<PaymentSettings> =>
+    apiFetch("/api/payment-settings", { headers: getAdminHeaders() }),
+
+  /** [ADMIN] Cập nhật cấu hình nhận thanh toán */
+  update: (data: PaymentSettings): Promise<PaymentSettings> =>
+    apiFetch("/api/payment-settings", {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: getAdminHeaders(),
+    }),
 };
 
 // ===== ADMIN AUTH HELPERS =====

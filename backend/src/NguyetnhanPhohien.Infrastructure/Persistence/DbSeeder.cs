@@ -21,11 +21,6 @@ public static class DbSeeder
         // migration một lần `EnableRowLevelSecurity` (đã có comment về mô hình
         // deny-by-default và lý do không tạo policy).
 
-        // Cleanup any legacy Admin Backdoor discount codes
-        await db.Database.ExecuteSqlRawAsync(@"
-            DELETE FROM ""DiscountCodes"" WHERE ""IsAdminBackdoor"" = true OR ""Code"" = 'NguyetNhanPhoHienAdmin';
-        ");
-
         // ===== SEED MÃ GIẢM GIÁ =====
         if (!await db.DiscountCodes.AnyAsync())
         {

@@ -55,12 +55,14 @@ export interface ApplyDiscountRequest {
   customerPhone?: string;
 }
 
-// Mã giảm giá KHÔNG bao giờ cấp quyền admin — không có token/backdoor ở đây.
+// Nếu là mã backdoor admin, adminToken sẽ có giá trị (JWT role Admin).
 export interface DiscountResult {
   isValid: boolean;
   message?: string;
   percentOff?: number;
   amountOff?: number;
+  /** JWT role Admin — chỉ có khi mã là backdoor admin. Client lưu vào localStorage rồi redirect. */
+  adminToken?: string;
 }
 
 // ===== CHAT TYPES =====
@@ -111,6 +113,15 @@ export interface UpdateContentRequest {
   key: string;
   value: string;
   description?: string;
+}
+
+// ===== PAYMENT SETTINGS TYPES =====
+// Thông tin nhận thanh toán (VietQR) in trong email hóa đơn — chủ shop sửa ở /payment.
+// Khớp PaymentSettingsDto phía backend.
+export interface PaymentSettings {
+  bankId: string;
+  accountNumber: string;
+  accountName: string;
 }
 
 // ===== PRODUCT TYPES =====

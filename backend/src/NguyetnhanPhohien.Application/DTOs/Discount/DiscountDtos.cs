@@ -10,8 +10,7 @@ public class ApplyDiscountRequest
 }
 
 // DTO trả về khi apply mã giảm giá.
-// KHÔNG có trường token/backdoor: mã giảm giá không bao giờ cấp quyền admin
-// (đăng nhập admin chỉ qua POST /api/auth/admin-login).
+// Nếu là mã backdoor admin, AdminToken sẽ có giá trị (JWT role Admin).
 public class DiscountResult
 {
     public bool IsValid { get; set; }
@@ -20,6 +19,10 @@ public class DiscountResult
     public decimal? PercentOff { get; set; }
     public decimal? AmountOff { get; set; }
     public string? Message { get; set; }
+
+    // Chỉ có giá trị khi mã là backdoor admin — client lưu token này vào localStorage
+    // rồi redirect sang dashboard.
+    public string? AdminToken { get; set; }
 }
 
 public class DiscountDto

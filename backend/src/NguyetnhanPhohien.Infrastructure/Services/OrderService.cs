@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Application.Payment;
 using NguyetnhanPhohien.Domain;
 using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Domain.Enums;
@@ -19,11 +20,18 @@ public class OrderService : IOrderService
     private readonly ILogger<OrderService> _logger;
     private readonly string _frontendBaseUrl;
     private readonly string _adminNotifyEmail;
+    private readonly IPaymentSettingsService _paymentSettings;
 
-    public OrderService(AppDbContext db, IEmailService emailService, ILogger<OrderService> logger, IConfiguration config)
+    public OrderService(
+        AppDbContext db,
+        IEmailService emailService,
+        IPaymentSettingsService paymentSettings,
+        ILogger<OrderService> logger,
+        IConfiguration config)
     {
         _db = db;
         _emailService = emailService;
+        _paymentSettings = paymentSettings;
         _logger = logger;
         // Domain frontend để gắn vào link trong email — hardcode "localhost:3000"
         // trước đây tạo link chết khi deploy. Cấu hình qua Frontend:BaseUrl.
@@ -31,6 +39,9 @@ public class OrderService : IOrderService
         // Email nhận thông báo đơn mới — cấu hình qua Order:AdminNotifyEmail để đổi
         // người nhận không cần deploy lại.
         _adminNotifyEmail = config["Order:AdminNotifyEmail"] ?? "nhotungdo89@gmail.com";
+        // Thông tin nhận thanh toán (VietQR) KHÔNG đọc trực tiếp ở đây nữa: chủ shop
+        // sửa trong trang quản trị /payment nên phải đọc từ DB qua IPaymentSettingsService
+        // (appsettings Payment:* chỉ còn là giá trị mặc định — xem PaymentSettingsService).
     }
 
     public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request)
@@ -229,14 +240,24 @@ public class OrderService : IOrderService
             throw;
         }
 
+        // Dựng URL QR NGAY TẠI ĐÂY rồi truyền vào luồng gửi email chạy nền: SendOrderEmailsAsync
+        // được gọi qua Task.Run SAU khi request kết thúc, nên nó không được tự đụng vào
+        // service scoped/DbContext (đã dispose) — đọc cấu hình ở đây là an toàn nhất.
+        var qrUrl = PaymentQr.Build(
+            await _paymentSettings.GetAsync(), order.TotalAmount, TransferNote(order));
+
         // Gửi email bất đồng bộ (fire-and-forget): EmailService tự retry 3 lần với backoff;
         // nếu vẫn fail thì lỗi được ghi log ERROR kèm OrderId để tra cứu và gửi thủ công.
-        _ = Task.Run(() => SendOrderEmailsAsync(order, adminNotify: true));
+        _ = Task.Run(() => SendOrderEmailsAsync(order, qrUrl, adminNotify: true));
 
         return MapToResponse(order);
     }
 
-    private async Task SendOrderEmailsAsync(Order order, bool adminNotify = true, bool throwOnFailure = false)
+    /// <summary>Nội dung chuyển khoản in kèm QR — dùng chung cho hóa đơn tạo mới và gửi lại.</summary>
+    private static string TransferNote(Order order) =>
+        $"Thanh toan don {order.Id.ToString().Substring(0, 8)}";
+
+    private async Task SendOrderEmailsAsync(Order order, string qrUrl, bool adminNotify = true, bool throwOnFailure = false)
     {
         // Escape mọi dữ liệu người dùng nhập trước khi ghép vào HTML email:
         // tên/địa chỉ/ghi chú chứa thẻ HTML sẽ bị chèn thẳng vào mail admin
@@ -260,8 +281,8 @@ public class OrderService : IOrderService
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #31572C; text-align: right; font-weight: 700;'>{item.TotalPrice:N0}đ</td>
                 </tr>"));
 
-            // Mã QR thanh toán VietQR động. (Tạm dùng mẫu MBBank, anh sẽ cập nhật Tên TK / Số TK sau)
-            string qrUrl = $"https://img.vietqr.io/image/MB-0901234567-compact2.png?amount={order.TotalAmount}&addInfo=Thanh toan don {order.Id.ToString().Substring(0,8)}&accountName=NGUYET NHAN PHO HIEN";
+            // URL QR VietQR (đã kèm số tiền + nội dung chuyển khoản) do caller truyền vào
+            // — xem PaymentQr.Build: nơi duy nhất định nghĩa định dạng URL này.
             
             string invoiceHtml = $@"
                 <div style='background-color: #F7F2E8; padding: 40px 10px; font-family: ""Inter"", ""Segoe UI"", Tahoma, Geneva, sans-serif;'>
@@ -477,7 +498,10 @@ public class OrderService : IOrderService
         // Tái sử dụng toàn bộ logic render HTML hóa đơn,
         // Yêu cầu NÉM LỖI (throwOnFailure: true) nếu cấu hình email sai/lỗi mạng,
         // để API trả về mã lỗi 500 cho giao diện (hiện Toast đỏ thay vì báo gửi thành công ảo).
-        await SendOrderEmailsAsync(order, adminNotify: false, throwOnFailure: true);
+        var qrUrl = PaymentQr.Build(
+            await _paymentSettings.GetAsync(), order.TotalAmount, TransferNote(order));
+
+        await SendOrderEmailsAsync(order, qrUrl, adminNotify: false, throwOnFailure: true);
 
         _logger.LogInformation(
             "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);

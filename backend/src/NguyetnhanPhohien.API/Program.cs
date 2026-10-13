@@ -146,6 +146,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPaymentSettingsService, PaymentSettingsService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====

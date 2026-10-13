@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using NguyetnhanPhohien.Application.DTOs.Content;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Application.Payment;
 using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Infrastructure.Persistence;
 
@@ -20,12 +21,22 @@ public class ContentService : IContentService
 
     public async Task<IEnumerable<WebsiteContentResponse>> GetAllContentAsync()
     {
-        var contents = await _db.WebsiteContents.ToListAsync();
+        // Loại các key cấu hình nhận thanh toán (xem PaymentSettingKeys): chúng nằm
+        // CÙNG bảng nhưng là cấu hình vận hành, không phải nội dung Landing Page.
+        // Trả ra đây vừa làm bẩn map nội dung phía client vừa mở đường cho khách đọc
+        // số tài khoản qua endpoint công khai.
+        var contents = await _db.WebsiteContents
+            .Where(w => !PaymentSettingKeys.All.Contains(w.Key))
+            .ToListAsync();
         return contents.Select(MapToResponse);
     }
 
     public async Task<WebsiteContentResponse?> GetContentByKeyAsync(string key)
     {
+        // Endpoint GET /api/content/{key} là công khai → không cho đọc key cấu hình
+        // thanh toán qua đây (trả null để controller trả 404 như key không tồn tại).
+        if (PaymentSettingKeys.IsPaymentKey(key)) return null;
+
         var content = await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == key);
         return content == null ? null : MapToResponse(content);
     }
