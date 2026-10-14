@@ -15,9 +15,9 @@ if (typeof window !== "undefined") {
 }
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, scaleIn, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
+import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useVnProvinces } from "@/hooks/useVnProvinces";
 import { wardsOf } from "@/lib/vnAddress";
@@ -97,7 +97,7 @@ export default function LandingPage() {
   });
   const timelineScaleY = useSpring(timelineScroll, { stiffness: 90, damping: 30, restDelta: 0.001 });
 
-  const { products, isLoading: isLoadingProducts } = useProducts();
+  const { products } = useProducts();
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
   // Danh sách Tỉnh/Thành phố → Phường/Xã chỉ được tải khi khách thật sự chạm

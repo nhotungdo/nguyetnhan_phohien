@@ -54,7 +54,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             <span>Minh Bạch Chất Lượng</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4 font-serif">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">
             {language === "en" ? "Purity Uncompromised: The Nguyệt Nhãn Standard" : "Khác Biệt Làm Nên Đẳng Cấp Nguyệt Nhãn"}
           </h2>
           <p className="text-foreground/80 text-base md:text-lg leading-relaxed">
@@ -81,7 +81,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
             <div>
               <div className="text-accent font-bold text-xs uppercase tracking-widest mb-2">Đặc Sản Chính Gốc</div>
-              <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-6 font-serif">
+              <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-6">
                 Nguyệt Nhãn Phố Hiến
               </h3>
 
@@ -115,7 +115,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
           >
             <div>
               <div className="text-muted-foreground font-bold text-xs uppercase tracking-widest mb-2">Hàng Đại Trà Thị Trường</div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-500 mb-6 font-serif">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-500 mb-6">
                 Long Nhãn Trôi Nổi
               </h3>
 

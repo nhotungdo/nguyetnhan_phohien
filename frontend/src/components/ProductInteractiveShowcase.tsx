@@ -163,7 +163,7 @@ export function ProductInteractiveShowcase({
             <span>{language === "en" ? "King's Tribute Longan Collection" : "Bộ Sưu Tập Long Nhãn Tiến Vua"}</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4 font-serif">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">
             {language === "en" 
               ? (cmsContent.ProductsTitle_En || "Artisanal Specialty Products") 
               : (cmsContent.ProductsTitle || "Tinh Hoa Sản Phẩm Nguyệt Nhãn")}
@@ -371,7 +371,7 @@ export function ProductInteractiveShowcase({
                   </span>
                 </div>
 
-                <h3 className="text-2xl md:text-3xl font-bold text-primary mb-3 font-serif">
+                <h3 className="text-2xl md:text-3xl font-bold text-primary mb-3">
                   {activeProduct.name}
                 </h3>
 

@@ -90,7 +90,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
             <span>{language === "en" ? "Artisan Craftsmanship Journey" : "Kỳ Công Nghệ Nhân Phố Hiến"}</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4 font-serif">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">
             {language === "en" ? "From Ancient Orchards to Royal Banquets" : "Hành Trình Tinh Túy Từ Vườn Nhãn Đến Bàn Tiệc"}
           </h2>
           <p className="text-foreground/80 text-base md:text-lg leading-relaxed">
@@ -149,7 +149,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                           isEven ? "md:justify-end" : "justify-start"
                         }`}
                       >
-                        <span className="text-2xl font-black text-[#FDE68A] font-serif group-hover:text-accent transition-colors">
+                        <span className="text-2xl font-black text-[#FDE68A] group-hover:text-accent transition-colors">
                           {item.step}
                         </span>
                         <span className="text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-3 py-1 rounded-full">
@@ -157,7 +157,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                         </span>
                       </div>
 
-                      <h3 className="text-xl md:text-2xl font-bold text-primary mb-3 font-serif">
+                      <h3 className="text-xl md:text-2xl font-bold text-primary mb-3">
                         {language === "en" ? item.titleEn : item.title}
                       </h3>
 

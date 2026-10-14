@@ -98,7 +98,7 @@ export function ProductPairingSection({
             <span>Nghệ Thuật Thưởng Thức Đa Giác Quan</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4 font-serif">
+          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">
             {language === "en" ? "Gastronomic Harmony & Rituals" : "Thưởng Thức Đúng Điệu Cùng Nguyệt Nhãn"}
           </h2>
           <p className="text-foreground/80 text-base md:text-lg leading-relaxed">
@@ -152,11 +152,11 @@ export function ProductPairingSection({
                   <span className="text-xs font-bold uppercase tracking-widest text-accent bg-secondary px-3 py-1 rounded-full">
                     {activeRecipe.category}
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-bold text-primary mt-3 mb-2 font-serif">
+                  <h3 className="text-2xl md:text-3xl font-bold text-primary mt-3 mb-2">
                     {activeRecipe.name}
                   </h3>
                   <p className="text-sm md:text-base text-accent font-medium italic">
-                    "{activeRecipe.tagline}"
+                    &ldquo;{activeRecipe.tagline}&rdquo;
                   </p>
                 </div>
 

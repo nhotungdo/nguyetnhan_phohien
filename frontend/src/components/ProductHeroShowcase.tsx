@@ -82,7 +82,7 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
                 <Crown className="w-3.5 h-3.5" />
                 Ngự Phẩm Hoàng Gia
               </div>
-              <div className="text-base font-bold font-serif">Nguyệt Nhãn Phố Hiến</div>
+              <div className="text-base font-bold">Nguyệt Nhãn Phố Hiến</div>
             </div>
             <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40">
               <Sparkles className="w-4 h-4 text-white" />
