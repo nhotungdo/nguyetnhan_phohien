@@ -2,36 +2,67 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { orderApi, discountApi, adminAuth } from "@/services/api.service";
 import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
+import {
+  composeAddress,
+  hasErrors,
+  normalizePhone,
+  validateOrderForm,
+  type OrderField,
+  type OrderFormErrors,
+  type OrderFormValues,
+} from "@/lib/validation";
 
 export interface OrderItemFormState {
   productId: string;
   quantity: number;
 }
 
-interface OrderFormState {
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
-  customerAddress: string;
+interface OrderFormState extends OrderFormValues {
   items: OrderItemFormState[];
   note: string;
   discountCode: string;
 }
 
+const EMPTY_ADDRESS = { province: "", ward: "", addressDetail: "" };
+
+export interface OrderFormOptions {
+  /**
+   * Có bắt buộc chọn Tỉnh/Thành phố + Phường/Xã không. Đặt `false` khi khách
+   * nhập địa chỉ thủ công (danh sách đơn vị hành chính không tải được, hoặc địa
+   * chỉ của khách không có trong danh sách) — lúc đó chỉ cần ô địa chỉ đầy đủ.
+   */
+  requireAdministrativeUnits?: boolean;
+}
+
 export function useOrderForm(
   products: ProductResponse[],
-  onSuccess?: () => void
+  onSuccess?: () => void,
+  options: OrderFormOptions = {}
 ) {
   const router = useRouter();
+  const requireAdministrativeUnits = options.requireAdministrativeUnits ?? true;
+
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
     customerPhone: "",
     customerEmail: "",
-    customerAddress: "",
+    ...EMPTY_ADDRESS,
     items: [{ productId: "", quantity: 1 }],
     note: "",
     discountCode: "",
   });
+
+  // Lỗi được SUY RA từ dữ liệu hiện tại (không lưu vào state) nên không bao giờ
+  // lệch với những gì khách đang thấy; chỉ hiển thị ở ô khách đã rời khỏi (blur)
+  // hoặc sau lần bấm gửi đầu tiên — lúc đang gõ dở mà ô đã đỏ thì rất khó chịu.
+  const [touched, setTouched] = useState<Partial<Record<OrderField, boolean>>>({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+
+  const allErrors = validateOrderForm(form, { requireAdministrativeUnits });
+  const errors: OrderFormErrors = {};
+  for (const field of Object.keys(allErrors) as OrderField[]) {
+    if (showAllErrors || touched[field]) errors[field] = allErrors[field];
+  }
 
   const [discountResult, setDiscountResult] = useState<DiscountResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,11 +72,23 @@ export function useOrderForm(
   const [lastSubmittedEmail, setLastSubmittedEmail] = useState("");
 
   const setField = <K extends keyof OrderFormState>(field: K, value: OrderFormState[K]) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+      // Đổi tỉnh/thành thì phường/xã cũ không còn thuộc tỉnh mới → xoá để tránh
+      // gửi lên địa chỉ vô nghĩa kiểu "Phường Bạch Mai, Tỉnh Cao Bằng".
+      ...(field === "province" ? { ward: "" } : {}),
+    }));
+
     // Sửa mã giảm giá (hoặc SĐT) thì kết quả đã áp dụng không còn đúng nữa:
     // nếu giữ lại, UI vẫn hiện "Giảm 10%" trong khi đơn gửi mã khác → khách
     // thấy sai tiền, thậm chí bị 400 và không đặt được đơn.
     if (field === "discountCode" || field === "customerPhone") setDiscountResult(null);
+  };
+
+  /** Khách rời khỏi 1 ô → cho phép hiện lỗi của ô đó (nếu có). */
+  const validateField = (field: OrderField) => {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
   };
 
   /**
@@ -113,7 +156,9 @@ export function useOrderForm(
     try {
       const result = await discountApi.apply({
         code: form.discountCode.trim(),
-        customerPhone: form.customerPhone.trim() || undefined,
+        // Gửi SĐT đã chuẩn hoá: backend lưu "mỗi SĐT dùng mã 1 lần" theo chuỗi số,
+        // gửi "0982 072 601" hay "+84982..." sẽ bị coi là hai người khác nhau.
+        customerPhone: normalizePhone(form.customerPhone) || undefined,
       });
 
       // Mã backdoor admin: lưu token và redirect sang dashboard
@@ -159,9 +204,15 @@ export function useOrderForm(
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorMessage("");
     setSubmitStatus("idle");
+
+    // Chặn ngay tại client trước khi gọi API: đỡ một vòng request/response cho
+    // lỗi nhập liệu và giữ nguyên dữ liệu khách vừa gõ.
+    setShowAllErrors(true);
+    if (hasErrors(allErrors)) return;
+
+    setIsSubmitting(true);
 
     const validItems: OrderItemRequest[] = form.items
       .filter((i) => i.productId && i.quantity > 0)
@@ -174,28 +225,31 @@ export function useOrderForm(
     }
 
     const payload: CreateOrderRequest = {
-      customerName: form.customerName,
-      customerPhone: form.customerPhone,
-      customerEmail: form.customerEmail || undefined,
-      customerAddress: form.customerAddress,
-      note: form.note || undefined,
+      customerName: form.customerName.trim(),
+      customerPhone: normalizePhone(form.customerPhone),
+      customerEmail: form.customerEmail.trim() || undefined,
+      // Backend vẫn nhận 1 chuỗi địa chỉ: ghép "số nhà, phường/xã, tỉnh/thành".
+      customerAddress: composeAddress(form),
+      note: form.note.trim() || undefined,
       items: validItems,
       discountCode: discountResult?.isValid ? form.discountCode.trim() : undefined,
     };
 
     try {
       await orderApi.create(payload);
-      setLastSubmittedEmail(form.customerEmail || "");
+      setLastSubmittedEmail(payload.customerEmail ?? "");
       setSubmitStatus("success");
       setForm({
         customerName: "",
         customerPhone: "",
         customerEmail: "",
-        customerAddress: "",
+        ...EMPTY_ADDRESS,
         items: [{ productId: products[0]?.id || "", quantity: 1 }],
         note: "",
         discountCode: "",
       });
+      setTouched({});
+      setShowAllErrors(false);
       setDiscountResult(null);
       onSuccess?.();
     } catch (err: unknown) {
@@ -210,6 +264,8 @@ export function useOrderForm(
   return {
     form,
     setField,
+    errors,
+    validateField,
     canAddItem,
     addItem,
     removeItem,

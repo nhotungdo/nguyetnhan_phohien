@@ -16,8 +16,12 @@ if (typeof window !== "undefined") {
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, Star, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, scaleIn, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { useOrderForm } from "@/hooks/useOrderForm";
+import { useVnProvinces } from "@/hooks/useVnProvinces";
+import { wardsOf } from "@/lib/vnAddress";
+import { composeAddress, MAX_ADDRESS_DETAIL_LENGTH, MAX_EMAIL_LENGTH, MAX_NAME_LENGTH, normalizePhone, type OrderFieldErrorCode } from "@/lib/validation";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -31,6 +35,25 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 // Ghép URL ảnh từ CMS: link tuyệt đối (http/https/protocol-relative/data) dùng nguyên,
 // còn lại (vd /uploads/content/...) là đường dẫn tương đối trên server API.
 // null-safe: key chưa có trong CMS (API lỗi, trang prerender) → chuỗi rỗng, caller tự fallback.
+// Ô nhập đang lỗi: viền + vòng focus chuyển đỏ để khách thấy ngay ô nào cần sửa.
+const inputClass = (error?: unknown) =>
+  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all ${
+    error
+      ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+      : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
+  }`;
+
+/** Câu báo lỗi ngay dưới ô nhập (role="alert" để trình đọc màn hình đọc lên). */
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="text-xs text-red-500 flex items-start gap-1 pt-0.5">
+      <AlertCircle className="w-3.5 h-3.5 mt-[1px] shrink-0" />
+      <span>{message}</span>
+    </p>
+  );
+}
+
 const resolveCmsImage = (url?: string) =>
   !url
     ? ""
@@ -49,17 +72,71 @@ export default function LandingPage() {
   const [chatStarted, setChatStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Parallax: khối chữ và khối ảnh hero trôi chậm hơn nhịp cuộn → tạo chiều sâu.
+  // Tắt hẳn khi người dùng bật "giảm chuyển động" trong hệ điều hành.
+  const heroRef = useRef<HTMLElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroImageY = useTransform(heroScroll, [0, 1], [0, prefersReducedMotion ? 0 : 90]);
+  const heroContentY = useTransform(heroScroll, [0, 1], [0, prefersReducedMotion ? 0 : 45]);
+
+  // Mục Lịch sử: đường trục được "vẽ" dần theo tiến độ cuộn qua khối timeline.
+  const { scrollYProgress: timelineScroll } = useScroll({
+    target: timelineRef,
+    offset: ["start 80%", "end 65%"],
+  });
+  const timelineScaleY = useSpring(timelineScroll, { stiffness: 90, damping: 30, restDelta: 0.001 });
+
   const { products, isLoading: isLoadingProducts } = useProducts();
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
+  // Danh sách Tỉnh/Thành phố → Phường/Xã chỉ được tải khi khách thật sự chạm
+  // vào ô chọn địa điểm (xem useVnProvinces).
+  const { provinces: vnProvinces, isLoading: isLoadingProvinces, error: provinceLoadError, enable: enableProvincePicker } = useVnProvinces();
+  const [manualAddress, setManualAddress] = useState(false);
+
+  // Chế độ nhập thủ công: khách tự bật, HOẶC tự động khi danh sách địa chỉ không
+  // tải được — lúc đó bỏ yêu cầu chọn Tỉnh/Phường để khách vẫn đặt được hàng.
+  const isManualAddress = manualAddress || !!provinceLoadError;
+
   const {
-    form, setField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
+    form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
-  } = useOrderForm(products);
+  } = useOrderForm(products, undefined, { requireAdministrativeUnits: !isManualAddress });
+
+  const wardOptions = wardsOf(vnProvinces, form.province);
+  const hasFieldErrors = Object.values(errors).some(Boolean);
+
+  const toggleManualAddress = () => {
+    const next = !isManualAddress;
+    setManualAddress(next);
+    // Bật nhập thủ công → bỏ tỉnh/phường đang chọn để địa chỉ gửi đi không bị lẫn.
+    if (next) {
+      setField("province", "");
+      setField("ward", "");
+    }
+  };
+
+  /** Mã lỗi → câu chữ theo ngôn ngữ đang chọn (lib validation không chứa i18n). */
+  const errorText = (code?: OrderFieldErrorCode) => (code ? t.order.errors[code] : undefined);
 
   const { messages, isConnected, isSending, isAdminTyping, connect, notifyTyping, markMessagesRead, sendMessage } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
+
+  // Dải chữ chạy chỉ lặp lại các cam kết đã có sẵn trong bản dịch — không thêm thông tin mới.
+  const marqueeItems = [
+    t.about.natural_title,
+    t.about.traditional_title,
+    t.about.safe_title,
+    t.hero.quality,
+    t.nav.support,
+  ];
 
   // Tiêu đề Hero lấy từ CMS (key HeroTitle), chia 2 dòng để giữ bố cục gradient.
   // Tiếng Việt lấy từ CMS như HeroSubtitle; tiếng Anh vẫn dùng locale.
@@ -135,6 +212,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
+      {/* Thanh tiến trình cuộn — phản hồi tức thì vị trí đang đọc */}
+      <ScrollProgressBar />
+
       {/* Gallery Modal */}
       {galleryProduct && (
         <ProductGalleryModal
@@ -148,7 +228,10 @@ export default function LandingPage() {
         />
       )}
       {/* 1. Header */}
-      <header
+      <motion.header
+        initial={{ y: -90, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-5"
           }`}
       >
@@ -219,38 +302,54 @@ export default function LandingPage() {
             {isMobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
-      </header>
+      </motion.header>
 
       {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 md:hidden">
-          {[
-            { label: "Sản phẩm", id: "san-pham" },
-            { label: "Câu chuyện", id: "cau-chuyen" },
-            { label: "Lịch sử", id: "lich-su" },
-            { label: "Văn hóa", id: "van-hoa" },
-            { label: "Liên hệ", id: "lien-he" }
-          ].map((item, index) => (
-            <button
-              key={index}
-              onClick={() => scrollToSection(item.id)}
-              className="text-xl font-medium text-primary text-left border-b pb-4"
-            >
-              {item.label}
-            </button>
-          ))}
-          <button
-            onClick={() => scrollToSection("dat-hang")}
-            className="bg-accent text-white text-lg font-medium px-6 py-3 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2"
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
+            animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
+            exit={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
+            transition={{ duration: 0.45, ease: EASE_OUT_EXPO }}
+            className="fixed inset-0 z-40 bg-white pt-24 px-6 flex flex-col gap-6 md:hidden"
           >
-            <ShoppingCart className="w-5 h-5" /> {t.nav.buyNow}
-          </button>
-        </div>
-      )}
+            {[
+              { label: "Sản phẩm", id: "san-pham" },
+              { label: "Câu chuyện", id: "cau-chuyen" },
+              { label: "Lịch sử", id: "lich-su" },
+              { label: "Văn hóa", id: "van-hoa" },
+              { label: "Liên hệ", id: "lien-he" }
+            ].map((item, index) => (
+              <motion.button
+                key={index}
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.45, delay: 0.08 + index * 0.07, ease: EASE_OUT_EXPO }}
+                onClick={() => scrollToSection(item.id)}
+                className="text-xl font-medium text-primary text-left border-b pb-4"
+              >
+                {item.label}
+              </motion.button>
+            ))}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.45, ease: EASE_OUT_EXPO }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => scrollToSection("dat-hang")}
+              className="bg-accent text-white text-lg font-medium px-6 py-3 rounded-xl shadow-lg mt-4 flex justify-center items-center gap-2"
+            >
+              <ShoppingCart className="w-5 h-5" /> {t.nav.buyNow}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main>
         {/* 2. Hero Banner */}
-        <section id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
           {/* Background Elements */}
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
@@ -261,27 +360,48 @@ export default function LandingPage() {
               transition={{ duration: 1.5, ease: "easeOut" }}
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-secondary rounded-full blur-3xl"
             />
+            {/* Hai vệt sáng trôi lơ lửng, lệch pha nhau → nền "thở" nhẹ mà không gây phân tán */}
+            <div className="absolute -left-24 top-24 w-[420px] h-[420px] rounded-full bg-[#FDE68A]/40 blur-3xl animate-float-slow" />
+            <div className="absolute right-1/4 bottom-0 w-[320px] h-[320px] rounded-full bg-[#D99491]/20 blur-3xl animate-float-slower" />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
             <motion.div
+              style={{ y: heroContentY }}
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-8 max-w-xl"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-accent text-sm font-medium border border-[#FDE68A]">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-accent text-sm font-medium border border-[#FDE68A] shadow-sm">
+                {/* Vòng sóng lan ra từ chấm vàng → mắt nhận ra "đang hoạt động" ngay */}
+                <span className="relative flex w-2 h-2">
+                  <span aria-hidden className="absolute inline-flex w-full h-full rounded-full bg-accent animate-pulse-ring" />
+                  <span className="relative inline-flex w-2 h-2 rounded-full bg-accent" />
+                </span>
                 Tinh túy đất Phố Hiến
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-primary leading-[1.1] tracking-tight">
-                {heroLine1}
+                <motion.span
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.9, delay: 0.32, ease: EASE_OUT_EXPO }}
+                  className="inline-block"
+                >
+                  {heroLine1}
+                </motion.span>
                 {heroLine2 && (
                   <>
                     {" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] to-[#D97706]">
+                    <motion.span
+                      initial={{ opacity: 0, y: 26 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.9, delay: 0.52, ease: EASE_OUT_EXPO }}
+                      // Gradient giãn 200% rồi trôi qua lại trên chữ → ánh vàng lấp lánh rất nhẹ
+                      className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] bg-[length:200%_auto] animate-gradient-pan"
+                    >
                       {heroLine2}
-                    </span>
+                    </motion.span>
                   </>
                 )}
               </h1>
@@ -309,6 +429,7 @@ export default function LandingPage() {
             </motion.div>
 
             <motion.div
+              style={{ y: heroImageY }}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -349,7 +470,14 @@ export default function LandingPage() {
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute bottom-20 left-10 bg-white p-4 rounded-2xl shadow-xl border border-[#FDE68A] animate-bounce-slow">
+              {/* Trước đây dùng class animate-bounce-slow không tồn tại trong Tailwind → thẻ đứng yên;
+                  giờ dùng animate-float-slow (keyframes tự định nghĩa) + hiệu ứng xuất hiện. */}
+              <motion.div
+                initial={{ opacity: 0, y: 30, rotate: -6 }}
+                animate={{ opacity: 1, y: 0, rotate: 0 }}
+                transition={{ duration: 0.8, delay: 0.9, ease: EASE_OUT_EXPO }}
+                className="absolute bottom-20 left-10 bg-white p-4 rounded-2xl shadow-xl border border-[#FDE68A] animate-float-slow"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-accent">
                     <Star className="w-6 h-6 fill-[#B45309]" />
@@ -359,10 +487,15 @@ export default function LandingPage() {
                     <p className="text-xs text-foreground/80">{t.hero.quality}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </section>
+
+        {/* 2b. Dải cam kết chạy ngang — nhịp nghỉ giữa hero và phần giới thiệu */}
+        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-5 text-accent">
+          <Marquee items={marqueeItems} className="marquee-mask" />
+        </div>
 
         {/* 3. Giới thiệu thương hiệu */}
         <section id="gioi-thieu" className="py-24 bg-white relative">
@@ -380,26 +513,32 @@ export default function LandingPage() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8 mt-20">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-80px" }}
+              className="grid md:grid-cols-3 gap-8 mt-20"
+            >
               {[
                 { title: t.about.natural_title, desc: t.about.natural_desc },
                 { title: t.about.traditional_title, desc: t.about.traditional_desc },
                 { title: t.about.safe_title, desc: t.about.safe_desc }
               ].map((val, i) => (
                 <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.5, delay: i * 0.2 }}
+                  variants={fadeUp}
+                  whileHover={prefersReducedMotion ? undefined : { y: -10 }}
                   key={i}
-                  className="bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-all hover:-translate-y-2 group"
+                  className="relative overflow-hidden bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-colors group"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 transition-transform">0{i + 1}</div>
-                  <h3 className="text-xl font-bold text-primary mb-3">{val.title}</h3>
-                  <p className="text-foreground/80">{val.desc}</p>
+                  {/* Vệt sáng màu kem loe ra khi hover thay cho hiệu ứng dịch chuyển bằng CSS */}
+                  <div aria-hidden className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-secondary opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500" />
+                  <div className="relative w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500">0{i + 1}</div>
+                  <h3 className="relative text-xl font-bold text-primary mb-3">{val.title}</h3>
+                  <p className="relative text-foreground/80">{val.desc}</p>
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -417,7 +556,13 @@ export default function LandingPage() {
               <p className="text-foreground/80">{language === "en" ? t.products.subtitle : cmsContent.ProductsSubtitle || t.products.subtitle}</p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-60px" }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
+            >
               {isLoadingProducts ? (
                 <div className="col-span-full flex justify-center py-10">
                   <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -428,12 +573,10 @@ export default function LandingPage() {
                   const extraCount = (prod.images?.length ?? 0) - 1;
                   return (
                     <motion.div
-                      initial={{ opacity: 0, y: 50 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-50px" }}
-                      transition={{ duration: 0.5, delay: i * 0.15 }}
+                      variants={scaleIn}
+                      whileHover={prefersReducedMotion ? undefined : { y: -10 }}
                       key={prod.id}
-                      className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-all cursor-pointer"
+                      className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-shadow cursor-pointer"
                       onClick={() => setGalleryProduct(prod)}
                     >
                       <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
@@ -465,6 +608,8 @@ export default function LandingPage() {
                             {language === "en" ? "View Details" : "Xem Chi Tiết"}
                           </motion.span>
                         </div>
+                        {/* Vệt sáng quét qua ảnh khi hover (CSS, không tốn JS) */}
+                        <span aria-hidden className="sheen absolute inset-0 z-20 pointer-events-none" />
                       </div>
                       <div className="p-8 flex flex-col h-full">
                         <div className="flex justify-between items-start mb-4 gap-2">
@@ -494,7 +639,7 @@ export default function LandingPage() {
                   );
                 })
               )}
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -546,14 +691,28 @@ export default function LandingPage() {
         {/* Lịch sử */}
         <section id="lich-su" className="py-24 bg-background border-t border-border/30">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl">
-            <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">{t.history.title}</h2>
-            <div className="relative border-l-2 border-accent pl-8 ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-12">
+            <Reveal>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">{t.history.title}</h2>
+            </Reveal>
+            <div ref={timelineRef} className="relative border-l-2 border-accent pl-8 ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-12">
+              {/* Trục thời gian được "vẽ" dần theo nhịp cuộn (chỉ hiện ở desktop, nơi các mốc nằm giữa) */}
+              {/* h-full thay vì bottom-0: `space-y-12` của khối cha thêm margin-bottom cho con đầu tiên,
+                  dùng chiều cao tường minh để trục không bị hụt mất một đoạn. */}
+              <div aria-hidden className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 h-full w-[2px] bg-[#FDE68A]/80 rounded-full overflow-hidden">
+                <motion.div style={{ scaleY: timelineScaleY }} className="w-full h-full origin-top bg-gradient-to-b from-[#B45309] to-[#D97706]" />
+              </div>
               <div className="md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
                   <h3 className="text-2xl font-bold text-accent">{t.history.c16_title}</h3>
                   <p className="text-foreground/80">{t.history.c16_desc.split(". ")[0]}.</p>
                 </div>
-                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
+                  className="absolute z-10 left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
+                />
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.c16_title}</h3>
                   <p className="text-foreground/80 md:hidden mb-2">{t.history.c16_desc.split(". ")[0]}.</p>
@@ -565,7 +724,13 @@ export default function LandingPage() {
                   <h3 className="text-2xl font-bold text-accent">{t.history.tree_title}</h3>
                   <p className="text-foreground/80">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
                 </div>
-                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
+                  className="absolute z-10 left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
+                />
                 <div className="md:w-1/2 md:text-right">
                   <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.tree_title}</h3>
                   <p className="text-foreground/80 md:hidden mb-2">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
@@ -577,7 +742,13 @@ export default function LandingPage() {
                   <h3 className="text-2xl font-bold text-accent">{t.history.year2010_title}</h3>
                   <p className="text-foreground/80">{t.history.year2010_desc.split(". ")[0]}.</p>
                 </div>
-                <div className="absolute left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"></div>
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
+                  className="absolute z-10 left-[-9px] md:left-1/2 md:-ml-[9px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
+                />
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-2xl font-bold text-accent md:hidden">{t.history.year2010_title}</h3>
                   <p className="text-foreground/80 md:hidden mb-2">{t.history.year2010_desc.split(". ")[0]}.</p>
@@ -593,22 +764,44 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">{t.culture.title}</h2>
-                <p className="text-lg text-foreground/80 leading-relaxed mb-6">
-                  {t.culture.desc}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <button onClick={() => setSelectedRecipe('tra')} className="bg-background p-4 rounded-xl border border-border/50 text-center hover:border-accent hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className="text-3xl mb-2">🍵</div>
+                <Reveal>
+                  <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">{t.culture.title}</h2>
+                </Reveal>
+                <Reveal delay={0.1}>
+                  <p className="text-lg text-foreground/80 leading-relaxed mb-6">
+                    {t.culture.desc}
+                  </p>
+                </Reveal>
+                <motion.div
+                  variants={staggerContainer}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-60px" }}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <motion.button
+                    variants={fadeUp}
+                    whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSelectedRecipe('tra')}
+                    className="bg-background p-4 rounded-xl border border-border/50 group text-center hover:border-accent hover:shadow-lg transition-colors"
+                  >
+                    <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-300">🍵</div>
                     <div className="font-bold text-primary">Trà Long Nhãn</div>
-                  </button>
-                  <button onClick={() => setSelectedRecipe('che')} className="bg-background p-4 rounded-xl border border-border/50 text-center hover:border-accent hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className="text-3xl mb-2">🥣</div>
+                  </motion.button>
+                  <motion.button
+                    variants={fadeUp}
+                    whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setSelectedRecipe('che')}
+                    className="bg-background p-4 rounded-xl border border-border/50 group text-center hover:border-accent hover:shadow-lg transition-colors"
+                  >
+                    <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-300">🥣</div>
                     <div className="font-bold text-primary">Chè Hạt Sen</div>
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               </div>
-              <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative">
+              <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative animate-float-slow">
                 <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold relative overflow-hidden">
                   [ Ảnh Văn Hóa Thưởng Trà ]
                   {cmsContent.CultureImage && (
@@ -632,25 +825,33 @@ export default function LandingPage() {
 
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-24 bg-[#451A03] text-background relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#78350F] rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#78350F] rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower"></div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
-                <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-                  {(language === "en"
-                    ? "Enjoy the Essence\nof Flavor"
-                    : cmsContent.OrderTitle || "Thưởng Thức\nHương Vị Tinh Túy"
-                  ).split("\n").filter(Boolean).map((line, i) => (
-                    <span key={i}>{i > 0 && <br />}{line}</span>
-                  ))}
-                </h2>
-                <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
-                  {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : cmsContent.OrderDescription || "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
-                </p>
+                <Reveal>
+                  <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+                    {(language === "en"
+                      ? "Enjoy the Essence\nof Flavor"
+                      : cmsContent.OrderTitle || "Thưởng Thức\nHương Vị Tinh Túy"
+                    ).split("\n").filter(Boolean).map((line, i) => (
+                      <span key={i}>{i > 0 && <br />}{line}</span>
+                    ))}
+                  </h2>
+                </Reveal>
+                <Reveal delay={0.08}>
+                  <p className="text-lg text-[#FDE68A] mb-8 leading-relaxed opacity-90">
+                    {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : cmsContent.OrderDescription || "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
+                  </p>
+                </Reveal>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
+                  <motion.div
+                    whileHover={prefersReducedMotion ? undefined : { x: 8 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                    className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]"
+                  >
                     <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white shrink-0">
                       <Phone className="w-6 h-6" />
                     </div>
@@ -658,8 +859,12 @@ export default function LandingPage() {
                       <p className="text-sm text-[#FDE68A]">Hotline tư vấn (24/7)</p>
                       <p className="text-xl font-bold text-white">{cmsContent.Hotline || "090 123 4567"}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]">
+                  </motion.div>
+                  <motion.div
+                    whileHover={prefersReducedMotion ? undefined : { x: 8 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                    className="flex items-center gap-4 bg-[#78350F]/50 p-4 rounded-2xl border border-[#92400E]"
+                  >
                     <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-white shrink-0">
                       <MapPin className="w-6 h-6" />
                     </div>
@@ -667,7 +872,7 @@ export default function LandingPage() {
                       <p className="text-sm text-[#FDE68A]">Địa chỉ xưởng sản xuất</p>
                       <p className="text-lg font-bold text-white">{cmsContent.Address || "Phố Hiến, Tp. Hưng Yên"}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
@@ -675,31 +880,56 @@ export default function LandingPage() {
               <div className="bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl text-foreground">
                 <h3 className="text-2xl font-bold text-primary mb-6">{t.order.title}</h3>
 
-                {submitStatus === "success" && (
-                  <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-xl">
-                    <div className="flex items-center gap-3 mb-1">
-                      <CheckCircle className="w-5 h-5 shrink-0" />
-                      <p className="font-medium">{t.order.success}</p>
-                    </div>
-                    {lastSubmittedEmail && (
-                      <p className="text-sm text-green-700 ml-8">
-                        {language === "en"
-                          ? `📧 Invoice sent to ${lastSubmittedEmail}`
-                          : `📧 Hóa đơn đã được gửi tới ${lastSubmittedEmail}`}
-                      </p>
-                    )}
+                {/* Kết quả gửi đơn trượt vào/ra mượt thay vì bật hiện đột ngột */}
+                <AnimatePresence initial={false} mode="wait">
+                  {submitStatus === "success" && (
+                    <motion.div
+                      key="order-success"
+                      initial={{ opacity: 0, y: -14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -14 }}
+                      transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
+                      className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-xl"
+                    >
+                      <div className="flex items-center gap-3 mb-1">
+                        <CheckCircle className="w-5 h-5 shrink-0" />
+                        <p className="font-medium">{t.order.success}</p>
+                      </div>
+                      {lastSubmittedEmail && (
+                        <p className="text-sm text-green-700 ml-8">
+                          {language === "en"
+                            ? `📧 Invoice sent to ${lastSubmittedEmail}`
+                            : `📧 Hóa đơn đã được gửi tới ${lastSubmittedEmail}`}
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Tổng hợp lỗi nhập liệu: hiện khi form có ô sai mà chưa gửi lên server */}
+                {submitStatus !== "error" && hasFieldErrors && (
+                  <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <p className="font-medium">{t.order.check_fields}</p>
                   </div>
                 )}
 
                 {submitStatus === "error" && (
-                  <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
-                    <AlertCircle className="w-5 h-5 shrink-0" />
-                    {/* Hiện đúng nguyên nhân từ server (mã hết hạn, số lượng sai...)
-                        thay vì câu chung chung — trước đây errorMessage bị ẩn đúng
-                        lúc cần nhất vì khối dưới chỉ render khi KHÔNG có lỗi submit. */}
-                    <p className="font-medium">{errorMessage || t.order.error}</p>
-                  </div>
-                )}
+                    <motion.div
+                      key="order-error"
+                      initial={{ opacity: 0, y: -14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -14 }}
+                      transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
+                      className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl"
+                    >
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      {/* Hiện đúng nguyên nhân từ server (mã hết hạn, số lượng sai...)
+                          thay vì câu chung chung — trước đây errorMessage bị ẩn đúng
+                          lúc cần nhất vì khối dưới chỉ render khi KHÔNG có lỗi submit. */}
+                      <p className="font-medium">{errorMessage || t.order.error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <form className="space-y-5" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-2 gap-5">
@@ -707,19 +937,36 @@ export default function LandingPage() {
                       <label className="text-sm font-medium text-foreground/80">{t.order.name} *</label>
                       <input
                         type="text" required
+                        maxLength={MAX_NAME_LENGTH}
+                        autoComplete="name"
+                        aria-invalid={!!errors.customerName}
                         value={form.customerName}
                         onChange={(e) => setField("customerName", e.target.value)}
-                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        onBlur={() => validateField("customerName")}
+                        className={inputClass(errors.customerName)}
                       />
+                      {errors.customerName && <FieldError message={errorText(errors.customerName)} />}
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground/80">{t.order.phone} *</label>
                       <input
                         type="tel" required
+                        inputMode="tel"
+                        autoComplete="tel"
+                        maxLength={20}
+                        aria-invalid={!!errors.customerPhone}
                         value={form.customerPhone}
                         onChange={(e) => setField("customerPhone", e.target.value)}
-                        className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        // Rời ô SĐT thì chuẩn hoá về dạng 0xxxxxxxxx (bỏ khoảng trắng,
+                        // đổi +84 → 0) để khách thấy đúng số sẽ được liên hệ.
+                        onBlur={() => {
+                          const normalized = normalizePhone(form.customerPhone);
+                          if (normalized !== form.customerPhone) setField("customerPhone", normalized);
+                          validateField("customerPhone");
+                        }}
+                        className={inputClass(errors.customerPhone)}
                       />
+                      {errors.customerPhone && <FieldError message={errorText(errors.customerPhone)} />}
                     </div>
                   </div>
 
@@ -727,21 +974,116 @@ export default function LandingPage() {
                     <label className="text-sm font-medium text-foreground/80">{language === "en" ? "Email (For invoice)" : "Email (Để nhận hóa đơn)"}</label>
                     <input
                       type="email"
+                      autoComplete="email"
+                      maxLength={MAX_EMAIL_LENGTH}
+                      aria-invalid={!!errors.customerEmail}
                       value={form.customerEmail}
                       onChange={(e) => setField("customerEmail", e.target.value)}
+                      onBlur={() => validateField("customerEmail")}
                       placeholder={language === "en" ? "example@email.com" : "vi_du@email.com"}
-                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                      className={inputClass(errors.customerEmail)}
                     />
+                    {errors.customerEmail && <FieldError message={errorText(errors.customerEmail)} />}
                   </div>
 
+                  {/* Địa điểm giao hàng: khách tự chọn Tỉnh/Thành phố → Phường/Xã,
+                      rồi điền số nhà. Danh sách nằm trong /data, chỉ tải khi khách
+                      chạm vào ô chọn (xem useVnProvinces). */}
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
-                    <input
-                      type="text" required
-                      value={form.customerAddress}
-                      onChange={(e) => setField("customerAddress", e.target.value)}
-                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
-                    />
+
+                    {isManualAddress ? (
+                      <input
+                        type="text"
+                        required
+                        maxLength={MAX_ADDRESS_DETAIL_LENGTH}
+                        autoComplete="street-address"
+                        aria-invalid={!!errors.addressDetail}
+                        aria-label={t.order.address_full}
+                        placeholder={t.order.address_full}
+                        value={form.addressDetail}
+                        onChange={(e) => setField("addressDetail", e.target.value)}
+                        onBlur={() => validateField("addressDetail")}
+                        className={inputClass(errors.addressDetail)}
+                      />
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <select
+                            aria-label={t.order.province}
+                            aria-invalid={!!errors.province}
+                            value={form.province}
+                            // Tải dữ liệu ngay khi khách chạm vào ô chọn
+                            onFocus={enableProvincePicker}
+                            onMouseDown={enableProvincePicker}
+                            onChange={(e) => setField("province", e.target.value)}
+                            onBlur={() => validateField("province")}
+                            className={inputClass(errors.province)}
+                          >
+                            <option value="">
+                              {isLoadingProvinces ? t.order.loading_locations : t.order.select_province}
+                            </option>
+                            {vnProvinces.map((p) => (
+                              <option key={p.code} value={p.name}>{p.name}</option>
+                            ))}
+                          </select>
+
+                          <select
+                            aria-label={t.order.ward}
+                            aria-invalid={!!errors.ward}
+                            value={form.ward}
+                            disabled={!form.province || wardOptions.length === 0}
+                            onChange={(e) => setField("ward", e.target.value)}
+                            onBlur={() => validateField("ward")}
+                            className={`${inputClass(errors.ward)} disabled:opacity-60 disabled:cursor-not-allowed`}
+                          >
+                            <option value="">
+                              {form.province ? t.order.select_ward : t.order.select_ward_first}
+                            </option>
+                            {wardOptions.map((w) => (
+                              <option key={w} value={w}>{w}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {(errors.province || errors.ward) && (
+                          <FieldError message={errorText(errors.province || errors.ward)} />
+                        )}
+
+                        <input
+                          type="text"
+                          required
+                          maxLength={MAX_ADDRESS_DETAIL_LENGTH}
+                          autoComplete="address-line1"
+                          aria-label={t.order.address_detail}
+                          aria-invalid={!!errors.addressDetail}
+                          placeholder={`${t.order.address_detail} (${language === "en" ? "e.g. 123 Pho Hien street" : "ví dụ: 123 đường Phố Hiến"})`}
+                          value={form.addressDetail}
+                          onChange={(e) => setField("addressDetail", e.target.value)}
+                          onBlur={() => validateField("addressDetail")}
+                          className={`${inputClass(errors.addressDetail)} mt-3`}
+                        />
+                        {errors.addressDetail && <FieldError message={errorText(errors.addressDetail)} />}
+                      </>
+                    )}
+
+                    {/* Xem trước đúng chuỗi địa chỉ sẽ in trên hoá đơn / gửi đi */}
+                    {!isManualAddress && composeAddress(form) && (
+                      <p className="text-xs text-foreground/60 pt-1">
+                        📍 {composeAddress(form)}
+                      </p>
+                    )}
+
+                    {provinceLoadError && (
+                      <p className="text-xs text-amber-700">{t.order.location_load_error}</p>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={toggleManualAddress}
+                      className="text-xs font-medium text-accent hover:text-accent/80 underline underline-offset-2 pt-1"
+                    >
+                      {isManualAddress ? t.order.manual_address_back : t.order.manual_address}
+                    </button>
                   </div>
 
                   {/* Danh sách sản phẩm mua */}
@@ -767,6 +1109,7 @@ export default function LandingPage() {
                         <div className="flex-1">
                           <select
                             required
+                            aria-label={`${t.order.select_product} ${idx + 1}`}
                             value={item.productId}
                             onChange={(e) => updateItem(idx, "productId", e.target.value)}
                             className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all"
@@ -924,7 +1267,8 @@ export default function LandingPage() {
       {/* 14. Footer */}
       <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="grid md:grid-cols-4 gap-8 md:gap-12">
+          <Reveal y={30}>
+            <div className="grid md:grid-cols-4 gap-8 md:gap-12">
             <div className="space-y-4 md:col-span-1">
               <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
@@ -971,7 +1315,8 @@ export default function LandingPage() {
                 <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
               </ul>
             </div>
-          </div>
+            </div>
+          </Reveal>
           <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <p>{language !== "en" && cmsContent.FooterText ? cmsContent.FooterText : `© 2026 Nguyệt Nhãn Phố Hiến. ${t.footer.rights}`}</p>
             <div className="flex gap-4">
@@ -995,8 +1340,16 @@ export default function LandingPage() {
 
       {/* Floating Chat Widget — Kết nối SignalR thực */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {isChatOpen && (
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[350px] mb-4 overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 fade-in duration-300 origin-bottom-right">
+        <AnimatePresence>
+          {isChatOpen && (
+            <motion.div
+              key="chat-panel"
+              initial={{ opacity: 0, y: 28, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[350px] mb-4 overflow-hidden flex flex-col origin-bottom-right"
+            >
             <div className="bg-accent p-4 text-white flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -1048,8 +1401,11 @@ export default function LandingPage() {
                     </div>
                   )}
                   {messages.map((msg, idx) => (
-                    <div
+                    <motion.div
                       key={msg.id}
+                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       className={`p-3 rounded-2xl text-sm max-w-[80%] shadow-sm ${msg.senderType === 'Guest'
                         ? 'bg-accent text-white self-end rounded-br-sm'
                         : 'bg-white border text-primary self-start rounded-tl-sm'
@@ -1062,7 +1418,7 @@ export default function LandingPage() {
                           <span className="ml-1">· {language === "en" ? "Seen" : "Đã xem"}</span>
                         )}
                       </span>
-                    </div>
+                    </motion.div>
                   ))}
                   {isAdminTyping && (
                     <div className="bg-white border p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
@@ -1100,26 +1456,57 @@ export default function LandingPage() {
                 </div>
               </>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           onClick={() => setIsChatOpen(!isChatOpen)}
-          className="w-14 h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-accent/90 hover:scale-110 transition-all focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
+          className="relative w-14 h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-accent/90 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
         >
+          {/* Vòng sóng lan ra khi chưa mở chat → thu hút đúng lúc, tắt khi đang trò chuyện */}
+          {!isChatOpen && (
+            <span aria-hidden className="absolute inset-0 rounded-full border-2 border-accent animate-pulse-ring" />
+          )}
           {isChatOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
-        </button>
+        </motion.button>
       </div>
 
       {/* Recipe Modal */}
-      {selectedRecipe && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedRecipe(null)}>
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+      <AnimatePresence>
+        {selectedRecipe && (
+          <motion.div
+            key="recipe-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedRecipe(null)}
+          >
+            <motion.div
+              key="recipe-panel"
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative"
+              onClick={e => e.stopPropagation()}
+            >
             <button onClick={() => setSelectedRecipe(null)} className="absolute top-4 right-4 p-2 bg-background hover:bg-secondary rounded-full transition-colors text-primary">
               <X className="w-6 h-6" />
             </button>
             <div className="text-center mb-6">
-              <div className="text-5xl mb-4">{selectedRecipe === 'tra' ? '🍵' : '🥣'}</div>
+              <motion.div
+                initial={{ scale: 0.4, rotate: -14, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.08 }}
+                className="text-5xl mb-4"
+              >
+                {selectedRecipe === 'tra' ? '🍵' : '🥣'}
+              </motion.div>
               <h3 className="text-3xl font-bold text-primary">
                 {selectedRecipe === 'tra' ? 'Cách pha Trà Long Nhãn' : 'Cách nấu Chè Hạt Sen Long Nhãn'}
               </h3>
@@ -1147,14 +1534,20 @@ export default function LandingPage() {
                 </ol>
               </div>
             )}
-            <div className="mt-8 pt-6 border-t flex justify-center">
-              <button onClick={() => setSelectedRecipe(null)} className="bg-accent hover:bg-accent/90 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95">
-                Đã hiểu
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="mt-8 pt-6 border-t flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedRecipe(null)}
+                  className="bg-accent hover:bg-accent/90 text-white font-bold py-3 px-8 rounded-full shadow-lg"
+                >
+                  Đã hiểu
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

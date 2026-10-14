@@ -284,12 +284,18 @@ public class ChatService : IChatService
         var session = await _db.ChatSessions.FirstOrDefaultAsync(cs => cs.Id == sessionId);
         if (session == null) return null;
 
-        // Xoá tin nhắn trước rồi mới xoá phiên. DB đã có ON DELETE CASCADE, nhưng xoá
-        // tường minh để không phụ thuộc vào việc EF có nạp kèm collection Messages hay không.
-        await _db.ChatMessages
-            .Where(m => m.ChatSessionId == sessionId)
-            .ExecuteDeleteAsync();
-
+        // Xoá CHỈ qua change tracker: Remove phiên + SaveChanges là đủ.
+        // FK ChatMessage.ChatSessionId được khai báo OnDelete(Cascade) nên database tự xoá
+        // tin nhắn khi dòng phiên bị xoá (dù EF không nạp kèm collection Messages);
+        // nếu có tin đang được context theo dõi (ví dụ MarkSessionReadAsync chạy trước đó
+        // trên CÙNG đối tượng service/khối scope), EF tự đánh dấu chúng Deleted và xoá
+        // trong cùng một lệnh — dữ liệu này vẫn còn trong DB nên không xung đột.
+        //
+        // Trước đây tin nhắn bị xoá tường minh bằng ExecuteDeleteAsync (thao tác thẳng vào
+        // DB, KHÔNG đi qua change tracker) rồi mới Remove phiên + SaveChanges: các tin vẫn
+        // được theo dõi không biết là đã biến mất nên SaveChanges cố DELETE tiếp lần nữa →
+        // DbUpdateConcurrencyException, và còn để lại "phiên mồ côi" (tin đã mất khỏi DB
+        // nhưng dòng phiên vẫn còn). Đłem nhất, phân nhánh hai cách xoá lẫn nhau là nguyên nhân.
         _db.ChatSessions.Remove(session);
         await _db.SaveChangesAsync();
 

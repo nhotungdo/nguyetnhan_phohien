@@ -1,9 +1,11 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Domain;
 
 namespace NguyetnhanPhohien.API.Controllers;
 
@@ -56,6 +58,26 @@ public class OrdersController : ControllerBase
     private const int MaxNoteLength = 1000;
     private const int MaxItemCount = 50;
 
+    // SĐT Việt Nam sau khi chuẩn hoá về dạng nội địa:
+    //  - Di động: 10 số, đầu 03/05/07/08/09 (vd 0982072601).
+    //  - Cố định: 11–12 số, đầu 02 (vd 02213825555).
+    private static readonly Regex VnPhoneRegex = new(@"^0(?:[35789]\d{8}|2\d{8,9})$", RegexOptions.Compiled);
+    private static readonly Regex EmailRegex = new(@"^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$", RegexOptions.Compiled);
+
+    /// <summary>
+    /// Chuẩn hoá SĐT về dạng nội địa 0xxxxxxxxx trước khi kiểm tra và lưu.
+    /// Endpoint là PUBLIC nên có thể nhận "+84 982 072 601", "0982.072.601"… —
+    /// nếu lưu nguyên chuỗi thì cùng một khách bị coi là nhiều người khác nhau
+    /// (bảng DiscountRedemptions chống dùng lại mã theo số điện thoại).
+    /// </summary>
+    private static string NormalizePhone(string? phone)
+    {
+        var digits = PhoneNumber.Normalize(phone);
+        if (digits.StartsWith("84") && digits.Length >= 11) return "0" + digits[^9..];
+        if (digits.Length == 9) return "0" + digits;
+        return digits;
+    }
+
     /// <summary>
     /// [PUBLIC] Khách hàng gửi đơn đặt hàng - không cần đăng nhập.
     /// Tổng tiền và số tiền giảm giá được tính lại hoàn toàn phía server.
@@ -76,11 +98,27 @@ public class OrdersController : ControllerBase
         if (request.CustomerPhone.Length > MaxPhoneLength)
             return BadRequest(new { message = $"Số điện thoại không được vượt quá {MaxPhoneLength} ký tự." });
 
+        // Kiểm tra ĐỊNH DẠNG (không chỉ độ dài): frontend đã chặn trước khi gửi,
+        // nhưng đây là endpoint public nên vẫn phải tự bảo vệ — SĐT/email sai làm
+        // đơn không liên hệ được và hoá đơn gửi đi thất bại.
+        request.CustomerPhone = NormalizePhone(request.CustomerPhone);
+        if (!VnPhoneRegex.IsMatch(request.CustomerPhone))
+            return BadRequest(new { message = "Số điện thoại không hợp lệ. Vui lòng nhập 10 số (di động) hoặc 11 số (cố định), ví dụ 0982072601." });
+
+        request.CustomerAddress = request.CustomerAddress.Trim();
         if (request.CustomerAddress.Length > MaxAddressLength)
             return BadRequest(new { message = $"Địa chỉ không được vượt quá {MaxAddressLength} ký tự." });
 
-        if (request.CustomerEmail is { Length: > MaxEmailLength })
-            return BadRequest(new { message = $"Email không được vượt quá {MaxEmailLength} ký tự." });
+        if (!string.IsNullOrWhiteSpace(request.CustomerEmail))
+        {
+            request.CustomerEmail = request.CustomerEmail.Trim();
+
+            if (request.CustomerEmail.Length > MaxEmailLength)
+                return BadRequest(new { message = $"Email không được vượt quá {MaxEmailLength} ký tự." });
+
+            if (!EmailRegex.IsMatch(request.CustomerEmail))
+                return BadRequest(new { message = "Email không hợp lệ. Vui lòng kiểm tra lại, ví dụ vi_du@email.com." });
+        }
 
         if (request.Note is { Length: > MaxNoteLength })
             return BadRequest(new { message = $"Ghi chú không được vượt quá {MaxNoteLength} ký tự." });
