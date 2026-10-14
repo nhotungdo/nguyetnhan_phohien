@@ -28,6 +28,11 @@ import { useLanguageStore } from "@/store/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductGalleryModal } from "@/components/ProductGalleryModal";
 import { FastImage } from "@/components/FastImage";
+import { ProductInteractiveShowcase } from "@/components/ProductInteractiveShowcase";
+import { ProductHeroShowcase } from "@/components/ProductHeroShowcase";
+import { ProductScrollytelling } from "@/components/ProductScrollytelling";
+import { ProductPairingSection } from "@/components/ProductPairingSection";
+import { ProductComparisonSection } from "@/components/ProductComparisonSection";
 import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -433,61 +438,18 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="relative h-[500px] md:h-[700px] flex items-center justify-center"
+              className="relative flex items-center justify-center"
             >
-              {/* Product Hero Image Placeholder */}
-              <div className="relative w-full max-w-md aspect-square rounded-full bg-gradient-to-tr from-[#FDE68A] to-[#FEF3C7] shadow-2xl flex items-center justify-center overflow-hidden animate-[spin_60s_linear_infinite]">
-                {/* Decorative elements */}
-                <div className="absolute inset-2 border border-[#B45309]/20 rounded-full border-dashed"></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-[80%] aspect-square bg-white rounded-2xl shadow-2xl -rotate-6 transition-transform hover:rotate-0 duration-500 overflow-hidden border-4 border-white flex items-center justify-center text-accent font-bold text-2xl relative">
-                  {cmsContent.HeroBannerUrl ? (
-                    <FastImage
-                      src={/^(https?:)?\/\//i.test(cmsContent.HeroBannerUrl) || cmsContent.HeroBannerUrl.startsWith("data:") ? cmsContent.HeroBannerUrl : `${API_URL}${cmsContent.HeroBannerUrl}`}
-                      alt="Nguyệt Nhãn Phố Hiến"
-                      fill
-                      priority
-                      sizes="(max-width: 768px) 90vw, 400px"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : products[0]?.images?.[0] ? (
-                    <FastImage
-                      src={`${API_URL}${products[0].images[0].imagePath}`}
-                      alt={products[0].name}
-                      fill
-                      priority
-                      sizes="(max-width: 768px) 90vw, 400px"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <>
-                      <div className="absolute inset-0 bg-[#FDE68A]/30"></div>
-                      <span className="relative z-10 text-xl font-bold text-primary">Nguyệt Nhãn Phố Hiến</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Floating Badge */}
-              {/* Trước đây dùng class animate-bounce-slow không tồn tại trong Tailwind → thẻ đứng yên;
-                  giờ dùng animate-float-slow (keyframes tự định nghĩa) + hiệu ứng xuất hiện. */}
-              <motion.div
-                initial={{ opacity: 0, y: 30, rotate: -6 }}
-                animate={{ opacity: 1, y: 0, rotate: 0 }}
-                transition={{ duration: 0.8, delay: 0.9, ease: EASE_OUT_EXPO }}
-                className="absolute bottom-20 left-10 bg-white p-4 rounded-2xl shadow-xl border border-[#FDE68A] animate-float-slow"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-accent">
-                    <Star className="w-6 h-6 fill-[#B45309]" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-primary">100%</p>
-                    <p className="text-xs text-foreground/80">{t.hero.quality}</p>
-                  </div>
-                </div>
-              </motion.div>
+              <ProductHeroShowcase
+                bannerUrl={
+                  cmsContent.HeroBannerUrl
+                    ? resolveCmsImage(cmsContent.HeroBannerUrl)
+                    : products[0]?.images?.[0]
+                    ? `${API_URL}${products[0].images[0].imagePath}`
+                    : undefined
+                }
+                onExploreClick={() => scrollToSection("san-pham")}
+              />
             </motion.div>
           </div>
         </section>
@@ -542,106 +504,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Khu vực sản phẩm */}
-        <section id="san-pham" className="py-24 bg-secondary/30">
-          <div className="container mx-auto px-4 md:px-6">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-4">{language === "en" ? t.products.title : cmsContent.ProductsTitle || t.products.title}</h2>
-              <p className="text-foreground/80">{language === "en" ? t.products.subtitle : cmsContent.ProductsSubtitle || t.products.subtitle}</p>
-            </motion.div>
-
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: "-60px" }}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
-            >
-              {isLoadingProducts ? (
-                <div className="col-span-full flex justify-center py-10">
-                  <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                </div>
-              ) : (
-                products.map((prod, i) => {
-                  const mainImage = prod.images?.[0];
-                  const extraCount = (prod.images?.length ?? 0) - 1;
-                  return (
-                    <motion.div
-                      variants={scaleIn}
-                      whileHover={prefersReducedMotion ? undefined : { y: -10 }}
-                      key={prod.id}
-                      className="bg-white rounded-3xl overflow-hidden shadow-lg border border-[#FDE68A]/30 group hover:shadow-2xl transition-shadow cursor-pointer"
-                      onClick={() => setGalleryProduct(prod)}
-                    >
-                      <div className="aspect-[4/3] bg-[#FDE68A]/20 relative flex items-center justify-center overflow-hidden">
-                        {mainImage ? (
-                          // 3 ảnh đầu tải eager (nằm gần viewport), phần còn lại lazy
-                          <FastImage
-                            src={`${API_URL}${mainImage.imagePath}`}
-                            alt={prod.name}
-                            fill
-                            sizes="(max-width: 768px) 92vw, (max-width: 1024px) 50vw, 360px"
-                            loading={i < 3 ? "eager" : "lazy"}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="text-accent font-medium flex flex-col items-center gap-2">
-                            <span className="text-4xl">📷</span>
-                            <span className="text-sm">{prod.name}</span>
-                          </div>
-                        )}
-                        {extraCount > 0 && (
-                          <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                            +{extraCount} ảnh
-                          </span>
-                        )}
-                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                          <motion.span
-                            className="bg-white text-accent font-bold px-6 py-3 rounded-full translate-y-4 group-hover:translate-y-0 transition-all text-sm"
-                          >
-                            {language === "en" ? "View Details" : "Xem Chi Tiết"}
-                          </motion.span>
-                        </div>
-                        {/* Vệt sáng quét qua ảnh khi hover (CSS, không tốn JS) */}
-                        <span aria-hidden className="sheen absolute inset-0 z-20 pointer-events-none" />
-                      </div>
-                      <div className="p-8 flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-4 gap-2">
-                          <h3 className="text-xl font-bold text-primary">{prod.name}</h3>
-                          <span className="bg-secondary text-accent text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{prod.size}</span>
-                        </div>
-                        <p className="text-foreground/80 text-sm mb-6 line-clamp-3">{prod.description}</p>
-                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-                          <span className="text-2xl font-bold text-accent">
-                            {language === "en" 
-                              ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` 
-                              : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
-                          </span>
-                          <button
-                            onClick={e => {
-                              e.stopPropagation();
-                              selectSingleProduct(prod.id);
-                              scrollToSection("dat-hang");
-                            }}
-                            className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center hover:bg-accent/90 transition-colors shrink-0 shadow-sm"
-                          >
-                            <ShoppingCart className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })
-              )}
-            </motion.div>
-          </div>
-        </section>
+        {/* 4. Khu vực sản phẩm tương tác cao cấp */}
+        <ProductInteractiveShowcase
+          products={products}
+          language={language as "vi" | "en"}
+          cmsContent={cmsContent}
+          onOrderProduct={(productId) => {
+            selectSingleProduct(productId);
+            scrollToSection("dat-hang");
+          }}
+          onOpenGallery={(prod) => setGalleryProduct(prod)}
+        />
 
         {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
         <section id="cau-chuyen" className="py-24 bg-white overflow-hidden">
@@ -822,6 +695,18 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Scrollytelling Hành trình nghệ nhân sấy củi */}
+        <ProductScrollytelling language={language as "vi" | "en"} />
+
+        {/* Nghệ thuật thưởng thức đa giác quan */}
+        <ProductPairingSection
+          language={language as "vi" | "en"}
+          onOrderClick={() => scrollToSection("dat-hang")}
+        />
+
+        {/* So sánh minh bạch chất lượng */}
+        <ProductComparisonSection language={language as "vi" | "en"} />
 
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-24 bg-[#451A03] text-background relative overflow-hidden">
