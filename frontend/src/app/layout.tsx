@@ -27,7 +27,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhan.vn"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com"),
   title: {
     default: "Nguyệt Nhãn Phố Hiến | Đặc Sản Long Nhãn Tiến Vua Hưng Yên",
     template: "%s | Nguyệt Nhãn Phố Hiến",
@@ -37,21 +37,25 @@ export const metadata: Metadata = {
   authors: [{ name: "Nguyệt Nhãn Phố Hiến" }],
   creator: "Nguyệt Nhãn Phố Hiến",
   publisher: "Nguyệt Nhãn Phố Hiến",
+  verification: {
+    google: "UbMAG2eynNZhrHLsjVfVzI9ujIb0l8brRidv0C-SMuI",
+  },
   icons: {
     icon: [
-      { url: "/logo.jpg", sizes: "any" },
-      { url: "/logo.jpg", sizes: "192x192", type: "image/jpeg" },
-      { url: "/logo.jpg", sizes: "512x512", type: "image/jpeg" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.png", sizes: "192x192", type: "image/png" },
+      { url: "/logo.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/logo.jpg",
+    shortcut: "/favicon.ico",
     apple: [
-      { url: "/logo.jpg", sizes: "180x180", type: "image/jpeg" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
   openGraph: {
     type: "website",
     locale: "vi_VN",
-    url: "https://nguyetnhan.vn",
+    url: "https://nguyetnhanphohien.com",
     title: "Nguyệt Nhãn Phố Hiến | Đặc Sản Long Nhãn Tiến Vua Hưng Yên",
     description: "Long nhãn sấy củi tự nhiên, chuẩn vị tiến vua bãi bồi sông Hồng Hưng Yên.",
     siteName: "Nguyệt Nhãn Phố Hiến",
@@ -79,9 +83,9 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Nguyệt Nhãn Phố Hiến",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhan.vn",
-  logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhan.vn"}/logo.jpg`,
-  image: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhan.vn"}/logo.jpg`,
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com",
+  logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com"}/logo.jpg`,
+  image: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com"}/logo.jpg`,
   description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên sấy củi thủ công 100% tự nhiên, chuẩn vị tiến vua.",
   address: {
     "@type": "PostalAddress",
@@ -112,6 +116,9 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable}`}>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

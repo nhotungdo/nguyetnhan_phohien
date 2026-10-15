@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { productApi } from "@/services/api.service";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhan.vn";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const currentDate = new Date().toISOString();
