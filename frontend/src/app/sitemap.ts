@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-import { productApi } from "@/services/api.service";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com";
 
@@ -40,21 +39,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Thử tải thêm danh sách sản phẩm từ API nếu backend đang chạy
-  let productRoutes: MetadataRoute.Sitemap = [];
-  try {
-    const products = await productApi.getAllPublic();
-    if (products && products.length > 0) {
-      productRoutes = products.map((p) => ({
-        url: `${BASE_URL}/#san-pham`,
-        lastModified: currentDate,
-        changeFrequency: "weekly",
-        priority: 0.9,
-      }));
-    }
-  } catch {
-    // Nếu backend chưa chạy lúc build, sử dụng danh sách tĩnh an toàn
-  }
-
-  return [...staticRoutes, ...productRoutes.slice(0, 1)];
+  return staticRoutes;
 }
