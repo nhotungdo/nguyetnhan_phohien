@@ -62,9 +62,9 @@ function FieldError({ message }: { message?: string }) {
 const resolveCmsImage = (url?: string) =>
   !url
     ? ""
-    : /^(https?:)?\/\//i.test(url) || url.startsWith("data:")
+    : url.startsWith("/images/") || /^(https?:)?\/\//i.test(url) || url.startsWith("data:")
       ? url
-      : `${API_URL}${url}`;
+      : `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -499,8 +499,8 @@ export default function LandingPage() {
                   cmsContent.HeroBannerUrl
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
                     : products[0]?.images?.[0]
-                    ? `${API_URL}${products[0].images[0].imagePath}`
-                    : undefined
+                    ? resolveCmsImage(products[0].images[0].imagePath)
+                    : "/images/setqua.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}
               />

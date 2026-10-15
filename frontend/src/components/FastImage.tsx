@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -9,6 +10,8 @@ interface FastImageProps {
   src: string;
   alt: string;
   className?: string;
+  /** Ảnh dự phòng khi src bị 404 hoặc không tải được */
+  fallbackSrc?: string;
   /** Đặt trong thẻ cha có position:relative (next/image tự inset-0). */
   fill?: boolean;
   /** Kích thước gốc khi KHÔNG dùng fill (vd thumbnail 56x56). */
@@ -19,6 +22,20 @@ interface FastImageProps {
   sizes?: string;
   loading?: "lazy" | "eager";
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+}
+
+/**
+ * Chuẩn hóa URL ảnh:
+ *  - Giữ nguyên ảnh tĩnh nội bộ (/images/..., /logo.jpg)
+ *  - Giữ nguyên link ngoài (http/https/data)
+ *  - Chỉ ghép API_URL với ảnh tương đối từ backend (/uploads/...)
+ */
+export function resolveImageUrl(path?: string, fallback = "/images/setqua.jpg"): string {
+  if (!path) return fallback;
+  if (path.startsWith("/images/") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
+    return path;
+  }
+  return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
 /**
@@ -50,15 +67,17 @@ const FILL_STYLE: React.CSSProperties = {
 };
 
 /**
- * Ảnh tải nhanh:
+ * Ảnh tải nhanh và có khả năng tự phục hồi khi ảnh lỗi/404:
+ *  - Tự động fallback sang fallbackSrc (mặc định /images/setqua.jpg) nếu link ảnh bị 404 hoặc mất kết nối backend.
  *  - Với ảnh cùng origin API → next/image (sharp) cắt ảnh về đúng kích thước hiển thị,
- *    chuyển AVIF/WebP và cache lại: ảnh gốc nhiều MB không còn bị tải nguyên con.
- *  - Với URL ngoài/data → giữ <img> như cũ (không lệch layout, không lỗi optimize).
+ *    chuyển AVIF/WebP và cache lại.
+ *  - Với URL ngoài/data hoặc khi đã lỗi → dùng <img> trực tiếp để đảm bảo luôn tải được ảnh dự phòng.
  */
 export function FastImage({
   src,
   alt,
   className,
+  fallbackSrc = "/images/setqua.jpg",
   fill,
   width,
   height,
@@ -67,11 +86,27 @@ export function FastImage({
   loading,
   onError,
 }: FastImageProps) {
-  if (!canOptimize(src)) {
+  const [currentSrc, setCurrentSrc] = useState(src || fallbackSrc);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src || fallbackSrc);
+    setHasError(false);
+  }, [src, fallbackSrc]);
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (!hasError && fallbackSrc && currentSrc !== fallbackSrc) {
+      setHasError(true);
+      setCurrentSrc(fallbackSrc);
+    }
+    onError?.(e);
+  };
+
+  if (hasError || !canOptimize(currentSrc)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- URL ngoài/data: không thuộc remotePatterns nên next/image từ chối; giữ <img> thường.
+      // eslint-disable-next-line @next/next/no-img-element -- URL ngoài/data: hoặc fallback an toàn
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         className={className}
         style={fill ? FILL_STYLE : undefined}
@@ -87,21 +122,21 @@ export function FastImage({
   if (fill) {
     return (
       <Image
-        src={src}
+        src={currentSrc}
         alt={alt}
         className={className}
         fill
         priority={priority}
         sizes={sizes}
         loading={priority ? undefined : loading}
-        onError={onError}
+        onError={handleError}
       />
     );
   }
 
   return (
     <Image
-      src={src}
+      src={currentSrc}
       alt={alt}
       className={className}
       width={width ?? 1}
@@ -109,7 +144,7 @@ export function FastImage({
       priority={priority}
       sizes={sizes}
       loading={priority ? undefined : loading}
-      onError={onError}
+      onError={handleError}
     />
   );
 }

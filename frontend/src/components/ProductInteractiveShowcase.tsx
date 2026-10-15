@@ -242,6 +242,7 @@ export function ProductInteractiveShowcase({
                 >
                   <FastImage
                     src={getProductImage(activeProduct, selectedIndex)}
+                    fallbackSrc={["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"][selectedIndex % 3]}
                     alt={activeProduct.name}
                     fill
                     sizes="(max-width: 1024px) 90vw, 600px"
@@ -354,6 +355,7 @@ export function ProductInteractiveShowcase({
                       <div className="w-10 h-10 rounded-lg overflow-hidden relative border border-border/40 shrink-0">
                         <FastImage
                           src={getProductImage(prod, idx)}
+                          fallbackSrc={["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"][idx % 3]}
                           alt={prod.name}
                           fill
                           sizes="40px"

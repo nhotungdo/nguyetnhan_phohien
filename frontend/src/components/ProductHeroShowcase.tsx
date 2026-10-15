@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 import { Crown, ArrowRight, Flame, Leaf, Award } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
@@ -13,6 +13,13 @@ interface ProductHeroShowcaseProps {
 export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Tự động fallback sang /images/setqua.jpg nếu bannerUrl từ CMS bị 404 hoặc mất file trên server
+  const [heroImage, setHeroImage] = useState<string>(bannerUrl || "/images/setqua.jpg");
+
+  useEffect(() => {
+    setHeroImage(bannerUrl || "/images/setqua.jpg");
+  }, [bannerUrl]);
 
   // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
   const mouseX = useMotionValue(0);
@@ -34,8 +41,6 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
     mouseX.set(0);
     mouseY.set(0);
   };
-
-  const imageSrc = bannerUrl || "/images/setqua.jpg";
 
   return (
     <div
@@ -67,12 +72,18 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       >
         <div className="relative w-full h-full rounded-[2rem] overflow-hidden bg-[#FFFDF8]">
           <FastImage
-            src={imageSrc}
+            src={heroImage}
+            fallbackSrc="/images/setqua.jpg"
             alt="Nguyệt Nhãn Phố Hiến - Long nhãn tiến vua"
             fill
             priority
             sizes="(max-width: 768px) 90vw, 500px"
             className="object-cover transition-transform duration-700 hover:scale-105"
+            onError={() => {
+              if (heroImage !== "/images/setqua.jpg") {
+                setHeroImage("/images/setqua.jpg");
+              }
+            }}
           />
 
           {/* Dải gradient che nhẹ chân ảnh để tăng độ tương phản */}

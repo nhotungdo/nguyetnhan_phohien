@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
-import { FastImage } from "@/components/FastImage";
+import { FastImage, resolveImageUrl } from "@/components/FastImage";
 import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -57,7 +57,8 @@ export function ProductGalleryModal({ product, language, onClose, onOrder }: Pro
         <div className="relative bg-[#FDE68A]/10 aspect-[4/3] sm:aspect-[16/9] flex items-center justify-center overflow-hidden shrink-0">
           {images.length > 0 ? (
             <FastImage
-              src={`${API_URL}${images[currentIdx].imagePath}`}
+              src={resolveImageUrl(images[currentIdx].imagePath)}
+              fallbackSrc="/images/setqua.jpg"
               alt={`${product.name} - ảnh ${currentIdx + 1}`}
               fill
               priority
@@ -96,7 +97,8 @@ export function ProductGalleryModal({ product, language, onClose, onOrder }: Pro
                 className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${idx === currentIdx ? "border-accent shadow-md scale-105" : "border-transparent opacity-60 hover:opacity-90"}`}
               >
                 <FastImage
-                  src={`${API_URL}${img.imagePath}`}
+                  src={resolveImageUrl(img.imagePath)}
+                  fallbackSrc="/images/setqua.jpg"
                   alt=""
                   width={56}
                   height={56}
