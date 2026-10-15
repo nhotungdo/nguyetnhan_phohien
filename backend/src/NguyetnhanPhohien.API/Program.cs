@@ -169,6 +169,38 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+if (args.Contains("--clear-data"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("Đang kết nối tới Supabase PostgreSQL...");
+
+    var orderItems = await db.OrderItems.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {orderItems} dòng trong OrderItems.");
+
+    var orders = await db.Orders.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {orders} dòng trong Orders.");
+
+    var redemptions = await db.DiscountRedemptions.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {redemptions} dòng trong DiscountRedemptions.");
+
+    var chatMessages = await db.ChatMessages.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {chatMessages} dòng trong ChatMessages.");
+
+    var chatSessions = await db.ChatSessions.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {chatSessions} dòng trong ChatSessions.");
+
+    var legacyMessages = await db.Messages.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {legacyMessages} dòng trong Messages (legacy).");
+
+    var legacyConversations = await db.Conversations.ExecuteDeleteAsync();
+    Console.WriteLine($"Đã xóa {legacyConversations} dòng trong Conversations (legacy).");
+
+    Console.WriteLine("Hoàn tất dọn dẹp dữ liệu đơn hàng và tin nhắn trên Supabase!");
+    return;
+}
+
 // ===== MIDDLEWARE PIPELINE =====
 // Nén xếp NGOÀI CÙNG để response lấy ra từ output-cache / static file vẫn được nén.
 app.UseResponseCompression();
