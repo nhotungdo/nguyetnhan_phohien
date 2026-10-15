@@ -9,7 +9,7 @@ import { CartSummary } from "./CartSummary";
 
 export interface CartDrawerProps {
   language: "vi" | "en";
-  onCheckout: (discountCode?: string) => void;
+  onCheckout: () => void;
 }
 
 export function CartDrawer({ language, onCheckout }: CartDrawerProps) {

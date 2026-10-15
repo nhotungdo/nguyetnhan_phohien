@@ -168,20 +168,26 @@
 }
 
 @layer base {
-  * {
+  *, *::before, *::after {
     @apply border-border outline-ring/50;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
   }
   html, body {
-    overflow-x: clip;
-    max-width: 100%;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+    position: relative;
     -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   section[id] {
     scroll-margin-top: 80px;

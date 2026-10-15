@@ -16,6 +16,7 @@ import {
 import { FastImage } from "@/components/FastImage";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import type { ProductResponse } from "@/types/api.types";
+import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
@@ -64,38 +65,6 @@ const PRODUCT_METRICS = [
   { label: "Tỷ lệ hạt loại 1 tròn đều", labelEn: "Grade A Uniformity", value: 99, color: "from-yellow-400 to-amber-500" },
 ];
 
-const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
-  {
-    id: "default-dac-biet",
-    name: "Long Nhãn Loại Đặc Biệt",
-    price: 350000,
-    size: "Hộp 500g",
-    description: "Nhãn lồng cùi dày Hương Chi, sấy thủ công bằng củi nhãn 100%, hạt đều tăm tắp, màu vàng cánh gián hổ phách sang trọng, dẻo ngọt thanh tao.",
-    isActive: true,
-    displayOrder: 1,
-    images: [{ id: "img-1", imagePath: "/images/hopnhua.jpg", displayOrder: 1 }],
-  },
-  {
-    id: "default-tui-zip",
-    name: "Long Nhãn Dạng Túi Zip",
-    price: 320000,
-    size: "Túi 500g",
-    description: "Thiết kế túi zip tiện dụng bảo quản hàng ngày, khóa kín khí giữ nguyên vị dẻo thơm, phù hợp pha trà, nấu chè giải nhiệt hoặc ngâm rượu bồi bổ.",
-    isActive: true,
-    displayOrder: 2,
-    images: [{ id: "img-2", imagePath: "/images/tuizip.jpg", displayOrder: 1 }],
-  },
-  {
-    id: "default-set-qua",
-    name: "Set Quà Tặng Cao Cấp Hoàng Gia",
-    price: 850000,
-    size: "Set 1kg (2 Hộp)",
-    description: "Hộp quà thiết kế trang nhã mang đậm bản sắc văn hóa Phố Hiến ngàn năm, kết hợp túi xách sang trọng, là món quà sức khỏe vô giá gửi tặng người thân, đối tác.",
-    isActive: true,
-    displayOrder: 3,
-    images: [{ id: "img-3", imagePath: "/images/setqua.jpg", displayOrder: 1 }],
-  },
-];
 
 export function ProductInteractiveShowcase({
   products,
@@ -295,10 +264,10 @@ export function ProductInteractiveShowcase({
                             exit={{ opacity: 0, y: 10, scale: 0.9 }}
                             transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
                             onClick={(e) => e.stopPropagation()}
-                            className={`absolute bottom-full mb-3 w-56 sm:w-64 p-3 sm:p-3.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#FDE68A] text-left pointer-events-auto z-40 ${
+                            className={`absolute bottom-full mb-3 w-52 sm:w-64 max-w-[calc(100vw-3.5rem)] p-3 sm:p-3.5 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#FDE68A] text-left pointer-events-auto z-40 ${
                               isRightSide
-                                ? "right-[-24px] sm:left-1/2 sm:-translate-x-1/2 sm:right-auto"
-                                : "left-[-24px] sm:left-1/2 sm:-translate-x-1/2"
+                                ? "-right-2 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto"
+                                : "-left-2 sm:left-1/2 sm:-translate-x-1/2"
                             }`}
                           >
                             <div className="flex items-center justify-between mb-1.5">

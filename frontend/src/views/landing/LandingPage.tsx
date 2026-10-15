@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
     originalConsoleError.apply(console, args);
   };
 }
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
@@ -36,6 +36,7 @@ import { ProductComparisonSection } from "@/components/ProductComparisonSection"
 import { CartButton, CartDrawer } from "@/components/cart";
 import { useCartStore } from "@/stores/useCartStore";
 import type { ProductResponse } from "@/types/api.types";
+import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
@@ -123,7 +124,33 @@ export default function LandingPage() {
   });
   const timelineScaleY = useSpring(timelineScroll, { stiffness: 90, damping: 30, restDelta: 0.001 });
 
-  const { products } = useProducts();
+  const { products: apiProducts } = useProducts();
+  const cartStoreItems = useCartStore((s) => s.items);
+
+  // Danh sách sản phẩm đầy đủ: gồm các sản phẩm từ API hoặc fallback, đồng thời
+  // luôn chứa toàn bộ các sản phẩm hiện có trong giỏ hàng để form đặt hàng luôn
+  // hiển thị đầy đủ và chính xác tên, phân loại, giá bán của giỏ hàng.
+  const effectiveProducts = useMemo(() => {
+    const baseList: ProductResponse[] = [
+      ...(apiProducts && apiProducts.length > 0 ? apiProducts : DEFAULT_FALLBACK_PRODUCTS),
+    ];
+    for (const item of cartStoreItems) {
+      if (!baseList.some((p) => p.id === item.productId)) {
+        baseList.push({
+          id: item.productId,
+          name: item.productName || "Sản phẩm",
+          price: item.price || 0,
+          size: item.size || "",
+          description: "",
+          isActive: true,
+          displayOrder: 99,
+          images: item.imageUrl ? [{ id: "c-" + item.productId, imagePath: item.imageUrl, displayOrder: 1 }] : [],
+        });
+      }
+    }
+    return baseList;
+  }, [apiProducts, cartStoreItems]);
+
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
   // Danh sách Tỉnh/Thành phố → Phường/Xã chỉ được tải khi khách thật sự chạm
@@ -142,27 +169,35 @@ export default function LandingPage() {
     form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(
-    products,
+    effectiveProducts,
     () => {
       useCartStore.getState().clearCart();
     },
     { requireAdministrativeUnits: !isManualAddress }
   );
 
-  const handleCartCheckout = (discountCode?: string) => {
+  // Khi bấm "Mua sản phẩm" trong giỏ hàng: nạp toàn bộ sản phẩm từ giỏ hàng vào form
+  // và chuyển màn hình mượt mà đến khu vực điền thông tin đặt hàng.
+  const handleCartCheckout = () => {
     const cartItems = useCartStore.getState().items;
     if (cartItems.length > 0) {
       setCartItems(
-        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-        discountCode
+        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
       );
-      if (discountCode) {
-        applyDiscount(discountCode);
-      }
     }
     closeCart();
     scrollToSection("dat-hang");
   };
+
+  // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
+  useEffect(() => {
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0 && form.items.length === 1 && !form.items[0].productId) {
+      setCartItems(
+        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+      );
+    }
+  }, [cartStoreItems]);
 
   const wardOptions = wardsOf(vnProvinces, form.province);
   const hasFieldErrors = Object.values(errors).some(Boolean);
@@ -380,7 +415,7 @@ export default function LandingPage() {
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
-            <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary truncate max-w-[210px] xs:max-w-[260px] sm:max-w-none`}>
+            <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary truncate max-w-[150px] xs:max-w-[220px] sm:max-w-none`}>
               Nguyệt Nhãn Phố Hiến
             </span>
           </div>
@@ -515,7 +550,15 @@ export default function LandingPage() {
             <div className="pt-4 space-y-3">
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => scrollToSection("dat-hang")}
+                onClick={() => {
+                  const cartItems = useCartStore.getState().items;
+                  if (cartItems.length > 0) {
+                    setCartItems(
+                      cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+                    );
+                  }
+                  scrollToSection("dat-hang");
+                }}
                 className="w-full bg-gradient-to-r from-[#B45309] to-[#D97706] text-white text-base font-bold px-6 py-3.5 rounded-xl shadow-lg flex justify-center items-center gap-2"
               >
                 <ShoppingCart className="w-5 h-5" /> {t.nav.buyNow}
@@ -617,8 +660,8 @@ export default function LandingPage() {
                 bannerUrl={
                   cmsContent.HeroBannerUrl
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
-                    : products[0]?.images?.[0]
-                    ? resolveCmsImage(products[0].images[0].imagePath)
+                    : effectiveProducts[0]?.images?.[0]
+                    ? resolveCmsImage(effectiveProducts[0].images[0].imagePath)
                     : "/images/setqua.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}
@@ -679,7 +722,7 @@ export default function LandingPage() {
 
         {/* 4. Khu vực sản phẩm tương tác cao cấp */}
         <ProductInteractiveShowcase
-          products={products}
+          products={effectiveProducts}
           language={language as "vi" | "en"}
           cmsContent={cmsContent}
           onOrderProduct={(productId) => {
@@ -1163,23 +1206,23 @@ export default function LandingPage() {
 
                     {form.items.map((item, idx) => (
                       <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-background border border-[#FDE68A] shadow-sm">
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <select
                             required
                             aria-label={`${t.order.select_product} ${idx + 1}`}
                             value={item.productId}
                             onChange={(e) => updateItem(idx, "productId", e.target.value)}
-                            className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all"
+                            className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all truncate"
                           >
                             <option value="">{t.order.select_default}</option>
-                            {products.map((prod) => (
+                            {effectiveProducts.map((prod) => (
                               <option key={prod.id} value={prod.id}>
                                 {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
                               </option>
                             ))}
                           </select>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
                           <div className="w-24 shrink-0">
                             <input
                               type="number"
@@ -1246,13 +1289,13 @@ export default function LandingPage() {
                     <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
                       <div className="space-y-1 pb-2 border-b border-gray-200/60 text-xs text-foreground/80">
                         {form.items.map((item, idx) => {
-                          const prod = products.find((p) => p.id === item.productId);
+                          const prod = effectiveProducts.find((p) => p.id === item.productId);
                           if (!prod) return null;
                           const itemTotal = prod.price * (item.quantity || 1);
                           return (
-                            <div key={idx} className="flex justify-between">
-                              <span>{prod.name} ({prod.size}) x{item.quantity}</span>
-                              <span className="font-medium">
+                            <div key={idx} className="flex justify-between items-start gap-2">
+                              <span className="flex-1 min-w-0 break-words">{prod.name} ({prod.size}) x{item.quantity}</span>
+                              <span className="font-medium shrink-0">
                                 {language === "en"
                                   ? `$${(itemTotal / 25000).toFixed(2).replace(',', '.')}`
                                   : `${itemTotal.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
@@ -1588,7 +1631,15 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => scrollToSection("dat-hang")}
+              onClick={() => {
+                const cartItems = useCartStore.getState().items;
+                if (cartItems.length > 0) {
+                  setCartItems(
+                    cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+                  );
+                }
+                scrollToSection("dat-hang");
+              }}
               className="flex-1 bg-gradient-to-r from-[#B45309] to-[#D97706] text-white font-bold py-2.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 text-xs transition-all active:scale-95"
             >
               <ShoppingCart className="w-4 h-4 shrink-0" />
