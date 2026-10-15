@@ -170,22 +170,41 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
+  html, body {
+    overflow-x: clip;
+    max-width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     @apply bg-background text-foreground;
     /* subtle paper/linen texture */
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-    }
+  }
   html {
     @apply font-sans;
     scroll-behavior: smooth;
   }
   section[id] {
-    scroll-margin-top: 90px;
+    scroll-margin-top: 80px;
   }
 }
 
 @layer utilities {
+  /* Ẩn thanh cuộn nhưng vẫn cuộn mượt bằng cảm ứng trên mobile */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Padding an toàn cho các thiết bị có tai thỏ / thanh điều hướng cạnh dưới */
+  .safe-area-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+  }
+
   /* Vệt sáng chạy qua bề mặt thẻ khi hover (dùng bên trong phần tử cha có class .group) */
   .sheen::after {
     content: "";

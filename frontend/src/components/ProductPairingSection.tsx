@@ -107,28 +107,32 @@ export function ProductPairingSection({
         </motion.div>
 
         {/* Bộ chuyển đổi 3 cách dùng */}
-        <div className="flex justify-center mb-12">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-1.5 rounded-3xl bg-white/80 backdrop-blur-md border border-[#FDE68A]/60 shadow-lg max-w-2xl w-full">
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-3 p-1.5 rounded-2xl sm:rounded-3xl bg-white/85 backdrop-blur-md border border-[#FDE68A]/60 shadow-lg max-w-2xl w-full">
             {RECIPES.map((r) => {
               const isActive = r.id === activeId;
               const Icon = r.id === "tra-cuc" ? Coffee : r.id === "che-sen" ? UtensilsCrossed : Wine;
+              const shortName = r.id === "tra-cuc" ? "Trà Dưỡng" : r.id === "che-sen" ? "Chè Hạt Sen" : "Rượu Quý";
+              const fullName = r.id === "tra-cuc" ? "Trà Long Nhãn" : r.id === "che-sen" ? "Chè Hạt Sen" : "Rượu Đại Bổ";
+
               return (
                 <button
                   key={r.id}
                   onClick={() => setActiveId(r.id)}
-                  className={`relative px-4 py-3.5 rounded-2xl text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                  className={`relative px-2 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs md:text-sm font-bold flex items-center justify-center gap-1 sm:gap-2 transition-all ${
                     isActive ? "text-white shadow-md" : "text-foreground/75 hover:text-primary hover:bg-secondary/40"
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeRecipeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-[#B45309] to-[#D97706] rounded-2xl -z-10"
+                      className="absolute inset-0 bg-gradient-to-r from-[#B45309] to-[#D97706] rounded-xl sm:rounded-2xl -z-10 shadow-sm"
                       transition={{ type: "spring", stiffness: 350, damping: 28 }}
                     />
                   )}
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{r.name.split(" ")[0]} {r.name.split(" ")[1]}</span>
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="hidden sm:inline truncate">{fullName}</span>
+                  <span className="sm:hidden truncate">{shortName}</span>
                 </button>
               );
             })}
@@ -143,65 +147,65 @@ export function ProductPairingSection({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.45, ease: EASE_OUT_EXPO }}
-            className="max-w-5xl mx-auto bg-white/95 rounded-[2.5rem] p-6 md:p-10 lg:p-12 border border-[#FDE68A]/70 shadow-2xl relative overflow-hidden"
+            className="max-w-5xl mx-auto bg-white/95 rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 lg:p-12 border border-[#FDE68A]/70 shadow-2xl relative overflow-hidden"
           >
-            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
               {/* Cột trái: Thông tin món, công dụng, hướng dẫn */}
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-4 sm:space-y-6">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-accent bg-secondary px-3 py-1 rounded-full">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-accent bg-secondary px-2.5 sm:px-3 py-1 rounded-full">
                     {activeRecipe.category}
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-bold text-primary mt-3 mb-2">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mt-2.5 sm:mt-3 mb-1.5 sm:mb-2">
                     {activeRecipe.name}
                   </h3>
-                  <p className="text-sm md:text-base text-accent font-medium italic">
+                  <p className="text-xs sm:text-sm md:text-base text-accent font-medium italic">
                     &ldquo;{activeRecipe.tagline}&rdquo;
                   </p>
                 </div>
 
-                <p className="text-foreground/80 text-sm md:text-base leading-relaxed">
+                <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed">
                   {activeRecipe.desc}
                 </p>
 
                 {/* 2 huy hiệu thông số */}
-                <div className="flex flex-wrap gap-4 py-2">
-                  <div className="flex items-center gap-2 bg-[#FFFDF8] px-4 py-2.5 rounded-xl border border-[#FDE68A] text-xs font-semibold text-primary">
-                    <Clock className="w-4 h-4 text-accent" />
-                    <span>Thời gian chuẩn bị: {activeRecipe.time}</span>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 py-1 sm:py-2">
+                  <div className="flex items-center gap-2 bg-[#FFFDF8] px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-[#FDE68A] text-xs font-semibold text-primary">
+                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" />
+                    <span>Thời gian: {activeRecipe.time}</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-800">
-                    <Heart className="w-4 h-4 text-emerald-600" />
+                  <div className="flex items-center gap-2 bg-emerald-50 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-emerald-200 text-xs font-semibold text-emerald-800">
+                    <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
                     <span>{activeRecipe.healthBenefit}</span>
                   </div>
                 </div>
 
                 {/* Hướng dẫn pha chế */}
-                <div className="p-4 rounded-2xl bg-secondary/30 border border-[#FDE68A]/60 text-xs md:text-sm text-foreground/85">
+                <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-secondary/30 border border-[#FDE68A]/60 text-xs md:text-sm text-foreground/85">
                   <span className="font-bold text-primary block mb-1">💡 Bí quyết nghệ nhân:</span>
                   <span>{activeRecipe.instruction}</span>
                 </div>
               </div>
 
               {/* Cột phải: Thẻ nguyên liệu & Nút mua ngay */}
-              <div className="lg:col-span-5 bg-gradient-to-br from-[#FFFDF8] to-[#F8F3E8] p-6 rounded-3xl border border-[#FDE68A] shadow-md flex flex-col justify-between space-y-6">
+              <div className="lg:col-span-5 bg-gradient-to-br from-[#FFFDF8] to-[#F8F3E8] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#FDE68A] shadow-md flex flex-col justify-between space-y-4 sm:space-y-6">
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-primary/80 mb-4 flex items-center justify-between">
+                  <div className="text-xs font-bold uppercase tracking-wider text-primary/80 mb-3 sm:mb-4 flex items-center justify-between">
                     <span>Nguyên Liệu Chuẩn Bị</span>
-                    <span className="text-[11px] text-accent font-semibold">Khẩu phần 2 - 4 người</span>
+                    <span className="text-[10px] sm:text-[11px] text-accent font-semibold">Khẩu phần 2 - 4 người</span>
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {activeRecipe.ingredients.map((ing, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/90 border border-border/40 text-xs md:text-sm"
+                        className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-white/90 border border-border/40 text-xs sm:text-sm"
                       >
-                        <div className="flex items-center gap-2 font-medium text-foreground">
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-foreground">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <span>{ing.name}</span>
                         </div>
-                        <span className="font-bold text-accent">{ing.amount}</span>
+                        <span className="font-bold text-accent shrink-0 ml-2">{ing.amount}</span>
                       </div>
                     ))}
                   </div>
@@ -209,7 +213,7 @@ export function ProductPairingSection({
 
                 <button
                   onClick={onOrderClick}
-                  className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-accent/20 flex items-center justify-center gap-2 text-sm transition-all hover:scale-105 cursor-pointer"
+                  className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl shadow-lg shadow-accent/20 flex items-center justify-center gap-2 text-xs sm:text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <span>Đặt Mua Nguyệt Nhãn Nấu Món Này</span>
                   <ArrowRight className="w-4 h-4" />

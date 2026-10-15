@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -18,6 +18,13 @@ const dancingScript = Dancing_Script({
   subsets: ["vietnamese"],
   weight: ["700"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#23452F",
+};
 
 export const metadata: Metadata = {
   title: "Nguyệt Nhãn Phố Hiến",

@@ -38,32 +38,172 @@ const COMPARISONS: ComparisonRow[] = [
   },
 ];
 
+import { useState } from "react";
+
 export function ProductComparisonSection({ language = "vi" }: { language?: "vi" | "en" }) {
+  const [mobileView, setMobileView] = useState<"headToHead" | "cards">("headToHead");
+  const [activeMobileCard, setActiveMobileCard] = useState<"nguyetNhan" | "market">("nguyetNhan");
+
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-16 sm:py-24 bg-white relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-10 sm:mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-sm mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-sm mb-4">
             <ShieldCheck className="w-4 h-4 text-accent" />
             <span>Minh Bạch Chất Lượng</span>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-bold text-primary tracking-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4">
             {language === "en" ? "Purity Uncompromised: The Nguyệt Nhãn Standard" : "Khác Biệt Làm Nên Đẳng Cấp Nguyệt Nhãn"}
           </h2>
-          <p className="text-foreground/80 text-base md:text-lg leading-relaxed">
+          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed">
             Chúng tôi kiên định với phương pháp làm nghề tử tế — không chạy theo số lượng, đặt sức khỏe người dùng và uy tín danh thơm Phố Hiến lên hàng đầu.
           </p>
         </motion.div>
 
-        {/* Bảng so sánh thẻ kép 2 cột */}
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-stretch">
+        {/* Chế độ xem trên Mobile (md:hidden): Đối chiếu trực quan từng tiêu chí */}
+        <div className="md:hidden mb-6">
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center p-1 rounded-xl bg-secondary/60 border border-[#FDE68A]/60 text-xs font-bold">
+              <button
+                onClick={() => setMobileView("headToHead")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  mobileView === "headToHead"
+                    ? "bg-accent text-white shadow-sm"
+                    : "text-foreground/75 hover:text-primary"
+                }`}
+              >
+                So Sánh Đối Đầu
+              </button>
+              <button
+                onClick={() => setMobileView("cards")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  mobileView === "cards"
+                    ? "bg-accent text-white shadow-sm"
+                    : "text-foreground/75 hover:text-primary"
+                }`}
+              >
+                Xem Từng Thẻ
+              </button>
+            </div>
+          </div>
+
+          {mobileView === "headToHead" ? (
+            <div className="space-y-4">
+              {COMPARISONS.map((row, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#FFFDF8] rounded-2xl border border-[#FDE68A]/80 p-4 shadow-sm space-y-3"
+                >
+                  <div className="font-bold text-primary text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-[#FDE68A]/40 pb-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                    <span>{row.criteria}</span>
+                  </div>
+
+                  <div className="bg-emerald-50/90 border border-emerald-200/90 p-3 rounded-xl text-xs space-y-1">
+                    <div className="font-bold text-emerald-900 flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>Nguyệt Nhãn Phố Hiến:</span>
+                    </div>
+                    <p className="text-emerald-950 font-medium pl-5 leading-relaxed">{row.nguyetNhan}</p>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl text-xs space-y-1">
+                    <div className="font-bold text-gray-700 flex items-center gap-1.5">
+                      <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                      <span>Hàng đại trà thị trường:</span>
+                    </div>
+                    <p className="text-gray-600 pl-5 leading-relaxed">{row.market}</p>
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-6 space-y-3">
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold text-center">
+                  ✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại
+                </div>
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium text-center">
+                  ⚠ Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp từ hàng trôi nổi
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Tab chuyển thẻ trên Mobile */}
+              <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/40">
+                <button
+                  onClick={() => setActiveMobileCard("nguyetNhan")}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                    activeMobileCard === "nguyetNhan"
+                      ? "bg-accent text-white shadow-sm"
+                      : "text-foreground/75"
+                  }`}
+                >
+                  👑 Nguyệt Nhãn Phố Hiến
+                </button>
+                <button
+                  onClick={() => setActiveMobileCard("market")}
+                  className={`py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                    activeMobileCard === "market"
+                      ? "bg-gray-700 text-white shadow-sm"
+                      : "text-foreground/75"
+                  }`}
+                >
+                  ❌ Hàng Đại Trà
+                </button>
+              </div>
+
+              {activeMobileCard === "nguyetNhan" ? (
+                <div className="rounded-2xl bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-5 border-2 border-accent shadow-xl relative overflow-hidden">
+                  <div className="text-accent font-bold text-[11px] uppercase tracking-widest mb-1">Đặc Sản Chính Gốc</div>
+                  <h3 className="text-xl font-extrabold text-primary mb-4">Nguyệt Nhãn Phố Hiến</h3>
+                  <div className="space-y-4">
+                    {COMPARISONS.map((row, idx) => (
+                      <div key={idx} className="space-y-1 pb-3 border-b border-[#FDE68A]/60 last:border-none">
+                        <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>{row.criteria}</span>
+                        </div>
+                        <p className="text-xs text-foreground/90 leading-relaxed pl-5 font-medium">{row.nguyetNhan}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold text-center">
+                    ✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-gray-50 p-5 border border-gray-200 shadow-md">
+                  <div className="text-muted-foreground font-bold text-[11px] uppercase tracking-widest mb-1">Hàng Trôi Nổi</div>
+                  <h3 className="text-xl font-bold text-gray-600 mb-4">Long Nhãn Đại Trà</h3>
+                  <div className="space-y-4">
+                    {COMPARISONS.map((row, idx) => (
+                      <div key={idx} className="space-y-1 pb-3 border-b border-gray-200 last:border-none">
+                        <div className="text-xs font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
+                          <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                          <span>{row.criteria}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed pl-5">{row.market}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-5 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium text-center">
+                    ⚠ Nguy cơ tồn dư lưu huỳnh và tẩm đường hóa học
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bảng so sánh thẻ kép 2 cột (Chỉ hiện trên Desktop & Tablet md+) */}
+        <div className="hidden md:grid md:grid-cols-2 gap-8 items-stretch max-w-5xl mx-auto">
           
           {/* Cột Trái: Nguyệt Nhãn Phố Hiến (Thượng hạng) */}
           <motion.div
