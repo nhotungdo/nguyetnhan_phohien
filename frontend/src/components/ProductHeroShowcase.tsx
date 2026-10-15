@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 import { Crown, ArrowRight, Flame, Leaf, Award } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 
@@ -13,20 +13,26 @@ interface ProductHeroShowcaseProps {
 export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+
+  // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateXSpring = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 220, damping: 22 });
+  const rotateYSpring = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 220, damping: 22 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
+    mouseX.set(x);
+    mouseY.set(y);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    setMousePos({ x: 0, y: 0 });
+    mouseX.set(0);
+    mouseY.set(0);
   };
 
   const imageSrc = bannerUrl || "/images/setqua.jpg";
@@ -34,28 +40,28 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
   return (
     <div
       ref={cardRef}
-      onMouseEnter={() => setIsHovered(true)}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative w-full max-w-lg aspect-square flex items-center justify-center select-none"
       style={{ perspective: 1200 }}
     >
       {/* Vòng tròn hào quang xoay chậm phía sau */}
-      <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-[#FDE68A]/70 via-[#FEF3C7]/90 to-[#D5B477]/50 shadow-2xl blur-sm flex items-center justify-center overflow-hidden animate-[spin_90s_linear_infinite] -z-10">
+      <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-[#FDE68A]/70 via-[#FEF3C7]/90 to-[#D5B477]/50 shadow-2xl blur-sm flex items-center justify-center overflow-hidden animate-[spin_90s_linear_infinite] -z-10 will-change-transform">
         <div className="absolute inset-4 border border-[#B45309]/20 rounded-full border-dashed" />
       </div>
 
-      {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) */}
-      <div className="absolute -inset-6 rounded-full bg-[#FDE68A]/40 blur-3xl animate-pulse -z-20 pointer-events-none" />
+      {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) dùng radial gradient thay vì blur-3xl */}
+      <div className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-pulse -z-20 pointer-events-none" />
 
       {/* Thẻ ảnh 3D Parallax chính */}
       <motion.div
-        className="relative w-[85%] aspect-[4/5] rounded-[2.5rem] bg-white p-3 shadow-2xl border-4 border-white overflow-hidden cursor-pointer"
-        animate={{
-          rotateX: prefersReducedMotion ? 0 : isHovered ? -mousePos.y * 16 : 3,
-          rotateY: prefersReducedMotion ? 0 : isHovered ? mousePos.x * 16 : -4,
-          scale: isHovered ? 1.03 : 1,
+        className="relative w-[85%] aspect-[4/5] rounded-[2.5rem] bg-white p-3 shadow-2xl border-4 border-white overflow-hidden cursor-pointer will-change-transform"
+        style={{
+          rotateX: prefersReducedMotion ? 0 : rotateXSpring,
+          rotateY: prefersReducedMotion ? 0 : rotateYSpring,
+          transformStyle: "preserve-3d",
         }}
+        whileHover={{ scale: 1.03 }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
         onClick={onExploreClick}
       >

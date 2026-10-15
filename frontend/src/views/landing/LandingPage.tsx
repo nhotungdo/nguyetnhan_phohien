@@ -163,10 +163,18 @@ export default function LandingPage() {
   const heroLine2 = heroLines[1] ?? "";
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const next = window.scrollY > 50;
+          setIsScrolled((prev) => (prev !== next ? next : prev));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -409,11 +417,11 @@ export default function LandingPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.5 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-secondary rounded-full blur-3xl"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,transparent_70%)] rounded-full pointer-events-none"
             />
             {/* Hai vệt sáng trôi lơ lửng, lệch pha nhau → nền "thở" nhẹ mà không gây phân tán */}
-            <div className="absolute -left-24 top-24 w-[420px] h-[420px] rounded-full bg-[#FDE68A]/40 blur-3xl animate-float-slow" />
-            <div className="absolute right-1/4 bottom-0 w-[320px] h-[320px] rounded-full bg-[#D99491]/20 blur-3xl animate-float-slower" />
+            <div className="absolute -left-24 top-24 w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-float-slow will-change-transform pointer-events-none" />
+            <div className="absolute right-1/4 bottom-0 w-[320px] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,transparent_70%)] animate-float-slower will-change-transform pointer-events-none" />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
@@ -567,7 +575,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               <div className="flex-1 relative">
-                <div className="aspect-square rounded-full bg-secondary absolute -top-10 -left-10 w-full h-full -z-10 blur-3xl opacity-50"></div>
+                <div className="aspect-square rounded-full bg-[radial-gradient(circle,rgba(247,238,221,0.9)_0%,transparent_70%)] absolute -top-10 -left-10 w-full h-full -z-10 opacity-70 pointer-events-none"></div>
                 <div className="w-full aspect-[4/5] rounded-[3rem] bg-[#FDE68A]/30 overflow-hidden relative border-8 border-white shadow-2xl">
                   {/* Placeholder phía dưới — admin chưa đặt ảnh (hoặc ảnh lỗi) vẫn thấy khung gợi ý */}
                   <div className="absolute inset-0 flex items-center justify-center text-accent font-medium">
@@ -754,7 +762,7 @@ export default function LandingPage() {
 
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#78350F] rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower"></div>
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(120,53,15,0.7)_0%,transparent_70%)] rounded-full opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower will-change-transform"></div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">

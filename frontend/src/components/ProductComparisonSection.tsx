@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, X, ShieldCheck, Crown } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
@@ -37,8 +38,6 @@ const COMPARISONS: ComparisonRow[] = [
     market: "Đóng túi nilon sơ sài, nhanh chảy nước, dễ nấm mốc hoặc chứa dư lượng SO2 độc hại.",
   },
 ];
-
-import { useState } from "react";
 
 export function ProductComparisonSection({ language = "vi" }: { language?: "vi" | "en" }) {
   const [mobileView, setMobileView] = useState<"headToHead" | "cards">("headToHead");

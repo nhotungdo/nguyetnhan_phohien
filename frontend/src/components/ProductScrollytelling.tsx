@@ -73,8 +73,8 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
   return (
     <section ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40">
       {/* Nền trang trí */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FDE68A]/20 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#EDF3E9]/60 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,transparent_70%)] pointer-events-none -z-10" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(237,243,233,0.7)_0%,transparent_70%)] pointer-events-none -z-10" />
 
       <div className="container mx-auto px-4 md:px-6">
         {/* Tiêu đề mục */}
@@ -106,7 +106,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
           <div className="absolute left-5 sm:left-6 md:left-1/2 top-0 bottom-0 w-[3px] -translate-x-1/2 bg-[#FDE68A]/40 rounded-full overflow-hidden">
             <motion.div
               style={{ scaleY: prefersReducedMotion ? 1 : lineHeight }}
-              className="w-full h-full bg-gradient-to-b from-[#B45309] via-[#D97706] to-[#B68A45] origin-top"
+              className="w-full h-full bg-gradient-to-b from-[#B45309] via-[#D97706] to-[#B68A45] origin-top will-change-transform"
             />
           </div>
 

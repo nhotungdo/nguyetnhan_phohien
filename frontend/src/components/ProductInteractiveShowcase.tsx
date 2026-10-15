@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
   Crown,
   Plus,
@@ -107,24 +107,28 @@ export function ProductInteractiveShowcase({
   const displayProducts = products && products.length > 0 ? products : DEFAULT_FALLBACK_PRODUCTS;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeHotspot, setActiveHotspot] = useState<string | null>("texture");
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
   const activeProduct = displayProducts[selectedIndex] || displayProducts[0];
 
-  // Xử lý hiệu ứng 3D tilt theo góc chuột
+  // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateXSpring = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 240, damping: 22 });
+  const rotateYSpring = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 240, damping: 22 });
+
+  // Xử lý hiệu ứng 3D tilt theo góc chuột trực tiếp qua GPU mà không trigger re-render
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
+    mouseX.set(x);
+    mouseY.set(y);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    setMousePos({ x: 0, y: 0 });
+    mouseX.set(0);
+    mouseY.set(0);
   };
 
   const formatPrice = (price: number) => {
@@ -148,7 +152,7 @@ export function ProductInteractiveShowcase({
   return (
     <section id="san-pham" className="py-24 relative overflow-hidden bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8]">
       {/* Nền trang trí hạt ánh sáng */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-r from-[#FDE68A]/30 via-[#FEF3C7]/40 to-[#FDE68A]/20 blur-3xl -z-10 rounded-full pointer-events-none" />
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.3)_0%,transparent_70%)] -z-10 rounded-full pointer-events-none" />
       
       <div className="container mx-auto px-4 md:px-6">
         {/* Tiêu đề & Lời dẫn phân khu */}
@@ -217,7 +221,6 @@ export function ProductInteractiveShowcase({
             <div className="lg:col-span-7 flex flex-col items-center">
               <div
                 ref={cardRef}
-                onMouseEnter={() => setIsHovered(true)}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => setActiveHotspot(null)}
@@ -228,12 +231,13 @@ export function ProductInteractiveShowcase({
               >
                 {/* Lớp ảnh tương tác với 3D tilt */}
                 <motion.div
-                  className="w-full h-full relative flex items-center justify-center"
-                  animate={{
-                    rotateX: prefersReducedMotion ? 0 : isHovered ? -mousePos.y * 12 : 0,
-                    rotateY: prefersReducedMotion ? 0 : isHovered ? mousePos.x * 12 : 0,
-                    scale: isHovered ? 1.02 : 1,
+                  className="w-full h-full relative flex items-center justify-center will-change-transform"
+                  style={{
+                    rotateX: prefersReducedMotion ? 0 : rotateXSpring,
+                    rotateY: prefersReducedMotion ? 0 : rotateYSpring,
+                    transformStyle: "preserve-3d",
                   }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 >
                   <FastImage
@@ -249,7 +253,7 @@ export function ProductInteractiveShowcase({
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                   {/* Vòng hào quang nhẹ sau ảnh */}
-                  <div className="absolute -inset-4 bg-radial from-[#FDE68A]/30 to-transparent blur-2xl -z-10 pointer-events-none" />
+                  <div className="absolute -inset-4 bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,transparent_70%)] -z-10 pointer-events-none" />
                 </motion.div>
 
                 {/* Các điểm neo Hotspots tương tác cắm trên ảnh */}
