@@ -77,7 +77,7 @@ export default function LandingPage() {
   const [guestName, setGuestName] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
-      return sessionStorage.getItem("chatGuestName") || "";
+      return localStorage.getItem("chatGuestName") || sessionStorage.getItem("chatGuestName") || "";
     } catch {
       return "";
     }
@@ -85,7 +85,7 @@ export default function LandingPage() {
   const [guestPhone, setGuestPhone] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
-      return sessionStorage.getItem("chatGuestPhone") || "";
+      return localStorage.getItem("chatGuestPhone") || sessionStorage.getItem("chatGuestPhone") || "";
     } catch {
       return "";
     }
@@ -93,7 +93,10 @@ export default function LandingPage() {
   const [chatStarted, setChatStarted] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
-      return !!(sessionStorage.getItem("chatSessionId") && sessionStorage.getItem("chatSessionToken"));
+      return !!(
+        (localStorage.getItem("chatSessionId") && localStorage.getItem("chatSessionToken")) ||
+        (sessionStorage.getItem("chatSessionId") && sessionStorage.getItem("chatSessionToken"))
+      );
     } catch {
       return false;
     }
@@ -177,7 +180,19 @@ export default function LandingPage() {
   /** Mã lỗi → câu chữ theo ngôn ngữ đang chọn (lib validation không chứa i18n). */
   const errorText = (code?: OrderFieldErrorCode) => (code ? t.order.errors[code] : undefined);
 
-  const { messages, isConnected, isSending, isAdminTyping, connect, notifyTyping, markMessagesRead, sendMessage } = useLiveChat();
+  const {
+    messages,
+    isConnected,
+    isSending,
+    isAdminTyping,
+    unreadCount,
+    isSessionTerminated,
+    connect,
+    notifyTyping,
+    markMessagesRead,
+    sendMessage,
+    startNewChat,
+  } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
 
@@ -225,10 +240,12 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Auto-scroll chat
+  // Auto-scroll chat khi có tin nhắn mới hoặc khi mở cửa sổ chat
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isChatOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isChatOpen]);
 
   // Khóa cuộn trang khi menu mobile đang mở để tránh giật lag layout
   useEffect(() => {
@@ -252,16 +269,16 @@ export default function LandingPage() {
   // Tự động kết nối ngầm phiên chat nếu khách đã từng trò chuyện trước đó
   useEffect(() => {
     try {
-      const storedId = sessionStorage.getItem("chatSessionId");
-      const storedToken = sessionStorage.getItem("chatSessionToken");
+      const storedId = localStorage.getItem("chatSessionId") || sessionStorage.getItem("chatSessionId");
+      const storedToken = localStorage.getItem("chatSessionToken") || sessionStorage.getItem("chatSessionToken");
       if (storedId && storedToken) {
-        const storedName = sessionStorage.getItem("chatGuestName");
-        const storedPhone = sessionStorage.getItem("chatGuestPhone");
+        const storedName = localStorage.getItem("chatGuestName") || sessionStorage.getItem("chatGuestName");
+        const storedPhone = localStorage.getItem("chatGuestPhone") || sessionStorage.getItem("chatGuestPhone");
         // Pre-connect trong nền để WebSocket bắt tay xong từ trước, khi gửi tin không bị trễ
         connect(storedName || undefined, storedPhone || undefined);
       }
     } catch {
-      // sessionStorage không khả dụng trên môi trường SSR / sandbox
+      // Storage không khả dụng trên môi trường SSR / sandbox
     }
   }, [connect]);
 
@@ -291,12 +308,14 @@ export default function LandingPage() {
   const handleStartChat = async () => {
     if (!guestName.trim()) return;
     try {
+      localStorage.setItem("chatGuestName", guestName.trim());
       sessionStorage.setItem("chatGuestName", guestName.trim());
       if (guestPhone.trim()) {
+        localStorage.setItem("chatGuestPhone", guestPhone.trim());
         sessionStorage.setItem("chatGuestPhone", guestPhone.trim());
       }
     } catch {
-      // Bỏ qua lỗi sessionStorage
+      // Bỏ qua lỗi storage
     }
     setChatStarted(true);
     await connect(guestName, guestPhone);
@@ -1433,7 +1452,12 @@ export default function LandingPage() {
             ) : (
               <>
                 <div className="h-[250px] sm:h-[280px] bg-background p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-2.5 sm:gap-3">
-                  {messages.length === 0 && (
+                  {isSessionTerminated && (
+                    <div className="bg-amber-50 border border-amber-200 text-amber-800 p-2.5 rounded-xl text-xs text-center">
+                      Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại.
+                    </div>
+                  )}
+                  {messages.length === 0 && !isSessionTerminated && (
                     <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-primary max-w-[85%] self-start shadow-sm">
                       Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
                     </div>
@@ -1511,6 +1535,11 @@ export default function LandingPage() {
             <span aria-hidden className="absolute inset-0 rounded-full border-2 border-accent animate-pulse-ring" />
           )}
           {isChatOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
+          {!isChatOpen && unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-[10px] sm:text-xs font-bold text-white shadow-lg animate-bounce border-2 border-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </motion.button>
       </div>
 

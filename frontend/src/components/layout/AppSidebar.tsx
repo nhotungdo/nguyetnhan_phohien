@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/sidebar"
 import { MessageSquare, Package, LayoutDashboard, LogOut, Globe, Ticket, CreditCard } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
-import { adminAuth } from "@/services/api.service"
+import { useQuery } from "@tanstack/react-query"
+import { adminAuth, chatApi } from "@/services/api.service"
 
 const items = [
   { title: "Tổng quan", url: "/dashboard", icon: LayoutDashboard },
@@ -26,6 +27,14 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { data: chatStats } = useQuery({
+    queryKey: ["chat", "stats"],
+    queryFn: () => chatApi.getStats(),
+    refetchInterval: 30_000,
+    staleTime: 5_000,
+  });
+  const unreadChatCount = chatStats?.unreadSessions || 0;
 
   const handleLogout = () => {
     adminAuth.logout();
@@ -61,6 +70,11 @@ export function AppSidebar() {
                     >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.url === "/messenger" && unreadChatCount > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold text-white bg-red-500 rounded-full shadow-sm">
+                          {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )

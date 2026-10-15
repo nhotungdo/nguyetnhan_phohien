@@ -14,7 +14,7 @@ const TYPING_HIDE_MS = 4000;
 /** Thử khởi động lại SignalR sau khi auto-reconnect từ bỏ hẳn (backend restart/mất mạng lâu). */
 const RESTART_DELAY_MS = 10_000;
 
-/** Khoá lưu phiên chat của tab hiện tại (id + token do server cấp). */
+/** Khoá lưu phiên chat (id + token do server cấp). */
 const SESSION_ID_KEY = "chatSessionId";
 const SESSION_TOKEN_KEY = "chatSessionToken";
 
@@ -23,23 +23,68 @@ interface ChatSessionCreds {
   token: string;
 }
 
-// Đọc phiên đã lưu trong tab. PHẢI có cả token: chỉ id không đủ để truy cập phiên
-// (server luôn yêu cầu token do chính server ký).
+/** Phát âm thanh chuông nhẹ nhàng khi có phản hồi từ Admin */
+function playCustomerNotificationChime() {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    // Âm thanh 2 tông êm dịu: 523.25Hz (C5) -> 659.25Hz (E5)
+    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch {
+    // Bỏ qua nếu trình duyệt chặn autoplay
+  }
+}
+
+// Đọc phiên đã lưu. Ưu tiên localStorage để duy trì qua nhiều tab/khi mở lại,
+// fallback sessionStorage nếu localStorage bị chặn.
 function readStoredSession(): ChatSessionCreds | null {
   if (typeof window === "undefined") return null;
-  const id = sessionStorage.getItem(SESSION_ID_KEY);
-  const token = sessionStorage.getItem(SESSION_TOKEN_KEY);
-  return id && token ? { id, token } : null;
+  try {
+    const id = localStorage.getItem(SESSION_ID_KEY) || sessionStorage.getItem(SESSION_ID_KEY);
+    const token = localStorage.getItem(SESSION_TOKEN_KEY) || sessionStorage.getItem(SESSION_TOKEN_KEY);
+    return id && token ? { id, token } : null;
+  } catch {
+    return null;
+  }
 }
 
 function storeSession(creds: ChatSessionCreds) {
-  sessionStorage.setItem(SESSION_ID_KEY, creds.id);
-  sessionStorage.setItem(SESSION_TOKEN_KEY, creds.token);
+  try {
+    localStorage.setItem(SESSION_ID_KEY, creds.id);
+    localStorage.setItem(SESSION_TOKEN_KEY, creds.token);
+  } catch {}
+  try {
+    sessionStorage.setItem(SESSION_ID_KEY, creds.id);
+    sessionStorage.setItem(SESSION_TOKEN_KEY, creds.token);
+  } catch {}
 }
 
 function clearStoredSession() {
-  sessionStorage.removeItem(SESSION_ID_KEY);
-  sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  try {
+    localStorage.removeItem(SESSION_ID_KEY);
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch {}
+  try {
+    sessionStorage.removeItem(SESSION_ID_KEY);
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch {}
 }
 
 export function useLiveChat() {
@@ -49,6 +94,8 @@ export function useLiveChat() {
   const [isSending, setIsSending] = useState(false);
   /** Admin đang gõ — tự ẩn sau TYPING_HIDE_MS nếu không có tín hiệu mới. */
   const [isAdminTyping, setIsAdminTyping] = useState(false);
+  /** Cờ đánh dấu phiên đã bị Admin xoá/kết thúc */
+  const [isSessionTerminated, setIsSessionTerminated] = useState(false);
 
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   /** Phiên chat hiện tại (id + token do server cấp) — null khi chưa xin phiên. */
@@ -60,17 +107,18 @@ export function useLiveChat() {
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
-  // mà không cần re-register handlers
   const guestInfoRef = useRef<{ name?: string; phone?: string }>({});
 
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
+  /** Số lượng tin nhắn Admin chưa đọc */
+  const unreadCount = messages.filter((m) => m.senderType === "Admin" && !m.isRead).length;
+
   /**
-   * Lấy phiên chat đang lưu trong tab; nếu chưa có thì xin SERVER cấp phiên mới
+   * Lấy phiên chat đang lưu; nếu chưa có thì xin SERVER cấp phiên mới
    * (SessionId ngẫu nhiên + token). forceNew = true khi token cũ bị server từ chối.
-   * Không còn tự sinh sessionId ở client — đó là lỗi cho phép chiếm phiên người khác.
    */
   const ensureSession = useCallback(
     async (forceNew = false, guestName?: string, guestPhone?: string): Promise<ChatSessionCreds> => {
@@ -86,10 +134,19 @@ export function useLiveChat() {
       const creds: ChatSessionCreds = { id: created.sessionId, token: created.sessionToken };
       storeSession(creds);
       sessionRef.current = creds;
+      setIsSessionTerminated(false);
       return creds;
     },
     []
   );
+
+  // Bắt đầu phiên chat mới sạch sẽ
+  const startNewChat = useCallback(() => {
+    clearStoredSession();
+    sessionRef.current = null;
+    setMessages([]);
+    setIsSessionTerminated(false);
+  }, []);
 
   // Kết nối SignalR
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
@@ -97,8 +154,7 @@ export function useLiveChat() {
 
     const creds = await ensureSession(false, guestName, guestPhone);
 
-    // Đã kết nối rồi: chỉ cập nhật thông tin khách (tên/SĐT nhập ở lần bắt đầu chat)
-    // bằng cách join lại — backend sẽ ghi đè lên phiên trong DB.
+    // Đã kết nối rồi: chỉ cập nhật thông tin khách bằng cách join lại
     if (connectionRef.current?.state === signalR.HubConnectionState.Connected) {
       if (guestName || guestPhone) {
         connectionRef.current
@@ -113,8 +169,12 @@ export function useLiveChat() {
     try {
       const history = await chatApi.getGuestMessages(creds.id, creds.token);
       setMessages(history);
+      setIsSessionTerminated(false);
     } catch {
-      // Phiên mới chưa có lịch sử (hoặc token không dùng được) — bỏ qua
+      // Phiên cũ không còn hoặc token không dùng được -> dọn phiên lỗi
+      clearStoredSession();
+      sessionRef.current = null;
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }
@@ -127,14 +187,10 @@ export function useLiveChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
-    // withAutomaticReconnect() chỉ thử ~1 phút rồi dừng hẳn. Khách đang mở widget
-    // mà backend restart lâu hơn sẽ không bao giờ nhận lại tin realtime (chỉ còn
-    // REST fallback). Tự start() lại mỗi 10s, kèm join lại group + tải bù lịch sử.
     const scheduleRestart = () => {
       if (restartTimerRef.current) return;
       restartTimerRef.current = setTimeout(async () => {
         restartTimerRef.current = null;
-        // Một kết nối khác (qua connect/REST fallback) đã nối lại → không tạo song song
         if (connectionRef.current) return;
         const current = sessionRef.current;
         try {
@@ -147,26 +203,25 @@ export function useLiveChat() {
             try {
               const history = await chatApi.getGuestMessages(current.id, current.token);
               setMessages(history);
-            } catch { /* tải bù thất bại — lần mất kết nối sau sẽ thử lại */ }
+            } catch { /* tải bù thất bại — lần sau thử lại */ }
           }
           setIsConnected(true);
           connectionRef.current = connection;
         } catch {
-          // Backend vẫn chưa lên — hẹn thử lại sau 10s
           scheduleRestart();
         }
       }, RESTART_DELAY_MS);
     };
 
-    // Nhận tin nhắn từ Admin — event name phải khớp ChatHub.AdminReply
+    // Nhận tin nhắn từ Admin
     connection.on("ReceiveAdminMessage", (message: ChatMessageResponse) => {
+      playCustomerNotificationChime();
       setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
     });
 
     // Echo xác nhận tin nhắn của chính khách đã được lưu
     connection.on("MessageSent", (message: ChatMessageResponse) => {
       setMessages((prev) => {
-        // Thay thế tin nhắn optimistic tạm thời bằng tin thật từ server
         const tempIdx = prev.findIndex((m) => m.id.startsWith("temp-") && m.content === message.content);
         if (tempIdx !== -1) {
           const updated = [...prev];
@@ -185,29 +240,15 @@ export function useLiveChat() {
       );
     });
 
-    // Admin xoá phiên này (dọn phiên rác/spam hoặc theo yêu cầu xoá dữ liệu của khách).
-    // Phiên cũ không còn tồn tại nên gửi tiếp sẽ lỗi — tự xin phiên mới và join lại
-    // để khách tiếp tục chat được ngay thay vì báo "không gửi được tin nhắn".
-    connection.on("SessionDeleted", async (data: { sessionId: string; sessionKey: string }) => {
+    // Admin xoá phiên này: dọn sạch session và cập nhật UI, KHÔNG tự động tạo phiên mới
+    connection.on("SessionDeleted", (data: { sessionId: string; sessionKey: string }) => {
       const current = sessionRef.current;
       if (!current || current.id !== data.sessionKey) return;
 
       clearStoredSession();
       sessionRef.current = null;
       setMessages([]);
-
-      try {
-        const fresh = await ensureSession(true, guestInfoRef.current.name, guestInfoRef.current.phone);
-        await connection.invoke(
-          "JoinAsGuest",
-          fresh.id,
-          fresh.token,
-          guestInfoRef.current.name ?? null,
-          guestInfoRef.current.phone ?? null
-        );
-      } catch (err) {
-        console.warn("Phiên chat đã bị xoá, chưa tạo được phiên mới:", err);
-      }
+      setIsSessionTerminated(true);
     });
 
     // Admin đang gõ
@@ -224,14 +265,12 @@ export function useLiveChat() {
 
     connection.onclose(() => {
       setIsConnected(false);
-      // Kết nối này đã chết — bỏ tham chiếu để connect()/restart biết cần nối lại
       if (connectionRef.current === connection) connectionRef.current = null;
       scheduleRestart();
     });
+
     connection.onreconnected(async () => {
       setIsConnected(true);
-      // Sau reconnect, connection id mới => mất membership của group cũ.
-      // Phải join lại group phiên chat thì mới tiếp tục nhận tin nhắn admin.
       const current = sessionRef.current;
       if (!current) return;
 
@@ -246,7 +285,7 @@ export function useLiveChat() {
       } catch (err) {
         console.error("Failed to re-join session group after reconnect:", err);
       }
-      // Tin nhắn trao đổi trong lúc mất kết nối không tự đến — tải lại lịch sử từ server
+
       try {
         const history = await chatApi.getGuestMessages(current.id, current.token);
         setMessages(history);
@@ -257,9 +296,7 @@ export function useLiveChat() {
 
     try {
       await connection.start();
-      // Đã nối được: huỷ lịch thử lại đang chờ (nếu có)
       if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
-      // Tham gia vào group của phiên này (hub kiểm tra token trước khi cho join)
       await connection.invoke("JoinAsGuest", creds.id, creds.token, guestName || null, guestPhone || null);
       setIsConnected(true);
       connectionRef.current = connection;
@@ -270,12 +307,9 @@ export function useLiveChat() {
         err.message !== "Failed to start the HttpConnection before stop() was called."
       ) {
         console.error("SignalR connection error:", err);
-      } else if (!(err instanceof Error)) {
-        console.error("SignalR connection error:", err);
       }
 
-      // Token bị server từ chối (phiên đã bị xoá / DB reset): bỏ phiên cũ, xin phiên
-      // mới rồi join lại MỘT lần để khách không bị kẹt không chat được.
+      // Token bị server từ chối: xoá phiên hỏng
       try {
         clearStoredSession();
         const fresh = await ensureSession(true, guestName, guestPhone);
@@ -284,12 +318,12 @@ export function useLiveChat() {
         setIsConnected(true);
         connectionRef.current = connection;
       } catch {
-        // Vẫn thất bại (backend chưa chạy...) — im lặng như trước, REST vẫn dùng được.
+        // Fallback REST
       }
     }
   }, [ensureSession]);
 
-  // Báo cho admin biết khách đang gõ (throttle, chỉ khi hub đang kết nối)
+  // Báo cho admin biết khách đang gõ
   const notifyTyping = useCallback(() => {
     const conn = connectionRef.current;
     const current = sessionRef.current;
@@ -302,8 +336,7 @@ export function useLiveChat() {
     conn.invoke("GuestTyping", current.id, current.token, true).catch(() => {});
   }, []);
 
-  // Xác nhận khách đã xem tin của Admin (chỉ gọi khi widget đang mở).
-  // Backend broadcast "GuestReadMessages" để admin hiện "Đã xem" realtime.
+  // Xác nhận khách đã xem tin của Admin (cập nhật DB & state local để tránh lặp request)
   const markMessagesRead = useCallback(async () => {
     const current = sessionRef.current;
     if (!current) return;
@@ -315,18 +348,21 @@ export function useLiveChat() {
 
     try {
       await chatApi.markGuestMessagesRead(current.id, current.token);
+      // Cập nhật ngay local state để đồng bộ unreadCount = 0 và dừng lặp effect
+      setMessages((prev) =>
+        prev.map((m) => (m.senderType === "Admin" ? { ...m, isRead: true } : m))
+      );
     } catch (err) {
       console.warn("Mark messages read failed:", err);
     }
   }, []);
 
-  // Gửi tin nhắn: ưu tiên SignalR realtime, fallback REST nếu WebSocket/SignalR bị chặn.
-  // Trả về true nếu tin đã được gửi thành công (client giữ nguyên input khi false).
+  // Gửi tin nhắn
   const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string): Promise<boolean> => {
     const trimmed = content.trim();
     if (!trimmed) return false;
 
-    // 1. Optimistic Update: Thêm ngay tin nhắn vào UI để khách thấy phản hồi tức thì 0ms
+    // Optimistic Update
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg: ChatMessageResponse = {
       id: tempId,
@@ -336,25 +372,22 @@ export function useLiveChat() {
       sentAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimisticMsg]);
+    setIsSessionTerminated(false);
 
     setIsSending(true);
     try {
       const conn = connectionRef.current;
       const connected = conn?.state === signalR.HubConnectionState.Connected;
 
-      // Phiên phải tồn tại trước khi gửi (token do server cấp ở POST /api/chat/session)
       const creds = await ensureSession(false, guestName, guestPhone);
 
       if (connected) {
         await conn.invoke("SendGuestMessage", creds.id, creds.token, trimmed);
-        // Không cần hiển thị "đang gõ" nữa sau khi tin đã gửi
         conn.invoke("GuestTyping", creds.id, creds.token, false).catch(() => {});
         return true;
       }
 
-      // SignalR chưa kết nối (mạng chặn WebSocket, server restart...):
-      // gửi qua REST — tin nhắn vẫn được lưu và admin vẫn thấy realtime
-      // (backend broadcast qua hub ngay trong controller).
+      // Fallback REST
       const saved = await chatApi.sendMessage({
         sessionId: creds.id,
         sessionToken: creds.token,
@@ -363,7 +396,6 @@ export function useLiveChat() {
         guestPhone: guestPhone || guestInfoRef.current.phone,
       });
 
-      // Cập nhật tin nhắn thật thay thế tin tạm
       setMessages((prev) => {
         const idx = prev.findIndex((m) => m.id === tempId);
         if (idx !== -1) {
@@ -374,12 +406,10 @@ export function useLiveChat() {
         return prev.some((m) => m.id === saved.id) ? prev : [...prev, saved];
       });
 
-      // Cố gắng kết nối lại nền để các tin sau nhận realtime bình thường
       connect(guestName, guestPhone).catch(() => {});
       return true;
     } catch (err) {
       console.error("Send message error:", err);
-      // Xoá tin tạm nếu gửi thất bại hoàn toàn
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       return false;
     } finally {
@@ -402,9 +432,12 @@ export function useLiveChat() {
     isLoading,
     isSending,
     isAdminTyping,
+    unreadCount,
+    isSessionTerminated,
     connect,
     notifyTyping,
     markMessagesRead,
     sendMessage,
+    startNewChat,
   };
 }

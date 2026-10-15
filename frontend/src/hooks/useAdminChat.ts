@@ -51,6 +51,10 @@ function playNotificationChime() {
   }
 }
 
+/** So sánh an toàn không phân biệt hoa thường giữa 2 chuỗi GUID */
+export const areIdsEqual = (a?: string | null, b?: string | null) =>
+  Boolean(a && b && a.toLowerCase() === b.toLowerCase());
+
 export function useAdminChat() {
   const [sessions, setSessions] = useState<ChatSessionResponse[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -83,13 +87,12 @@ export function useAdminChat() {
     setSelectedSessionId(sessionId);
     setTypingSessionId(null);
 
-    // markRead lỗi (mạng/401) KHÔNG được chặn việc tải tin nhắn — trước đây hai
-    // bước nằm chung một try nên markRead fail là khung chat trắng trơn.
+    // markRead lỗi (mạng/401) KHÔNG được chặn việc tải tin nhắn
     try {
       // Đánh dấu đã đọc (backend broadcast "MessagesRead" để khách thấy "Đã xem")
       await chatApi.markRead(sessionId);
       setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? { ...s, hasUnreadMessages: false } : s))
+        prev.map((s) => (areIdsEqual(s.id, sessionId) ? { ...s, hasUnreadMessages: false } : s))
       );
     } catch (err) {
       console.warn("Mark session read failed:", err);
@@ -123,10 +126,10 @@ export function useAdminChat() {
       patch?: Partial<ChatSessionResponse>
     ) => {
       setSessions((prev) => {
-        if (!prev.some((s) => s.id === sessionId)) return prev;
+        if (!prev.some((s) => areIdsEqual(s.id, sessionId))) return prev;
         return sortSessions(
           prev.map((s) =>
-            s.id === sessionId
+            areIdsEqual(s.id, sessionId)
               ? {
                   ...s,
                   ...patch,
@@ -160,7 +163,7 @@ export function useAdminChat() {
     async (sessionId: string, isResolved: boolean): Promise<boolean> => {
       setSessions((prev) =>
         prev.map((s) =>
-          s.id === sessionId
+          areIdsEqual(s.id, sessionId)
             ? { ...s, isResolved, ...(isResolved ? { hasUnreadMessages: false } : {}) }
             : s
         )
@@ -168,7 +171,7 @@ export function useAdminChat() {
 
       try {
         const updated = await chatApi.setResolved(sessionId, isResolved);
-        setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)));
+        setSessions((prev) => prev.map((s) => (areIdsEqual(s.id, sessionId) ? { ...s, ...updated } : s)));
         return true;
       } catch (err) {
         console.error("Failed to update session resolved state:", err);
@@ -182,12 +185,12 @@ export function useAdminChat() {
 
   /** Bỏ một phiên khỏi danh sách; nếu đang mở đúng phiên đó thì xoá cả khung chat. */
   const dropSession = useCallback((sessionId: string) => {
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    if (selectedSessionIdRef.current === sessionId) {
+    setSessions((prev) => prev.filter((s) => !areIdsEqual(s.id, sessionId)));
+    if (areIdsEqual(selectedSessionIdRef.current, sessionId)) {
       setSelectedSessionId(null);
       setMessages([]);
     }
-    setTypingSessionId((prev) => (prev === sessionId ? null : prev));
+    setTypingSessionId((prev) => (areIdsEqual(prev, sessionId) ? null : prev));
   }, []);
 
   // 2c. Xoá hẳn phiên chat (kèm tin nhắn) — thao tác không thể hoàn tác nên UI phải
@@ -200,7 +203,6 @@ export function useAdminChat() {
         return true;
       } catch (err) {
         console.error("Failed to delete session:", err);
-        // Có thể tab admin khác đã xoá trước đó → lấy lại danh sách đúng từ server
         fetchSessions();
         return false;
       }
@@ -222,8 +224,6 @@ export function useAdminChat() {
       .configureLogging(signalR.LogLevel.None)
       .build();
 
-    // withAutomaticReconnect() chỉ thử ~1 phút rồi dừng hẳn — backend restart lâu
-    // hơn thì admin mất realtime chat âm thầm tới khi F5. Tự start() lại mỗi 10s.
     let disposed = false;
     let restartTimer: ReturnType<typeof setTimeout> | null = null;
     const scheduleRestart = () => {
@@ -250,7 +250,7 @@ export function useAdminChat() {
         session?: ChatSessionResponse;
         message: ChatMessageResponse;
       }) => {
-        const isSelected = selectedSessionIdRef.current === data.sessionId;
+        const isSelected = areIdsEqual(selectedSessionIdRef.current, data.sessionId);
 
         // Chuông báo tin nhắn mới
         playNotificationChime();
@@ -265,7 +265,7 @@ export function useAdminChat() {
 
         // Cập nhật danh sách sessions ngay lập tức trong local state (0ms - không cần fetch HTTP)
         setSessions((prev) => {
-          const index = prev.findIndex((s) => s.id === data.sessionId);
+          const index = prev.findIndex((s) => areIdsEqual(s.id, data.sessionId));
           if (index !== -1) {
             const existing = prev[index];
             const updated: ChatSessionResponse = {
@@ -308,7 +308,7 @@ export function useAdminChat() {
     // Phiên chat mới tạo từ khách (realtime)
     connection.on("SessionCreated", (session: ChatSessionResponse) => {
       setSessions((prev) => {
-        if (prev.some((s) => s.id === session.id)) return prev;
+        if (prev.some((s) => areIdsEqual(s.id, session.id))) return prev;
         return [session, ...prev];
       });
     });
@@ -317,7 +317,7 @@ export function useAdminChat() {
     connection.on(
       "AdminReplied",
       (data: { sessionId: string; message: ChatMessageResponse }) => {
-        if (selectedSessionIdRef.current === data.sessionId) {
+        if (areIdsEqual(selectedSessionIdRef.current, data.sessionId)) {
           setMessages((prev) => {
             if (prev.some((m) => m.id === data.message.id)) return prev;
             // Thay thế tin nhắn optimistic nếu có
@@ -341,7 +341,7 @@ export function useAdminChat() {
 
     // Khách xác nhận đã xem tin của Admin -> hiện "Đã xem" realtime
     connection.on("GuestReadMessages", (data: { sessionId: string }) => {
-      if (selectedSessionIdRef.current !== data.sessionId) return;
+      if (!areIdsEqual(selectedSessionIdRef.current, data.sessionId)) return;
       setMessages((prev) =>
         prev.map((m) => (m.senderType === "Admin" ? { ...m, isRead: true } : m))
       );
@@ -353,7 +353,7 @@ export function useAdminChat() {
       (data: { sessionId: string; isResolved: boolean; hasUnreadMessages: boolean }) => {
         setSessions((prev) =>
           prev.map((s) =>
-            s.id === data.sessionId
+            areIdsEqual(s.id, data.sessionId)
               ? { ...s, isResolved: data.isResolved, hasUnreadMessages: data.hasUnreadMessages }
               : s
           )

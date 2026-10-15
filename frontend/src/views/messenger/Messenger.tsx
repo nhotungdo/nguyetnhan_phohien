@@ -51,6 +51,12 @@ export default function Messenger() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Index của tin nhắn Admin cuối cùng đã được khách đọc (chỉ hiện "Đã xem" ở tin đó)
+  const lastAdminReadIndex = messages.reduce(
+    (acc, msg, idx) => (msg.senderType === "Admin" && msg.isRead ? idx : acc),
+    -1
+  );
+
   const handleSend = async () => {
     if (!inputMessage.trim() || !selectedSessionId) return;
     const ok = await sendMessage(inputMessage);
@@ -259,7 +265,9 @@ export default function Messenger() {
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                     <span className={`text-[10px] block mt-1 ${msg.senderType === "Admin" ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground'}`}>
                       {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                      {msg.senderType === "Admin" && msg.isRead && <span className="ml-1">· Đã xem</span>}
+                      {msg.senderType === "Admin" && idx === lastAdminReadIndex && (
+                        <span className="ml-1 text-primary-foreground/90 font-medium">· Đã xem</span>
+                      )}
                     </span>
                   </div>
                 </div>
