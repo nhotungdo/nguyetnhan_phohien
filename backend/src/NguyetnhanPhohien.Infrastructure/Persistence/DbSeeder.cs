@@ -15,11 +15,21 @@ public static class DbSeeder
     {
         await db.Database.MigrateAsync();
 
-        // RLS (Row Level Security) KHÔNG còn bật ở đây.
-        // Trước đây khối DDL nằm ngay chỗ này và chạy vô điều kiện MỖI lần khởi động,
-        // thay đổi hành vi truy cập toàn bộ DB ngoài lịch sử migration. Nay nó là
-        // migration một lần `EnableRowLevelSecurity` (đã có comment về mô hình
-        // deny-by-default và lý do không tạo policy).
+        // Tạo các index tăng tốc truy vấn cho trang Quản trị (Dashboard / Đơn hàng / Chat)
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync(@"
+                CREATE INDEX IF NOT EXISTS ""IX_Orders_CreatedAt"" ON ""Orders"" (""CreatedAt"" DESC);
+                CREATE INDEX IF NOT EXISTS ""IX_Orders_Status"" ON ""Orders"" (""Status"");
+                CREATE INDEX IF NOT EXISTS ""IX_Orders_CustomerPhone"" ON ""Orders"" (""CustomerPhone"");
+                CREATE INDEX IF NOT EXISTS ""IX_ChatSessions_LastMessageAt"" ON ""ChatSessions"" (""LastMessageAt"" DESC);
+                CREATE INDEX IF NOT EXISTS ""IX_ChatMessages_ChatSessionId_SentAt"" ON ""ChatMessages"" (""ChatSessionId"", ""SentAt"" DESC);
+            ");
+        }
+        catch
+        {
+            // Bỏ qua nếu DB trong môi trường test/in-memory không hỗ trợ cú pháp Postgres
+        }
 
         // ===== SEED MÃ GIẢM GIÁ =====
         if (!await db.DiscountCodes.AnyAsync())

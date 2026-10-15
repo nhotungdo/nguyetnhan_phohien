@@ -65,3 +65,10 @@ public class ChatMessageResponse
     public bool IsRead { get; set; }
     public DateTime SentAt { get; set; }
 }
+
+// Thống kê số lượng phiên chat cho Dashboard (siêu nhẹ, không tải nội dung tin)
+public class ChatStatsResponse
+{
+    public int TotalSessions { get; set; }
+    public int UnreadSessions { get; set; }
+}

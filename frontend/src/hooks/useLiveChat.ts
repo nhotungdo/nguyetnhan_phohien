@@ -166,7 +166,13 @@ export function useLiveChat() {
     // Echo xác nhận tin nhắn của chính khách đã được lưu
     connection.on("MessageSent", (message: ChatMessageResponse) => {
       setMessages((prev) => {
-        // Tránh hiển thị trùng nếu tin nhắn đã được append optimistic
+        // Thay thế tin nhắn optimistic tạm thời bằng tin thật từ server
+        const tempIdx = prev.findIndex((m) => m.id.startsWith("temp-") && m.content === message.content);
+        if (tempIdx !== -1) {
+          const updated = [...prev];
+          updated[tempIdx] = message;
+          return updated;
+        }
         const exists = prev.some((m) => m.id === message.id);
         return exists ? prev : [...prev, message];
       });
@@ -317,7 +323,19 @@ export function useLiveChat() {
   // Gửi tin nhắn: ưu tiên SignalR realtime, fallback REST nếu WebSocket/SignalR bị chặn.
   // Trả về true nếu tin đã được gửi thành công (client giữ nguyên input khi false).
   const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string): Promise<boolean> => {
-    if (!content.trim()) return false;
+    const trimmed = content.trim();
+    if (!trimmed) return false;
+
+    // 1. Optimistic Update: Thêm ngay tin nhắn vào UI để khách thấy phản hồi tức thì 0ms
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg: ChatMessageResponse = {
+      id: tempId,
+      content: trimmed,
+      senderType: "Guest",
+      isRead: false,
+      sentAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
 
     setIsSending(true);
     try {
@@ -328,7 +346,7 @@ export function useLiveChat() {
       const creds = await ensureSession(false, guestName, guestPhone);
 
       if (connected) {
-        await conn.invoke("SendGuestMessage", creds.id, creds.token, content.trim());
+        await conn.invoke("SendGuestMessage", creds.id, creds.token, trimmed);
         // Không cần hiển thị "đang gõ" nữa sau khi tin đã gửi
         conn.invoke("GuestTyping", creds.id, creds.token, false).catch(() => {});
         return true;
@@ -340,17 +358,29 @@ export function useLiveChat() {
       const saved = await chatApi.sendMessage({
         sessionId: creds.id,
         sessionToken: creds.token,
-        content: content.trim(),
+        content: trimmed,
         guestName: guestName || guestInfoRef.current.name,
         guestPhone: guestPhone || guestInfoRef.current.phone,
       });
-      // Hiển thị ngay tin đã lưu (không chờ realtime echo)
-      setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
+
+      // Cập nhật tin nhắn thật thay thế tin tạm
+      setMessages((prev) => {
+        const idx = prev.findIndex((m) => m.id === tempId);
+        if (idx !== -1) {
+          const updated = [...prev];
+          updated[idx] = saved;
+          return updated;
+        }
+        return prev.some((m) => m.id === saved.id) ? prev : [...prev, saved];
+      });
+
       // Cố gắng kết nối lại nền để các tin sau nhận realtime bình thường
       connect(guestName, guestPhone).catch(() => {});
       return true;
     } catch (err) {
       console.error("Send message error:", err);
+      // Xoá tin tạm nếu gửi thất bại hoàn toàn
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       return false;
     } finally {
       setIsSending(false);

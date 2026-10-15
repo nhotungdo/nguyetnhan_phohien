@@ -5,6 +5,7 @@ import type {
   DiscountResult,
   ChatMessageResponse,
   ChatSessionResponse,
+  ChatStatsResponse,
   ChatSessionCredentials,
   SendMessageRequest,
   WebsiteContentResponse,
@@ -242,6 +243,20 @@ export const chatApi = {
   /** [ADMIN] Lấy tất cả phiên chat */
   getAllSessions: (): Promise<ChatSessionResponse[]> =>
     apiFetch("/api/chat/sessions", { headers: getAdminHeaders() }),
+
+  /** [ADMIN] Lấy số lượng phiên chat & số chưa đọc siêu nhanh cho Dashboard */
+  getStats: async (): Promise<ChatStatsResponse> => {
+    try {
+      return await apiFetch<ChatStatsResponse>("/api/chat/stats", { headers: getAdminHeaders() });
+    } catch {
+      // Fallback nếu backend chưa cập nhật endpoint stats
+      const sessions = await chatApi.getAllSessions();
+      return {
+        totalSessions: sessions.length,
+        unreadSessions: sessions.filter((s) => s.hasUnreadMessages).length,
+      };
+    }
+  },
 
   /** [ADMIN] Lấy tin nhắn theo session ID */
   getSessionMessages: (sessionId: string): Promise<ChatMessageResponse[]> =>

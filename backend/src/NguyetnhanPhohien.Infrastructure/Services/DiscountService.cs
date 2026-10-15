@@ -122,6 +122,7 @@ public class DiscountService : IDiscountService
     public async Task<List<DiscountDto>> GetAllAsync()
     {
         return await _db.DiscountCodes
+            .AsNoTracking()
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => new DiscountDto
             {

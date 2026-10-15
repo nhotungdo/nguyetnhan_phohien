@@ -22,6 +22,35 @@ const sortSessions = (list: ChatSessionResponse[]) =>
     (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()
   );
 
+/** Phát âm thanh thông báo dễ chịu khi có tin nhắn mới từ khách hàng */
+function playNotificationChime() {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    // Âm thanh 2 tông hiện đại: 587.33Hz (D5) -> 880Hz (A5)
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch {
+    // Không làm gián đoạn UI nếu trình duyệt chặn autoplay
+  }
+}
+
 export function useAdminChat() {
   const [sessions, setSessions] = useState<ChatSessionResponse[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -216,36 +245,95 @@ export function useAdminChat() {
     // Khách gửi tin nhắn (qua SignalR hoặc qua REST fallback — controller cũng broadcast)
     connection.on(
       "ReceiveGuestMessage",
-      (data: { sessionId: string; message: ChatMessageResponse }) => {
+      (data: {
+        sessionId: string;
+        session?: ChatSessionResponse;
+        message: ChatMessageResponse;
+      }) => {
         const isSelected = selectedSessionIdRef.current === data.sessionId;
+
+        // Chuông báo tin nhắn mới
+        playNotificationChime();
 
         if (isSelected) {
           setMessages((prev) =>
             prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]
           );
-          // Đang mở phiên này => coi như admin đã đọc
+          // Đang mở phiên này => coi như admin đã đọc (direct DB update)
           chatApi.markRead(data.sessionId).catch(console.error);
         }
 
-        // Khách chat LẦN ĐẦU hoặc phiên tạo sau khi reload — tải lại danh sách từ server
-        if (!sessionsRef.current.some((s) => s.id === data.sessionId)) {
-          fetchSessions();
-          return;
-        }
+        // Cập nhật danh sách sessions ngay lập tức trong local state (0ms - không cần fetch HTTP)
+        setSessions((prev) => {
+          const index = prev.findIndex((s) => s.id === data.sessionId);
+          if (index !== -1) {
+            const existing = prev[index];
+            const updated: ChatSessionResponse = {
+              ...existing,
+              isResolved: false,
+              hasUnreadMessages: !isSelected,
+              lastMessageAt: data.message.sentAt,
+              lastMessagePreview: data.message.content,
+            };
+            const next = [...prev];
+            next.splice(index, 1);
+            return [updated, ...next];
+          }
 
-        // Backend tự mở lại phiên khi khách nhắn tin sau khi admin đã đóng phiên
-        applySessionUpdate(data.sessionId, data.message, !isSelected, { isResolved: false });
+          // Phiên mới chưa có trong list: dùng data.session do backend gửi kèm, hoặc tạo fallback
+          const newSession: ChatSessionResponse = data.session || {
+            id: data.sessionId,
+            sessionId: data.sessionId,
+            guestName: "Khách hàng",
+            guestPhone: "",
+            hasUnreadMessages: !isSelected,
+            isResolved: false,
+            lastMessageAt: data.message.sentAt,
+            lastMessagePreview: data.message.content,
+          };
+
+          const sessionToAdd: ChatSessionResponse = {
+            ...newSession,
+            hasUnreadMessages: !isSelected,
+            isResolved: false,
+            lastMessageAt: data.message.sentAt,
+            lastMessagePreview: data.message.content,
+          };
+
+          return [sessionToAdd, ...prev];
+        });
       }
     );
+
+    // Phiên chat mới tạo từ khách (realtime)
+    connection.on("SessionCreated", (session: ChatSessionResponse) => {
+      setSessions((prev) => {
+        if (prev.some((s) => s.id === session.id)) return prev;
+        return [session, ...prev];
+      });
+    });
 
     // Admin khác trong cùng phiên trả lời (kể cả echo tab của chính mình)
     connection.on(
       "AdminReplied",
       (data: { sessionId: string; message: ChatMessageResponse }) => {
         if (selectedSessionIdRef.current === data.sessionId) {
-          setMessages((prev) =>
-            prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]
-          );
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === data.message.id)) return prev;
+            // Thay thế tin nhắn optimistic nếu có
+            const tempIdx = prev.findIndex(
+              (m) =>
+                m.id.startsWith("temp-") &&
+                m.senderType === "Admin" &&
+                m.content === data.message.content
+            );
+            if (tempIdx !== -1) {
+              const next = [...prev];
+              next[tempIdx] = data.message;
+              return next;
+            }
+            return [...prev, data.message];
+          });
         }
         applySessionUpdate(data.sessionId, data.message, false, { isResolved: false });
       }
@@ -356,6 +444,19 @@ export function useAdminChat() {
       const conn = connectionRef.current;
       const connected = conn?.state === signalR.HubConnectionState.Connected;
 
+      // Optimistic update: hiển thị ngay trên UI admin với độ trễ 0ms
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg: ChatMessageResponse = {
+        id: tempId,
+        content: trimmed,
+        senderType: "Admin",
+        isRead: false,
+        sentAt: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, optimisticMsg]);
+      applySessionUpdate(selectedSessionId, optimisticMsg, false, { isResolved: false });
+
       try {
         if (connected) {
           // Gửi qua SignalR (Hub tự gọi Service lưu db)
@@ -374,12 +475,14 @@ export function useAdminChat() {
           content: trimmed,
         });
         setMessages((prev) =>
-          prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]
+          prev.map((m) => (m.id === tempId ? saved : m))
         );
         applySessionUpdate(selectedSessionId, saved, false, { isResolved: false });
         return true;
       } catch (err) {
         console.error("Failed to send reply:", err);
+        // Hoàn nguyên tin nhắn lạc quan nếu gửi thất bại
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
         return false;
       }
     },

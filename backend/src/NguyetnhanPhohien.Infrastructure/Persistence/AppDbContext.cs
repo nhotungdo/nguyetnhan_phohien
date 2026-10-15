@@ -99,6 +99,12 @@ public class AppDbContext : DbContext
             .HasPrecision(18, 2);
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.ProductId);
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.CreatedAt);
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.Status);
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.CustomerPhone);
 
         modelBuilder.Entity<OrderItem>().HasKey(i => i.Id);
         modelBuilder.Entity<OrderItem>()
@@ -139,8 +145,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ChatSession>().HasKey(cs => cs.Id);
         // Unique: tránh race condition tạo 2 phiên chat cho cùng một sessionId
         modelBuilder.Entity<ChatSession>().HasIndex(cs => cs.SessionId).IsUnique();
+        modelBuilder.Entity<ChatSession>().HasIndex(cs => cs.LastMessageAt);
 
         modelBuilder.Entity<ChatMessage>().HasKey(cm => cm.Id);
+        modelBuilder.Entity<ChatMessage>()
+            .HasIndex(cm => new { cm.ChatSessionId, cm.SentAt });
         modelBuilder.Entity<ChatMessage>()
             .HasOne(cm => cm.ChatSession)
             .WithMany(cs => cs.Messages)

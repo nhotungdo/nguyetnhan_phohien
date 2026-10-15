@@ -202,6 +202,25 @@ export default function LandingPage() {
     markMessagesRead();
   }, [isChatOpen, chatStarted, messages, markMessagesRead]);
 
+  // Tự động khôi phục phiên chat nếu khách đã từng trò chuyện trước đó và kết nối ngầm trước
+  useEffect(() => {
+    try {
+      const storedId = sessionStorage.getItem("chatSessionId");
+      const storedToken = sessionStorage.getItem("chatSessionToken");
+      const storedName = sessionStorage.getItem("chatGuestName");
+      const storedPhone = sessionStorage.getItem("chatGuestPhone");
+      if (storedName) setGuestName(storedName);
+      if (storedPhone) setGuestPhone(storedPhone);
+      if (storedId && storedToken) {
+        setChatStarted(true);
+        // Pre-connect trong nền để WebSocket bắt tay xong từ trước, khi gửi tin không bị trễ
+        connect(storedName || undefined, storedPhone || undefined);
+      }
+    } catch {
+      // sessionStorage không khả dụng trên môi trường SSR / sandbox
+    }
+  }, [connect]);
+
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
     const element = document.getElementById(id);
@@ -212,19 +231,43 @@ export default function LandingPage() {
 
   const handleOpenChat = async () => {
     setIsChatOpen(true);
+    if (chatStarted) {
+      connect(guestName || undefined, guestPhone || undefined);
+    }
+  };
+
+  const handleToggleChat = () => {
+    const next = !isChatOpen;
+    setIsChatOpen(next);
+    if (next && chatStarted) {
+      connect(guestName || undefined, guestPhone || undefined);
+    }
   };
 
   const handleStartChat = async () => {
     if (!guestName.trim()) return;
+    try {
+      sessionStorage.setItem("chatGuestName", guestName.trim());
+      if (guestPhone.trim()) {
+        sessionStorage.setItem("chatGuestPhone", guestPhone.trim());
+      }
+    } catch {
+      // Bỏ qua lỗi sessionStorage
+    }
     setChatStarted(true);
     await connect(guestName, guestPhone);
   };
 
   const handleSendChatMessage = async () => {
-    if (!chatInput.trim()) return;
-    const ok = await sendMessage(chatInput, guestName, guestPhone);
-    // Chỉ xóa ô nhập khi tin đã gửi thành công — giữ lại nội dung nếu lỗi
-    if (ok) setChatInput("");
+    const text = chatInput.trim();
+    if (!text) return;
+    // Xoá ô nhập ngay lập tức để trải nghiệm mượt mà (0ms delay)
+    setChatInput("");
+    const ok = await sendMessage(text, guestName, guestPhone);
+    // Nếu gửi thất bại, hoàn nguyên lại nội dung để khách không phải gõ lại
+    if (!ok) {
+      setChatInput(text);
+    }
   };
 
   // Index của tin nhắn khách cuối cùng (chỉ hiện "Đã xem" ở tin đó)
@@ -1401,7 +1444,7 @@ export default function LandingPage() {
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
-          onClick={() => setIsChatOpen(!isChatOpen)}
+          onClick={handleToggleChat}
           className="relative w-12 h-12 sm:w-14 sm:h-14 bg-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-accent/90 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
           aria-label={isChatOpen ? "Đóng chat" : "Mở chat hỗ trợ"}
         >

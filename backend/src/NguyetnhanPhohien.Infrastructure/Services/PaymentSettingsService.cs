@@ -35,6 +35,7 @@ public class PaymentSettingsService : IPaymentSettingsService
     {
         // Chỉ lấy đúng 3 key thanh toán — không kéo toàn bộ nội dung website về.
         var rows = await _db.WebsiteContents
+            .AsNoTracking()
             .Where(w => PaymentSettingKeys.All.Contains(w.Key))
             .ToDictionaryAsync(w => w.Key, w => w.Value);
 

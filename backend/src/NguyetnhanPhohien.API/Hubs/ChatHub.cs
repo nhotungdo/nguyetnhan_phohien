@@ -129,10 +129,16 @@ public class ChatHub : Hub
 
         var message = await _chatService.SaveMessageAsync(session.Id, content, "Guest");
 
-        // Gửi đến Admin group
+        session.LastMessageAt = message.SentAt;
+        session.LastMessagePreview = message.Content;
+        session.HasUnreadMessages = true;
+        session.IsResolved = false;
+
+        // Gửi đến Admin group kèm đầy đủ session info để admin cập nhật danh sách tức thì (0ms)
         await Clients.Group(AdminGroup).SendAsync("ReceiveGuestMessage", new
         {
             sessionId = session.Id,
+            session,
             message
         });
 

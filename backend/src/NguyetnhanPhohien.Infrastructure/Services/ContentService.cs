@@ -26,6 +26,7 @@ public class ContentService : IContentService
         // Trả ra đây vừa làm bẩn map nội dung phía client vừa mở đường cho khách đọc
         // số tài khoản qua endpoint công khai.
         var contents = await _db.WebsiteContents
+            .AsNoTracking()
             .Where(w => !PaymentSettingKeys.All.Contains(w.Key))
             .ToListAsync();
         return contents.Select(MapToResponse);
@@ -37,7 +38,7 @@ public class ContentService : IContentService
         // thanh toán qua đây (trả null để controller trả 404 như key không tồn tại).
         if (PaymentSettingKeys.IsPaymentKey(key)) return null;
 
-        var content = await _db.WebsiteContents.FirstOrDefaultAsync(w => w.Key == key);
+        var content = await _db.WebsiteContents.AsNoTracking().FirstOrDefaultAsync(w => w.Key == key);
         return content == null ? null : MapToResponse(content);
     }
 

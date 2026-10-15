@@ -175,6 +175,7 @@ public class ChatService : IChatService
     public async Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync()
     {
         return await _db.ChatSessions
+            .AsNoTracking()
             .OrderByDescending(cs => cs.LastMessageAt)
             .Select(s => new ChatSessionResponse
             {
@@ -190,9 +191,21 @@ public class ChatService : IChatService
             .ToListAsync();
     }
 
+    public async Task<ChatStatsResponse> GetChatStatsAsync()
+    {
+        var total = await _db.ChatSessions.AsNoTracking().CountAsync();
+        var unread = await _db.ChatSessions.AsNoTracking().CountAsync(s => s.HasUnreadMessages);
+        return new ChatStatsResponse
+        {
+            TotalSessions = total,
+            UnreadSessions = unread
+        };
+    }
+
     public async Task<IEnumerable<ChatMessageResponse>> GetSessionMessagesAsync(Guid sessionId)
     {
         var messages = await _db.ChatMessages
+            .AsNoTracking()
             .Where(m => m.ChatSessionId == sessionId)
             .OrderBy(m => m.SentAt)
             .ToListAsync();
@@ -209,19 +222,15 @@ public class ChatService : IChatService
 
     public async Task MarkSessionReadAsync(Guid sessionId)
     {
-        var session = await _db.ChatSessions
-            .Include(cs => cs.Messages)
-            .FirstOrDefaultAsync(cs => cs.Id == sessionId);
+        // Cập nhật trạng thái HasUnreadMessages và IsRead trực tiếp trong DB bằng ExecuteUpdateAsync
+        // Siêu nhanh (1ms) mà không cần nạp toàn bộ danh sách tin nhắn vào RAM
+        await _db.ChatSessions
+            .Where(cs => cs.Id == sessionId)
+            .ExecuteUpdateAsync(s => s.SetProperty(cs => cs.HasUnreadMessages, false));
 
-        if (session == null) return;
-
-        session.HasUnreadMessages = false;
-        // Admin mở phiên => chỉ tin của KHÁCH được xem là đã đọc.
-        // Tin của Admin do chính khách xác nhận đọc (MarkMessagesReadByGuestAsync).
-        foreach (var msg in session.Messages.Where(m => m.SenderType == "Guest" && !m.IsRead))
-            msg.IsRead = true;
-
-        await _db.SaveChangesAsync();
+        await _db.ChatMessages
+            .Where(m => m.ChatSessionId == sessionId && m.SenderType == "Guest" && !m.IsRead)
+            .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.IsRead, true));
     }
 
     public async Task<Guid?> MarkMessagesReadByGuestAsync(string sessionId)
@@ -229,17 +238,14 @@ public class ChatService : IChatService
         if (string.IsNullOrWhiteSpace(sessionId)) return null;
 
         var session = await _db.ChatSessions
-            .Include(cs => cs.Messages)
+            .AsNoTracking()
             .FirstOrDefaultAsync(cs => cs.SessionId == sessionId);
 
         if (session == null) return null;
 
-        var unreadAdminMessages = session.Messages.Where(m => m.SenderType == "Admin" && !m.IsRead).ToList();
-        if (unreadAdminMessages.Count > 0)
-        {
-            foreach (var msg in unreadAdminMessages) msg.IsRead = true;
-            await _db.SaveChangesAsync();
-        }
+        await _db.ChatMessages
+            .Where(m => m.ChatSessionId == session.Id && m.SenderType == "Admin" && !m.IsRead)
+            .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.IsRead, true));
 
         return session.Id;
     }

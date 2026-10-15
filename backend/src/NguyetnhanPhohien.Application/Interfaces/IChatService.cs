@@ -24,6 +24,7 @@ public interface IChatService
 
     Task<ChatMessageResponse> SaveMessageAsync(Guid sessionId, string content, string senderType);
     Task<IEnumerable<ChatSessionResponse>> GetAllSessionsAsync();
+    Task<ChatStatsResponse> GetChatStatsAsync();
     Task<IEnumerable<ChatMessageResponse>> GetSessionMessagesAsync(Guid sessionId);
 
     /// <summary>

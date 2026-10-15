@@ -99,6 +99,11 @@ export interface ChatSessionResponse {
   lastMessagePreview: string;
 }
 
+export interface ChatStatsResponse {
+  totalSessions: number;
+  unreadSessions: number;
+}
+
 // ===== CONTENT TYPES =====
 // Backend chỉ trả Key/Value/Description (ContentService.MapToResponse).
 // Trước đây type còn khai `id` và `updatedAt` là bắt buộc → chúng luôn là

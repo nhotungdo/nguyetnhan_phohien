@@ -77,48 +77,44 @@ const EMPTY_ORDERS: OrderResponse[] = [];
 export default function Dashboard() {
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["dashboard", "stats"],
+  // Tái sử dụng queryKey ["orders", "admin"] dùng chung với trang Orders.tsx
+  // giúp chuyển trang tức thì từ cache mà không cần fetch lại đơn hàng.
+  const { data: orders = EMPTY_ORDERS, isLoading: isLoadingOrders } = useQuery({
+    queryKey: ["orders", "admin"],
     queryFn: async () => {
-      const [ordersList, sessions] = await Promise.all([
-        orderApi.getAll(),
-        chatApi.getAllSessions()
-      ]);
-
-      const revenueVal = ordersList
-        .filter(o => o.status === "Completed")
-        .reduce((sum, o) => sum + o.totalAmount, 0);
-
-      const unread = sessions.filter(s => s.hasUnreadMessages).length;
-
-      // "Khách hàng" = số SĐT đã THỰC SỰ ĐẶT HÀNG (đã chuẩn hóa).
-      // Trước đây cộng cả SĐT của khách chỉ mới mở widget chat → người chưa từng
-      // mua vẫn được tính là khách hàng và KPI bị thổi phồng.
-      const customerPhones = new Set(
-        ordersList.map(o => normalizePhone(o.customerPhone)).filter(Boolean)
-      );
-
-      return {
-        stats: {
-          ordersCount: ordersList.length,
-          customersCount: customerPhones.size,
-          messagesCount: sessions.length,
-          unreadMessages: unread,
-          revenue: revenueVal,
-        },
-        orders: ordersList
-      };
-    }
+      const data = await orderApi.getAll();
+      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    },
+    staleTime: 60 * 1000,
   });
 
-  const stats = data?.stats || {
-    ordersCount: 0,
-    customersCount: 0,
-    messagesCount: 0,
-    unreadMessages: 0,
-    revenue: 0,
-  };
-  const orders = data?.orders || EMPTY_ORDERS;
+  // Lấy số liệu phiên chat siêu nhẹ qua endpoint chuyên dụng (/api/chat/stats)
+  // Chỉ chuyển vài chục bytes thay vì tải toàn bộ tin nhắn preview của mọi khách.
+  const { data: chatStats, isLoading: isLoadingChat } = useQuery({
+    queryKey: ["chat", "stats"],
+    queryFn: () => chatApi.getStats(),
+    staleTime: 60 * 1000,
+  });
+
+  const isLoading = isLoadingOrders || isLoadingChat;
+
+  const stats = useMemo(() => {
+    const revenueVal = orders
+      .filter(o => o.status === "Completed")
+      .reduce((sum, o) => sum + o.totalAmount, 0);
+
+    const customerPhones = new Set(
+      orders.map(o => normalizePhone(o.customerPhone)).filter(Boolean)
+    );
+
+    return {
+      ordersCount: orders.length,
+      customersCount: customerPhones.size,
+      messagesCount: chatStats?.totalSessions ?? 0,
+      unreadMessages: chatStats?.unreadSessions ?? 0,
+      revenue: revenueVal,
+    };
+  }, [orders, chatStats]);
 
   /**
    * Chuỗi dữ liệu N ngày gần nhất (theo ngày VIỆT NAM): doanh thu (đơn Completed)
@@ -277,8 +273,10 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
+      <div className="flex flex-col h-[50vh] items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm font-medium text-foreground">Đang tải dữ liệu tổng quan...</p>
+        <p className="text-xs text-muted-foreground animate-pulse">Đang đồng bộ số liệu và báo cáo...</p>
       </div>
     );
   }

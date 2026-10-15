@@ -56,7 +56,8 @@ export default function Orders() {
     queryFn: async () => {
       const data = await orderApi.getAll();
       return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
+    },
+    staleTime: 60 * 1000,
   });
 
   const addToast = (type: "success" | "error", message: string) => {

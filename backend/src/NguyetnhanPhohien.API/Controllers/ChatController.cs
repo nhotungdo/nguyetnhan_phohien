@@ -57,6 +57,20 @@ public class ChatController : ControllerBase
     {
         var credentials = await _chatService.CreateGuestSessionAsync(request?.GuestName, request?.GuestPhone);
         await NotifySessionsChangedAsync("created");
+
+        try
+        {
+            var session = await _chatService.FindSessionAsync(credentials.SessionId);
+            if (session != null)
+            {
+                await _hub.Clients.Group(ChatHub.AdminGroup).SendAsync("SessionCreated", session);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không broadcast được SessionCreated");
+        }
+
         return Ok(credentials);
     }
 
@@ -95,9 +109,15 @@ public class ChatController : ControllerBase
             var result = await _chatService.SendGuestMessageAsync(
                 request.SessionId, request.SessionToken, request.Content, request.GuestName, request.GuestPhone);
 
+            result.Session.LastMessageAt = result.Message.SentAt;
+            result.Session.LastMessagePreview = result.Message.Content;
+            result.Session.HasUnreadMessages = true;
+            result.Session.IsResolved = false;
+
             await _hub.Clients.Group(ChatHub.AdminGroup).SendAsync("ReceiveGuestMessage", new
             {
                 sessionId = result.Session.Id,
+                session = result.Session,
                 message = result.Message
             });
 
@@ -196,6 +216,17 @@ public class ChatController : ControllerBase
     {
         var sessions = await _chatService.GetAllSessionsAsync();
         return Ok(sessions);
+    }
+
+    /// <summary>
+    /// [ADMIN] Lấy thống kê số lượng phiên chat (tổng số & số chưa đọc) siêu nhanh cho Dashboard.
+    /// </summary>
+    [HttpGet("stats")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetChatStats()
+    {
+        var stats = await _chatService.GetChatStatsAsync();
+        return Ok(stats);
     }
 
     /// <summary>

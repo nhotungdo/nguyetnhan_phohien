@@ -27,7 +27,7 @@ public class ProductService : IProductService
 
     public async Task<List<ProductResponse>> GetAllAsync(bool includeInactive = false)
     {
-        var query = _db.Products.Include(p => p.Images).AsQueryable();
+        var query = _db.Products.AsNoTracking().Include(p => p.Images).AsQueryable();
 
         if (!includeInactive)
             query = query.Where(p => p.IsActive);
@@ -38,7 +38,7 @@ public class ProductService : IProductService
 
     public async Task<ProductResponse?> GetByIdAsync(Guid id)
     {
-        var product = await _db.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
+        var product = await _db.Products.AsNoTracking().Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
         return product == null ? null : MapToResponse(product);
     }
 

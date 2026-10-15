@@ -44,6 +44,7 @@ export function useRealtimeSync() {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["website", "content"] });
       queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
+      queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
     };
 
@@ -87,6 +88,7 @@ export function useRealtimeSync() {
 
     // Phiên chat mới / có tin nhắn / đổi trạng thái → Tổng quan cập nhật số liệu
     connection.on("SessionsChanged", () => {
+      queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
     });
 
@@ -137,11 +139,21 @@ export function useRealtimeSync() {
 
   // Đăng nhập admin xong app điều hướng nội bộ (router.push), KHÔNG reload trang →
   // kết nối SignalR đã mở từ trước vẫn không có token nên chưa vào group Admins.
-  // Join lại mỗi khi đổi route để tab admin nhận được sự kiện đơn hàng/phiên chat.
+  // Nếu connection đang chạy từ lúc anonymous, Context.User không có claim Admin ->
+  // invoke("JoinAsAdmin") sẽ bị 401. Khởi động lại connection để gửi JWT token trong handshake.
   useEffect(() => {
     const connection = connectionRef.current;
     if (!connection || connection.state !== signalR.HubConnectionState.Connected) return;
     if (!adminAuth.isLoggedIn()) return;
-    connection.invoke("JoinAsAdmin").catch(() => {});
+
+    connection.invoke("JoinAsAdmin").catch(async () => {
+      try {
+        await connection.stop();
+        await connection.start();
+        await connection.invoke("JoinAsAdmin");
+      } catch {
+        // Nuốt lỗi nếu mạng / backend đang tạm ngắt kết nối
+      }
+    });
   }, [pathname]);
 }
