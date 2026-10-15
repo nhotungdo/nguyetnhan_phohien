@@ -233,9 +233,9 @@ export function useAdminChat() {
         connection
           .start()
           .then(async () => {
+            await connection.invoke("JoinAsAdmin");
             setIsConnected(true);
             connectionRef.current = connection;
-            await connection.invoke("JoinAsAdmin");
             await fetchSessions();
           })
           .catch(() => scheduleRestart());
@@ -398,11 +398,12 @@ export function useAdminChat() {
 
     connection.start()
       .then(async () => {
-        setIsConnected(true);
         await connection.invoke("JoinAsAdmin");
+        setIsConnected(true);
         connectionRef.current = connection;
       })
       .catch(err => {
+        setIsConnected(false);
         // Chỉ log nếu không phải là lỗi hủy do component unmount
         if (
             err.message !== "The connection was stopped during negotiation." &&

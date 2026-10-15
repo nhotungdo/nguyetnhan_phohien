@@ -297,7 +297,17 @@ export function useLiveChat() {
     try {
       await connection.start();
       if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
-      await connection.invoke("JoinAsGuest", creds.id, creds.token, guestName || null, guestPhone || null);
+      
+      try {
+        await connection.invoke("JoinAsGuest", creds.id, creds.token, guestName || null, guestPhone || null);
+      } catch (joinErr) {
+        // Token cũ bị server từ chối: dọn sạch và xin phiên mới trên kết nối hiện tại
+        console.warn("Token phiên chat không hợp lệ, đang làm mới...", joinErr);
+        clearStoredSession();
+        const fresh = await ensureSession(true, guestName, guestPhone);
+        await connection.invoke("JoinAsGuest", fresh.id, fresh.token, guestName || null, guestPhone || null);
+      }
+
       setIsConnected(true);
       connectionRef.current = connection;
     } catch (err) {
@@ -308,18 +318,7 @@ export function useLiveChat() {
       ) {
         console.error("SignalR connection error:", err);
       }
-
-      // Token bị server từ chối: xoá phiên hỏng
-      try {
-        clearStoredSession();
-        const fresh = await ensureSession(true, guestName, guestPhone);
-        await connection.invoke("JoinAsGuest", fresh.id, fresh.token, guestName || null, guestPhone || null);
-        if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
-        setIsConnected(true);
-        connectionRef.current = connection;
-      } catch {
-        // Fallback REST
-      }
+      scheduleRestart();
     }
   }, [ensureSession]);
 
@@ -357,7 +356,7 @@ export function useLiveChat() {
     }
   }, []);
 
-  // Gửi tin nhắn
+  // Gửi tin nhắn với cơ chế tự phục hồi nếu phiên bị hết hạn / xoá
   const sendMessage = useCallback(async (content: string, guestName?: string, guestPhone?: string): Promise<boolean> => {
     const trimmed = content.trim();
     if (!trimmed) return false;
@@ -375,22 +374,21 @@ export function useLiveChat() {
     setIsSessionTerminated(false);
 
     setIsSending(true);
-    try {
+
+    const trySend = async (credsToUse: ChatSessionCreds): Promise<boolean> => {
       const conn = connectionRef.current;
       const connected = conn?.state === signalR.HubConnectionState.Connected;
 
-      const creds = await ensureSession(false, guestName, guestPhone);
-
       if (connected) {
-        await conn.invoke("SendGuestMessage", creds.id, creds.token, trimmed);
-        conn.invoke("GuestTyping", creds.id, creds.token, false).catch(() => {});
+        await conn.invoke("SendGuestMessage", credsToUse.id, credsToUse.token, trimmed);
+        conn.invoke("GuestTyping", credsToUse.id, credsToUse.token, false).catch(() => {});
         return true;
       }
 
       // Fallback REST
       const saved = await chatApi.sendMessage({
-        sessionId: creds.id,
-        sessionToken: creds.token,
+        sessionId: credsToUse.id,
+        sessionToken: credsToUse.token,
         content: trimmed,
         guestName: guestName || guestInfoRef.current.name,
         guestPhone: guestPhone || guestInfoRef.current.phone,
@@ -408,6 +406,19 @@ export function useLiveChat() {
 
       connect(guestName, guestPhone).catch(() => {});
       return true;
+    };
+
+    try {
+      let creds = await ensureSession(false, guestName, guestPhone);
+      try {
+        return await trySend(creds);
+      } catch (firstErr) {
+        // Nếu lỗi do phiên cũ không tồn tại hoặc token hết hạn -> tự tạo phiên mới và gửi lại
+        console.warn("Lần gửi đầu thất bại, thử phục hồi phiên chat mới...", firstErr);
+        clearStoredSession();
+        creds = await ensureSession(true, guestName, guestPhone);
+        return await trySend(creds);
+      }
     } catch (err) {
       console.error("Send message error:", err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));

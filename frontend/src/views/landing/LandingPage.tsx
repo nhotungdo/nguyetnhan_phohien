@@ -72,9 +72,10 @@ const resolveCmsImage = (url?: string) =>
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
   const [chatInput, setChatInput] = useState("");
+  const [chatSendError, setChatSendError] = useState(false);
   const [guestName, setGuestName] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -358,13 +359,15 @@ export default function LandingPage() {
 
   const handleSendChatMessage = async () => {
     const text = chatInput.trim();
-    if (!text) return;
+    if (!text || isSending) return;
+    setChatSendError(false);
     // Xoá ô nhập ngay lập tức để trải nghiệm mượt mà (0ms delay)
     setChatInput("");
     const ok = await sendMessage(text, guestName, guestPhone);
     // Nếu gửi thất bại, hoàn nguyên lại nội dung để khách không phải gõ lại
     if (!ok) {
       setChatInput(text);
+      setChatSendError(true);
     }
   };
 
@@ -1544,9 +1547,15 @@ export default function LandingPage() {
                       value={chatInput}
                       onChange={(e) => {
                         setChatInput(e.target.value);
+                        if (chatSendError) setChatSendError(false);
                         if (e.target.value.trim()) notifyTyping();
                       }}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          handleSendChatMessage();
+                        }
+                      }}
                       placeholder={t.chat.placeholder}
                       className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-3.5 pr-11 py-2 text-xs sm:text-sm outline-none transition-all"
                     />
@@ -1559,6 +1568,11 @@ export default function LandingPage() {
                       {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                     </button>
                   </div>
+                  {chatSendError && (
+                    <p className="text-[11px] text-red-500 mt-1.5 px-2">
+                      Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!
+                    </p>
+                  )}
                 </div>
               </>
             )}

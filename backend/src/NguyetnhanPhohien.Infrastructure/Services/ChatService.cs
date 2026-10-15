@@ -54,6 +54,25 @@ public class ChatService : IChatService
         _db.ChatSessions.Add(session);
         await _db.SaveChangesAsync();
 
+        // Tự động tạo tin nhắn chào mừng từ Tư vấn viên để phiên luôn có tin nhắn ban đầu,
+        // giúp cả Khách và Admin thấy tin nhắn rõ ràng ngay khi mở phiên thay vì để trống "Chưa có tin nhắn".
+        var trimmedName = session.GuestName?.Trim();
+        var welcomeContent = string.IsNullOrWhiteSpace(trimmedName)
+            ? "Chào bạn! Nguyệt Nhãn Phố Hiến có thể hỗ trợ gì cho bạn ạ?"
+            : $"Chào {trimmedName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?";
+
+        var welcomeMsg = new ChatMessage
+        {
+            ChatSessionId = session.Id,
+            Content = welcomeContent,
+            SenderType = "Admin",
+            IsRead = false,
+            SentAt = DateTime.UtcNow
+        };
+        _db.ChatMessages.Add(welcomeMsg);
+        session.LastMessageAt = welcomeMsg.SentAt;
+        await _db.SaveChangesAsync();
+
         return new ChatSessionCredentialsResponse
         {
             SessionId = session.SessionId,
@@ -87,7 +106,14 @@ public class ChatService : IChatService
         }
         if (changed) await _db.SaveChangesAsync();
 
-        return MapSessionToResponse(session, string.Empty);
+        var lastPreview = await _db.ChatMessages
+            .AsNoTracking()
+            .Where(m => m.ChatSessionId == session.Id)
+            .OrderByDescending(m => m.SentAt)
+            .Select(m => m.Content)
+            .FirstOrDefaultAsync() ?? string.Empty;
+
+        return MapSessionToResponse(session, lastPreview);
     }
 
     /// <summary>Token của khách có đúng là token của phiên này không (so sánh constant-time).</summary>
