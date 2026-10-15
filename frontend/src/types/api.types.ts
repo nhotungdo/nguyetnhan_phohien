@@ -104,6 +104,33 @@ export interface ChatStatsResponse {
   unreadSessions: number;
 }
 
+// ===== DASHBOARD TYPES =====
+export interface DayPointDto {
+  key: string; // YYYY-MM-DD
+  label: string; // dd/MM
+  revenue: number;
+  orders: number;
+}
+
+export interface TopProductDto {
+  key: string;
+  name: string;
+  size?: string;
+  quantity: number;
+  revenue: number;
+  sharePct: number;
+}
+
+export interface DashboardStatsResponse {
+  revenue: number;
+  ordersCount: number;
+  customersCount: number;
+  messagesCount: number;
+  unreadMessages: number;
+  dailyStats: DayPointDto[];
+  topProducts: TopProductDto[];
+}
+
 // ===== CONTENT TYPES =====
 // Backend chỉ trả Key/Value/Description (ContentService.MapToResponse).
 // Trước đây type còn khai `id` và `updatedAt` là bắt buộc → chúng luôn là

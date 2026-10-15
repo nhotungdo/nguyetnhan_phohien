@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.Chat;
 using NguyetnhanPhohien.Application.DTOs.Chat;
@@ -15,17 +16,20 @@ public class ChatController : ControllerBase
     private readonly IChatService _chatService;
     private readonly IHubContext<ChatHub> _hub;
     private readonly IHubContext<ProductsHub> _eventsHub;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<ChatController> _logger;
 
     public ChatController(
         IChatService chatService,
         IHubContext<ChatHub> hub,
         IHubContext<ProductsHub> eventsHub,
+        IMemoryCache cache,
         ILogger<ChatController> logger)
     {
         _chatService = chatService;
         _hub = hub;
         _eventsHub = eventsHub;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -38,6 +42,7 @@ public class ChatController : ControllerBase
     {
         try
         {
+            _cache.Remove(NguyetnhanPhohien.Infrastructure.Services.DashboardService.CacheKey);
             await _eventsHub.Clients.Group(ProductsHub.AdminGroup)
                 .SendAsync(ProductsHub.SessionsChangedEvent, new { action, at = DateTime.UtcNow });
         }

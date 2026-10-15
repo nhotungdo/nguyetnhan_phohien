@@ -139,6 +139,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 // ===== SWAGGER / OPENAPI =====
 builder.Services.AddOpenApi();
 
+builder.Services.AddMemoryCache();
+
 // ===== SERVICES (DI Registration) =====
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -147,6 +149,7 @@ builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPaymentSettingsService, PaymentSettingsService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 
 // ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====

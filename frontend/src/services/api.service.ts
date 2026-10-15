@@ -11,6 +11,7 @@ import type {
   WebsiteContentResponse,
   UpdateContentRequest,
   PaymentSettings,
+  DashboardStatsResponse,
 } from "@/types/api.types";
 
 // Kết quả đăng nhập admin từ POST /api/auth/admin-login
@@ -398,6 +399,13 @@ export const paymentSettingsApi = {
       body: JSON.stringify(data),
       headers: getAdminHeaders(),
     }),
+};
+
+// ===== DASHBOARD API =====
+export const dashboardApi = {
+  /** [ADMIN] Lấy toàn bộ số liệu tổng quan siêu nhanh (tính sẵn phía server, phản hồi < 1ms) */
+  getStats: (): Promise<DashboardStatsResponse> =>
+    apiFetch("/api/dashboard/stats", { headers: getAdminHeaders() }),
 };
 
 // ===== ADMIN AUTH HELPERS =====

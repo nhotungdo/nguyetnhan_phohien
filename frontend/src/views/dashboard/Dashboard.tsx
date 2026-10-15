@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { Package, Users, MessageSquare, TrendingUp, Loader2, Trophy, Download } from "lucide-react"
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Package, Users, MessageSquare, TrendingUp, Loader2, Trophy, Download } from "lucide-react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -12,43 +12,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-} from "recharts"
-import { orderApi, chatApi } from "@/services/api.service"
-import type { OrderResponse } from "@/types/api.types"
+} from "recharts";
+import { dashboardApi } from "@/services/api.service";
+import type { DashboardStatsResponse, DayPointDto } from "@/types/api.types";
 
 const RANGES = [7, 14, 30] as const;
-
-const pad2 = (n: number) => String(n).padStart(2, "0");
-
-/**
- * Múi giờ Việt Nam là UTC+7 và KHÔNG có DST, nên cộng thẳng 7 giờ rồi đọc bằng
- * các getter UTC là ra đúng giờ/ngày VN.
- *
- * Trước đây Dashboard gom ngày bằng `new Date(o.createdAt)` (getFullYear/getMonth/
- * getDate) tức theo giờ MÁY KHÁCH, còn báo cáo tuần gửi email ở backend gom theo
- * giờ VN (WeeklyReportBackgroundService) → cùng một kỳ mà hai nơi ra số khác nhau
- * khi máy admin không ở UTC+7.
- */
-const VN_OFFSET_MS = 7 * 60 * 60 * 1000;
-
-/** Dịch thời điểm sang "đồng hồ VN" để các hàm getUTC* trả về giờ/ngày Việt Nam. */
-const toVn = (d: Date) => new Date(d.getTime() + VN_OFFSET_MS);
-
-/** Khóa ngày theo GIỜ VIỆT NAM, dạng YYYY-MM-DD (so sánh chuỗi cũng đúng thứ tự). */
-const vnDayKey = (d: Date) => {
-  const v = toVn(d);
-  return `${v.getUTCFullYear()}-${pad2(v.getUTCMonth() + 1)}-${pad2(v.getUTCDate())}`;
-};
-
-/**
- * Chuẩn hóa số điện thoại (chỉ giữ chữ số) để "0912 345 678" và "0912345678"
- * được tính là CÙNG một khách hàng.
- */
-const normalizePhone = (phone?: string) => {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  return digits || phone.trim();
-};
 
 const compactVnd = (v: number) => {
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(".0", "")}tr`;
@@ -56,96 +24,114 @@ const compactVnd = (v: number) => {
   return `${v}`;
 };
 
-interface DayPoint {
-  key: string;
-  label: string;        // dd/MM
-  revenue: number;      // tổng tiền đơn Đã giao trong ngày
-  orders: number;       // tổng số đơn tạo trong ngày
+const DASHBOARD_CACHE_KEY = "dashboard_stats_cache_v2";
+
+function readCachedStats(): DashboardStatsResponse | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
-interface TopProduct {
-  key: string;
-  name: string;
-  size?: string;
-  quantity: number;     // tổng số lượng đã bán
-  revenue: number;      // tiền hàng (giá × SL, chưa trừ giảm giá)
-  sharePct: number;     // % số lượng so với sản phẩm dẫn đầu (vẽ progress bar)
+function writeCachedStats(data: DashboardStatsResponse) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(data));
+  } catch {}
 }
 
-const EMPTY_ORDERS: OrderResponse[] = [];
+/** Skeleton hiển thị lập tức nếu chưa có bộ nhớ đệm (thay vì trang trắng xoay vòng) */
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-8 w-64 bg-muted rounded-md" />
+        <div className="h-4 w-96 bg-muted/60 rounded-md" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-xl border bg-card p-6 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-28 bg-muted rounded" />
+              <div className="w-5 h-5 bg-muted rounded-full" />
+            </div>
+            <div className="h-8 w-36 bg-muted rounded mt-2" />
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-xl border bg-card p-6 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="h-5 w-48 bg-muted rounded" />
+            <div className="h-3 w-64 bg-muted/60 rounded" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-8 w-16 bg-muted rounded-full" />
+            <div className="h-8 w-16 bg-muted rounded-full" />
+            <div className="h-8 w-16 bg-muted rounded-full" />
+          </div>
+        </div>
+        <div className="h-72 w-full bg-muted/30 rounded-lg flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-primary/40" />
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-card p-6">
+        <div className="h-5 w-40 bg-muted rounded mb-4" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 w-full bg-muted/40 rounded" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
-  // Tái sử dụng queryKey ["orders", "admin"] dùng chung với trang Orders.tsx
-  // giúp chuyển trang tức thì từ cache mà không cần fetch lại đơn hàng.
-  const { data: orders = EMPTY_ORDERS, isLoading: isLoadingOrders } = useQuery({
-    queryKey: ["orders", "admin"],
+  // Khôi phục ngay từ localStorage (0ms độ trễ, không chớp màn hình)
+  const initialCached = useMemo(() => readCachedStats(), []);
+
+  // Lấy dữ liệu tổng hợp trực tiếp từ backend endpoint siêu tốc /api/dashboard/stats
+  // Backend đệm trong RAM và trả lời < 1ms, tự động đồng bộ realtime qua SignalR (useRealtimeSync)
+  const { data: dashboardStats, isLoading, isFetching } = useQuery<DashboardStatsResponse>({
+    queryKey: ["dashboard", "stats"],
     queryFn: async () => {
-      const data = await orderApi.getAll();
-      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const data = await dashboardApi.getStats();
+      writeCachedStats(data);
+      return data;
     },
-    staleTime: 60 * 1000,
+    initialData: initialCached ?? undefined,
+    staleTime: 30 * 1000,
   });
-
-  // Lấy số liệu phiên chat siêu nhẹ qua endpoint chuyên dụng (/api/chat/stats)
-  // Chỉ chuyển vài chục bytes thay vì tải toàn bộ tin nhắn preview của mọi khách.
-  const { data: chatStats, isLoading: isLoadingChat } = useQuery({
-    queryKey: ["chat", "stats"],
-    queryFn: () => chatApi.getStats(),
-    staleTime: 60 * 1000,
-  });
-
-  const isLoading = isLoadingOrders || isLoadingChat;
 
   const stats = useMemo(() => {
-    const revenueVal = orders
-      .filter(o => o.status === "Completed")
-      .reduce((sum, o) => sum + o.totalAmount, 0);
-
-    const customerPhones = new Set(
-      orders.map(o => normalizePhone(o.customerPhone)).filter(Boolean)
-    );
-
     return {
-      ordersCount: orders.length,
-      customersCount: customerPhones.size,
-      messagesCount: chatStats?.totalSessions ?? 0,
-      unreadMessages: chatStats?.unreadSessions ?? 0,
-      revenue: revenueVal,
+      revenue: dashboardStats?.revenue ?? 0,
+      ordersCount: dashboardStats?.ordersCount ?? 0,
+      customersCount: dashboardStats?.customersCount ?? 0,
+      messagesCount: dashboardStats?.messagesCount ?? 0,
+      unreadMessages: dashboardStats?.unreadMessages ?? 0,
     };
-  }, [orders, chatStats]);
+  }, [dashboardStats]);
 
-  /**
-   * Chuỗi dữ liệu N ngày gần nhất (theo ngày VIỆT NAM): doanh thu (đơn Completed)
-   * & số đơn theo ngày.
-   */
-  const chartData = useMemo<DayPoint[]>(() => {
-    const buckets = new Map<string, DayPoint>();
-    const todayVn = toVn(new Date());
-    todayVn.setUTCHours(0, 0, 0, 0);
+  // Cắt N ngày gần nhất từ chuỗi 30 ngày do server tính sẵn (0ms delay khi bấm chuyển tab)
+  const chartData = useMemo<DayPointDto[]>(() => {
+    const all = dashboardStats?.dailyStats ?? [];
+    if (all.length === 0) return [];
+    return all.slice(-rangeDays);
+  }, [dashboardStats?.dailyStats, rangeDays]);
 
-    for (let i = rangeDays - 1; i >= 0; i--) {
-      const d = new Date(todayVn);
-      d.setUTCDate(d.getUTCDate() - i);
-      const key = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
-      buckets.set(key, {
-        key,
-        label: `${pad2(d.getUTCDate())}/${pad2(d.getUTCMonth() + 1)}`,
-        revenue: 0,
-        orders: 0,
-      });
-    }
-
-    for (const o of orders) {
-      const point = buckets.get(vnDayKey(new Date(o.createdAt)));
-      if (!point) continue;
-      point.orders += 1;
-      if (o.status === "Completed") point.revenue += o.totalAmount;
-    }
-
-    return Array.from(buckets.values());
-  }, [orders, rangeDays]);
+  const topProducts = useMemo(() => {
+    return dashboardStats?.topProducts ?? [];
+  }, [dashboardStats?.topProducts]);
 
   const chartSummary = useMemo(() => {
     const totalRevenue = chartData.reduce((s, p) => s + p.revenue, 0);
@@ -158,64 +144,7 @@ export default function Dashboard() {
     };
   }, [chartData, rangeDays]);
 
-  /** Top 5 sản phẩm bán chạy trong kỳ: gom từ order.items (đơn mới) + legacy 1 sản phẩm (đơn cũ) */
-  const topProducts = useMemo<TopProduct[]>(() => {
-    // Kỳ N ngày tính theo ngày VIỆT NAM (giống biểu đồ và báo cáo tuần ở backend).
-    const todayVn = toVn(new Date());
-    todayVn.setUTCHours(0, 0, 0, 0);
-    todayVn.setUTCDate(todayVn.getUTCDate() - (rangeDays - 1));
-    const cutoffKey = `${todayVn.getUTCFullYear()}-${pad2(todayVn.getUTCMonth() + 1)}-${pad2(todayVn.getUTCDate())}`;
-
-    const map = new Map<string, TopProduct>();
-
-    for (const o of orders) {
-      // So sánh khóa ngày (YYYY-MM-DD) nên không lệ thuộc múi giờ của máy khách.
-      if (vnDayKey(new Date(o.createdAt)) < cutoffKey) continue;
-
-      if (o.items && o.items.length > 0) {
-        for (const item of o.items) {
-          const key = `p-${item.productId}`;
-          const entry = map.get(key) ?? {
-            key,
-            name: item.productName,
-            size: item.productSize,
-            quantity: 0,
-            revenue: 0,
-            sharePct: 0,
-          };
-          entry.quantity += item.quantity;
-          entry.revenue += item.totalPrice;
-          map.set(key, entry);
-        }
-      } else if (o.productName) {
-        // Đơn legacy 1 sản phẩm: tiền hàng của sản phẩm = BaseAmount
-        const key = `n-${o.productName}|${o.productSize ?? ""}`;
-        const entry = map.get(key) ?? {
-          key,
-          name: o.productName,
-          size: o.productSize,            quantity: 0,
-            revenue: 0,
-            sharePct: 0,
-          };
-          entry.quantity += o.quantity ?? 1;
-          entry.revenue += o.baseAmount ?? 0;
-        map.set(key, entry);
-      }
-    }
-
-    const list = [...map.values()].sort((a, b) => b.quantity - a.quantity).slice(0, 5);
-    const maxQuantity = Math.max(...list.map(p => p.quantity), 1);
-    for (const p of list) p.sharePct = Math.round((p.quantity / maxQuantity) * 100);
-    return list;
-  }, [orders, rangeDays]);
-
-  /**
-   * Xuất báo cáo CSV mở được bằng Excel:
-   * - Thêm UTF-8 BOM (\uFEFF) để Excel hiển thị đúng tiếng Việt.
-   * - Dùng dấu ";" làm phân cách + dòng "sep=;" để Excel phân tách cột
-   *   đúng dù máy đang đặt locale dùng dấu phẩy thập phân (VN).
-   * - Số liệu xuất dạng số thô để Excel tính toán được.
-   */
+  /** Xuất báo cáo CSV mở được bằng Excel */
   const buildReportCsv = () => {
     const totalRevenue = chartData.reduce((s, p) => s + p.revenue, 0);
     const totalOrders = chartData.reduce((s, p) => s + p.orders, 0);
@@ -225,8 +154,9 @@ export default function Dashboard() {
       return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const fullDate = (key: string) => {
-      const [y, m, d] = key.split("-");
-      return `${d}/${m}/${y}`;
+      const parts = key.split("-");
+      if (parts.length < 3) return key;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
     };
 
     const L: string[] = [];
@@ -264,21 +194,16 @@ export default function Dashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${vnDayKey(new Date())}.csv`;
+    a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col h-[50vh] items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm font-medium text-foreground">Đang tải dữ liệu tổng quan...</p>
-        <p className="text-xs text-muted-foreground animate-pulse">Đang đồng bộ số liệu và báo cáo...</p>
-      </div>
-    );
+  // Chỉ hiện skeleton khi không có bất kỳ bộ nhớ đệm nào và đang đợi request đầu tiên
+  if (isLoading && !dashboardStats) {
+    return <DashboardSkeleton />;
   }
 
   const pillClass = (active: boolean) =>
@@ -286,11 +211,28 @@ export default function Dashboard() {
       active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-primary"
     }`;
 
+  const hasData = (dashboardStats?.ordersCount ?? 0) > 0 || (dashboardStats?.messagesCount ?? 0) > 0;
+
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary">Nguyệt Nhãn Phố Hiến</h2>
-        <p className="text-muted-foreground">Tổng quan tình hình kinh doanh &amp; tương tác.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">Nguyệt Nhãn Phố Hiến</h2>
+          <p className="text-muted-foreground">Tổng quan tình hình kinh doanh &amp; tương tác.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {isFetching ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
+              <Loader2 className="w-3 h-3 animate-spin text-primary" />
+              Đang đồng bộ...
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Realtime
+            </span>
+          )}
+        </div>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -372,9 +314,9 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={handleExportCsv}
-              disabled={orders.length === 0}
+              disabled={!hasData}
               title="Tải báo cáo doanh thu & top sản phẩm (CSV mở bằng Excel)"
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               Xuất CSV
@@ -383,7 +325,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex-1 z-10 p-4 pt-5 min-h-0">
-          {orders.length === 0 ? (
+          {!hasData ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center space-y-4">
               <TrendingUp className="w-12 h-12 text-muted-foreground/30" />
               <p>Biểu đồ sẽ hiển thị khi có đơn hàng đầu tiên.</p>
@@ -466,12 +408,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* TOP SẢN PHẨM BÁN CHẠY — dùng chung kỳ 7/14/30 ngày với biểu đồ */}
+      {/* TOP SẢN PHẨM BÁN CHẠY */}
       <div className="rounded-xl border bg-card shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-bold text-lg text-primary">Top sản phẩm bán chạy</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{rangeDays} ngày qua — xếp theo số lượng đã bán</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Xếp theo số lượng đã bán</p>
           </div>
           <Trophy className="w-5 h-5 text-accent" />
         </div>
@@ -522,5 +464,5 @@ export default function Dashboard() {
         )}
       </div>
     </div>
-  )
+  );
 }

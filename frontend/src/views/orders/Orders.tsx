@@ -42,6 +42,25 @@ interface Toast {
 // Bộ đếm id toast ở phạm vi module: mỗi toast cần id duy nhất nhưng KHÔNG được gọi
 // Date.now()/Math.random() trong thân component (vi phạm react-hooks/purity — hàm
 // không tinh khiết làm kết quả render không ổn định).
+const ORDERS_CACHE_KEY = "orders_admin_cache_v1";
+
+function readCachedOrders(): OrderResponse[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ORDERS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedOrders(data: OrderResponse[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ORDERS_CACHE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
 let toastSeq = 0;
 
 export default function Orders() {
@@ -55,8 +74,11 @@ export default function Orders() {
     queryKey: ["orders", "admin"],
     queryFn: async () => {
       const data = await orderApi.getAll();
-      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      writeCachedOrders(sorted);
+      return sorted;
     },
+    initialData: () => readCachedOrders() ?? undefined,
     staleTime: 60 * 1000,
   });
 

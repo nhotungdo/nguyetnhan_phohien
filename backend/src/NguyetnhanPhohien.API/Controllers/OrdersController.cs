@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
@@ -15,12 +16,14 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly IHubContext<ProductsHub> _hub;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<OrdersController> _logger;
 
-    public OrdersController(IOrderService orderService, IHubContext<ProductsHub> hub, ILogger<OrdersController> logger)
+    public OrdersController(IOrderService orderService, IHubContext<ProductsHub> hub, IMemoryCache cache, ILogger<OrdersController> logger)
     {
         _orderService = orderService;
         _hub = hub;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -34,6 +37,7 @@ public class OrdersController : ControllerBase
     {
         try
         {
+            _cache.Remove(NguyetnhanPhohien.Infrastructure.Services.DashboardService.CacheKey);
             await _hub.Clients.Group(ProductsHub.AdminGroup).SendAsync(ProductsHub.OrdersChangedEvent, new
             {
                 action,
