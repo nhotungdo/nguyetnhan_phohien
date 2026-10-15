@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ShoppingCart, Plus } from "lucide-react";
 import { FastImage, resolveImageUrl } from "@/components/FastImage";
 import type { ProductResponse } from "@/types/api.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
 interface ProductGalleryProps {
   product: ProductResponse;
   language: "vi" | "en";
   onClose: () => void;
   onOrder: () => void;
+  onAddToCart?: (product: ProductResponse) => void;
 }
 
 function formatPrice(price: number, language: string) {
@@ -21,7 +21,7 @@ function formatPrice(price: number, language: string) {
   return `${price.toLocaleString("vi-VN").replace(/,/g, ".")}đ`;
 }
 
-export function ProductGalleryModal({ product, language, onClose, onOrder }: ProductGalleryProps) {
+export function ProductGalleryModal({ product, language, onClose, onOrder, onAddToCart }: ProductGalleryProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const images = product.images;
 
@@ -116,13 +116,24 @@ export function ProductGalleryModal({ product, language, onClose, onOrder }: Pro
             <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3">{product.description}</p>
             <span className="inline-block mt-1 sm:mt-2 bg-secondary text-accent text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">{product.size}</span>
           </div>
-          <button
-            onClick={() => { onOrder(); onClose(); }}
-            className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-sm active:scale-95 text-sm"
-          >
-            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>{language === "en" ? "Order Now" : "Đặt Hàng Ngay"}</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            {onAddToCart && (
+              <button
+                onClick={() => { onAddToCart(product); onClose(); }}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-accent text-accent hover:bg-[#FEF3C7] font-bold px-4 py-3 rounded-xl transition-all text-sm active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{language === "en" ? "Add to Cart" : "Thêm vào giỏ"}</span>
+              </button>
+            )}
+            <button
+              onClick={() => { onOrder(); onClose(); }}
+              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-sm active:scale-95 text-sm"
+            >
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>{language === "en" ? "Order Now" : "Đặt Hàng Ngay"}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

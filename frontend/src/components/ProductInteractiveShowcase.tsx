@@ -25,6 +25,7 @@ interface ProductInteractiveShowcaseProps {
   cmsContent: Record<string, string>;
   onOrderProduct: (productId: string) => void;
   onOpenGallery: (product: ProductResponse) => void;
+  onAddToCart?: (product: ProductResponse) => void;
 }
 
 // Dữ liệu mở rộng điểm chạm (Hotspots) cho sản phẩm
@@ -102,6 +103,7 @@ export function ProductInteractiveShowcase({
   cmsContent,
   onOrderProduct,
   onOpenGallery,
+  onAddToCart,
 }: ProductInteractiveShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const displayProducts = products && products.length > 0 ? products : DEFAULT_FALLBACK_PRODUCTS;
@@ -455,6 +457,17 @@ export function ProductInteractiveShowcase({
 
               {/* Nút hành động Mua Ngay */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {onAddToCart && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => onAddToCart(activeProduct)}
+                    className="flex-1 sm:flex-none border-2 border-accent text-accent hover:bg-[#FEF3C7] font-bold py-4 px-5 rounded-2xl flex items-center justify-center gap-2 transition-all text-sm cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{language === "en" ? "Add to Cart" : "Thêm vào giỏ"}</span>
+                  </motion.button>
+                )}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -462,7 +475,7 @@ export function ProductInteractiveShowcase({
                   className="flex-1 bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-[#B45309]/25 flex items-center justify-center gap-2.5 transition-all text-base cursor-pointer"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  <span>{language === "en" ? "Order This Product" : "Đặt Mua Sản Phẩm Này"}</span>
+                  <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>
                   <ChevronRight className="w-4 h-4" />
                 </motion.button>
               </div>

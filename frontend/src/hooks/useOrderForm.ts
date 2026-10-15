@@ -147,15 +147,37 @@ export function useOrderForm(
     setDiscountResult(null);
   };
 
-  const applyDiscount = async () => {
-    if (!form.discountCode.trim()) return;
+  const setCartItems = (
+    cartItems: { productId: string; quantity: number }[],
+    discountCode?: string
+  ) => {
+    if (cartItems.length > 0) {
+      setForm((prev) => ({
+        ...prev,
+        items: cartItems.map((c) => ({
+          productId: c.productId,
+          quantity: c.quantity > 0 ? c.quantity : 1,
+        })),
+        ...(discountCode !== undefined ? { discountCode } : {}),
+      }));
+      setDiscountResult(null);
+    }
+  };
+
+  const applyDiscount = async (codeOverride?: string | unknown) => {
+    const code = (typeof codeOverride === "string" ? codeOverride : form.discountCode).trim();
+    if (!code) return;
+
+    if (typeof codeOverride === "string") {
+      setForm((prev) => ({ ...prev, discountCode: codeOverride }));
+    }
 
     setIsApplyingCode(true);
     setErrorMessage("");
 
     try {
       const result = await discountApi.apply({
-        code: form.discountCode.trim(),
+        code,
         // Gửi SĐT đã chuẩn hoá: backend lưu "mỗi SĐT dùng mã 1 lần" theo chuỗi số,
         // gửi "0982 072 601" hay "+84982..." sẽ bị coi là hai người khác nhau.
         customerPhone: normalizePhone(form.customerPhone) || undefined,
@@ -271,6 +293,7 @@ export function useOrderForm(
     removeItem,
     updateItem,
     selectSingleProduct,
+    setCartItems,
     discountResult,
     isSubmitting,
     isApplyingCode,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 import { Crown, ArrowRight, Flame, Leaf, Award } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
@@ -15,11 +15,7 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Tự động fallback sang /images/setqua.jpg nếu bannerUrl từ CMS bị 404 hoặc mất file trên server
-  const [heroImage, setHeroImage] = useState<string>(bannerUrl || "/images/setqua.jpg");
-
-  useEffect(() => {
-    setHeroImage(bannerUrl || "/images/setqua.jpg");
-  }, [bannerUrl]);
+  const heroImage = bannerUrl || "/images/setqua.jpg";
 
   // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
   const mouseX = useMotionValue(0);
@@ -79,11 +75,6 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
             priority
             sizes="(max-width: 768px) 90vw, 500px"
             className="object-cover transition-transform duration-700 hover:scale-105"
-            onError={() => {
-              if (heroImage !== "/images/setqua.jpg") {
-                setHeroImage("/images/setqua.jpg");
-              }
-            }}
           />
 
           {/* Dải gradient che nhẹ chân ảnh để tăng độ tương phản */}

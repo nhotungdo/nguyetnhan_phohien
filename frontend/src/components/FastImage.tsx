@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -86,18 +86,19 @@ export function FastImage({
   loading,
   onError,
 }: FastImageProps) {
-  const [currentSrc, setCurrentSrc] = useState(src || fallbackSrc);
+  const [prevSrc, setPrevSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
-    setCurrentSrc(src || fallbackSrc);
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setHasError(false);
-  }, [src, fallbackSrc]);
+  }
+
+  const currentSrc = hasError ? fallbackSrc : (src || fallbackSrc);
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     if (!hasError && fallbackSrc && currentSrc !== fallbackSrc) {
       setHasError(true);
-      setCurrentSrc(fallbackSrc);
     }
     onError?.(e);
   };

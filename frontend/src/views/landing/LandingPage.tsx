@@ -33,6 +33,8 @@ import { ProductHeroShowcase } from "@/components/ProductHeroShowcase";
 import { ProductScrollytelling } from "@/components/ProductScrollytelling";
 import { ProductPairingSection } from "@/components/ProductPairingSection";
 import { ProductComparisonSection } from "@/components/ProductComparisonSection";
+import { CartButton, CartDrawer } from "@/components/cart";
+import { useCartStore } from "@/stores/useCartStore";
 import type { ProductResponse } from "@/types/api.types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -72,9 +74,30 @@ export default function LandingPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
   const [chatInput, setChatInput] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
-  const [chatStarted, setChatStarted] = useState(false);
+  const [guestName, setGuestName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return sessionStorage.getItem("chatGuestName") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [guestPhone, setGuestPhone] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return sessionStorage.getItem("chatGuestPhone") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [chatStarted, setChatStarted] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !!(sessionStorage.getItem("chatSessionId") && sessionStorage.getItem("chatSessionToken"));
+    } catch {
+      return false;
+    }
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Parallax: khối chữ và khối ảnh hero trôi chậm hơn nhịp cuộn → tạo chiều sâu.
@@ -109,10 +132,34 @@ export default function LandingPage() {
   // tải được — lúc đó bỏ yêu cầu chọn Tỉnh/Phường để khách vẫn đặt được hàng.
   const isManualAddress = manualAddress || !!provinceLoadError;
 
+  const { addItem: addCartItem, closeCart, openCart, getTotalItems } = useCartStore();
+  const totalCartItems = getTotalItems();
+
   const {
-    form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, discountResult, isSubmitting, isApplyingCode,
+    form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
-  } = useOrderForm(products, undefined, { requireAdministrativeUnits: !isManualAddress });
+  } = useOrderForm(
+    products,
+    () => {
+      useCartStore.getState().clearCart();
+    },
+    { requireAdministrativeUnits: !isManualAddress }
+  );
+
+  const handleCartCheckout = (discountCode?: string) => {
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0) {
+      setCartItems(
+        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        discountCode
+      );
+      if (discountCode) {
+        applyDiscount(discountCode);
+      }
+    }
+    closeCart();
+    scrollToSection("dat-hang");
+  };
 
   const wardOptions = wardsOf(vnProvinces, form.province);
   const hasFieldErrors = Object.values(errors).some(Boolean);
@@ -202,17 +249,14 @@ export default function LandingPage() {
     markMessagesRead();
   }, [isChatOpen, chatStarted, messages, markMessagesRead]);
 
-  // Tự động khôi phục phiên chat nếu khách đã từng trò chuyện trước đó và kết nối ngầm trước
+  // Tự động kết nối ngầm phiên chat nếu khách đã từng trò chuyện trước đó
   useEffect(() => {
     try {
       const storedId = sessionStorage.getItem("chatSessionId");
       const storedToken = sessionStorage.getItem("chatSessionToken");
-      const storedName = sessionStorage.getItem("chatGuestName");
-      const storedPhone = sessionStorage.getItem("chatGuestPhone");
-      if (storedName) setGuestName(storedName);
-      if (storedPhone) setGuestPhone(storedPhone);
       if (storedId && storedToken) {
-        setChatStarted(true);
+        const storedName = sessionStorage.getItem("chatGuestName");
+        const storedPhone = sessionStorage.getItem("chatGuestPhone");
         // Pre-connect trong nền để WebSocket bắt tay xong từ trước, khi gửi tin không bị trễ
         connect(storedName || undefined, storedPhone || undefined);
       }
@@ -293,6 +337,7 @@ export default function LandingPage() {
             selectSingleProduct(galleryProduct.id);
             scrollToSection("dat-hang");
           }}
+          onAddToCart={(prod) => addCartItem(prod)}
         />
       )}
       {/* 1. Header */}
@@ -347,6 +392,18 @@ export default function LandingPage() {
               className="text-sm font-bold text-foreground/80 border px-3 py-1.5 rounded-full hover:bg-muted transition-colors flex items-center gap-2"
             >
               {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
+            </button>
+            <button
+              onClick={() => openCart()}
+              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 relative p-1.5"
+              aria-label="Giỏ hàng"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {totalCartItems > 0 && (
+                <span className="absolute -top-1.5 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {totalCartItems > 99 ? "99+" : totalCartItems}
+                </span>
+              )}
             </button>
             <button
               onClick={handleOpenChat}
@@ -611,6 +668,7 @@ export default function LandingPage() {
             scrollToSection("dat-hang");
           }}
           onOpenGallery={(prod) => setGalleryProduct(prod)}
+          onAddToCart={(prod) => addCartItem(prod)}
         />
 
         {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
@@ -1476,6 +1534,22 @@ export default function LandingPage() {
             </a>
 
             <button
+              onClick={() => openCart()}
+              className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0 relative"
+              aria-label="Giỏ hàng"
+            >
+              <div className="relative">
+                <ShoppingCart className="w-4 h-4 text-accent mb-0.5" />
+                {totalCartItems > 0 && (
+                  <span className="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                    {totalCartItems > 99 ? "99+" : totalCartItems}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] font-bold">Giỏ Hàng</span>
+            </button>
+
+            <button
               onClick={handleOpenChat}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0"
               aria-label="Tư vấn"
@@ -1569,6 +1643,10 @@ export default function LandingPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating Cart Button & Slide-in Cart Drawer */}
+      <CartButton />
+      <CartDrawer language={language as "vi" | "en"} onCheckout={handleCartCheckout} />
 
     </div>
   );
