@@ -3,7 +3,8 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
-  Sparkles, 
+  Crown,
+  Plus,
   ShoppingCart, 
   Eye, 
   ChevronRight, 
@@ -159,7 +160,7 @@ export function ProductInteractiveShowcase({
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-sm mb-4">
-            <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+            <Crown className="w-4 h-4 text-accent" />
             <span>{language === "en" ? "King's Tribute Longan Collection" : "Bộ Sưu Tập Long Nhãn Tiến Vua"}</span>
           </div>
 
@@ -272,7 +273,7 @@ export function ProductInteractiveShowcase({
                         {/* Vòng xung tỏa ra */}
                         <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
                         <span className="relative flex items-center justify-center w-8 h-8 rounded-full bg-accent text-white shadow-lg border-2 border-white font-bold text-xs transition-transform transform group-hover/pin:scale-110">
-                          <Sparkles className="w-4 h-4" />
+                          <Plus className="w-4 h-4" />
                         </span>
                       </button>
 

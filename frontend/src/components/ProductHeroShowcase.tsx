@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Crown, Sparkles, Flame, Leaf, Award } from "lucide-react";
+import { Crown, ArrowRight, Flame, Leaf, Award } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 
 interface ProductHeroShowcaseProps {
@@ -85,7 +85,7 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
               <div className="text-base font-bold">Nguyệt Nhãn Phố Hiến</div>
             </div>
             <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40">
-              <Sparkles className="w-4 h-4 text-white" />
+              <ArrowRight className="w-4 h-4 text-white" />
             </span>
           </div>
         </div>

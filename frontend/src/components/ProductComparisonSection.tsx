@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, X, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, X, ShieldCheck, Crown } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 
 interface ComparisonRow {
@@ -75,7 +75,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
           >
             {/* Nhãn nổi "Tiêu chuẩn hoàng gia" */}
             <div className="absolute top-0 right-0 bg-accent text-white text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded-bl-2xl shadow-md flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Crown className="w-3.5 h-3.5" />
               Chuẩn Tiến Vua
             </div>
 

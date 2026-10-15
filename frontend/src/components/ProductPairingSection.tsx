@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Coffee, UtensilsCrossed, Wine, Sparkles, Check, Clock, Heart, ArrowRight } from "lucide-react";
+import { Coffee, UtensilsCrossed, Wine, Check, Clock, Heart, ArrowRight } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 
 interface Recipe {
@@ -94,7 +94,7 @@ export function ProductPairingSection({
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-sm mb-4">
-            <Sparkles className="w-4 h-4 text-accent" />
+            <Coffee className="w-4 h-4 text-accent" />
             <span>Nghệ Thuật Thưởng Thức Đa Giác Quan</span>
           </div>
 
