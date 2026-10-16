@@ -152,7 +152,14 @@ export function useLiveChat() {
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
     guestInfoRef.current = { name: guestName, phone: guestPhone };
 
-    const creds = await ensureSession(false, guestName, guestPhone);
+    let creds: ChatSessionCreds;
+    try {
+      creds = await ensureSession(false, guestName, guestPhone);
+    } catch (sessionErr) {
+      console.error("[LiveChat] Không thể tạo phiên chat qua API (kiểm tra kết nối DB trên Render):", sessionErr);
+      setIsLoading(false);
+      return;
+    }
 
     // Đã kết nối rồi: chỉ cập nhật thông tin khách bằng cách join lại
     if (connectionRef.current?.state === signalR.HubConnectionState.Connected) {
@@ -179,12 +186,29 @@ export function useLiveChat() {
       setIsLoading(false);
     }
 
+if (typeof window !== "undefined") {
+  const isProdHost = !["localhost", "127.0.0.1"].includes(window.location.hostname);
+  if (isProdHost && API_URL.startsWith("http://localhost")) {
+    console.error(
+      `[LiveChat] CẢNH BÁO DEPLOY: Website đang chạy trên domain '${window.location.origin}' nhưng biến NEXT_PUBLIC_API_URL đang trỏ về '${API_URL}'. Vui lòng cấu hình biến môi trường NEXT_PUBLIC_API_URL trong Project Settings của Vercel trỏ tới Backend HTTPS URL.`
+    );
+  }
+}
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_URL}/hubs/chat`, {
         withCredentials: true,
+        transport:
+          signalR.HttpTransportType.WebSockets |
+          signalR.HttpTransportType.ServerSentEvents |
+          signalR.HttpTransportType.LongPolling,
       })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.None)
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 15000])
+      .configureLogging(
+        process.env.NODE_ENV === "development"
+          ? signalR.LogLevel.Information
+          : signalR.LogLevel.Warning
+      )
       .build();
 
     const scheduleRestart = () => {

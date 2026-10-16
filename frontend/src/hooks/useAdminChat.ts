@@ -219,9 +219,17 @@ export function useAdminChat() {
       .withUrl(`${API_URL}/hubs/chat`, {
         withCredentials: true,
         accessTokenFactory: () => adminAuth.getToken() || "",
+        transport:
+          signalR.HttpTransportType.WebSockets |
+          signalR.HttpTransportType.ServerSentEvents |
+          signalR.HttpTransportType.LongPolling,
       })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.None)
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 15000])
+      .configureLogging(
+        process.env.NODE_ENV === "development"
+          ? signalR.LogLevel.Information
+          : signalR.LogLevel.Warning
+      )
       .build();
 
     let disposed = false;

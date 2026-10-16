@@ -53,6 +53,10 @@ export function useRealtimeSync() {
         withCredentials: true,
         // Token admin để JoinAsAdmin nhận sự kiện đơn hàng/phiên chat.
         accessTokenFactory: () => adminAuth.getToken() || "",
+        transport:
+          signalR.HttpTransportType.WebSockets |
+          signalR.HttpTransportType.ServerSentEvents |
+          signalR.HttpTransportType.LongPolling,
       })
       // Không thử lại quá dày: nếu backend tắt thì cứ 10s mới start() 1 lần.
       .withAutomaticReconnect([0, 2_000, 5_000, 10_000, 30_000])

@@ -160,13 +160,37 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var allowedOrigins = builder.Configuration["AllowedOrigins"]
+        var configuredOrigins = builder.Configuration["AllowedOrigins"]
             ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ?? new[] { "http://localhost:3000" };
-        policy.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials(); // Cần thiết cho SignalR
+            ?? Array.Empty<string>();
+
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrWhiteSpace(origin)) return false;
+
+            // Kiểm tra cấu hình cụ thể từ AllowedOrigins trong appsettings / env var
+            if (configuredOrigins.Any(co => string.Equals(co.TrimEnd('/'), origin.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)))
+                return true;
+
+            if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+            {
+                var host = uri.Host.ToLowerInvariant();
+
+                // Môi trường dev (localhost, 127.0.0.1 trên mọi cổng)
+                if (host == "localhost" || host == "127.0.0.1") return true;
+
+                // Tên miền chính thức và subdomain (nguyetnhanphohien.com, www.nguyetnhanphohien.com)
+                if (host == "nguyetnhanphohien.com" || host.EndsWith(".nguyetnhanphohien.com")) return true;
+
+                // Các domain deploy preview hoặc production trên Vercel (*.vercel.app)
+                if (host.EndsWith(".vercel.app")) return true;
+            }
+
+            return false;
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials(); // Cần thiết cho SignalR
     });
 });
 
