@@ -71,12 +71,14 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
   const lineHeight = useSpring(scrollYProgress, { stiffness: 80, damping: 25, restDelta: 0.001 });
 
   return (
-    <section ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40">
+    <section ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40 w-full max-w-full">
       {/* Nền trang trí */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,transparent_70%)] pointer-events-none -z-10" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(237,243,233,0.7)_0%,transparent_70%)] pointer-events-none -z-10" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-0 right-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(237,243,233,0.7)_0%,transparent_70%)] pointer-events-none" />
+      </div>
 
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
         {/* Tiêu đề mục */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -133,7 +135,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
 
                   {/* Khối nội dung thẻ bên trái (chẵn) hoặc bên phải (lẻ) */}
                   <div
-                    className={`w-full md:w-1/2 pl-12 sm:pl-16 md:pl-0 ${
+                    className={`w-full md:w-1/2 pl-12 sm:pl-16 md:pl-0 min-w-0 ${
                       isEven ? "md:pr-16 md:text-right" : "md:pl-16 md:ml-auto md:text-left"
                     }`}
                   >
@@ -142,7 +144,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/60 shadow-lg hover:shadow-2xl transition-all group"
+                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/60 shadow-lg hover:shadow-2xl transition-all group overflow-hidden w-full"
                     >
                       <div
                         className={`flex items-center gap-2.5 sm:gap-3 mb-2 sm:mb-3 ${

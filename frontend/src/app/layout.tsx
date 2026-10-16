@@ -124,7 +124,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col antialiased">
+      <body className="min-h-full flex flex-col antialiased w-full max-w-full overflow-x-clip">
         <Providers>
           {children}
         </Providers>

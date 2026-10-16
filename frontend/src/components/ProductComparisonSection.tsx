@@ -44,8 +44,8 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
   const [activeMobileCard, setActiveMobileCard] = useState<"nguyetNhan" | "market">("nguyetNhan");
 
   return (
-    <section className="py-16 sm:py-24 bg-white relative overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6">
+    <section className="py-16 sm:py-24 bg-white relative overflow-hidden w-full max-w-full">
+      <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -67,7 +67,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
         </motion.div>
 
         {/* Chế độ xem trên Mobile (md:hidden): Đối chiếu trực quan từng tiêu chí */}
-        <div className="md:hidden mb-6">
+        <div className="md:hidden mb-6 w-full max-w-full">
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center p-1 rounded-xl bg-secondary/60 border border-[#FDE68A]/60 text-xs font-bold">
               <button

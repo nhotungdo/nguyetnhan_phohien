@@ -83,8 +83,8 @@ export function ProductPairingSection({
   const activeRecipe = RECIPES.find((r) => r.id === activeId) || RECIPES[0];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8] relative overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6">
+    <section className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8] relative overflow-hidden w-full max-w-full">
+      <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
         {/* Tiêu đề phân khu */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -107,7 +107,7 @@ export function ProductPairingSection({
         </motion.div>
 
         {/* Bộ chuyển đổi 3 cách dùng */}
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div className="flex justify-center mb-8 sm:mb-12 w-full max-w-full">
           <div className="grid grid-cols-3 gap-1.5 sm:gap-3 p-1.5 rounded-2xl sm:rounded-3xl bg-white/85 backdrop-blur-md border border-[#FDE68A]/60 shadow-lg max-w-2xl w-full">
             {RECIPES.map((r) => {
               const isActive = r.id === activeId;
@@ -147,11 +147,11 @@ export function ProductPairingSection({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.45, ease: EASE_OUT_EXPO }}
-            className="max-w-5xl mx-auto bg-white/95 rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 lg:p-12 border border-[#FDE68A]/70 shadow-2xl relative overflow-hidden"
+            className="max-w-5xl mx-auto w-full bg-white/95 rounded-3xl sm:rounded-[2.5rem] p-4 sm:p-8 md:p-10 lg:p-12 border border-[#FDE68A]/70 shadow-2xl relative overflow-hidden"
           >
-            <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
+            <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center w-full min-w-0">
               {/* Cột trái: Thông tin món, công dụng, hướng dẫn */}
-              <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+              <div className="lg:col-span-7 space-y-4 sm:space-y-6 w-full min-w-0">
                 <div>
                   <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-accent bg-secondary px-2.5 sm:px-3 py-1 rounded-full">
                     {activeRecipe.category}
@@ -188,7 +188,7 @@ export function ProductPairingSection({
               </div>
 
               {/* Cột phải: Thẻ nguyên liệu & Nút mua ngay */}
-              <div className="lg:col-span-5 bg-gradient-to-br from-[#FFFDF8] to-[#F8F3E8] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#FDE68A] shadow-md flex flex-col justify-between space-y-4 sm:space-y-6">
+              <div className="lg:col-span-5 bg-gradient-to-br from-[#FFFDF8] to-[#F8F3E8] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#FDE68A] shadow-md flex flex-col justify-between space-y-4 sm:space-y-6 w-full min-w-0">
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider text-primary/80 mb-3 sm:mb-4 flex items-center justify-between">
                     <span>Nguyên Liệu Chuẩn Bị</span>

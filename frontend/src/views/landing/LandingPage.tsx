@@ -392,7 +392,7 @@ export default function LandingPage() {
   const { base, discount, final } = calculateTotal();
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground w-full max-w-full overflow-x-clip">
       {/* Thanh tiến trình cuộn — phản hồi tức thì vị trí đang đọc */}
       <ScrollProgressBar />
 
@@ -414,10 +414,10 @@ export default function LandingPage() {
         initial={{ y: -90, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 w-full max-w-full ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
           }`}
       >
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={() => scrollToSection("hero")}>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-border shadow-sm relative shrink-0">
               <span className="absolute text-accent font-bold text-xs">NN</span>
@@ -583,25 +583,25 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      <main>
+      <main className="w-full max-w-full overflow-x-clip">
         {/* 2. Hero Banner */}
-        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full">
           {/* Background Elements */}
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
             <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.5 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,transparent_70%)] rounded-full pointer-events-none"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,transparent_70%)] rounded-full pointer-events-none"
             />
             {/* Hai vệt sáng trôi lơ lửng, lệch pha nhau → nền "thở" nhẹ mà không gây phân tán */}
-            <div className="absolute -left-24 top-24 w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-float-slow will-change-transform pointer-events-none" />
-            <div className="absolute right-1/4 bottom-0 w-[320px] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,transparent_70%)] animate-float-slower will-change-transform pointer-events-none" />
+            <div className="absolute -left-24 top-24 w-[420px] max-w-[100vw] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-float-slow will-change-transform pointer-events-none" />
+            <div className="absolute right-1/4 bottom-0 w-[320px] max-w-[100vw] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,transparent_70%)] animate-float-slower will-change-transform pointer-events-none" />
           </div>
 
-          <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
+          <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
             <motion.div
               style={{ y: heroContentY }}
               initial={{ opacity: 0, x: -50 }}
@@ -686,13 +686,13 @@ export default function LandingPage() {
         </section>
 
         {/* 2b. Dải cam kết chạy ngang — nhịp nghỉ giữa hero và phần giới thiệu */}
-        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-5 text-accent">
-          <Marquee items={marqueeItems} className="marquee-mask" />
+        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-5 text-accent w-full max-w-full overflow-hidden">
+          <Marquee items={marqueeItems} className="marquee-mask w-full max-w-full" />
         </div>
 
         {/* 3. Giới thiệu thương hiệu */}
-        <section id="gioi-thieu" className="py-24 bg-white relative">
-          <div className="container mx-auto px-4 md:px-6">
+        <section id="gioi-thieu" className="py-24 bg-white relative overflow-hidden w-full max-w-full">
+          <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -749,8 +749,8 @@ export default function LandingPage() {
         />
 
         {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
-        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden">
-          <div className="container mx-auto px-4 md:px-6">
+        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full">
+          <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               <div className="flex-1 relative">
                 <div className="aspect-square rounded-full bg-[radial-gradient(circle,rgba(247,238,221,0.9)_0%,transparent_70%)] absolute -top-10 -left-10 w-full h-full -z-10 opacity-70 pointer-events-none"></div>
@@ -794,8 +794,8 @@ export default function LandingPage() {
         </section>
 
         {/* Lịch sử */}
-        <section id="lich-su" className="py-24 bg-background border-t border-border/30">
-          <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl">
+        <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full">
+          <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl w-full max-w-full">
             <Reveal>
               <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">{t.history.title}</h2>
             </Reveal>
@@ -863,8 +863,8 @@ export default function LandingPage() {
         </section>
 
         {/* Văn hóa */}
-        <section id="van-hoa" className="py-24 bg-card relative overflow-hidden border-t border-border/30">
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <section id="van-hoa" className="py-24 bg-card relative overflow-hidden border-t border-border/30 w-full max-w-full">
+          <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <Reveal>
@@ -939,10 +939,12 @@ export default function LandingPage() {
         <ProductComparisonSection language={language as "vi" | "en"} />
 
         {/* 11. Khu vực đặt hàng */}
-        <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(120,53,15,0.7)_0%,transparent_70%)] rounded-full opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower will-change-transform"></div>
+        <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden w-full max-w-full">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+            <div className="absolute top-0 right-0 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(120,53,15,0.7)_0%,transparent_70%)] rounded-full opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower will-change-transform"></div>
+          </div>
 
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
               <div>
                 <Reveal>
@@ -1380,8 +1382,8 @@ export default function LandingPage() {
       </main>
 
       {/* 14. Footer */}
-      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary">
-        <div className="container mx-auto px-4 md:px-6">
+      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary overflow-hidden w-full max-w-full">
+        <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
             <div className="space-y-4 md:col-span-1">

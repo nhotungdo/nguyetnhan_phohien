@@ -121,11 +121,13 @@ export function ProductInteractiveShowcase({
   };
 
   return (
-    <section id="san-pham" className="py-24 relative overflow-hidden bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8]">
+    <section id="san-pham" className="py-16 sm:py-24 relative overflow-hidden bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8] w-full max-w-full">
       {/* Nền trang trí hạt ánh sáng */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.3)_0%,transparent_70%)] -z-10 rounded-full pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[1000px] max-w-[150vw] h-[500px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.3)_0%,transparent_70%)] rounded-full pointer-events-none" />
+      </div>
       
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
         {/* Tiêu đề & Lời dẫn phân khu */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -152,7 +154,7 @@ export function ProductInteractiveShowcase({
         </motion.div>
 
         {/* Thanh Tab chọn sản phẩm - Có hiệu ứng Morphing Pill Indicator qua layoutId */}
-        <div className="flex justify-center mb-10 sm:mb-12 px-2">
+        <div className="flex justify-center mb-10 sm:mb-12 px-2 w-full max-w-full">
           <div className="flex sm:inline-flex items-center gap-2 p-1.5 rounded-2xl bg-white/80 backdrop-blur-md border border-[#FDE68A]/60 shadow-lg overflow-x-auto no-scrollbar max-w-full">
             {displayProducts.map((prod, idx) => {
               const isSelected = idx === selectedIndex;
@@ -186,10 +188,10 @@ export function ProductInteractiveShowcase({
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột (Hình ảnh tương tác 3D + Thông số bóc tách) */}
         {activeProduct && (
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-6xl mx-auto bg-white/90 backdrop-blur-sm rounded-3xl md:rounded-[2.5rem] p-4 sm:p-8 md:p-10 lg:p-12 border border-[#FDE68A]/50 shadow-2xl relative">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full max-w-6xl mx-auto bg-white/90 backdrop-blur-sm rounded-3xl md:rounded-[2.5rem] p-4 sm:p-8 md:p-10 lg:p-12 border border-[#FDE68A]/50 shadow-2xl relative overflow-hidden">
             
             {/* Cột Trái (Ảnh 3D Parallax + Hotspot Pins) */}
-            <div className="lg:col-span-7 flex flex-col items-center">
+            <div className="lg:col-span-7 flex flex-col items-center w-full min-w-0 max-w-full">
               <div
                 ref={cardRef}
                 onMouseMove={handleMouseMove}
@@ -310,14 +312,14 @@ export function ProductInteractiveShowcase({
               </div>
 
               {/* Băng ảnh nhỏ danh mục chọn nhanh */}
-              <div className="flex items-center gap-2.5 sm:gap-3 mt-4 overflow-x-auto w-full py-1 no-scrollbar">
+              <div className="flex items-center gap-2.5 sm:gap-3 mt-4 overflow-x-auto w-full max-w-full py-1 no-scrollbar">
                 {displayProducts.map((prod, idx) => {
                   const isCurrent = idx === selectedIndex;
                   return (
                     <button
                       key={prod.id}
                       onClick={() => setSelectedIndex(idx)}
-                      className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition-all shrink-0 ${
+                      className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition-all shrink-0 max-w-[220px] ${
                         isCurrent
                           ? "bg-secondary/60 border-accent shadow-sm"
                           : "bg-white/60 border-border/60 hover:bg-white"
@@ -333,8 +335,8 @@ export function ProductInteractiveShowcase({
                           className="object-cover"
                         />
                       </div>
-                      <div>
-                        <div className="text-xs font-bold text-primary line-clamp-1">{prod.name}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-primary truncate">{prod.name}</div>
                         <div className="text-[11px] font-semibold text-accent">{formatPrice(prod.price)}</div>
                       </div>
                     </button>
@@ -344,46 +346,46 @@ export function ProductInteractiveShowcase({
             </div>
 
             {/* Cột Phải (Thông tin chi tiết, Thanh chỉ số cảm quan, Nút mua hàng) */}
-            <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-              <div>
+            <div className="lg:col-span-5 flex flex-col justify-between space-y-6 w-full min-w-0 max-w-full">
+              <div className="w-full">
                 {/* Quy cách & Tên */}
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-accent text-xs font-bold tracking-wide uppercase">
+                <div className="flex items-center justify-between gap-3 mb-2 w-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-accent text-xs font-bold tracking-wide uppercase shrink-0">
                     <Award className="w-3.5 h-3.5" />
                     Đặc Sản Tiến Vua
                   </span>
-                  <span className="text-xs font-semibold text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full">
+                  <span className="text-xs font-semibold text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full shrink-0">
                     Quy cách: {activeProduct.size}
                   </span>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-2 sm:mb-3 break-words">
                   {activeProduct.name}
                 </h3>
 
-                <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed mb-4 sm:mb-6">
+                <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed mb-4 sm:mb-6 break-words">
                   {activeProduct.description}
                 </p>
 
                 {/* Giá bán nổi bật */}
-                <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#FFFDF8] border border-[#FDE68A]/70 mb-5 sm:mb-6 shadow-inner">
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-accent font-sans">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1.5 sm:gap-3 p-3.5 sm:p-4 rounded-2xl bg-[#FFFDF8] border border-[#FDE68A]/70 mb-5 sm:mb-6 shadow-inner w-full">
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-accent font-sans shrink-0">
                     {formatPrice(activeProduct.price)}
                   </div>
-                  <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
+                  <span className="text-[11px] sm:text-xs text-muted-foreground font-medium leading-tight">
                     (Đã bao gồm VAT & Cam kết 100% tự nhiên)
                   </span>
                 </div>
 
                 {/* Bảng chỉ số cảm quan (Sensory Metrics) với thanh tiến trình hoạt họa */}
-                <div className="space-y-3 sm:space-y-3.5 mb-6 sm:mb-8">
+                <div className="space-y-3 sm:space-y-3.5 mb-6 sm:mb-8 w-full">
                   <div className="text-xs font-bold uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-accent" />
                     <span>Chỉ Số Tinh Túy Cảm Quan</span>
                   </div>
 
                   {PRODUCT_METRICS.map((metric, idx) => (
-                    <div key={idx} className="space-y-1">
+                    <div key={idx} className="space-y-1 w-full">
                       <div className="flex justify-between text-xs font-medium">
                         <span className="text-foreground/85">
                           {language === "en" ? metric.labelEn : metric.label}
@@ -404,36 +406,36 @@ export function ProductInteractiveShowcase({
                 </div>
 
                 {/* Cam kết chất lượng 4 điểm */}
-                <div className="grid grid-cols-2 gap-2 sm:gap-3 py-3 sm:py-4 border-t border-b border-border/50 mb-5 sm:mb-6 text-[11px] sm:text-xs text-foreground/80">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 py-3 sm:py-4 border-t border-b border-border/50 mb-5 sm:mb-6 text-[11px] sm:text-xs text-foreground/80 w-full">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-                    <span>Sấy củi nhãn thủ công</span>
+                    <span className="truncate">Sấy củi nhãn thủ công</span>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-                    <span>Không đường hóa học</span>
+                    <span className="truncate">Không đường hóa học</span>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-                    <span>Không xông lưu huỳnh</span>
+                    <span className="truncate">Không xông lưu huỳnh</span>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-                    <span>Giao hàng toàn quốc</span>
+                    <span className="truncate">Giao hàng toàn quốc</span>
                   </div>
                 </div>
               </div>
 
               {/* Nút hành động Mua Ngay */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full">
                 {onAddToCart && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => onAddToCart(activeProduct)}
-                    className="flex-1 sm:flex-none border-2 border-accent text-accent hover:bg-[#FEF3C7] font-bold py-4 px-5 rounded-2xl flex items-center justify-center gap-2 transition-all text-sm cursor-pointer"
+                    className="w-full sm:flex-none border-2 border-accent text-accent hover:bg-[#FEF3C7] font-bold py-3.5 sm:py-4 px-4 sm:px-5 rounded-2xl flex items-center justify-center gap-2 transition-all text-sm cursor-pointer"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 shrink-0" />
                     <span>{language === "en" ? "Add to Cart" : "Thêm vào giỏ"}</span>
                   </motion.button>
                 )}
@@ -441,11 +443,11 @@ export function ProductInteractiveShowcase({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
-                  className="flex-1 bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-[#B45309]/25 flex items-center justify-center gap-2.5 transition-all text-base cursor-pointer"
+                  className="w-full sm:flex-1 bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white font-bold py-3.5 sm:py-4 px-5 sm:px-6 rounded-2xl shadow-xl shadow-[#B45309]/25 flex items-center justify-center gap-2.5 transition-all text-base cursor-pointer"
                 >
-                  <ShoppingCart className="w-5 h-5" />
+                  <ShoppingCart className="w-5 h-5 shrink-0" />
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 shrink-0" />
                 </motion.button>
               </div>
             </div>
