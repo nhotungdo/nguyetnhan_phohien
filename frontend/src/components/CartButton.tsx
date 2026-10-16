@@ -1,2 +1,2 @@
-export { CartButton } from "./cart/CartButton";
+export { CartButton, type CartButtonProps } from "./cart/CartButton";
 export { default } from "./cart/CartButton";

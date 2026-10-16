@@ -15,7 +15,7 @@ if (typeof window !== "undefined") {
 }
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { useOrderForm } from "@/hooks/useOrderForm";
@@ -165,6 +165,14 @@ export default function LandingPage() {
 
   const { addItem: addCartItem, closeCart, openCart, getTotalItems } = useCartStore();
   const totalCartItems = getTotalItems();
+  const isCartDrawerOpen = useCartStore((s) => s.isOpen);
+
+  // Khi mở giỏ hàng Drawer, tự động đóng chat nếu đang mở để tránh chồng chéo giao diện
+  useEffect(() => {
+    if (isCartDrawerOpen) {
+      setIsChatOpen(false);
+    }
+  }, [isCartDrawerOpen]);
 
   const {
     form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, isSubmitting, isApplyingCode,
@@ -327,6 +335,7 @@ export default function LandingPage() {
   };
 
   const handleOpenChat = async () => {
+    closeCart();
     setIsChatOpen(true);
     if (chatStarted) {
       connect(guestName || undefined, guestPhone || undefined);
@@ -335,6 +344,9 @@ export default function LandingPage() {
 
   const handleToggleChat = () => {
     const next = !isChatOpen;
+    if (next) {
+      closeCart();
+    }
     setIsChatOpen(next);
     if (next && chatStarted) {
       connect(guestName || undefined, guestPhone || undefined);
@@ -1464,9 +1476,27 @@ export default function LandingPage() {
                   <p className="text-[11px] sm:text-xs opacity-80">{isConnected ? 'Đang trực tuyến' : 'Đang kết nối...'}</p>
                 </div>
               </div>
-              <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors" aria-label="Đóng chat">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                {totalCartItems > 0 && (
+                  <button
+                    onClick={() => {
+                      setIsChatOpen(false);
+                      openCart();
+                    }}
+                    className="hover:bg-white/20 p-1.5 rounded-full transition-colors relative"
+                    aria-label={language === "en" ? "View Cart" : "Xem giỏ hàng"}
+                    title={language === "en" ? "View Cart" : "Xem giỏ hàng"}
+                  >
+                    <ShoppingBag className="w-4.5 h-4.5 text-white" />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                      {totalCartItems > 99 ? "99+" : totalCartItems}
+                    </span>
+                  </button>
+                )}
+                <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors" aria-label="Đóng chat">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {!chatStarted ? (
@@ -1739,7 +1769,7 @@ export default function LandingPage() {
       </AnimatePresence>
 
       {/* Floating Cart Button & Slide-in Cart Drawer */}
-      <CartButton />
+      <CartButton isChatOpen={isChatOpen} />
       <CartDrawer language={language as "vi" | "en"} onCheckout={handleCartCheckout} />
 
     </div>
