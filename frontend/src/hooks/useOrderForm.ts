@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { orderApi, discountApi, adminAuth } from "@/services/api.service";
 import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
@@ -147,7 +147,7 @@ export function useOrderForm(
     setDiscountResult(null);
   };
 
-  const setCartItems = (
+  const setCartItems = useCallback((
     cartItems: { productId: string; quantity: number }[],
     discountCode?: string
   ) => {
@@ -162,7 +162,7 @@ export function useOrderForm(
       }));
       setDiscountResult(null);
     }
-  };
+  }, []);
 
   const applyDiscount = async (codeOverride?: string | unknown) => {
     const code = (typeof codeOverride === "string" ? codeOverride : form.discountCode).trim();

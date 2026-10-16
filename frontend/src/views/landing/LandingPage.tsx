@@ -167,12 +167,10 @@ export default function LandingPage() {
   const totalCartItems = getTotalItems();
   const isCartDrawerOpen = useCartStore((s) => s.isOpen);
 
-  // Khi mở giỏ hàng Drawer, tự động đóng chat nếu đang mở để tránh chồng chéo giao diện
-  useEffect(() => {
-    if (isCartDrawerOpen) {
-      setIsChatOpen(false);
-    }
-  }, [isCartDrawerOpen]);
+  const handleOpenCart = () => {
+    setIsChatOpen(false);
+    openCart();
+  };
 
   const {
     form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, isSubmitting, isApplyingCode,
@@ -200,13 +198,12 @@ export default function LandingPage() {
 
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
   useEffect(() => {
-    const cartItems = useCartStore.getState().items;
-    if (cartItems.length > 0 && form.items.length === 1 && !form.items[0].productId) {
+    if (cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId) {
       setCartItems(
-        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+        cartStoreItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
       );
     }
-  }, [cartStoreItems]);
+  }, [cartStoreItems, form.items, setCartItems]);
 
   const wardOptions = wardsOf(vnProvinces, form.province);
   const hasFieldErrors = Object.values(errors).some(Boolean);
@@ -235,7 +232,6 @@ export default function LandingPage() {
     notifyTyping,
     markMessagesRead,
     sendMessage,
-    startNewChat,
   } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
@@ -463,7 +459,7 @@ export default function LandingPage() {
               {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
             </button>
             <button
-              onClick={() => openCart()}
+              onClick={() => handleOpenCart()}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 relative p-1.5"
               aria-label="Giỏ hàng"
             >
@@ -1458,7 +1454,7 @@ export default function LandingPage() {
       {/* Floating Chat Widget — Kết nối SignalR thực */}
       <div className="fixed bottom-20 right-3.5 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end">
         <AnimatePresence>
-          {isChatOpen && (
+          {isChatOpen && !isCartDrawerOpen && (
             <motion.div
               key="chat-panel"
               initial={{ opacity: 0, y: 28, scale: 0.9 }}
@@ -1652,7 +1648,7 @@ export default function LandingPage() {
             </a>
 
             <button
-              onClick={() => openCart()}
+              onClick={() => handleOpenCart()}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0 relative"
               aria-label="Giỏ hàng"
             >
