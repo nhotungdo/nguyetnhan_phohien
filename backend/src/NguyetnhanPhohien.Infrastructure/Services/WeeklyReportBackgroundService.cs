@@ -276,7 +276,7 @@ public class WeeklyReportBackgroundService : BackgroundService
 
     /// <summary>Domain frontend cho link trong email — lấy từ Frontend:BaseUrl (mặc định localhost khi dev).</summary>
     private string FrontendBaseUrl =>
-        (_config["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
+        (_config["Frontend:BaseUrl"] ?? "https://nguyetnhanphohien.com").TrimEnd('/');
 
     private TimeSpan GetDelayUntilNextSend()
     {

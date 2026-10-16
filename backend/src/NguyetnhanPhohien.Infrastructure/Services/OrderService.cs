@@ -34,8 +34,7 @@ public class OrderService : IOrderService
         _paymentSettings = paymentSettings;
         _logger = logger;
         // Domain frontend để gắn vào link trong email — hardcode "localhost:3000"
-        // trước đây tạo link chết khi deploy. Cấu hình qua Frontend:BaseUrl.
-        _frontendBaseUrl = (config["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
+        _frontendBaseUrl = (config["Frontend:BaseUrl"] ?? "https://nguyetnhanphohien.com").TrimEnd('/');
         // Email nhận thông báo đơn mới — cấu hình qua Order:AdminNotifyEmail để đổi
         // người nhận không cần deploy lại.
         _adminNotifyEmail = config["Order:AdminNotifyEmail"] ?? "nhotungdo89@gmail.com";
@@ -461,35 +460,157 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
             // Send to Admin (chỉ khi tạo đơn mới, không gửi khi Admin gửi lại hóa đơn thủ công)
             if (adminNotify)
             {
-                string adminSummaryItems = string.Join("<br/>", order.Items.Select(i => $"- {Esc(i.ProductName)} {(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $"({Esc(i.ProductSize)})")} x{i.Quantity} ({i.TotalPrice:N0}đ)"));
                 string adminHtml = $@"<!DOCTYPE html>
 <html lang='vi'>
-<head><meta charset='UTF-8'></head>
-<body style='font-family: Arial, sans-serif;'>
-    <div style='max-width: 600px; padding: 20px; border: 1px solid #ddd; background-color: #fff;'>
-        <h2 style='color: #E53935; margin-top: 0;'>CÓ ĐƠN HÀNG MỚI #{order.Id.ToString().Substring(0, 8).ToUpper()}</h2>
-        <p><strong>Khách hàng:</strong> {Esc(order.CustomerName)} ({Esc(order.CustomerPhone)})</p>
-        <p><strong>Email:</strong> {Esc(order.CustomerEmail ?? "Không có")}</p>
-        <p><strong>Địa chỉ:</strong> {Esc(order.CustomerAddress)}</p>
-        <p><strong>Sản phẩm mua:</strong><br/>{adminSummaryItems}</p>
-        <p><strong>Tổng thanh toán:</strong> {order.TotalAmount:N0} đ</p>
-        <p><strong>Ghi chú:</strong> {Esc(order.Note ?? "Không")}</p>
-        <p><a href='{_frontendBaseUrl}/orders' style='color: #31572C; font-weight: bold;'>Vào Dashboard để xem chi tiết</a></p>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Có đơn hàng mới #{order.Id.ToString().Substring(0, 8).ToUpper()}</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #F7F2E8;'>
+    <div style='background-color: #F7F2E8; padding: 40px 10px; font-family: ""Inter"", ""Segoe UI"", Tahoma, Geneva, sans-serif;'>
+        <div style='max-width: 620px; margin: auto; background-color: #FFF9ED; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 48, 40, 0.1); border: 1px solid #E2D5C4;'>
+            
+            <!-- Header & Logo -->
+            <div style='background-color: #31572C; padding: 35px 30px; text-align: center; color: #FFF9ED; position: relative;'>
+                <img src='cid:logo_nn' alt='Nguyệt Nhãn Phố Hiến' width='70' height='70' style='width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #E9B949; margin-bottom: 15px;' />
+                <h1 style='margin: 0; font-size: 26px; font-family: ""Playfair Display"", ""Georgia"", serif; font-weight: 600; letter-spacing: 1px; color: #FFF9ED;'>Nguyệt Nhãn Phố Hiến</h1>
+                <p style='margin: 6px 0 0 0; font-size: 14px; color: #E9B949; font-style: italic; letter-spacing: 0.5px;'>Hệ thống Quản trị &bull; Thông báo đơn hàng mới</p>
+            </div>
+
+            <!-- Body -->
+            <div style='padding: 35px 40px;'>
+                <!-- Badge & Title -->
+                <div style='text-align: center; margin-bottom: 25px;'>
+                    <span style='display: inline-block; background-color: #E9B949; color: #3D3028; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 5px 14px; border-radius: 20px; margin-bottom: 10px;'>🔔 Đơn hàng mới nhận</span>
+                    <h2 style='color: #31572C; font-size: 22px; font-family: ""Playfair Display"", ""Georgia"", serif; margin: 0 0 5px 0; text-transform: uppercase; letter-spacing: 1.5px;'>Khách hàng vừa đặt đơn</h2>
+                    <p style='color: #7B6858; font-size: 14px; margin: 0;'>Mã đơn: <strong style='color: #31572C;'>#{order.Id.ToString().Substring(0, 8).ToUpper()}</strong> &bull; {order.CreatedAt:dd/MM/yyyy HH:mm}</p>
+                </div>
+                
+                <!-- Customer Info Card -->
+                <div style='background-color: #FFFFFF; border: 1px solid #E2D5C4; padding: 22px; border-radius: 12px; margin-bottom: 30px;'>
+                    <h3 style='margin: 0 0 14px 0; color: #31572C; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #F0E6D8; padding-bottom: 8px;'>👤 THÔNG TIN KHÁCH HÀNG</h3>
+                    <table style='width: 100%; border-collapse: collapse; font-size: 14px;'>
+                        <tr>
+                            <td style='padding: 6px 0; color: #7B6858; width: 110px;'>Khách hàng:</td>
+                            <td style='padding: 6px 0; color: #3D3028;'><strong>{Esc(order.CustomerName)}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 6px 0; color: #7B6858;'>Số điện thoại:</td>
+                            <td style='padding: 6px 0; color: #3D3028;'><strong><a href='tel:{Esc(order.CustomerPhone)}' style='color: #31572C; text-decoration: none;'>{Esc(order.CustomerPhone)}</a></strong></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 6px 0; color: #7B6858;'>Email:</td>
+                            <td style='padding: 6px 0; color: #3D3028;'><strong>{(string.IsNullOrWhiteSpace(order.CustomerEmail) ? "Không có" : $"<a href='mailto:{Esc(order.CustomerEmail)}' style='color: #31572C; text-decoration: none;'>{Esc(order.CustomerEmail)}</a>")}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 6px 0; color: #7B6858;'>Địa chỉ nhận:</td>
+                            <td style='padding: 6px 0; color: #3D3028;'><strong>{Esc(order.CustomerAddress)}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 6px 0; color: #7B6858;'>Ghi chú:</td>
+                            <td style='padding: 6px 0; color: #8C6A3E; font-style: italic;'>{Esc(string.IsNullOrWhiteSpace(order.Note) ? "Không có ghi chú" : order.Note)}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Products Table -->
+                <h3 style='color: #3D3028; font-size: 15px; margin-top: 0; border-bottom: 2px solid #E2D5C4; padding-bottom: 10px;'>📦 DANH SÁCH MẶT HÀNG ({order.Items.Count} sản phẩm)</h3>
+                <table style='width: 100%; border-collapse: collapse; margin-top: 10px;'>
+                    <thead>
+                        <tr style='color: #7B6858; font-size: 13px;'>
+                            <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 5%;'>#</th>
+                            <th style='padding: 10px 8px; text-align: left; font-weight: 500; width: 45%;'>Sản phẩm</th>
+                            <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Đơn giá</th>
+                            <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 10%;'>SL</th>
+                            <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemsHtmlRows}
+                    </tbody>
+                </table>
+
+                <!-- Total -->
+                <div style='margin-top: 15px; padding-top: 15px;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 6px; text-align: right; color: #7B6858;'>Tạm tính:</td>
+                            <td style='padding: 6px; text-align: right; width: 130px; color: #3D3028; font-weight: 600;'>{order.BaseAmount:N0} đ</td>
+                        </tr>
+                        {(order.DiscountAmount > 0 ? $@"
+                        <tr>
+                            <td style='padding: 6px; text-align: right; color: #E9B949;'>Giảm giá ({Esc(order.DiscountCodeApplied)}):</td>
+                            <td style='padding: 6px; text-align: right; color: #E9B949; font-weight: 600;'>- {order.DiscountAmount:N0} đ</td>
+                        </tr>" : "")}
+                        <tr>
+                            <td style='padding: 6px; text-align: right; color: #7B6858;'>Phí vận chuyển:</td>
+                            <td style='padding: 6px; text-align: right; width: 130px; color: #3D3028; font-weight: 600;'>Thỏa thuận</td>
+                        </tr>
+                        <tr>
+                            <td colspan='2'><div style='border-top: 1px solid #E2D5C4; margin: 10px 0;'></div></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 6px; text-align: right; font-size: 18px; font-weight: 700; color: #3D3028;'>TỔNG CỘNG:</td>
+                            <td style='padding: 8px 6px; text-align: right; font-size: 20px; font-weight: 800; color: #31572C;'>{order.TotalAmount:N0} đ</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Call to action button to Dashboard -->
+                <div style='margin-top: 35px; text-align: center;'>
+                    <a href='{_frontendBaseUrl}/orders' style='display: inline-block; background-color: #31572C; color: #FFF9ED; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(49, 87, 44, 0.3);'>
+                        👉 Vào Dashboard để xem chi tiết
+                    </a>
+                    <p style='margin: 12px 0 0 0; font-size: 13px; color: #7B6858;'>
+                        Đường dẫn trực tiếp: <a href='{_frontendBaseUrl}/orders' style='color: #31572C; font-weight: 600; text-decoration: underline;'>{_frontendBaseUrl}/orders</a>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style='background-color: #31572C; padding: 25px 20px; text-align: center;'>
+                <p style='margin: 0 0 5px 0; color: #E9B949; font-weight: 700; font-size: 15px;'>Nguyệt Nhãn Phố Hiến - Quản Trị Hệ Thống</p>
+                <p style='margin: 0 0 6px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Địa chỉ: Phường Hồng Châu, TP. Hưng Yên, Tỉnh Hưng Yên</p>
+                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>0982.072.601</strong> &bull; Email: <strong>nhotungdo89@gmail.com</strong></p>
+                <div style='border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 10px; font-size: 11px; color: #FFF9ED; opacity: 0.7; line-height: 1.5;'>
+                    <a href='{_frontendBaseUrl}' style='color: #E9B949; text-decoration: underline;'>Truy cập website</a> &bull; Email thông báo tự động từ nguyetnhanphohien.com
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>";
 
-                string adminPlainText = $@"CÓ ĐƠN HÀNG MỚI #{order.Id.ToString().Substring(0, 8).ToUpper()} ({order.Items.Count} sản phẩm)
-Khách hàng: {order.CustomerName} ({order.CustomerPhone})
-Email: {order.CustomerEmail ?? "Không có"}
-Địa chỉ: {order.CustomerAddress}
-Ghi chú: {order.Note ?? "Không"}
+                string adminPlainText = $@"THÔNG BÁO ĐƠN HÀNG MỚI TỪ WEBSITE NGUYỆT NHÃN PHỐ HIẾN
+Mã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
+Thời gian đặt: {order.CreatedAt:dd/MM/yyyy HH:mm}
 
-Sản phẩm:
-{string.Join("\n", order.Items.Select(i => $"- {i.ProductName}{(string.IsNullOrWhiteSpace(i.ProductSize) ? "" : $" ({i.ProductSize})")} x{i.Quantity} = {i.TotalPrice:N0}đ"))}
+========================================
+THÔNG TIN KHÁCH HÀNG
+========================================
+- Khách hàng: {order.CustomerName}
+- Số điện thoại: {order.CustomerPhone}
+- Email: {order.CustomerEmail ?? "Không có"}
+- Địa chỉ nhận hàng: {order.CustomerAddress}
+- Ghi chú: {order.Note ?? "Không có"}
 
-Tổng thanh toán: {order.TotalAmount:N0} đ
-Chi tiết: {_frontendBaseUrl}/orders
+========================================
+SẢN PHẨM ĐẶT HÀNG ({order.Items.Count} mặt hàng)
+========================================
+{string.Join("\n", order.Items.Select((item, idx) => $"{idx + 1}. {item.ProductName}{(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $" ({item.ProductSize})")}\n   Số lượng: {item.Quantity} | Đơn giá: {item.UnitPrice:N0}đ | Thành tiền: {item.TotalPrice:N0}đ"))}
+
+----------------------------------------
+Tạm tính: {order.BaseAmount:N0} đ
+{(order.DiscountAmount > 0 ? $"Giảm giá ({order.DiscountCodeApplied}): -{order.DiscountAmount:N0} đ\n" : "")}Phí vận chuyển: Thỏa thuận
+TỔNG CỘNG: {order.TotalAmount:N0} đ
+----------------------------------------
+
+Xem chi tiết đơn hàng tại Dashboard:
+{_frontendBaseUrl}/orders
+
+Website: {_frontendBaseUrl}
+Hotline: 0982.072.601
 ";
 
                 try
