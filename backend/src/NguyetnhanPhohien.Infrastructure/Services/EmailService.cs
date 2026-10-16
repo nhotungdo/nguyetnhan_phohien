@@ -21,7 +21,7 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string htmlMessage)
+    public async Task SendEmailAsync(string to, string subject, string htmlMessage, string? plainTextMessage = null)
     {
         var host = _config["SmtpConfig:Host"];
         var portStr = _config["SmtpConfig:Port"];
@@ -43,7 +43,7 @@ public class EmailService : IEmailService
             port = p;
         }
 
-        var message = BuildMessage(to, subject, htmlMessage, username);
+        var message = BuildMessage(to, subject, htmlMessage, plainTextMessage, username);
 
         // ===== RETRY 3 LẦN với backoff 2s → 5s: chống mất email do lỗi SMTP tạm thời =====
         for (int attempt = 1; attempt <= MaxAttempts; attempt++)
@@ -89,13 +89,76 @@ public class EmailService : IEmailService
         }
     }
 
-    private static MimeMessage BuildMessage(string to, string subject, string htmlMessage, string fromAddress)
+    private static MimeMessage BuildMessage(string to, string subject, string htmlMessage, string? plainTextMessage, string fromAddress)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("Nguyệt Nhãn Phố Hiến", fromAddress));
         message.To.Add(MailboxAddress.Parse(to));
+        message.ReplyTo.Add(new MailboxAddress("Nguyệt Nhãn Phố Hiến", fromAddress));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlMessage }.ToMessageBody();
+        message.Date = DateTimeOffset.Now;
+        var senderDomain = fromAddress.Contains('@') ? fromAddress.Split('@').Last() : "gmail.com";
+        message.MessageId = MimeKit.Utils.MimeUtils.GenerateMessageId(senderDomain);
+
+        // Các header chuẩn RFC dành cho email giao dịch hợp lệ (chống hiểu nhầm là spam/quảng cáo)
+        message.Headers.Add("X-Mailer", "NguyetNhanPhoHien Order System");
+        message.Headers.Add("X-Priority", "3");
+        message.Headers.Add("X-Auto-Response-Suppress", "All");
+        message.Headers.Add("Auto-Submitted", "auto-generated");
+
+        var builder = new BodyBuilder
+        {
+            HtmlBody = htmlMessage,
+            TextBody = !string.IsNullOrWhiteSpace(plainTextMessage) 
+                ? plainTextMessage 
+                : StripHtmlToPlainText(htmlMessage)
+        };
+
+        // Đính kèm logo inline qua CID nếu có tham chiếu cid:logo_nn trong HTML
+        if (htmlMessage.Contains("cid:logo_nn", StringComparison.OrdinalIgnoreCase))
+        {
+            var candidates = new[]
+            {
+                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo.jpg"),
+                Path.Combine(AppContext.BaseDirectory, "wwwroot", "images", "logo.jpg"),
+                Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "wwwroot", "images", "logo.jpg")),
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "NguyetnhanPhohien.API", "wwwroot", "images", "logo.jpg"))
+            };
+
+            foreach (var path in candidates)
+            {
+                if (File.Exists(path))
+                {
+                    var image = builder.LinkedResources.Add(path);
+                    image.ContentId = "logo_nn";
+                    image.ContentType.MediaType = "image";
+                    image.ContentType.MediaSubtype = "jpeg";
+                    break;
+                }
+            }
+        }
+
+        message.Body = builder.ToMessageBody();
         return message;
+    }
+
+    private static string StripHtmlToPlainText(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return string.Empty;
+
+        var text = html
+            .Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("<br/>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("<br />", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</tr>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</p>", "\n\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</div>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</h1>", "\n\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</h2>", "\n\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</h3>", "\n\n", StringComparison.OrdinalIgnoreCase);
+
+        text = System.Text.RegularExpressions.Regex.Replace(text, "<[^>]+>", " ");
+        text = System.Net.WebUtility.HtmlDecode(text);
+        return System.Text.RegularExpressions.Regex.Replace(text, @"[ \t]+", " ").Trim();
     }
 }
