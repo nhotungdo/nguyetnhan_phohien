@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
 import { adminAuth } from "@/services/api.service";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
 /** Delay thử kết nối lại khi hub đóng (backend chưa chạy / reset). */
 const RESTART_DELAY_MS = 10_000;

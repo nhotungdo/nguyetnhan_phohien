@@ -34,6 +34,7 @@ namespace NguyetnhanPhohien.API.Hubs;
 /// KHÔNG cứu được (khác với MVC controller). Admin vẫn bị chặn riêng ở từng
 /// method JoinAsAdmin / AdminReply bằng [Authorize(Roles = "Admin")].
 /// </summary>
+[Microsoft.AspNetCore.Cors.EnableCors("AllowFrontend")]
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;

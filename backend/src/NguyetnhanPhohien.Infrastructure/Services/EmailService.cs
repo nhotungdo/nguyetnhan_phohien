@@ -4,6 +4,8 @@ using NguyetnhanPhohien.Application.Interfaces;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using System.Text;
+using System.Text.Json;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
 
@@ -14,15 +16,34 @@ public class EmailService : IEmailService
 
     private readonly IConfiguration _config;
     private readonly ILogger<EmailService> _logger;
+    private readonly HttpClient _httpClient;
 
-    public EmailService(IConfiguration config, ILogger<EmailService> logger)
+    public EmailService(IConfiguration config, ILogger<EmailService> logger, IHttpClientFactory? httpClientFactory = null)
     {
         _config = config;
         _logger = logger;
+        _httpClient = httpClientFactory?.CreateClient() ?? new HttpClient();
     }
 
     public async Task SendEmailAsync(string to, string subject, string htmlMessage, string? plainTextMessage = null)
     {
+        // 1. Kiểm tra nếu có API Key của Brevo (dịch vụ gửi mail qua HTTP POST cổng 443 — hoạt động hoàn hảo trên Render Free)
+        var brevoApiKey = _config["Brevo:ApiKey"] ?? _config["BREVO_API_KEY"];
+        if (!string.IsNullOrWhiteSpace(brevoApiKey))
+        {
+            await SendViaBrevoApiAsync(to, subject, htmlMessage, plainTextMessage, brevoApiKey);
+            return;
+        }
+
+        // 2. Kiểm tra nếu có API Key của Resend (cũng gửi qua HTTPS cổng 443)
+        var resendApiKey = _config["Resend:ApiKey"] ?? _config["RESEND_API_KEY"];
+        if (!string.IsNullOrWhiteSpace(resendApiKey))
+        {
+            await SendViaResendApiAsync(to, subject, htmlMessage, plainTextMessage, resendApiKey);
+            return;
+        }
+
+        // 3. Fallback gửi qua SMTP thông thường (Gmail)
         var host = _config["SmtpConfig:Host"];
         var portStr = _config["SmtpConfig:Port"];
         var username = _config["SmtpConfig:Username"];
@@ -30,11 +51,11 @@ public class EmailService : IEmailService
 
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
-            // Trước đây: ghi Console rồi im lặng BỎ email — giờ ném lỗi để caller log rõ ràng.
             _logger.LogError(
-                "Không gửi được email tới {To}: SmtpConfig:Host/Username/Password chưa cấu hình (user-secrets hoặc biến môi trường).",
+                "Không gửi được email tới {To}: SmtpConfig:Host/Username/Password chưa cấu hình đầy đủ. " +
+                "Nếu đang deploy trên Render, bạn cần cấu hình biến môi trường SmtpConfig__Password trong mục Environment của Render Dashboard.",
                 to);
-            throw new InvalidOperationException("SmtpConfig chưa cấu hình đầy đủ — không thể gửi email.");
+            throw new InvalidOperationException("SmtpConfig chưa cấu hình đầy đủ (thiếu SmtpConfig__Password) — không thể gửi email.");
         }
 
         int port = 587;
@@ -82,11 +103,81 @@ public class EmailService : IEmailService
                 // Hết lượt retry — ném lỗi kèm log ERROR rõ ràng để caller quyết định tiếp.
                 _logger.LogError(
                     ex,
-                    "Gửi email tới {To} THẤT BẠI SAU {MaxAttempts} LẦN — email có thể bị mất! Tiêu đề: \"{Subject}\".",
+                    "Gửi email tới {To} THẤT BẠI SAU {MaxAttempts} LẦN — Tiêu đề: \"{Subject}\".\n" +
+                    "LƯU Ý QUAN TRỌNG: Nếu backend đang chạy trên gói Render Free, Render chặn các cổng SMTP 587/465. " +
+                    "Để khắc phục, bạn có thể tạo tài khoản Brevo.com miễn phí (gửi 300 mail/ngày) " +
+                    "rồi cấu hình biến môi trường Brevo__ApiKey trong mục Environment của Render Web Service.",
                     to, MaxAttempts, subject);
                 throw;
             }
         }
+    }
+
+    private async Task SendViaBrevoApiAsync(string to, string subject, string htmlMessage, string? plainTextMessage, string apiKey)
+    {
+        var senderEmail = _config["SmtpConfig:Username"];
+        if (string.IsNullOrWhiteSpace(senderEmail)) senderEmail = "nguyetnhanphohien@gmail.com";
+
+        // Thay thế cid:logo_nn bằng URL tuyệt đối để logo hiển thị đẹp trên mọi ứng dụng email
+        var frontendUrl = (_config["Frontend:BaseUrl"] ?? "https://nguyetnhanphohien.com").TrimEnd('/');
+        var processedHtml = htmlMessage.Replace("cid:logo_nn", $"{frontendUrl}/logo.jpg", StringComparison.OrdinalIgnoreCase);
+
+        var payload = new
+        {
+            sender = new { name = "Nguyệt Nhãn Phố Hiến", email = senderEmail },
+            to = new[] { new { email = to } },
+            replyTo = new { name = "Nguyệt Nhãn Phố Hiến", email = senderEmail },
+            subject,
+            htmlContent = processedHtml,
+            textContent = !string.IsNullOrWhiteSpace(plainTextMessage) ? plainTextMessage : StripHtmlToPlainText(htmlMessage)
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+        };
+        request.Headers.Add("api-key", apiKey);
+        request.Headers.Add("accept", "application/json");
+
+        var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var err = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Gửi email qua Brevo API thất bại: {StatusCode} - {Error}", response.StatusCode, err);
+            throw new InvalidOperationException($"Brevo API error: {response.StatusCode} - {err}");
+        }
+
+        _logger.LogInformation("Đã gửi email tới {To} thành công qua Brevo API (cổng 443 HTTPS).", to);
+    }
+
+    private async Task SendViaResendApiAsync(string to, string subject, string htmlMessage, string? plainTextMessage, string apiKey)
+    {
+        var senderEmail = _config["Resend:FromEmail"] ?? "onboarding@resend.dev";
+
+        var payload = new
+        {
+            from = $"Nguyệt Nhãn Phố Hiến <{senderEmail}>",
+            to = new[] { to },
+            subject,
+            html = htmlMessage,
+            text = !string.IsNullOrWhiteSpace(plainTextMessage) ? plainTextMessage : StripHtmlToPlainText(htmlMessage)
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+        var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var err = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Gửi email qua Resend API thất bại: {StatusCode} - {Error}", response.StatusCode, err);
+            throw new InvalidOperationException($"Resend API error: {response.StatusCode} - {err}");
+        }
+
+        _logger.LogInformation("Đã gửi email tới {To} thành công qua Resend API (cổng 443 HTTPS).", to);
     }
 
     private static MimeMessage BuildMessage(string to, string subject, string htmlMessage, string? plainTextMessage, string fromAddress)

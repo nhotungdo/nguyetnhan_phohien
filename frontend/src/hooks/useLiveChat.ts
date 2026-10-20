@@ -5,7 +5,7 @@ import * as signalR from "@microsoft/signalr";
 import { chatApi } from "@/services/api.service";
 import type { ChatMessageResponse } from "@/types/api.types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
 /** Chỉ gửi tín hiệu "đang gõ" tối đa mỗi TYPING_THROTTLE_MS để không spam hub. */
 const TYPING_THROTTLE_MS = 1500;

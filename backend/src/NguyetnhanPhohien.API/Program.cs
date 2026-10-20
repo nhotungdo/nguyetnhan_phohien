@@ -8,6 +8,8 @@ using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Infrastructure.Persistence;
 using NguyetnhanPhohien.Infrastructure.Services;
+using Microsoft.AspNetCore.HttpOverrides;
+using System.Security.Claims;
 using System.Text;
 using Scalar.AspNetCore;
 
@@ -39,7 +41,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name
         };
 
         // Cho phép SignalR gửi token qua query string
@@ -59,7 +63,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ===== SIGNALR =====
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    // Giữ kết nối WebSocket không bị Render Load Balancer tự động ngắt khi idle
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    options.EnableDetailedErrors = true;
+});
 
 // ===== RESPONSE COMPRESSION (giảm dung lượng JSON trả về cho Frontend) =====
 // Danh sách MIME chỉ gồm JSON/text — ảnh (jpeg/png/webp/gif) đã nén sẵn nên
@@ -140,6 +150,7 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 builder.Services.AddOpenApi();
 
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
 
 // ===== SERVICES (DI Registration) =====
 builder.Services.AddScoped<IDiscountService, DiscountService>();
@@ -229,6 +240,14 @@ if (args.Contains("--clear-data"))
 }
 
 // ===== MIDDLEWARE PIPELINE =====
+// 1. Forwarded Headers BẮT BUỘC ĐẦU TIÊN để Kestrel nhận đúng HTTPS và IP từ Reverse Proxy của Render
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownNetworks = { },
+    KnownProxies = { }
+});
+
 // Nén xếp NGOÀI CÙNG để response lấy ra từ output-cache / static file vẫn được nén.
 app.UseResponseCompression();
 
@@ -281,9 +300,10 @@ if (app.Environment.IsDevelopment())
 else
     app.MapGet("/", () => Results.Ok(new { service = "NguyetNhanPhoHien API", status = "ok" }));
 app.MapControllers();
-app.MapHub<ChatHub>("/hubs/chat");
+// Bắt buộc gắn RequireCors vào Hub endpoint để SignalR negotiation & WebSocket preflight qua Vercel thành công
+app.MapHub<ChatHub>("/hubs/chat").RequireCors("AllowFrontend");
 // Hub realtime sản phẩm/ảnh/nội dung — frontend invalidate React Query khi có thay đổi.
-app.MapHub<ProductsHub>("/hubs/products");
+app.MapHub<ProductsHub>("/hubs/products").RequireCors("AllowFrontend");
 
 // ===== AUTO MIGRATE & SEED (non-fatal: API vẫn chạy nếu DB chưa kết nối được) =====
 try

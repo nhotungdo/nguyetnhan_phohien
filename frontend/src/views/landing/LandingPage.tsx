@@ -38,7 +38,7 @@ import { useCartStore } from "@/stores/useCartStore";
 import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
 // Ghép URL ảnh từ CMS: link tuyệt đối (http/https/protocol-relative/data) dùng nguyên,
 // còn lại (vd /uploads/content/...) là đường dẫn tương đối trên server API.

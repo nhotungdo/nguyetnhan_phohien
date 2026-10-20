@@ -21,6 +21,7 @@ namespace NguyetnhanPhohien.API.Hubs;
 ///   - ProductsChanged: sản phẩm / ảnh sản phẩm đổi (ProductsController)
 ///   - ContentChanged:  nội dung CMS text + ảnh Landing Page đổi (ContentController)
 /// </summary>
+[Microsoft.AspNetCore.Cors.EnableCors("AllowFrontend")]
 public class ProductsHub : Hub
 {
     /// <summary>Sản phẩm hoặc ảnh sản phẩm đã thay đổi → client invalidate query ["products"].</summary>
