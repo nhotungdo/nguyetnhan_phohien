@@ -4,8 +4,8 @@ if (typeof window !== "undefined") {
   const originalConsoleError = console.error;
   console.error = (...args) => {
     if (
-      args.length > 0 && 
-      typeof args[0] === "string" && 
+      args.length > 0 &&
+      typeof args[0] === "string" &&
       args[0].includes("Failed to start the HttpConnection before stop() was called")
     ) {
       return; // Ignore this specific harmless SignalR unmount error
@@ -45,10 +45,9 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").rep
 // null-safe: key chưa có trong CMS (API lỗi, trang prerender) → chuỗi rỗng, caller tự fallback.
 // Ô nhập đang lỗi: viền + vòng focus chuyển đỏ để khách thấy ngay ô nào cần sửa.
 const inputClass = (error?: unknown) =>
-  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all ${
-    error
-      ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-      : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
+  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all ${error
+    ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+    : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
   }`;
 
 /** Câu báo lỗi ngay dưới ô nhập (role="alert" để trình đọc màn hình đọc lên). */
@@ -72,7 +71,7 @@ const resolveCmsImage = (url?: string) =>
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [chatSendError, setChatSendError] = useState(false);
@@ -678,8 +677,8 @@ export default function LandingPage() {
                   cmsContent.HeroBannerUrl
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
                     : effectiveProducts[0]?.images?.[0]
-                    ? resolveCmsImage(effectiveProducts[0].images[0].imagePath)
-                    : "/images/setqua.jpg"
+                      ? resolveCmsImage(effectiveProducts[0].images[0].imagePath)
+                      : "/images/setqua.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}
               />
@@ -1025,14 +1024,14 @@ export default function LandingPage() {
                   )}
 
                   {/* Tổng hợp lỗi nhập liệu: hiện khi form có ô sai mà chưa gửi lên server */}
-                {submitStatus !== "error" && hasFieldErrors && (
-                  <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
-                    <AlertCircle className="w-5 h-5 shrink-0" />
-                    <p className="font-medium">{t.order.check_fields}</p>
-                  </div>
-                )}
+                  {submitStatus !== "error" && hasFieldErrors && (
+                    <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <p className="font-medium">{t.order.check_fields}</p>
+                    </div>
+                  )}
 
-                {submitStatus === "error" && (
+                  {submitStatus === "error" && (
                     <motion.div
                       key="order-error"
                       initial={{ opacity: 0, y: -14 }}
@@ -1327,8 +1326,8 @@ export default function LandingPage() {
                       <div className="flex justify-between text-sm text-foreground/70 pt-1">
                         <span>{t.order.base_price}</span>
                         <span>
-                          {language === "en" 
-                            ? `$${(base / 25000).toFixed(2).replace(',', '.')}` 
+                          {language === "en"
+                            ? `$${(base / 25000).toFixed(2).replace(',', '.')}`
                             : `${base.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
                         </span>
                       </div>
@@ -1336,8 +1335,8 @@ export default function LandingPage() {
                         <div className="flex justify-between text-sm text-green-600">
                           <span>{t.order.discount_amount}</span>
                           <span>
-                            -{language === "en" 
-                              ? `$${(discount / 25000).toFixed(2).replace(',', '.')}` 
+                            -{language === "en"
+                              ? `$${(discount / 25000).toFixed(2).replace(',', '.')}`
                               : `${discount.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
                           </span>
                         </div>
@@ -1345,8 +1344,8 @@ export default function LandingPage() {
                       <div className="flex justify-between font-bold text-primary border-t pt-2">
                         <span>{t.order.total_bill}</span>
                         <span className="text-accent text-lg">
-                          {language === "en" 
-                            ? `$${(final / 25000).toFixed(2).replace(',', '.')}` 
+                          {language === "en"
+                            ? `$${(final / 25000).toFixed(2).replace(',', '.')}`
                             : `${final.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
                         </span>
                       </div>
@@ -1388,52 +1387,52 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
-            <div className="space-y-4 md:col-span-1">
-              <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
-                  <span className="absolute">NN</span>
-                  <FastImage
-                    src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
-                    alt="Nguyệt Nhãn Phố Hiến"
-                    fill
-                    sizes="48px"
-                    className="w-full h-full object-cover z-10"
-                    onError={(e) => e.currentTarget.style.display = 'none'}
-                  />
-                </div>
-                <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {language === "en" ? "The brand providing authentic Pho Hien Dried Longan specialty. 100% natural, no preservatives, preserving traditional flavors." : "Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống."}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
-              <ul className="space-y-2 text-muted-foreground text-sm">
-                <li>Hotline/Zalo: {cmsContent.FooterHotline || "0982.072.601"}</li>
-                <li>Email: {cmsContent.ContactEmail || "hello@nguyetnhan.vn"}</li>
-                <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
-                <li>Giờ mở cửa: {cmsContent.ContactHours || "08:00 - 20:00 (T2-CN)"}</li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
-              <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
-                <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">{t.nav.products}</button></li>
-                <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">{t.nav.story}</button></li>
-                <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">{t.history.title}</button></li>
-                <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">{t.culture.title}</button></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
-              <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
-                <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
-                <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
-                <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
-                <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
-              </ul>
-            </div>
+              <div className="space-y-4 md:col-span-1">
+                <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
+                    <span className="absolute">NN</span>
+                    <FastImage
+                      src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
+                      alt="Nguyệt Nhãn Phố Hiến"
+                      fill
+                      sizes="48px"
+                      className="w-full h-full object-cover z-10"
+                      onError={(e) => e.currentTarget.style.display = 'none'}
+                    />
+                  </div>
+                  <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
+                </h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {language === "en" ? "The brand providing authentic Pho Hien Dried Longan specialty. 100% natural, no preservatives, preserving traditional flavors." : "Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống."}
+                </p>
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
+                <ul className="space-y-2 text-muted-foreground text-sm">
+                  <li>Hotline/Zalo: {cmsContent.FooterHotline || "034 897 3285"}</li>
+                  <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien.com"}</li>
+                  <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
+                  <li>Giờ mở cửa: {cmsContent.ContactHours || "08:00 - 20:00 (T2-CN)"}</li>
+                </ul>
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold text-white">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
+                <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                  <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">{t.nav.products}</button></li>
+                  <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">{t.nav.story}</button></li>
+                  <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">{t.history.title}</button></li>
+                  <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">{t.culture.title}</button></li>
+                </ul>
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
+                <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                  <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
+                  <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
+                  <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
+                  <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
+                </ul>
+              </div>
             </div>
           </Reveal>
           <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1469,147 +1468,147 @@ export default function LandingPage() {
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
               className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[calc(100vw-2rem)] sm:w-[350px] max-w-[360px] mb-3 sm:mb-4 overflow-hidden flex flex-col origin-bottom-right"
             >
-            <div className="bg-accent p-3.5 sm:p-4 text-white flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs sm:text-sm">NV</div>
-                  <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${isConnected ? 'bg-green-400' : 'bg-gray-400'} border-2 border-[#B45309] rounded-full`}></span>
-                </div>
-                <div>
-                  <p className="font-bold text-sm sm:text-base">Tư vấn viên</p>
-                  <p className="text-[11px] sm:text-xs opacity-80">{isConnected ? 'Đang trực tuyến' : 'Đang kết nối...'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                {totalCartItems > 0 && (
-                  <button
-                    onClick={() => {
-                      setIsChatOpen(false);
-                      openCart();
-                    }}
-                    className="hover:bg-white/20 p-1.5 rounded-full transition-colors relative"
-                    aria-label={language === "en" ? "View Cart" : "Xem giỏ hàng"}
-                    title={language === "en" ? "View Cart" : "Xem giỏ hàng"}
-                  >
-                    <ShoppingBag className="w-4.5 h-4.5 text-white" />
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
-                      {totalCartItems > 99 ? "99+" : totalCartItems}
-                    </span>
-                  </button>
-                )}
-                <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors" aria-label="Đóng chat">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {!chatStarted ? (
-              /* Nhập tên trước khi chat */
-              <div className="p-4 sm:p-5 space-y-3">
-                <p className="text-xs sm:text-sm text-foreground/70">{language === "en" ? "To serve you better, please provide:" : "Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:"}</p>
-                <input
-                  type="text"
-                  placeholder={language === "en" ? "Your name *" : "Họ tên của bạn *"}
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
-                />
-                <input
-                  type="tel"
-                  placeholder={language === "en" ? "Phone number (optional)" : "Số điện thoại (không bắt buộc)"}
-                  value={guestPhone}
-                  onChange={(e) => setGuestPhone(e.target.value)}
-                  className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
-                />
-                <button
-                  onClick={handleStartChat}
-                  disabled={!guestName.trim()}
-                  className="w-full bg-accent text-white font-bold py-2.5 rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 text-xs sm:text-sm"
-                >
-                  {t.chat.start}
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="h-[250px] sm:h-[280px] bg-background p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-2.5 sm:gap-3">
-                  {isSessionTerminated && (
-                    <div className="bg-amber-50 border border-amber-200 text-amber-800 p-2.5 rounded-xl text-xs text-center">
-                      Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại.
-                    </div>
-                  )}
-                  {messages.length === 0 && !isSessionTerminated && (
-                    <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-primary max-w-[85%] self-start shadow-sm">
-                      Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
-                    </div>
-                  )}
-                  {messages.map((msg, idx) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      className={`p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm max-w-[85%] shadow-sm ${msg.senderType === 'Guest'
-                        ? 'bg-accent text-white self-end rounded-br-sm'
-                        : 'bg-white border text-primary self-start rounded-tl-sm'
-                        }`}
-                    >
-                      <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                      <span className={`text-[9px] sm:text-[10px] block mt-1 opacity-70 ${msg.senderType === 'Guest' ? 'text-right' : ''}`}>
-                        {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
-                        {idx === lastGuestMessageIndex && msg.isRead && (
-                          <span className="ml-1">· {language === "en" ? "Seen" : "Đã xem"}</span>
-                        )}
-                      </span>
-                    </motion.div>
-                  ))}
-                  {isAdminTyping && (
-                    <div className="bg-white border p-2.5 sm:p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:0ms]"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:150ms]"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:300ms]"></span>
-                      <span className="ml-2 text-[11px] sm:text-xs text-foreground/60">
-                        {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
-                      </span>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-                <div className="p-2.5 sm:p-3 bg-white border-t">
+              <div className="bg-accent p-3.5 sm:p-4 text-white flex justify-between items-center">
+                <div className="flex items-center gap-3">
                   <div className="relative">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => {
-                        setChatInput(e.target.value);
-                        if (chatSendError) setChatSendError(false);
-                        if (e.target.value.trim()) notifyTyping();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-                          e.preventDefault();
-                          handleSendChatMessage();
-                        }
-                      }}
-                      placeholder={t.chat.placeholder}
-                      className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-3.5 pr-11 py-2 text-xs sm:text-sm outline-none transition-all"
-                    />
-                    <button
-                      onClick={handleSendChatMessage}
-                      disabled={isSending || !chatInput.trim()}
-                      className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors disabled:opacity-50"
-                      aria-label="Gửi tin nhắn"
-                    >
-                      {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    </button>
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs sm:text-sm">NV</div>
+                    <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${isConnected ? 'bg-green-400' : 'bg-gray-400'} border-2 border-[#B45309] rounded-full`}></span>
                   </div>
-                  {chatSendError && (
-                    <p className="text-[11px] text-red-500 mt-1.5 px-2">
-                      Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!
-                    </p>
-                  )}
+                  <div>
+                    <p className="font-bold text-sm sm:text-base">Tư vấn viên</p>
+                    <p className="text-[11px] sm:text-xs opacity-80">{isConnected ? 'Đang trực tuyến' : 'Đang kết nối...'}</p>
+                  </div>
                 </div>
-              </>
-            )}
+                <div className="flex items-center gap-1">
+                  {totalCartItems > 0 && (
+                    <button
+                      onClick={() => {
+                        setIsChatOpen(false);
+                        openCart();
+                      }}
+                      className="hover:bg-white/20 p-1.5 rounded-full transition-colors relative"
+                      aria-label={language === "en" ? "View Cart" : "Xem giỏ hàng"}
+                      title={language === "en" ? "View Cart" : "Xem giỏ hàng"}
+                    >
+                      <ShoppingBag className="w-4.5 h-4.5 text-white" />
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                        {totalCartItems > 99 ? "99+" : totalCartItems}
+                      </span>
+                    </button>
+                  )}
+                  <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors" aria-label="Đóng chat">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {!chatStarted ? (
+                /* Nhập tên trước khi chat */
+                <div className="p-4 sm:p-5 space-y-3">
+                  <p className="text-xs sm:text-sm text-foreground/70">{language === "en" ? "To serve you better, please provide:" : "Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:"}</p>
+                  <input
+                    type="text"
+                    placeholder={language === "en" ? "Your name *" : "Họ tên của bạn *"}
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder={language === "en" ? "Phone number (optional)" : "Số điện thoại (không bắt buộc)"}
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
+                    className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
+                  />
+                  <button
+                    onClick={handleStartChat}
+                    disabled={!guestName.trim()}
+                    className="w-full bg-accent text-white font-bold py-2.5 rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 text-xs sm:text-sm"
+                  >
+                    {t.chat.start}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="h-[250px] sm:h-[280px] bg-background p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-2.5 sm:gap-3">
+                    {isSessionTerminated && (
+                      <div className="bg-amber-50 border border-amber-200 text-amber-800 p-2.5 rounded-xl text-xs text-center">
+                        Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại.
+                      </div>
+                    )}
+                    {messages.length === 0 && !isSessionTerminated && (
+                      <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-primary max-w-[85%] self-start shadow-sm">
+                        Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
+                      </div>
+                    )}
+                    {messages.map((msg, idx) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        className={`p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm max-w-[85%] shadow-sm ${msg.senderType === 'Guest'
+                          ? 'bg-accent text-white self-end rounded-br-sm'
+                          : 'bg-white border text-primary self-start rounded-tl-sm'
+                          }`}
+                      >
+                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        <span className={`text-[9px] sm:text-[10px] block mt-1 opacity-70 ${msg.senderType === 'Guest' ? 'text-right' : ''}`}>
+                          {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                          {idx === lastGuestMessageIndex && msg.isRead && (
+                            <span className="ml-1">· {language === "en" ? "Seen" : "Đã xem"}</span>
+                          )}
+                        </span>
+                      </motion.div>
+                    ))}
+                    {isAdminTyping && (
+                      <div className="bg-white border p-2.5 sm:p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:0ms]"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:150ms]"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:300ms]"></span>
+                        <span className="ml-2 text-[11px] sm:text-xs text-foreground/60">
+                          {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
+                        </span>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                  <div className="p-2.5 sm:p-3 bg-white border-t">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => {
+                          setChatInput(e.target.value);
+                          if (chatSendError) setChatSendError(false);
+                          if (e.target.value.trim()) notifyTyping();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                            e.preventDefault();
+                            handleSendChatMessage();
+                          }
+                        }}
+                        placeholder={t.chat.placeholder}
+                        className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-3.5 pr-11 py-2 text-xs sm:text-sm outline-none transition-all"
+                      />
+                      <button
+                        onClick={handleSendChatMessage}
+                        disabled={isSending || !chatInput.trim()}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors disabled:opacity-50"
+                        aria-label="Gửi tin nhắn"
+                      >
+                        {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    {chatSendError && (
+                      <p className="text-[11px] text-red-500 mt-1.5 px-2">
+                        Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1718,45 +1717,45 @@ export default function LandingPage() {
               className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
-            <button onClick={() => setSelectedRecipe(null)} className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 bg-background hover:bg-secondary rounded-full transition-colors text-primary" aria-label="Đóng">
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-            <div className="text-center mb-5 sm:mb-6">
-              <motion.div
-                initial={{ scale: 0.4, rotate: -14, opacity: 0 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.08 }}
-                className="text-4xl sm:text-5xl mb-3 sm:mb-4"
-              >
-                {selectedRecipe === 'tra' ? '🍵' : '🥣'}
-              </motion.div>
-              <h3 className="text-xl sm:text-3xl font-bold text-primary">
-                {selectedRecipe === 'tra' ? 'Cách pha Trà Long Nhãn' : 'Cách nấu Chè Hạt Sen Long Nhãn'}
-              </h3>
-            </div>
-            {selectedRecipe === 'tra' ? (
-              <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
-                <p><strong>Nguyên liệu:</strong> 10g Trà khô (trà xanh, ô long, hoa cúc...), 15-20g Long nhãn Nguyệt Nhãn Phố Hiến, 3-5 quả táo đỏ, Kỷ tử, Nước sôi.</p>
-                <p><strong>Cách thực hiện:</strong></p>
-                <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
-                  <li>Tráng trà qua một lần nước sôi để làm sạch và đánh thức trà.</li>
-                  <li>Cho trà, long nhãn, táo đỏ, kỷ tử vào ấm.</li>
-                  <li>Châm nước sôi và ủ trong khoảng 10-15 phút để long nhãn nở bung và tiết ra vị ngọt thanh tự nhiên.</li>
-                  <li>Rót ra chén và thưởng thức khi còn ấm. Không cần thêm đường vì long nhãn đã đủ độ ngọt dịu mát.</li>
-                </ol>
+              <button onClick={() => setSelectedRecipe(null)} className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 bg-background hover:bg-secondary rounded-full transition-colors text-primary" aria-label="Đóng">
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              <div className="text-center mb-5 sm:mb-6">
+                <motion.div
+                  initial={{ scale: 0.4, rotate: -14, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.08 }}
+                  className="text-4xl sm:text-5xl mb-3 sm:mb-4"
+                >
+                  {selectedRecipe === 'tra' ? '🍵' : '🥣'}
+                </motion.div>
+                <h3 className="text-xl sm:text-3xl font-bold text-primary">
+                  {selectedRecipe === 'tra' ? 'Cách pha Trà Long Nhãn' : 'Cách nấu Chè Hạt Sen Long Nhãn'}
+                </h3>
               </div>
-            ) : (
-              <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
-                <p><strong>Nguyên liệu:</strong> 100g Long nhãn Nguyệt Nhãn, 100g Hạt sen tươi (hoặc khô), Đường phèn.</p>
-                <p><strong>Cách thực hiện:</strong></p>
-                <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
-                  <li>Hầm hạt sen với nước cho đến khi hạt sen chín mềm, bở tơi. Thêm đường phèn vừa khẩu vị và đun cho tan.</li>
-                  <li>Tắt bếp, vớt hạt sen ra để nguội bớt. Khéo léo nhồi từng hạt sen vào bên trong cùi long nhãn.</li>
-                  <li>Bật bếp đun sôi lại nồi nước đường, thả phần long nhãn lồng hạt sen vào.</li>
-                  <li>Đun sôi nhẹ khoảng 2-3 phút thì tắt bếp ngay (nếu đun lâu long nhãn sẽ mất độ giòn). Thưởng thức nóng hoặc thêm đá tùy thích.</li>
-                </ol>
-              </div>
-            )}
+              {selectedRecipe === 'tra' ? (
+                <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
+                  <p><strong>Nguyên liệu:</strong> 10g Trà khô (trà xanh, ô long, hoa cúc...), 15-20g Long nhãn Nguyệt Nhãn Phố Hiến, 3-5 quả táo đỏ, Kỷ tử, Nước sôi.</p>
+                  <p><strong>Cách thực hiện:</strong></p>
+                  <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
+                    <li>Tráng trà qua một lần nước sôi để làm sạch và đánh thức trà.</li>
+                    <li>Cho trà, long nhãn, táo đỏ, kỷ tử vào ấm.</li>
+                    <li>Châm nước sôi và ủ trong khoảng 10-15 phút để long nhãn nở bung và tiết ra vị ngọt thanh tự nhiên.</li>
+                    <li>Rót ra chén và thưởng thức khi còn ấm. Không cần thêm đường vì long nhãn đã đủ độ ngọt dịu mát.</li>
+                  </ol>
+                </div>
+              ) : (
+                <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
+                  <p><strong>Nguyên liệu:</strong> 100g Long nhãn Nguyệt Nhãn, 100g Hạt sen tươi (hoặc khô), Đường phèn.</p>
+                  <p><strong>Cách thực hiện:</strong></p>
+                  <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
+                    <li>Hầm hạt sen với nước cho đến khi hạt sen chín mềm, bở tơi. Thêm đường phèn vừa khẩu vị và đun cho tan.</li>
+                    <li>Tắt bếp, vớt hạt sen ra để nguội bớt. Khéo léo nhồi từng hạt sen vào bên trong cùi long nhãn.</li>
+                    <li>Bật bếp đun sôi lại nồi nước đường, thả phần long nhãn lồng hạt sen vào.</li>
+                    <li>Đun sôi nhẹ khoảng 2-3 phút thì tắt bếp ngay (nếu đun lâu long nhãn sẽ mất độ giòn). Thưởng thức nóng hoặc thêm đá tùy thích.</li>
+                  </ol>
+                </div>
+              )}
               <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t flex justify-center">
                 <motion.button
                   whileHover={{ scale: 1.05 }}

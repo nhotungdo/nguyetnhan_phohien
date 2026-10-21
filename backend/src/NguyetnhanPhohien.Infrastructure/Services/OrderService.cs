@@ -380,7 +380,7 @@ public class OrderService : IOrderService
             <div style='background-color: #31572C; padding: 25px 20px; text-align: center;'>
                 <p style='margin: 0 0 5px 0; color: #E9B949; font-weight: 700; font-size: 15px;'>Nguyệt Nhãn Phố Hiến - Đặc Sản Hưng Yên</p>
                 <p style='margin: 0 0 6px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Địa chỉ: Phường Hồng Châu, TP. Hưng Yên, Tỉnh Hưng Yên</p>
-                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>0982.072.601</strong> &bull; Email: <strong>nguyetnhanphohien@gmail.com</strong></p>
+                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>034 897 3285</strong> &bull; Email: <strong>nguyetnhanphohien@gmail.com</strong></p>
                 <div style='border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 10px; font-size: 11px; color: #FFF9ED; opacity: 0.7; line-height: 1.5;'>
                     <a href='{_frontendBaseUrl}' style='color: #E9B949; text-decoration: underline;'>Truy cập website</a> &bull; Đây là thư điện tử xác nhận giao dịch tự động. Quý khách vui lòng không trả lời thư này nếu không cần thiết.
                 </div>
@@ -428,7 +428,7 @@ LIÊN HỆ & HỖ TRỢ
 ========================================
 Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
 - Địa chỉ: Phường Hồng Châu, TP. Hưng Yên, Tỉnh Hưng Yên
-- Hotline/Zalo: 0982.072.601
+- Hotline/Zalo: 034 897 3285
 - Email hỗ trợ: nguyetnhanphohien@gmail.com
 - Website: {_frontendBaseUrl}
 ";
@@ -572,7 +572,7 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
             <div style='background-color: #31572C; padding: 25px 20px; text-align: center;'>
                 <p style='margin: 0 0 5px 0; color: #E9B949; font-weight: 700; font-size: 15px;'>Nguyệt Nhãn Phố Hiến - Quản Trị Hệ Thống</p>
                 <p style='margin: 0 0 6px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Địa chỉ: Phường Hồng Châu, TP. Hưng Yên, Tỉnh Hưng Yên</p>
-                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>0982.072.601</strong> &bull; Email: <strong>nguyetnhanphohien@gmail.com</strong></p>
+                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>034 897 3285</strong> &bull; Email: <strong>nguyetnhanphohien@gmail.com</strong></p>
                 <div style='border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 10px; font-size: 11px; color: #FFF9ED; opacity: 0.7; line-height: 1.5;'>
                     <a href='{_frontendBaseUrl}' style='color: #E9B949; text-decoration: underline;'>Truy cập website</a> &bull; Email thông báo tự động từ nguyetnhanphohien.com
                 </div>
@@ -610,7 +610,7 @@ Xem chi tiết đơn hàng tại Dashboard:
 {_frontendBaseUrl}/orders
 
 Website: {_frontendBaseUrl}
-Hotline: 0982.072.601
+Hotline: 034 897 3285
 ";
 
                 try
