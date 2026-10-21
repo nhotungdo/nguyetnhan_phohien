@@ -413,11 +413,17 @@ export const adminAuth = {
   /** Lưu token admin vào localStorage sau khi đăng nhập thành công */
   login: (token: string) => {
     localStorage.setItem("adminToken", token);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("adminAuthChange"));
+    }
   },
 
   /** Xóa token admin */
   logout: () => {
     localStorage.removeItem("adminToken");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("adminAuthChange"));
+    }
   },
 
   /** Kiểm tra admin đang đăng nhập */

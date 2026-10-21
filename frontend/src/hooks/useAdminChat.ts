@@ -83,7 +83,14 @@ export function useAdminChat() {
   }, []);
 
   // 2. Lấy tin nhắn của một session
-  const selectSession = useCallback(async (sessionId: string) => {
+  const selectSession = useCallback(async (sessionId: string | null) => {
+    if (!sessionId) {
+      setSelectedSessionId(null);
+      setTypingSessionId(null);
+      setMessages([]);
+      return;
+    }
+
     setSelectedSessionId(sessionId);
     setTypingSessionId(null);
 

@@ -115,17 +115,18 @@ export function DiscountManager() {
         </Button>
       </div>
 
-      <div className="bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+      {/* DESKTOP TABLE VIEW (≥ 768px) */}
+      <div className="hidden md:block bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-muted/50 border-b border-border/50">
-                <th className="p-4 font-semibold">Mã Code</th>
-                <th className="p-4 font-semibold">Loại giảm / Giá trị</th>
-                <th className="p-4 font-semibold text-center">Đã dùng / Giới hạn</th>
-                <th className="p-4 font-semibold">Hết hạn</th>
-                <th className="p-4 font-semibold text-center">Trạng thái</th>
-                <th className="p-4 font-semibold text-right">Thao tác</th>
+                <th className="p-4 font-semibold text-xs uppercase text-muted-foreground">Mã Code</th>
+                <th className="p-4 font-semibold text-xs uppercase text-muted-foreground">Loại giảm / Giá trị</th>
+                <th className="p-4 font-semibold text-center text-xs uppercase text-muted-foreground">Đã dùng / Giới hạn</th>
+                <th className="p-4 font-semibold text-xs uppercase text-muted-foreground">Hết hạn</th>
+                <th className="p-4 font-semibold text-center text-xs uppercase text-muted-foreground">Trạng thái</th>
+                <th className="p-4 font-semibold text-right text-xs uppercase text-muted-foreground">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -196,12 +197,82 @@ export function DiscountManager() {
         </div>
       </div>
 
+      {/* MOBILE CARD VIEW (< 768px) */}
+      <div className="md:hidden space-y-3">
+        {discounts.length === 0 ? (
+          <div className="bg-card border rounded-2xl p-8 text-center text-muted-foreground text-sm">
+            Chưa có mã giảm giá nào. Hãy tạo mã mới!
+          </div>
+        ) : (
+          discounts.map((discount) => (
+            <div key={discount.id} className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2.5">
+                <span className="font-mono font-bold text-sm px-2.5 py-1 bg-primary/10 text-primary rounded-lg">
+                  {discount.code}
+                </span>
+                {discount.isActive ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-1 rounded-full">
+                    <Check className="w-3 h-3" /> Hoạt động
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 px-2.5 py-1 rounded-full">
+                    <X className="w-3 h-3" /> Tạm dừng
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-muted/30 p-2.5 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block text-[11px] mb-0.5">Mức giảm:</span>
+                  {discount.percentOff != null ? (
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">Giảm {discount.percentOff}%</span>
+                  ) : discount.amountOff != null ? (
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">Giảm {discount.amountOff.toLocaleString()}đ</span>
+                  ) : (
+                    <span className="text-muted-foreground">Không rõ</span>
+                  )}
+                </div>
+
+                <div className="bg-muted/30 p-2.5 rounded-xl border border-border/30">
+                  <span className="text-muted-foreground block text-[11px] mb-0.5">Đã dùng:</span>
+                  <span className="font-bold text-foreground text-sm">{discount.usageCount}</span>
+                  <span className="text-muted-foreground text-xs"> / {discount.maxUsageCount ?? "∞"}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                <span>
+                  Hạn dùng:{" "}
+                  {discount.expiresAt ? (
+                    new Date(discount.expiresAt) < new Date() ? (
+                      <span className="text-destructive font-medium">Đã hết hạn</span>
+                    ) : (
+                      <span className="text-foreground font-medium">{new Date(discount.expiresAt).toLocaleDateString("vi-VN")}</span>
+                    )
+                  ) : (
+                    <span className="font-medium">Vô thời hạn</span>
+                  )}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs gap-1" onClick={() => openEditModal(discount)}>
+                    <Edit className="w-3.5 h-3.5" /> Sửa
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(discount.id)}>
+                    <Trash2 className="w-3.5 h-3.5" /> Xóa
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-card w-full max-w-md rounded-xl shadow-2xl border border-border/50 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-border/50 shrink-0 flex justify-between items-center">
-              <h3 className="text-xl font-bold">{editingId ? "Sửa mã giảm giá" : "Tạo mã mới"}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4">
+          <div className="bg-card w-full max-w-md rounded-2xl shadow-2xl border border-border/50 overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="p-4 sm:p-6 border-b border-border/50 shrink-0 flex justify-between items-center">
+              <h3 className="text-lg sm:text-xl font-bold">{editingId ? "Sửa mã giảm giá" : "Tạo mã mới"}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>

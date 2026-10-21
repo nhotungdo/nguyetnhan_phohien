@@ -154,28 +154,28 @@ export default function PaymentSettingsView() {
     "w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-4 sm:space-y-6 max-w-5xl">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-          <CreditCard className="w-7 h-7" /> Cấu hình thanh toán
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+          <CreditCard className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" /> Cấu hình thanh toán
         </h2>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Thông tin này được in thành mã QR trong email hóa đơn gửi khách. Đổi số tài
           khoản tại đây có hiệu lực ngay, không cần khởi động lại hệ thống.
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 items-start">
         {/* FORM */}
-        <form onSubmit={handleSave} className="bg-card border rounded-xl shadow-sm overflow-hidden">
-          <div className="p-5 border-b bg-muted/20">
-            <h3 className="font-semibold">Tài khoản nhận tiền</h3>
-            <p className="text-sm text-muted-foreground">
+        <form onSubmit={handleSave} className="bg-card border rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 border-b bg-muted/20">
+            <h3 className="font-semibold text-sm sm:text-base">Tài khoản nhận tiền</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Tên chủ tài khoản nên viết không dấu, đúng như ngân hàng đăng ký.
             </p>
           </div>
 
-          <div className="p-6 space-y-5">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-medium">
                 <Landmark className="w-4 h-4 text-primary" /> Mã ngân hàng (VietQR)

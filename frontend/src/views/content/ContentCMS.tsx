@@ -340,10 +340,10 @@ export default function ContentCMS() {
         <p className="text-muted-foreground">Quản lý toàn bộ nội dung hiển thị trên Landing Page.</p>
       </div>
 
-      <div className="border-b border-border flex gap-1">
+      <div className="border-b border-border flex gap-1 overflow-x-auto pb-px scrollbar-none">
         {tabs.map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${activeTab === tab.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             {tab.icon} {tab.label}
           </button>
         ))}
@@ -352,26 +352,26 @@ export default function ContentCMS() {
       {/* TAB 1: VAN BAN */}
       {activeTab === "text" && (
         <div className="bg-card border shadow-sm rounded-xl overflow-hidden">
-          <div className="p-5 border-b bg-muted/20">
-            <h3 className="font-semibold">Chỉnh sửa văn bản trên Landing Page</h3>
-            <p className="text-sm text-muted-foreground">Thay đổi ngay lập tức, không cần deploy lại</p>
+          <div className="p-3.5 sm:p-5 border-b bg-muted/20">
+            <h3 className="font-semibold text-sm sm:text-base">Chỉnh sửa văn bản trên Landing Page</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Thay đổi ngay lập tức, không cần deploy lại</p>
           </div>
           {isLoadingText ? <div className="flex justify-center p-10"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div> : isErrorText && !fetchedContents ? contentErrorBlock : (
-            <div className="p-6 space-y-9">
+            <div className="p-3.5 sm:p-6 space-y-7 sm:space-y-9">
               {TEXT_GROUPS.map(group => (
-                <section key={group} className="space-y-5">
+                <section key={group} className="space-y-4 sm:space-y-5">
                   <div className="flex items-center gap-3">
-                    <h4 className="text-sm font-bold uppercase tracking-wide text-primary">{group}</h4>
+                    <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wide text-primary">{group}</h4>
                     <div className="h-px flex-1 bg-border" />
                   </div>
                   {TEXT_KEYS.filter(f => f.group === group).map(field => (
-                    <div key={field.key} className="space-y-2">
-                      <label className="flex items-center gap-2 font-medium text-sm">{field.icon}{field.label}</label>
-                      <div className="flex gap-3 items-start">
+                    <div key={field.key} className="space-y-1.5 sm:space-y-2">
+                      <label className="flex items-center gap-2 font-medium text-xs sm:text-sm">{field.icon}{field.label}</label>
+                      <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-start">
                         {field.multiline
-                          ? <textarea value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} rows={3} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y" />
-                          : <input type="text" value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} className="flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />}
-                        <button onClick={() => handleSaveText(field.key)} disabled={isSaving === field.key} className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-all shadow-sm shrink-0">
+                          ? <textarea value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} rows={3} className="w-full sm:flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y" />
+                          : <input type="text" value={contents[field.key] || ""} onChange={e => setContents(p => ({ ...p, [field.key]: e.target.value }))} placeholder={field.placeholder} className="w-full sm:flex-1 bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />}
+                        <button onClick={() => handleSaveText(field.key)} disabled={isSaving === field.key} className="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground px-4 py-2.5 sm:py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all shadow-sm shrink-0 w-full sm:w-auto">
                           {isSaving === field.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Lưu...</> : saveSuccess === field.key ? <><CheckCircle2 className="w-4 h-4" /> Đã lưu</> : <><Save className="w-4 h-4" /> Lưu lại</>}
                         </button>
                       </div>
@@ -387,15 +387,17 @@ export default function ContentCMS() {
       {/* TAB 2: SAN PHAM */}
       {activeTab === "products" && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">Quản lý các sản phẩm hiển thị trên Landing Page.</p>
-            <button onClick={() => openModal()} className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm text-sm">
+          <div className="flex justify-between items-center gap-2">
+            <p className="text-xs sm:text-sm text-muted-foreground">Quản lý các sản phẩm hiển thị trên Landing Page.</p>
+            <button onClick={() => openModal()} className="bg-accent hover:bg-accent/90 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold flex items-center gap-1.5 transition-all shadow-sm text-xs sm:text-sm shrink-0">
               <Plus className="w-4 h-4" /> Thêm sản phẩm
             </button>
           </div>
-          <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+
+          {/* DESKTOP TABLE VIEW (≥ 768px) */}
+          <div className="hidden md:block bg-card border rounded-xl shadow-sm overflow-hidden">
             <table className="w-full text-sm text-left">
-              <thead className="bg-muted/50 text-muted-foreground">
+              <thead className="bg-muted/50 text-muted-foreground text-xs font-semibold uppercase">
                 <tr>
                   <th className="px-5 py-3.5 font-medium">Ảnh chính</th>
                   <th className="px-5 py-3.5 font-medium">Tên sản phẩm</th>
@@ -445,6 +447,62 @@ export default function ContentCMS() {
               </tbody>
             </table>
           </div>
+
+          {/* MOBILE PRODUCT CARDS (< 768px) */}
+          <div className="md:hidden space-y-3">
+            {isLoadingProducts ? (
+              <div className="bg-card border rounded-2xl p-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+            ) : isErrorProducts && products.length === 0 ? (
+              <div className="bg-card border rounded-2xl p-6 text-center space-y-2">
+                <p className="text-sm font-medium">Không tải được danh sách sản phẩm.</p>
+                <button onClick={() => refetchProducts()} className="border hover:bg-muted px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors">
+                  <RefreshCw className="w-4 h-4" /> Thử lại
+                </button>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="bg-card border rounded-2xl p-8 text-center text-muted-foreground text-sm">Chưa có sản phẩm. Hãy thêm mới!</div>
+            ) : (
+              products.map(p => (
+                <div key={p.id} className="bg-card border border-border/80 rounded-2xl p-3.5 shadow-sm flex flex-col gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center overflow-hidden border shrink-0">
+                      {p.images[0]
+                        ? <FastImage src={`${API_URL}${p.images[0].imagePath}`} alt={p.name} width={64} height={64} loading="lazy" className="w-full h-full object-cover" />
+                        : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-1.5">
+                        <h4 className="font-bold text-foreground text-sm truncate">{p.name}</h4>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                          {p.isActive ? "Hiển thị" : "Ẩn"}
+                        </span>
+                      </div>
+                      <p className="text-accent font-bold text-sm mt-0.5">{p.price.toLocaleString("vi-VN").replace(/,/g, ".")}đ</p>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <span className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-medium">{p.size}</span>
+                        <span>•</span>
+                        <span>{p.images.length} ảnh</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+                    <button
+                      onClick={() => openModal(p)}
+                      className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 active:scale-95 transition-all"
+                    >
+                      <Edit className="w-3.5 h-3.5" /> Sửa
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(p.id)}
+                      className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-600 active:scale-95 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Xóa
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -478,35 +536,35 @@ export default function ContentCMS() {
 
       {/* MODAL THEM/SUA SAN PHAM */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
           <div className="bg-card w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
-            <div className="flex justify-between items-center p-6 border-b shrink-0">
-              <h3 className="text-xl font-bold text-primary">{editingId ? "Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}</h3>
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b shrink-0">
+              <h3 className="text-lg sm:text-xl font-bold text-primary">{editingId ? "Sửa Sản Phẩm" : "Thêm Sản Phẩm Mới"}</h3>
               <button onClick={closeModal} className="text-muted-foreground hover:bg-muted p-2 rounded-full transition-colors"><X className="w-5 h-5" /></button>
             </div>
-            <form onSubmit={handleSaveProduct} id="product-form" className="p-6 overflow-y-auto space-y-5 flex-1">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSaveProduct} id="product-form" className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Tên sản phẩm *</label>
+                  <label className="text-xs sm:text-sm font-medium">Tên sản phẩm *</label>
                   <input type="text" required value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Giá bán (VNĐ) *</label>
+                  <label className="text-xs sm:text-sm font-medium">Giá bán (VNĐ) *</label>
                   <input type="number" required min="0" value={formData.price} onChange={e => setFormData(p => ({ ...p, price: Number(e.target.value) }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Quy cách / Khối lượng *</label>
+                  <label className="text-xs sm:text-sm font-medium">Quy cách / Khối lượng *</label>
                   <input type="text" required placeholder="Vd: 500g, 1kg" value={formData.size} onChange={e => setFormData(p => ({ ...p, size: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Thứ tự hiển thị</label>
+                  <label className="text-xs sm:text-sm font-medium">Thứ tự hiển thị</label>
                   <input type="number" value={formData.displayOrder} onChange={e => setFormData(p => ({ ...p, displayOrder: Number(e.target.value) }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Mô tả sản phẩm</label>
+                <label className="text-xs sm:text-sm font-medium">Mô tả sản phẩm</label>
                 <textarea rows={3} value={formData.description} onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-y" />
               </div>
               <div className="flex items-center gap-2">

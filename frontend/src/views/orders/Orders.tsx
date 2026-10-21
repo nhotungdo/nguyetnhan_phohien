@@ -178,10 +178,11 @@ export default function Orders() {
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      {/* DESKTOP TABLE VIEW (≥ 768px) */}
+      <div className="hidden md:block bg-card border border-border rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-muted/50 text-muted-foreground uppercase font-semibold">
+            <thead className="bg-muted/50 text-muted-foreground uppercase font-semibold text-xs">
               <tr>
                 <th className="px-6 py-4">Khách hàng</th>
                 <th className="px-6 py-4">Đơn hàng</th>
@@ -209,7 +210,7 @@ export default function Orders() {
                   <motion.tr
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
+                    transition={{ delay: i * 0.04 }}
                     key={order.id}
                     className="border-b border-border hover:bg-muted/30 transition-colors"
                   >
@@ -217,7 +218,10 @@ export default function Orders() {
                     <td className="px-6 py-4">
                       <div className="font-bold text-foreground mb-1">{order.customerName}</div>
                       <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
-                        <Phone className="w-3 h-3" /> {order.customerPhone}
+                        <Phone className="w-3 h-3 text-primary" />
+                        <a href={`tel:${order.customerPhone}`} className="hover:underline font-medium text-foreground/80">
+                          {order.customerPhone}
+                        </a>
                       </div>
                       {order.customerEmail ? (
                         <div className="flex items-center gap-1.5 text-blue-600 text-xs mb-1">
@@ -274,7 +278,7 @@ export default function Orders() {
 
                     {/* TỔNG TIỀN */}
                     <td className="px-6 py-4">
-                      <div className="font-bold text-accent">
+                      <div className="font-bold text-accent text-base">
                         {order.totalAmount.toLocaleString()}đ
                       </div>
                       {order.discountAmount > 0 && (
@@ -302,7 +306,7 @@ export default function Orders() {
                           <select
                             value={order.status}
                             onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                            className="bg-background border border-border text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                            className="bg-background border border-border text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
                           >
                             <option value="PendingConfirmation">Chờ xác nhận</option>
                             <option value="Confirmed">Đã xác nhận</option>
@@ -349,6 +353,181 @@ export default function Orders() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* MOBILE CARD VIEW (< 768px) */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="bg-card border border-border rounded-2xl p-8 text-center text-muted-foreground">
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+            Đang tải dữ liệu đơn hàng...
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="bg-card border border-border rounded-2xl p-8 text-center text-muted-foreground text-sm">
+            Không tìm thấy đơn hàng nào phù hợp.
+          </div>
+        ) : (
+          filteredOrders.map((order, i) => (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03 }}
+              key={order.id}
+              className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3 relative"
+            >
+              {/* Header card: Tên khách & Trạng thái */}
+              <div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2.5">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-foreground text-base truncate">{order.customerName}</h3>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                    <a
+                      href={`tel:${order.customerPhone}`}
+                      className="inline-flex items-center gap-1 text-primary font-semibold hover:underline"
+                    >
+                      <Phone className="w-3 h-3 shrink-0" />
+                      {order.customerPhone}
+                    </a>
+                    <span>•</span>
+                    <span className="text-[11px]">
+                      {new Date(order.createdAt).toLocaleDateString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border shrink-0 ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-800"}`}>
+                  {STATUS_ICONS[order.status]}
+                  <span>{STATUS_LABELS[order.status] || order.status}</span>
+                </div>
+              </div>
+
+              {/* Thông tin địa chỉ & email */}
+              <div className="space-y-1.5 text-xs text-muted-foreground bg-muted/20 p-2.5 rounded-xl border border-border/30">
+                <div className="flex items-start gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                  <span className="text-foreground/90 font-medium leading-relaxed">{order.customerAddress}</span>
+                </div>
+                {order.customerEmail ? (
+                  <div className="flex items-center gap-1.5 text-blue-600">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{order.customerEmail}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-muted-foreground/50 italic">
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    <span>Không có email</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Danh sách sản phẩm */}
+              <div className="space-y-1 py-1">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">
+                  Sản phẩm đặt mua
+                </span>
+                {order.items && order.items.length > 0 ? (
+                  order.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 text-xs py-1 border-b border-border/30 last:border-none">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Package className="w-3.5 h-3.5 text-accent shrink-0" />
+                        <span className="font-medium text-foreground truncate">
+                          {item.productName} {item.productSize ? `(${item.productSize})` : ""}
+                        </span>
+                      </div>
+                      <span className="font-bold text-foreground shrink-0 bg-muted px-2 py-0.5 rounded-md">
+                        x{item.quantity}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-between gap-2 text-xs py-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Package className="w-3.5 h-3.5 text-accent shrink-0" />
+                      <span className="font-medium text-foreground truncate">
+                        {order.productName} {order.productSize ? `(${order.productSize})` : ""}
+                      </span>
+                    </div>
+                    <span className="font-bold text-foreground shrink-0 bg-muted px-2 py-0.5 rounded-md">
+                      x{order.quantity}
+                    </span>
+                  </div>
+                )}
+
+                {order.discountCodeApplied && (
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                    <span className="font-semibold">Mã giảm giá:</span>
+                    <span className="font-mono font-bold">{order.discountCodeApplied}</span>
+                    {order.discountAmount > 0 && (
+                      <span className="text-[11px] ml-auto font-medium">(-{order.discountAmount.toLocaleString()}đ)</span>
+                    )}
+                  </div>
+                )}
+
+                {order.note && (
+                  <p className="text-xs text-muted-foreground/90 italic bg-amber-500/5 p-2 rounded-lg border border-amber-500/10 mt-1.5">
+                    &quot;{order.note}&quot;
+                  </p>
+                )}
+              </div>
+
+              {/* Tổng tiền & Thao tác */}
+              <div className="pt-2 border-t border-border/50 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground font-semibold">Tổng thanh toán:</span>
+                  <div className="text-right">
+                    <span className="font-bold text-primary text-lg">
+                      {order.totalAmount.toLocaleString()}đ
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Select đổi trạng thái */}
+                  <div className="relative">
+                    {updatingId === order.id ? (
+                      <div className="w-full py-2.5 px-3 rounded-xl border border-border bg-muted/40 flex items-center justify-center text-xs text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary mr-1.5" />
+                        Đang lưu...
+                      </div>
+                    ) : (
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                        className="w-full bg-background border border-border text-xs font-semibold rounded-xl px-3 py-2.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
+                      >
+                        <option value="PendingConfirmation">Chờ xác nhận</option>
+                        <option value="Confirmed">Đã xác nhận</option>
+                        <option value="Shipping">Đang giao</option>
+                        <option value="Completed">Hoàn thành</option>
+                        <option value="Cancelled">Hủy đơn</option>
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Nút gửi lại hóa đơn */}
+                  <button
+                    onClick={() => handleResendInvoice(order)}
+                    disabled={sendingInvoiceId === order.id || !order.customerEmail}
+                    className={`w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 px-3 rounded-xl border transition-all ${
+                      order.customerEmail
+                        ? "border-blue-200 text-blue-700 bg-blue-50 active:scale-95"
+                        : "border-gray-200 text-gray-400 bg-gray-50 opacity-60 cursor-not-allowed"
+                    }`}
+                  >
+                    {sendingInvoiceId === order.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>{sendingInvoiceId === order.id ? "Đang gửi..." : "Gửi hóa đơn"}</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   );

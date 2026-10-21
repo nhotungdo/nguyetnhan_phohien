@@ -235,91 +235,93 @@ export default function Dashboard() {
         </div>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* DOANH THU */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-2 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <TrendingUp className="w-16 h-16" />
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16" />
           </div>
           <div className="flex items-center justify-between relative z-10">
-            <h3 className="font-semibold text-sm text-muted-foreground">Doanh thu (Đã giao)</h3>
-            <TrendingUp className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Doanh thu</h3>
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-3xl font-bold mt-2 text-primary relative z-10">{stats.revenue.toLocaleString("vi-VN")}đ</p>
+          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary relative z-10 truncate" title={`${stats.revenue.toLocaleString("vi-VN")}đ`}>
+            {stats.revenue.toLocaleString("vi-VN")}đ
+          </p>
         </div>
 
         {/* ĐƠN HÀNG */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm text-muted-foreground">Tổng Đơn Hàng</h3>
-            <Package className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Tổng Đơn Hàng</h3>
+            <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-3xl font-bold mt-2 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
+          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
         </div>
 
         {/* KHÁCH HÀNG */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm text-muted-foreground">Khách Hàng</h3>
-            <Users className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Khách Hàng</h3>
+            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-3xl font-bold mt-2 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
+          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
         </div>
 
         {/* TIN NHẮN */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm text-muted-foreground">Phiên Nhắn Tin</h3>
-            <MessageSquare className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Phiên Chat</h3>
+            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold mt-2 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
             {stats.unreadMessages > 0 && (
-              <span className="text-xs font-bold text-red-500 bg-red-100 px-2 py-0.5 rounded-full">
-                {stats.unreadMessages} chưa đọc
+              <span className="text-[10px] sm:text-xs font-bold text-red-500 bg-red-100 px-1.5 py-0.5 rounded-full">
+                {stats.unreadMessages} mới
               </span>
             )}
           </div>
         </div>
       </div>
       
-      <div className="h-[400px] rounded-xl border bg-card shadow flex flex-col relative overflow-hidden">
+      <div className="h-[340px] sm:h-[400px] rounded-xl border bg-card shadow-sm flex flex-col relative overflow-hidden">
         {/* Organic texture overlay */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=\\\"0 0 200 200\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"%3E%3Cfilter id=\\\"noiseFilter\\\"%3E%3CfeTurbulence type=\\\"fractalNoise\\\" baseFrequency=\\\"0.8\\\" numOctaves=\\\"3\\\" stitchTiles=\\\"stitch\\\"/%3E%3C/filter%3E%3Crect width=\\\"100%25\\\" height=\\\"100%25\\\" filter=\\\"url(%23noiseFilter)\\\"/%3E%3C/svg%3E')"}}></div>
 
-        <div className="p-6 border-b z-10 flex flex-wrap gap-x-4 gap-y-2 justify-between items-center">
+        <div className="p-3.5 sm:p-6 border-b z-10 flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-between sm:items-center">
           <div>
-            <h3 className="font-bold text-lg text-primary">Biểu đồ thống kê</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span> · TB/ngày: <span className="font-semibold text-foreground">{chartSummary.avgRevenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.avgOrdersLabel}</span>
+            <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
+              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
             {/* Legend khớp màu với 2 trục của biểu đồ */}
-            <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--chart-1)" }} />
+            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
+              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-1)" }} />
               Doanh thu
             </span>
-            <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
+            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
+              <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
               Đơn hàng
             </span>
-            <div className="w-px h-5 bg-border mx-1" />
+            <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
             {RANGES.map((r) => (
               <button key={r} type="button" onClick={() => setRangeDays(r)} className={pillClass(rangeDays === r)}>
-                {r} ngày
+                {r}N
               </button>
             ))}
-            <div className="w-px h-5 bg-border mx-1" />
+            <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
             <button
               type="button"
               onClick={handleExportCsv}
               disabled={!hasData}
-              title="Tải báo cáo doanh thu & top sản phẩm (CSV mở bằng Excel)"
-              className="px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
+              title="Tải báo cáo doanh thu & top sản phẩm (CSV)"
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
-              Xuất CSV
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>CSV</span>
             </button>
           </div>
         </div>
@@ -409,7 +411,7 @@ export default function Dashboard() {
       </div>
 
       {/* TOP SẢN PHẨM BÁN CHẠY */}
-      <div className="rounded-xl border bg-card shadow p-6">
+      <div className="rounded-xl border bg-card shadow-sm p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-bold text-lg text-primary">Top sản phẩm bán chạy</h3>

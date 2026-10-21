@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
     originalConsoleError.apply(console, args);
   };
 }
-import { Search, Info, Phone, Send, Loader2, Check, RotateCcw, Trash2 } from "lucide-react"
+import { Search, Info, Phone, Send, Loader2, Check, RotateCcw, Trash2, ArrowLeft } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import { useAdminChat } from "@/hooks/useAdminChat"
 import type { ChatStatusFilter } from "@/hooks/useAdminChat"
@@ -132,12 +132,12 @@ export default function Messenger() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] bg-card rounded-xl border shadow overflow-hidden">
-      {/* Sidebar Conversations */}
-      <div className="w-80 border-r flex flex-col bg-background/50">
-        <div className="p-4 border-b bg-card">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-bold text-primary">Tin Nhắn</h2>
+    <div className="flex h-[calc(100dvh-5rem)] md:h-[calc(100vh-7rem)] bg-card rounded-xl border shadow overflow-hidden">
+      {/* Sidebar Conversations - Trên mobile nếu đang chọn phiên chat thì ẩn đi, ngược lại hiện full-width */}
+      <div className={`w-full md:w-80 md:border-r flex flex-col bg-background/50 ${selectedSessionId ? 'hidden md:flex' : 'flex'}`}>
+        <div className="p-3.5 sm:p-4 border-b bg-card">
+          <div className="flex justify-between items-center mb-2.5 sm:mb-3">
+            <h2 className="text-lg sm:text-xl font-bold text-primary">Tin Nhắn</h2>
             <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} shadow-sm`} title={isConnected ? "Đã kết nối" : "Mất kết nối"} />
           </div>
           <div className="relative">
@@ -151,7 +151,7 @@ export default function Messenger() {
             />
           </div>
           {/* Bộ lọc trạng thái phiên chat */}
-          <div className="flex flex-wrap gap-1.5 mt-3">
+          <div className="flex flex-wrap gap-1.5 mt-2.5 sm:mt-3">
             {statusOptions.map((opt) => (
               <button
                 key={opt.key}
@@ -176,21 +176,21 @@ export default function Messenger() {
             <div 
               key={chat.id} 
               onClick={() => selectSession(chat.id)}
-              className={`p-4 border-b cursor-pointer transition-colors ${selectedSessionId === chat.id ? 'bg-primary/5' : 'hover:bg-muted/50'} ${chat.isResolved ? 'opacity-70' : ''}`}
+              className={`p-3.5 sm:p-4 border-b cursor-pointer transition-colors active:bg-muted/70 ${selectedSessionId === chat.id ? 'bg-primary/5' : 'hover:bg-muted/50'} ${chat.isResolved ? 'opacity-70' : ''}`}
             >
               <div className="flex justify-between items-start mb-1">
-                <span className={`font-semibold ${selectedSessionId === chat.id ? 'text-primary' : 'text-foreground'}`}>
+                <span className={`font-semibold text-sm sm:text-base ${selectedSessionId === chat.id ? 'text-primary' : 'text-foreground'}`}>
                   {chat.guestName || "Khách hàng ẩn danh"}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[11px] sm:text-xs text-muted-foreground">
                   {new Date(chat.lastMessageAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
-              <p className={`text-sm truncate ${chat.hasUnreadMessages ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+              <p className={`text-xs sm:text-sm truncate ${chat.hasUnreadMessages ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
                 {chat.lastMessagePreview || "Chưa có tin nhắn"}
               </p>
               <div className="flex items-center justify-between gap-2 mt-1">
-                <span className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                <span className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[200px]">
                   {chat.guestPhone ? `SĐT: ${chat.guestPhone}` : "Khách ẩn danh"}
                 </span>
                 <span className="flex items-center gap-1 shrink-0">
@@ -211,31 +211,44 @@ export default function Messenger() {
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#FAF7F2] relative">
+      {/* Chat Area - Trên mobile nếu chưa chọn phiên chat thì ẩn đi */}
+      <div className={`flex-1 flex flex-col bg-[#FAF7F2] relative ${!selectedSessionId ? 'hidden md:flex' : 'flex'}`}>
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"noiseFilter\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23noiseFilter)\"/%3E%3C/svg%3E')"}}></div>
         
         {selectedSession ? (
           <>
-            <div className="p-4 border-b bg-card/80 backdrop-blur-sm z-10 flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-accent text-accent-foreground font-bold flex items-center justify-center">
+            <div className="p-3 sm:p-4 border-b bg-card/90 backdrop-blur-sm z-10 flex justify-between items-center gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                {/* Nút quay lại danh sách cuộc trò chuyện trên mobile */}
+                <button
+                  onClick={() => selectSession(null)}
+                  className="p-1.5 -ml-1 text-primary hover:bg-muted rounded-xl md:hidden shrink-0 transition-colors"
+                  title="Quay lại danh sách"
+                  aria-label="Quay lại danh sách"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-accent text-accent-foreground font-bold flex items-center justify-center shrink-0 text-sm">
                   {(selectedSession.guestName || "Khách").substring(0,2).toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="font-semibold text-primary">{selectedSession.guestName || "Khách hàng ẩn danh"}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedSession.guestPhone || "Chưa để lại SĐT"}
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-primary text-sm sm:text-base truncate">{selectedSession.guestName || "Khách hàng ẩn danh"}</h3>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                    {selectedSession.guestPhone ? (
+                      <a href={`tel:${selectedSession.guestPhone}`} className="hover:underline text-foreground/80 font-medium">
+                        {selectedSession.guestPhone}
+                      </a>
+                    ) : "Chưa để lại SĐT"}
                     {selectedSession.isResolved && (
-                      <span className="ml-2 font-semibold text-emerald-600">· Đã phân giải</span>
+                      <span className="ml-1.5 font-semibold text-emerald-600">· Đã phân giải</span>
                     )}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={handleToggleResolved}
-                  className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border transition-colors ${
+                  className={`flex items-center gap-1 text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border transition-colors ${
                     selectedSession.isResolved
                       ? "border-border text-muted-foreground hover:bg-muted"
                       : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -243,25 +256,25 @@ export default function Messenger() {
                   title={selectedSession.isResolved ? "Mở lại phiên trò chuyện" : "Đánh dấu phiên đã phân giải"}
                 >
                   {selectedSession.isResolved ? (
-                    <><RotateCcw className="w-3.5 h-3.5" /> Mở lại phiên</>
+                    <><RotateCcw className="w-3.5 h-3.5" /><span className="hidden sm:inline">Mở lại</span></>
                   ) : (
-                    <><Check className="w-3.5 h-3.5" /> Đã phân giải</>
+                    <><Check className="w-3.5 h-3.5" /><span className="hidden sm:inline">Đã phân giải</span></>
                   )}
                 </button>
                 <button
                   onClick={openDeleteDialog}
-                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                  className="flex items-center gap-1 text-xs font-semibold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                   title="Xoá vĩnh viễn phiên trò chuyện này"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Xoá phiên
+                  <Trash2 className="w-3.5 h-3.5" /><span className="hidden sm:inline">Xoá phiên</span>
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 relative z-10">
+            <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4 relative z-10">
               {messages.map((msg, idx) => (
                 <div key={msg.id || idx} className={`flex ${msg.senderType === "Admin" ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`py-2 px-4 max-w-[70%] shadow-sm ${msg.senderType === "Admin" ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' : 'bg-white border rounded-2xl rounded-tl-sm text-foreground'}`}>
+                  <div className={`py-2 px-3.5 sm:px-4 max-w-[85%] sm:max-w-[70%] shadow-sm ${msg.senderType === "Admin" ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' : 'bg-white border rounded-2xl rounded-tl-sm text-foreground'}`}>
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                     <span className={`text-[10px] block mt-1 ${msg.senderType === "Admin" ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground'}`}>
                       {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
@@ -274,7 +287,7 @@ export default function Messenger() {
               ))}
               {isGuestTyping && (
                 <div className="flex justify-start">
-                  <div className="py-3 px-4 bg-white border rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1" aria-label="Khách đang gõ">
+                  <div className="py-2.5 px-3.5 bg-white border rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1" aria-label="Khách đang gõ">
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]"></span>
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]"></span>
@@ -285,7 +298,7 @@ export default function Messenger() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t bg-card z-10">
+            <div className="p-3 sm:p-4 border-t bg-card z-10">
               <div className="relative flex items-center gap-2">
                 <input 
                   type="text"
@@ -296,14 +309,14 @@ export default function Messenger() {
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Nhập tin nhắn phản hồi..." 
-                  className="flex-1 bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-full pl-4 pr-4 py-3 outline-none transition-all shadow-sm"
+                  className="flex-1 bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-full pl-4 pr-4 py-2.5 sm:py-3 text-sm outline-none transition-all shadow-sm"
                 />
                 <button 
                   onClick={handleSend}
                   disabled={!inputMessage.trim()}
-                  className="bg-accent hover:bg-accent/90 disabled:opacity-50 text-accent-foreground p-3 rounded-full transition-colors flex-shrink-0 shadow-sm"
+                  className="bg-accent hover:bg-accent/90 disabled:opacity-50 text-accent-foreground p-2.5 sm:p-3 rounded-full transition-colors flex-shrink-0 shadow-sm"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
               {sendError && (
@@ -311,7 +324,7 @@ export default function Messenger() {
                   Không gửi được tin nhắn. Kiểm tra kết nối rồi thử lại — nội dung vẫn được giữ.
                 </p>
               )}
-              <div className="flex gap-2 mt-3 px-2 overflow-x-auto pb-1">
+              <div className="flex gap-2 mt-2 sm:mt-3 px-1 overflow-x-auto pb-1">
                 <button onClick={() => setInputMessage("Chào bạn, Nguyệt Nhãn có thể giúp gì cho bạn?")} className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap">👋 Chào hỏi</button>
                 <button onClick={() => setInputMessage("Bạn muốn lấy loại Đặc biệt (350k/hộp) hay Túi Zip (320k/túi) ạ?")} className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap">💰 Báo giá</button>
                 <button onClick={() => setInputMessage("Bạn cho shop xin Tên, SĐT và Địa chỉ để lên đơn nhé!")} className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap">📍 Xin thông tin</button>
@@ -319,11 +332,11 @@ export default function Messenger() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center relative z-10 space-y-4">
-            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
-              <Info className="w-8 h-8 text-muted-foreground" />
+          <div className="flex-1 flex flex-col items-center justify-center relative z-10 space-y-4 p-4 text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-full flex items-center justify-center">
+              <Info className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground font-medium">Chọn một cuộc trò chuyện để phản hồi</p>
+            <p className="text-muted-foreground font-medium text-sm sm:text-base">Chọn một cuộc trò chuyện để phản hồi</p>
           </div>
         )}
       </div>

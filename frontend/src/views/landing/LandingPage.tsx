@@ -13,11 +13,13 @@ if (typeof window !== "undefined") {
     originalConsoleError.apply(console, args);
   };
 }
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
+import { adminAuth, discountApi } from "@/services/api.service";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useVnProvinces } from "@/hooks/useVnProvinces";
 import { wardsOf } from "@/lib/vnAddress";
@@ -68,7 +70,48 @@ const resolveCmsImage = (url?: string) =>
       ? url
       : `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 
+const subscribeAuth = (callback: () => void) => {
+  window.addEventListener("storage", callback);
+  window.addEventListener("adminAuthChange", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("adminAuthChange", callback);
+  };
+};
+
+const getAuthSnapshot = () => adminAuth.isLoggedIn();
+const getAuthServerSnapshot = () => false;
+
 export default function LandingPage() {
+  const router = useRouter();
+  const isAdmin = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
+  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
+  const [adminCodeInput, setAdminCodeInput] = useState("");
+  const [adminLoginLoading, setAdminLoginLoading] = useState(false);
+  const [adminLoginError, setAdminLoginError] = useState("");
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminCodeInput.trim() || adminLoginLoading) return;
+    setAdminLoginLoading(true);
+    setAdminLoginError("");
+    try {
+      const result = await discountApi.apply({ code: adminCodeInput.trim() });
+      if (result.adminToken) {
+        adminAuth.login(result.adminToken);
+        setIsAdminLoginModalOpen(false);
+        setIsMobileMenuOpen(false);
+        router.push("/dashboard");
+      } else {
+        setAdminLoginError("Mã quản trị không hợp lệ.");
+      }
+    } catch {
+      setAdminLoginError("Mã quản trị không đúng hoặc hệ thống bận.");
+    } finally {
+      setAdminLoginLoading(false);
+    }
+  };
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -410,6 +453,91 @@ export default function LandingPage() {
           onAddToCart={(prod) => addCartItem(prod)}
         />
       )}
+
+      {/* Admin Quick Login Modal */}
+      <AnimatePresence>
+        {isAdminLoginModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => {
+              if (!adminLoginLoading) setIsAdminLoginModalOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-border relative text-foreground"
+            >
+              <button
+                onClick={() => setIsAdminLoginModalOpen(false)}
+                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition-colors"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">Đăng nhập Quản trị</h3>
+                  <p className="text-xs text-muted-foreground">Truy cập bảng điều khiển quản trị viên</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
+                    Mã xác thực Quản trị
+                  </label>
+                  <input
+                    type="password"
+                    autoFocus
+                    autoComplete="current-password"
+                    value={adminCodeInput}
+                    onChange={(e) => {
+                      setAdminCodeInput(e.target.value);
+                      setAdminLoginError("");
+                    }}
+                    placeholder="Nhập mã truy cập quản trị..."
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                  />
+                </div>
+
+                {adminLoginError && (
+                  <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-800 text-xs px-3.5 py-2.5 rounded-xl">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                    <span>{adminLoginError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!adminCodeInput.trim() || adminLoginLoading}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
+                >
+                  {adminLoginLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Đang xác thực...
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="w-4 h-4" /> Đăng nhập
+                    </>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* 1. Header */}
       <motion.header
         initial={{ y: -90, opacity: 0 }}
@@ -560,6 +688,47 @@ export default function LandingPage() {
                   <Phone className="w-4 h-4 text-accent shrink-0" />
                   <span>Hotline: {cmsContent.Hotline || "0982.072.601"}</span>
                 </a>
+              </div>
+
+              {/* Lối vào Quản trị viên trên Mobile Menu */}
+              <div className="pt-2">
+                {isAdmin ? (
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-sm flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-1.5">
+                        <span className="text-sm">👑</span> Quản trị viên
+                      </span>
+                      <button
+                        onClick={() => {
+                          adminAuth.logout();
+                        }}
+                        className="text-[11px] font-semibold text-destructive hover:underline"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full text-center py-2.5 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"
+                    >
+                      <LayoutDashboard className="w-4 h-4" /> Vào trang Quản trị
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsAdminLoginModalOpen(true);
+                    }}
+                    className="w-full text-left py-2.5 px-3 rounded-xl border border-border/80 bg-background/60 hover:bg-muted text-muted-foreground text-xs font-medium flex items-center justify-between transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-accent" />
+                      <span>Đăng nhập Quản trị</span>
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  </button>
+                )}
               </div>
             </div>
 
