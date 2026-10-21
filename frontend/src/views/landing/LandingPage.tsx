@@ -1410,7 +1410,7 @@ export default function LandingPage() {
                 <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
                 <ul className="space-y-2 text-muted-foreground text-sm">
                   <li>Hotline/Zalo: {cmsContent.FooterHotline || "034 897 3285"}</li>
-                  <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien.com"}</li>
+                  <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien@gmail.com"}</li>
                   <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
                   <li>Giờ mở cửa: {cmsContent.ContactHours || "08:00 - 20:00 (T2-CN)"}</li>
                 </ul>

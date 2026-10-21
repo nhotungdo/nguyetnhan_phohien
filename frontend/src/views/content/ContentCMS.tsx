@@ -61,7 +61,7 @@ const TEXT_KEYS: TextFieldDef[] = [
   // Chân trang & liên hệ
   { key: "FooterHotline", label: "Hotline/Zalo (chân trang)", group: "Chân trang & Liên hệ", icon: <Phone className="w-4 h-4 text-primary" />, multiline: false, placeholder: "0982.072.601" },
   { key: "FooterAddress", label: "Địa chỉ (chân trang)",      group: "Chân trang & Liên hệ", icon: <MapPin className="w-4 h-4 text-primary" />, multiline: false, placeholder: "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên" },
-  { key: "ContactEmail",  label: "Email liên hệ",             group: "Chân trang & Liên hệ", icon: <Mail className="w-4 h-4 text-primary" />, multiline: false, placeholder: "hello@nguyetnhan.vn" },
+  { key: "ContactEmail",  label: "Email liên hệ",             group: "Chân trang & Liên hệ", icon: <Mail className="w-4 h-4 text-primary" />, multiline: false, placeholder: "nguyetnhanphohien@gmail.com" },
   { key: "ContactHours",  label: "Giờ mở cửa",                group: "Chân trang & Liên hệ", icon: <Clock className="w-4 h-4 text-primary" />, multiline: false, placeholder: "08:00 - 20:00 (T2-CN)" },
   { key: "FooterText",    label: "Nội dung chân trang",       group: "Chân trang & Liên hệ", icon: <Globe className="w-4 h-4 text-primary" />, multiline: true,  placeholder: "© 2026 Nguyệt Nhãn Phố Hiến. Tất cả các quyền được bảo lưu." },
 ];

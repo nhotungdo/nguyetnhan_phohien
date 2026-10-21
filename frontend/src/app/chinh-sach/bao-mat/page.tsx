@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
             <li><strong>Bảo mật tuyệt đối:</strong> Mọi thông tin của quý khách được mã hóa an toàn trên hệ thống máy chủ của chúng tôi.</li>
             <li><strong>Cam kết 3 Không:</strong> Không bán, Không chia sẻ, Không cho thuê thông tin cá nhân của quý khách cho bất kỳ bên thứ ba nào vì mục đích thương mại.</li>
           </ul>
-          <p>Nếu quý khách muốn yêu cầu xóa dữ liệu cá nhân khỏi hệ thống, xin vui lòng gửi email về <strong>hello@nguyetnhan.vn</strong>.</p>
+          <p>Nếu quý khách muốn yêu cầu xóa dữ liệu cá nhân khỏi hệ thống, xin vui lòng gửi email về <strong>nguyetnhanphohien@gmail.com</strong>.</p>
         </div>
       </div>
     </div>
