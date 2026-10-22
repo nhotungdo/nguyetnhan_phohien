@@ -10,7 +10,6 @@ import {
   Clock,
   Heart,
   ArrowRight,
-  Sparkles,
   ChefHat,
   Flame,
   Award,
@@ -235,8 +234,7 @@ export function ProductPairingSection({
           {/* Cột chữ văn hóa */}
           <div className="lg:col-span-7">
             <Reveal>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-xs mb-4">
-                <Sparkles className="w-4 h-4 text-accent" />
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-xs mb-4">
                 <span>
                   {language === "en"
                     ? "Pho Hien Culinary Heritage & Living Culture"
