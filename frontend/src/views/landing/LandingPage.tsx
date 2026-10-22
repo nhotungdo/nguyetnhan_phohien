@@ -115,7 +115,6 @@ export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedRecipe, setSelectedRecipe] = useState<'tra' | 'che' | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [chatSendError, setChatSendError] = useState(false);
   const [guestName, setGuestName] = useState(() => {
@@ -1032,78 +1031,15 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Văn hóa */}
-        <section id="van-hoa" className="py-24 bg-card relative overflow-hidden border-t border-border/30 w-full max-w-full">
-          <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
-                <Reveal>
-                  <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">{t.culture.title}</h2>
-                </Reveal>
-                <Reveal delay={0.1}>
-                  <p className="text-lg text-foreground/80 leading-relaxed mb-6">
-                    {t.culture.desc}
-                  </p>
-                </Reveal>
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, margin: "-60px" }}
-                  className="grid grid-cols-2 gap-4"
-                >
-                  <motion.button
-                    variants={fadeUp}
-                    whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setSelectedRecipe('tra')}
-                    className="bg-background p-4 rounded-xl border border-border/50 group text-center hover:border-accent hover:shadow-lg transition-colors"
-                  >
-                    <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-300">🍵</div>
-                    <div className="font-bold text-primary">Trà Long Nhãn</div>
-                  </motion.button>
-                  <motion.button
-                    variants={fadeUp}
-                    whileHover={prefersReducedMotion ? undefined : { y: -6, scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => setSelectedRecipe('che')}
-                    className="bg-background p-4 rounded-xl border border-border/50 group text-center hover:border-accent hover:shadow-lg transition-colors"
-                  >
-                    <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-300">🥣</div>
-                    <div className="font-bold text-primary">Chè Hạt Sen</div>
-                  </motion.button>
-                </motion.div>
-              </div>
-              <div className="aspect-square bg-secondary rounded-full flex items-center justify-center p-8 relative animate-float-slow">
-                <div className="bg-background w-full h-full rounded-full shadow-2xl flex items-center justify-center text-accent font-bold relative overflow-hidden">
-                  [ Ảnh Văn Hóa Thưởng Trà ]
-                  {cmsContent.CultureImage && (
-                    <FastImage
-                      src={resolveCmsImage(cmsContent.CultureImage)}
-                      alt="Văn hóa thưởng trà Phố Hiến"
-                      fill
-                      sizes="(max-width: 768px) 92vw, 560px"
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => e.currentTarget.style.display = 'none'}
-                    />
-                  )}
-                </div>
-                {/* Vòng trang trí quay — đặt SAU để luôn nổi lên trên ảnh */}
-                <div className="absolute inset-4 border-2 border-accent border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* 10. Văn hóa ẩm thực Phố Hiến & Thưởng thức đúng điệu (Kết hợp Hồn Quê Trong Từng Thớ Nhãn & Cẩm nang pha chế) */}
+        <ProductPairingSection
+          language={language as "vi" | "en"}
+          cultureImage={cmsContent.CultureImage ? resolveCmsImage(cmsContent.CultureImage) : undefined}
+          onOrderClick={() => scrollToSection("dat-hang")}
+        />
 
         {/* Scrollytelling Hành trình nghệ nhân sấy củi */}
         <ProductScrollytelling language={language as "vi" | "en"} />
-
-        {/* Nghệ thuật thưởng thức đa giác quan */}
-        <ProductPairingSection
-          language={language as "vi" | "en"}
-          onOrderClick={() => scrollToSection("dat-hang")}
-        />
 
         {/* So sánh minh bạch chất lượng */}
         <ProductComparisonSection language={language as "vi" | "en"} />
@@ -1865,84 +1801,15 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      {/* Recipe Modal */}
-      <AnimatePresence>
-        {selectedRecipe && (
-          <motion.div
-            key="recipe-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSelectedRecipe(null)}
-          >
-            <motion.div
-              key="recipe-panel"
-              initial={{ opacity: 0, scale: 0.92, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              transition={{ type: "spring", stiffness: 300, damping: 26 }}
-              className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto"
-              onClick={e => e.stopPropagation()}
-            >
-              <button onClick={() => setSelectedRecipe(null)} className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 bg-background hover:bg-secondary rounded-full transition-colors text-primary" aria-label="Đóng">
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
-              <div className="text-center mb-5 sm:mb-6">
-                <motion.div
-                  initial={{ scale: 0.4, rotate: -14, opacity: 0 }}
-                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.08 }}
-                  className="text-4xl sm:text-5xl mb-3 sm:mb-4"
-                >
-                  {selectedRecipe === 'tra' ? '🍵' : '🥣'}
-                </motion.div>
-                <h3 className="text-xl sm:text-3xl font-bold text-primary">
-                  {selectedRecipe === 'tra' ? 'Cách pha Trà Long Nhãn' : 'Cách nấu Chè Hạt Sen Long Nhãn'}
-                </h3>
-              </div>
-              {selectedRecipe === 'tra' ? (
-                <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
-                  <p><strong>Nguyên liệu:</strong> 10g Trà khô (trà xanh, ô long, hoa cúc...), 15-20g Long nhãn Nguyệt Nhãn Phố Hiến, 3-5 quả táo đỏ, Kỷ tử, Nước sôi.</p>
-                  <p><strong>Cách thực hiện:</strong></p>
-                  <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
-                    <li>Tráng trà qua một lần nước sôi để làm sạch và đánh thức trà.</li>
-                    <li>Cho trà, long nhãn, táo đỏ, kỷ tử vào ấm.</li>
-                    <li>Châm nước sôi và ủ trong khoảng 10-15 phút để long nhãn nở bung và tiết ra vị ngọt thanh tự nhiên.</li>
-                    <li>Rót ra chén và thưởng thức khi còn ấm. Không cần thêm đường vì long nhãn đã đủ độ ngọt dịu mát.</li>
-                  </ol>
-                </div>
-              ) : (
-                <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm text-foreground/80 leading-relaxed">
-                  <p><strong>Nguyên liệu:</strong> 100g Long nhãn Nguyệt Nhãn, 100g Hạt sen tươi (hoặc khô), Đường phèn.</p>
-                  <p><strong>Cách thực hiện:</strong></p>
-                  <ol className="list-decimal pl-5 space-y-1.5 sm:space-y-2">
-                    <li>Hầm hạt sen với nước cho đến khi hạt sen chín mềm, bở tơi. Thêm đường phèn vừa khẩu vị và đun cho tan.</li>
-                    <li>Tắt bếp, vớt hạt sen ra để nguội bớt. Khéo léo nhồi từng hạt sen vào bên trong cùi long nhãn.</li>
-                    <li>Bật bếp đun sôi lại nồi nước đường, thả phần long nhãn lồng hạt sen vào.</li>
-                    <li>Đun sôi nhẹ khoảng 2-3 phút thì tắt bếp ngay (nếu đun lâu long nhãn sẽ mất độ giòn). Thưởng thức nóng hoặc thêm đá tùy thích.</li>
-                  </ol>
-                </div>
-              )}
-              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t flex justify-center">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedRecipe(null)}
-                  className="bg-accent hover:bg-accent/90 text-white font-bold py-2.5 sm:py-3 px-7 sm:px-8 rounded-full shadow-lg text-sm sm:text-base cursor-pointer"
-                >
-                  Đã hiểu
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* Floating Cart Button & Slide-in Cart Drawer */}
       <CartButton isChatOpen={isChatOpen} />
-      <CartDrawer language={language as "vi" | "en"} onCheckout={handleCartCheckout} />
+      <CartDrawer
+        language={language as "vi" | "en"}
+        onCheckout={handleCartCheckout}
+        onBrowseProducts={() => scrollToSection("san-pham")}
+      />
 
     </div>
   );

@@ -10,9 +10,10 @@ import { CartSummary } from "./CartSummary";
 export interface CartDrawerProps {
   language: "vi" | "en";
   onCheckout: () => void;
+  onBrowseProducts?: () => void;
 }
 
-export function CartDrawer({ language, onCheckout }: CartDrawerProps) {
+export function CartDrawer({ language, onCheckout, onBrowseProducts }: CartDrawerProps) {
   const { items, isOpen, closeCart, getTotalItems } = useCartStore();
   const totalItems = getTotalItems();
 
@@ -25,6 +26,27 @@ export function CartDrawer({ language, onCheckout }: CartDrawerProps) {
     }
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
+
+  const handleBrowseProducts = () => {
+    document.body.style.overflow = "";
+    closeCart();
+    setTimeout(() => {
+      if (onBrowseProducts) {
+        onBrowseProducts();
+      } else {
+        const element = document.getElementById("san-pham");
+        if (element) {
+          const headerOffset = 76;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }
+    }, 50);
+  };
 
   return (
     <AnimatePresence>
@@ -94,8 +116,8 @@ export function CartDrawer({ language, onCheckout }: CartDrawerProps) {
                     </p>
                   </div>
                   <button
-                    onClick={closeCart}
-                    className="mt-2 px-6 py-2.5 bg-accent text-white font-bold rounded-full text-sm hover:bg-accent/90 transition-all active:scale-95"
+                    onClick={handleBrowseProducts}
+                    className="mt-2 px-6 py-2.5 bg-accent text-white font-bold rounded-full text-sm hover:bg-accent/90 transition-all active:scale-95 cursor-pointer shadow-sm hover:shadow"
                   >
                     {language === "en" ? "Browse Products" : "Xem Sản Phẩm"}
                   </button>
