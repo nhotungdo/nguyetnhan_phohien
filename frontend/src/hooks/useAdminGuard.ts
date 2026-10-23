@@ -8,8 +8,7 @@ import { adminAuth } from "@/services/api.service";
  * Trạng thái xác thực khu quản trị.
  *
  * Khu quản trị KHÔNG còn hiện màn hình đăng nhập: token hết hạn/thiếu thì chuyển
- * về trang chủ ("/") — đăng nhập admin qua mã giảm giá "NguyetNhanPhoHienAdmin"
- * trên trang chủ.
+ * về trang chủ ("/") — đăng nhập admin bằng mã quản trị trên trang chủ
  * Đây chỉ là lớp UX — mọi API quản trị vẫn yêu cầu JWT role Admin phía server.
  */
 export function useAdminGuard() {

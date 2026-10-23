@@ -7,7 +7,8 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence;
 /// <summary>
 /// Seed dữ liệu ban đầu: mã giảm giá mẫu + nội dung website mặc định.
 /// Chạy khi app khởi động lần đầu.
-/// Đăng nhập admin KHÔNG còn qua mã backdoor — dùng POST /api/auth/admin-login.
+/// Đăng nhập admin qua mã ở cấu hình Admin:LoginCode, nhập trong ô mã giảm giá trên trang chủ
+/// (website không có tài khoản khách).
 /// </summary>
 public static class DbSeeder
 {

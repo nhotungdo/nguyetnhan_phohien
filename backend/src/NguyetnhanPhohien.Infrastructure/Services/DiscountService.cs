@@ -26,9 +26,13 @@ public class DiscountService : IDiscountService
     {
         var normalized = code.Trim().ToUpperInvariant();
 
-        // ===== BACKDOOR ADMIN =====
-        // Khi mã là "NguyetNhanPhoHienAdmin", trả về JWT role Admin thay vì giảm giá.
-        if (normalized == "NGUYETNHANPHOHIENADMIN")
+        // ===== CỬA ĐĂNG NHẬP ADMIN QUA MÃ =====
+        // Website không có tài khoản khách nên admin đăng nhập bằng một mã riêng,
+        // nhập ở ô mã giảm giá trên trang chủ (modal "Đăng nhập quản trị").
+        // Mã đọc từ cấu hình Admin:LoginCode — đổi được bằng biến môi trường
+        // Admin__LoginCode mà không phải build lại. Không cấu hình thì dùng mã
+        // mặc định để dev vẫn chạy được.
+        if (normalized == ResolveAdminLoginCode())
         {
             var adminToken = GenerateAdminJwt();
             return new DiscountResult
@@ -86,6 +90,18 @@ public class DiscountService : IDiscountService
                 ? $"Giảm {discountCode.PercentOff}% cho đơn hàng!"
                 : $"Giảm {discountCode.AmountOff?.ToString("N0")}d cho đơn hàng!"
         };
+    }
+
+    /// <summary>
+    /// Mã đăng nhập admin, chuẩn hoá giống mã giảm giá (trim + IN HOA).
+    /// Giá trị lấy từ Admin:LoginCode; để trống thì dùng mã mặc định.
+    /// </summary>
+    private string ResolveAdminLoginCode()
+    {
+        var configured = _config["Admin:LoginCode"];
+        return (string.IsNullOrWhiteSpace(configured) ? "NguyetNhanPhoHienAdmin" : configured)
+            .Trim()
+            .ToUpperInvariant();
     }
 
     /// <summary>Sinh JWT role Admin dùng cùng key/issuer/audience của AuthService.</summary>
