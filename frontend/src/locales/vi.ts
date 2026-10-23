@@ -26,11 +26,11 @@ export const vi = {
   // About
   about: {
     title: "Về Nguyệt Nhãn Phố Hiến",
-    desc: "Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến, Nguyệt Nhãn mang trong mình sứ mệnh gìn giữ và phát triển hương vị đặc sản Long Nhãn tiến vua. Chúng tôi kết hợp phương pháp sấy củi truyền thống cùng quy trình vệ sinh hiện đại, tạo ra những mẻ long nhãn vàng óng, dẻo thơm, trọn vẹn tinh túy đất trời.",
+    desc: "Ra đời từ mảnh đất Hưng Yên ngàn năm văn hiến, Nguyệt Nhãn mang trong mình sứ mệnh gìn giữ và phát triển hương vị đặc sản Long Nhãn tiến vua. Chúng tôi áp dụng phương pháp sấy nhiệt nóng (sấy đối lưu) cùng quy trình vệ sinh khép kín hiện đại, tạo ra những mẻ long nhãn vàng óng, dẻo thơm, trọn vẹn tinh túy đất trời.",
     natural_title: "Nguồn gốc 100% tự nhiên",
     natural_desc: "Tuyển chọn từ những trái nhãn lồng Hương Chi chín mọng, cùi dày nhất tại các vườn nhãn cổ thụ.",
-    traditional_title: "Phương pháp truyền thống",
-    traditional_desc: "Sấy hoàn toàn bằng củi nhãn, kiểm soát nhiệt độ thủ công giúp giữ được độ dẻo và hương thơm đặc trưng.",
+    traditional_title: "Phương pháp sấy đối lưu",
+    traditional_desc: "Sấy nhiệt nóng (sấy đối lưu) tuần hoàn khí nóng đa chiều, kiểm soát nhiệt độ nghiêm ngặt giúp giữ được độ dẻo và hương thơm đặc trưng.",
     safe_title: "Không chất bảo quản",
     safe_desc: "Cam kết không sử dụng đường hóa học, không chất tạo màu, an toàn tuyệt đối cho sức khỏe người dùng."
   },
@@ -39,7 +39,7 @@ export const vi = {
     title: "Sản Phẩm Của Chúng Tôi",
     subtitle: "Món quà sức khỏe dành tặng người thân yêu",
     special_name: "Long Nhãn Loại Đặc Biệt",
-    special_desc: "Nhãn lồng cùi dày, sấy thủ công 100%, hạt đều, màu vàng cánh gián đẹp mắt.",
+    special_desc: "Nhãn lồng cùi dày, sấy nhiệt nóng (sấy đối lưu) chuẩn quy trình, hạt đều, màu vàng cánh gián đẹp mắt.",
     zip_name: "Long Nhãn Dạng Túi Zip",
     zip_desc: "Tiện lợi để sử dụng hàng ngày, ngâm rượu hoặc nấu chè, pha trà.",
     gift_name: "Set Quà Tặng Cao Cấp",
@@ -110,7 +110,7 @@ export const vi = {
     tree_title: "Cây Nhãn Tổ",
     tree_desc: "Cây nhãn tổ hơn 300 năm tuổi tại Chùa Hiến là minh chứng lịch sử sống động, nơi sản sinh ra giống nhãn lồng cùi dày, hạt nhỏ, ngọt lịm tiếng tăm lẫy lừng.",
     year2010_title: "Năm 2010",
-    year2010_desc: "Khôi phục phương pháp sấy thủ công. Thương hiệu Nguyệt Nhãn ra đời nhằm bảo tồn di sản."
+    year2010_desc: "Chuẩn hóa phương pháp sấy nhiệt nóng (sấy đối lưu). Thương hiệu Nguyệt Nhãn ra đời nhằm bảo tồn và nâng tầm di sản."
   },
   // Culture
   culture: {

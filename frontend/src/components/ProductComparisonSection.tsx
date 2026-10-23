@@ -19,12 +19,12 @@ const COMPARISONS: ComparisonRow[] = [
   },
   {
     criteria: "Phương pháp làm khô",
-    nguyetNhan: "Sấy củi nhãn già thủ công 36 giờ liên tục, canh lửa truyền thống ngàn năm.",
-    market: "Sấy điện công nghiệp nhanh hoặc xông lưu huỳnh (diêm sinh), than tổ ong.",
+    nguyetNhan: "Sấy nhiệt nóng (sấy đối lưu) tuần hoàn khí nóng đa chiều, kiểm soát nhiệt độ nghiêm ngặt.",
+    market: "Xông lưu huỳnh (diêm sinh), sấy than tổ ong độc hại hoặc phơi bụi bẩn.",
   },
   {
     criteria: "Màu sắc & Hương thơm",
-    nguyetNhan: "Vàng cánh gián hổ phách trong vắt, thơm lừng mùi khói củi nhãn đặc trưng.",
+    nguyetNhan: "Vàng cánh gián hổ phách trong vắt, thơm nức mùi nhãn lồng tự nhiên đặc trưng.",
     market: "Xỉn đen do sấy vụng, hoặc vàng chói mắt bất thường do tẩy hóa chất lưu huỳnh.",
   },
   {

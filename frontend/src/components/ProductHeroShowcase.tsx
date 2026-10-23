@@ -129,7 +129,7 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
         </div>
       </motion.div>
 
-      {/* Huy hiệu nổi 3: Sấy củi 36h (Góc phải giữa) */}
+      {/* Huy hiệu nổi 3: Sấy nhiệt nóng (sấy đối lưu) (Góc phải giữa) */}
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [-4, 4, -4] }}
         transition={{ duration: 5.5, ease: "easeInOut", repeat: Infinity, delay: 1.4 }}
@@ -139,8 +139,8 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
           <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground leading-tight">Thủ công</div>
-          <div className="text-[11px] sm:text-xs font-bold text-primary leading-tight">Sấy Củi Nhãn 36h</div>
+          <div className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground leading-tight">Phương pháp</div>
+          <div className="text-[11px] sm:text-xs font-bold text-primary leading-tight">Sấy Nhiệt Nóng (Đối Lưu)</div>
         </div>
       </motion.div>
     </div>

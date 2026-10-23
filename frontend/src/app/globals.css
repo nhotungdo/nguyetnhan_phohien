@@ -317,3 +317,27 @@
     scroll-behavior: auto;
   }
 }
+
+/* 🖨️ In ấn hóa đơn đơn hàng */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #order-printable-receipt,
+  #order-printable-receipt * {
+    visibility: visible;
+  }
+  #order-printable-receipt {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    background: #ffffff !important;
+    color: #000000 !important;
+    z-index: 999999;
+  }
+}
+

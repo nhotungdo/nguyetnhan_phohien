@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     default: "Nguyệt Nhãn Phố Hiến | Đặc Sản Long Nhãn Tiến Vua Hưng Yên",
     template: "%s | Nguyệt Nhãn Phố Hiến",
   },
-  description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên chính gốc, sấy củi nhãn thủ công 100% tự nhiên, vị ngọt thanh tao, lưu giữ trọn vẹn hương vị truyền thống ngàn xưa.",
-  keywords: ["Nguyệt Nhãn Phố Hiến", "Long nhãn Hưng Yên", "Long nhãn tiến vua", "Đặc sản Hưng Yên", "Long nhãn sấy củi", "Nhãn lồng Phố Hiến"],
+  description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên chính gốc, sấy nhiệt nóng (sấy đối lưu) 100% tự nhiên, vị ngọt thanh tao, lưu giữ trọn vẹn hương vị truyền thống ngàn xưa.",
+  keywords: ["Nguyệt Nhãn Phố Hiến", "Long nhãn Hưng Yên", "Long nhãn tiến vua", "Đặc sản Hưng Yên", "Long nhãn sấy đối lưu", "Nhãn lồng Phố Hiến"],
   authors: [{ name: "Nguyệt Nhãn Phố Hiến" }],
   creator: "Nguyệt Nhãn Phố Hiến",
   publisher: "Nguyệt Nhãn Phố Hiến",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     url: "https://nguyetnhanphohien.com",
     title: "Nguyệt Nhãn Phố Hiến | Đặc Sản Long Nhãn Tiến Vua Hưng Yên",
-    description: "Long nhãn sấy củi tự nhiên, chuẩn vị tiến vua bãi bồi sông Hồng Hưng Yên.",
+    description: "Long nhãn sấy nhiệt nóng (sấy đối lưu) tự nhiên, chuẩn vị tiến vua bãi bồi sông Hồng Hưng Yên.",
     siteName: "Nguyệt Nhãn Phố Hiến",
     images: [
       {
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Nguyệt Nhãn Phố Hiến | Đặc Sản Long Nhãn Tiến Vua Hưng Yên",
-    description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên chính gốc, sấy củi nhãn thủ công 100% tự nhiên, vị ngọt thanh tao.",
+    description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên chính gốc, sấy nhiệt nóng (sấy đối lưu) 100% tự nhiên, vị ngọt thanh tao.",
     images: ["/logo.jpg"],
   },
   alternates: {
@@ -86,7 +86,7 @@ const organizationJsonLd = {
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com",
   logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com"}/logo.jpg`,
   image: `${process.env.NEXT_PUBLIC_SITE_URL || "https://nguyetnhanphohien.com"}/logo.jpg`,
-  description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên sấy củi thủ công 100% tự nhiên, chuẩn vị tiến vua.",
+  description: "Đặc sản Long Nhãn Phố Hiến - Hưng Yên sấy nhiệt nóng (sấy đối lưu) 100% tự nhiên, chuẩn vị tiến vua.",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Phố Hiến",

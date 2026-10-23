@@ -26,11 +26,11 @@ export const en = {
   // About
   about: {
     title: "About Nguyet Nhan Pho Hien",
-    desc: "Born from the thousand-year-old civilized land of Hung Yen, Nguyet Nhan carries the mission of preserving and developing the flavor of the royal specialty - Dried Longan. We combine traditional firewood drying with modern hygiene processes, creating golden, fragrant, and perfectly textured longan.",
+    desc: "Born from the thousand-year-old civilized land of Hung Yen, Nguyet Nhan carries the mission of preserving and developing the flavor of the royal specialty - Dried Longan. We apply the hot air convective drying method together with modern closed hygienic processes, creating golden, fragrant, and perfectly textured longan.",
     natural_title: "100% Natural Origin",
     natural_desc: "Selected from the ripest, thickest Huong Chi longans from ancient longan orchards.",
-    traditional_title: "Traditional Method",
-    traditional_desc: "Completely dried with longan firewood, manually controlled temperature helps preserve the flexibility and characteristic aroma.",
+    traditional_title: "Convective Drying Method",
+    traditional_desc: "Hot air convective drying with multi-directional circulation and strictly controlled temperature helps preserve the chewy texture and signature pure aroma.",
     safe_title: "No Preservatives",
     safe_desc: "Committed to no artificial sweeteners, no colorings, absolutely safe for users' health."
   },
@@ -39,7 +39,7 @@ export const en = {
     title: "Our Products",
     subtitle: "A health gift for your loved ones",
     special_name: "Premium Special Dried Longan",
-    special_desc: "Thick pulp, 100% manually dried, even seeds, beautiful cockroach-wing yellow color.",
+    special_desc: "Thick pulp, standardized hot air convective drying, uniform gems with elegant golden amber color.",
     zip_name: "Zip Bag Dried Longan",
     zip_desc: "Convenient for daily use, soaking in wine or cooking sweet soup, making tea.",
     gift_name: "Luxury Gift Set",
@@ -110,7 +110,7 @@ export const en = {
     tree_title: "The Ancestor Tree",
     tree_desc: "The over 300-year-old ancestor longan tree at Hien Pagoda is a living historical testament, the birthplace of the famous thick-pulped, small-seeded, sweet longan variety.",
     year2010_title: "Year 2010",
-    year2010_desc: "Restored manual drying method. Nguyet Nhan brand was born to preserve the heritage."
+    year2010_desc: "Standardized convective drying method. Nguyet Nhan brand was born to preserve and elevate the heritage."
   },
   // Culture
   culture: {

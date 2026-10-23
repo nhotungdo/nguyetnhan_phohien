@@ -36,7 +36,7 @@ const PRODUCT_HOTSPOTS = [
     x: 68,
     y: 24,
     title: "Bảo quản kín khí 12 tháng",
-    desc: "Đóng gói tiêu chuẩn vô trùng, giữ trọn độ dẻo và hương thơm củi nhãn nguyên bản.",
+    desc: "Đóng gói tiêu chuẩn vô trùng, giữ trọn độ dẻo và hương thơm nhãn lồng nguyên bản.",
     badge: "Hạn dùng 12 Tháng",
   },
   {
@@ -44,7 +44,7 @@ const PRODUCT_HOTSPOTS = [
     x: 32,
     y: 48,
     title: "Sắc vàng cánh gián hổ phách",
-    desc: "Màu tự nhiên từ lò sấy củi nhãn, tuyệt đối không dùng phẩm màu hay xông lưu huỳnh.",
+    desc: "Màu tự nhiên từ quy trình sấy nhiệt nóng đối lưu, tuyệt đối không dùng phẩm màu hay xông lưu huỳnh.",
     badge: "Tự Nhiên 100%",
   },
   {
@@ -61,7 +61,7 @@ const PRODUCT_HOTSPOTS = [
 const PRODUCT_METRICS = [
   { label: "Độ ngọt thanh tự nhiên", labelEn: "Natural Sweetness", value: 98, color: "from-amber-400 to-amber-600" },
   { label: "Độ dẻo mọng cùi nhãn", labelEn: "Texture & Chewy", value: 95, color: "from-emerald-500 to-teal-600" },
-  { label: "Mùi thơm củi nhãn đặc trưng", labelEn: "Smoked Longan Aroma", value: 100, color: "from-orange-400 to-red-500" },
+  { label: "Hương thơm nhãn lồng tự nhiên", labelEn: "Natural Longan Aroma", value: 100, color: "from-orange-400 to-red-500" },
   { label: "Tỷ lệ hạt loại 1 tròn đều", labelEn: "Grade A Uniformity", value: 99, color: "from-yellow-400 to-amber-500" },
 ];
 
@@ -148,8 +148,8 @@ export function ProductInteractiveShowcase({
           </h2>
           <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
             {language === "en"
-              ? (cmsContent.ProductsSubtitle_En || "Hand-selected Hương Chi longan, traditionally smoked over longan firewood to preserve its golden hue and honeyed fragrance.")
-              : (cmsContent.ProductsSubtitle || "Từng cùi nhãn Hương Chi được chọn lọc kỹ lưỡng, sấy củi thủ công giữ trọn sắc vàng óng ánh và hương thơm ngọt ngào trứ danh.")}
+              ? (cmsContent.ProductsSubtitle_En || "Hand-selected Hương Chi longan, dried using hot air convective drying to preserve its golden hue and honeyed fragrance.")
+              : (cmsContent.ProductsSubtitle || "Từng cùi nhãn Hương Chi được chọn lọc kỹ lưỡng, sấy nhiệt nóng (sấy đối lưu) giữ trọn sắc vàng óng ánh và hương thơm ngọt ngào trứ danh.")}
           </p>
         </motion.div>
 
@@ -432,7 +432,7 @@ export function ProductInteractiveShowcase({
                 <div className="grid grid-cols-2 gap-2 py-2.5 border-t border-b border-border/50 mb-3.5 text-[11px] sm:text-xs text-foreground/80 w-full">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Sấy củi nhãn thủ công</span>
+                    <span className="truncate">Sấy nhiệt nóng (đối lưu)</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

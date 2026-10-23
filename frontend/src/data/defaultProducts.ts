@@ -6,7 +6,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     name: "Long Nhãn Loại Đặc Biệt",
     price: 350000,
     size: "Hộp 500g",
-    description: "Nhãn lồng cùi dày Hương Chi, sấy thủ công bằng củi nhãn 100%, hạt đều tăm tắp, màu vàng cánh gián hổ phách sang trọng, dẻo ngọt thanh tao.",
+    description: "Nhãn lồng cùi dày Hương Chi, sấy nhiệt nóng (sấy đối lưu), hạt đều tăm tắp, màu vàng cánh gián hổ phách sang trọng, dẻo ngọt thanh tao.",
     isActive: true,
     displayOrder: 1,
     images: [{ id: "img-1", imagePath: "/images/hopnhua.jpg", displayOrder: 1 }],

@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderApi } from "@/services/api.service";
 import type { OrderResponse } from "@/types/api.types";
-import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck, Mail, MailCheck, AlertTriangle, Send } from "lucide-react";
+import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck, Mail, MailCheck, AlertTriangle, Send, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import OrderDetailModal from "./OrderDetailModal";
 
 // Phải khớp với enum OrderStatus phía backend:
 // PendingConfirmation, Confirmed, Shipping, Completed, Cancelled
@@ -67,6 +68,11 @@ export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("id") || params.get("orderId") || null;
+  });
   const [toasts, setToasts] = useState<Toast[]>([]);
   const queryClient = useQueryClient();
 
@@ -82,6 +88,8 @@ export default function Orders() {
     initialDataUpdatedAt: 0,
     staleTime: 60 * 1000,
   });
+
+  const selectedOrder = orders.find((o) => o.id === selectedOrderId) ?? null;
 
   const addToast = (type: "success" | "error", message: string) => {
     const id = ++toastSeq;
@@ -213,14 +221,21 @@ export default function Orders() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
                     key={order.id}
-                    className="border-b border-border hover:bg-muted/30 transition-colors"
+                    onClick={() => setSelectedOrderId(order.id)}
+                    className="border-b border-border hover:bg-muted/40 transition-colors cursor-pointer group"
                   >
                     {/* KHÁCH HÀNG */}
                     <td className="px-6 py-4">
-                      <div className="font-bold text-foreground mb-1">{order.customerName}</div>
+                      <div className="font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                        <span>{order.customerName}</span>
+                      </div>
                       <div className="flex items-center gap-1.5 text-muted-foreground text-xs mb-1">
                         <Phone className="w-3 h-3 text-primary" />
-                        <a href={`tel:${order.customerPhone}`} className="hover:underline font-medium text-foreground/80">
+                        <a
+                          href={`tel:${order.customerPhone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:underline font-medium text-foreground/80"
+                        >
                           {order.customerPhone}
                         </a>
                       </div>
@@ -300,26 +315,45 @@ export default function Orders() {
                     {/* THAO TÁC */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex flex-col items-end gap-2">
-                        {/* Cập nhật trạng thái */}
-                        {updatingId === order.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                        ) : (
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                            className="bg-background border border-border text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                        <div className="flex items-center gap-1.5">
+                          {/* Nút Xem chi tiết */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrderId(order.id);
+                            }}
+                            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all active:scale-95 font-medium shadow-xs"
+                            title="Xem chi tiết đơn hàng"
                           >
-                            <option value="PendingConfirmation">Chờ xác nhận</option>
-                            <option value="Confirmed">Đã xác nhận</option>
-                            <option value="Shipping">Đang giao</option>
-                            <option value="Completed">Hoàn thành</option>
-                            <option value="Cancelled">Hủy đơn</option>
-                          </select>
-                        )}
+                            <Eye className="w-3.5 h-3.5 text-primary" />
+                            <span>Chi tiết</span>
+                          </button>
+
+                          {/* Cập nhật trạng thái */}
+                          {updatingId === order.id ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                          ) : (
+                            <select
+                              value={order.status}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                              className="bg-background border border-border text-xs rounded-md px-2 py-1.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                            >
+                              <option value="PendingConfirmation">Chờ xác nhận</option>
+                              <option value="Confirmed">Đã xác nhận</option>
+                              <option value="Shipping">Đang giao</option>
+                              <option value="Completed">Hoàn thành</option>
+                              <option value="Cancelled">Hủy đơn</option>
+                            </select>
+                          )}
+                        </div>
 
                         {/* Nút gửi hóa đơn qua email */}
                         <button
-                          onClick={() => handleResendInvoice(order)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleResendInvoice(order);
+                          }}
                           disabled={sendingInvoiceId === order.id || !order.customerEmail}
                           title={
                             order.customerEmail
@@ -374,7 +408,8 @@ export default function Orders() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
               key={order.id}
-              className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3 relative"
+              onClick={() => setSelectedOrderId(order.id)}
+              className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex flex-col gap-3 relative cursor-pointer hover:border-primary/40 transition-all active:scale-[0.99]"
             >
               {/* Header card: Tên khách & Trạng thái */}
               <div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2.5">
@@ -383,6 +418,7 @@ export default function Orders() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                     <a
                       href={`tel:${order.customerPhone}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-primary font-semibold hover:underline"
                     >
                       <Phone className="w-3 h-3 shrink-0" />
@@ -484,6 +520,18 @@ export default function Orders() {
                   </div>
                 </div>
 
+                {/* Nút xem chi tiết đơn hàng */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedOrderId(order.id);
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 transition-all active:scale-95 shadow-xs"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Xem chi tiết đơn hàng</span>
+                </button>
+
                 <div className="grid grid-cols-2 gap-2">
                   {/* Select đổi trạng thái */}
                   <div className="relative">
@@ -495,6 +543,7 @@ export default function Orders() {
                     ) : (
                       <select
                         value={order.status}
+                        onClick={(e) => e.stopPropagation()}
                         onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
                         className="w-full bg-background border border-border text-xs font-semibold rounded-xl px-3 py-2.5 outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
                       >
@@ -509,7 +558,10 @@ export default function Orders() {
 
                   {/* Nút gửi lại hóa đơn */}
                   <button
-                    onClick={() => handleResendInvoice(order)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleResendInvoice(order);
+                    }}
                     disabled={sendingInvoiceId === order.id || !order.customerEmail}
                     className={`w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 px-3 rounded-xl border transition-all ${
                       order.customerEmail
@@ -530,6 +582,22 @@ export default function Orders() {
           ))
         )}
       </div>
+
+      {/* MODAL CHI TIẾT ĐƠN HÀNG */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <OrderDetailModal
+            order={selectedOrder}
+            onClose={() => setSelectedOrderId(null)}
+            onUpdateStatus={handleUpdateStatus}
+            onResendInvoice={handleResendInvoice}
+            isUpdatingStatus={updatingId === selectedOrder.id}
+            isSendingInvoice={sendingInvoiceId === selectedOrder.id}
+            addToast={addToast}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

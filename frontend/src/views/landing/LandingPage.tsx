@@ -959,7 +959,7 @@ export default function LandingPage() {
                 </p>
                 <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
                   <p className="text-foreground/80 italic">
-                    {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For a hundred years, the people here still preserve the profession of firewood drying longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn sấy củi, như một cách lưu giữ hồn quê hương.\""}
+                    {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For generations, the people here preserve the craft of making longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
                 <button
@@ -1049,7 +1049,7 @@ export default function LandingPage() {
           onOrderClick={() => scrollToSection("dat-hang")}
         />
 
-        {/* Scrollytelling Hành trình nghệ nhân sấy củi */}
+        {/* Scrollytelling Hành trình nghệ nhân chế biến long nhãn */}
         <ProductScrollytelling language={language as "vi" | "en"} />
 
         {/* So sánh minh bạch chất lượng */}
