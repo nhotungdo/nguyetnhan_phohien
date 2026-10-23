@@ -109,6 +109,7 @@ export default function Dashboard() {
       return data;
     },
     initialData: initialCached ?? undefined,
+    initialDataUpdatedAt: 0,
     staleTime: 30 * 1000,
   });
 

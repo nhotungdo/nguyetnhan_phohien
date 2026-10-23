@@ -79,6 +79,7 @@ export default function Orders() {
       return sorted;
     },
     initialData: () => readCachedOrders() ?? undefined,
+    initialDataUpdatedAt: 0,
     staleTime: 60 * 1000,
   });
 
