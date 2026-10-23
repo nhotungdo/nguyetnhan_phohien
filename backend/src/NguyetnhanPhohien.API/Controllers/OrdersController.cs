@@ -73,11 +73,30 @@ public class OrdersController : ControllerBase
     /// Endpoint là PUBLIC nên có thể nhận "+84 982 072 601", "0982.072.601"… —
     /// nếu lưu nguyên chuỗi thì cùng một khách bị coi là nhiều người khác nhau
     /// (bảng DiscountRedemptions chống dùng lại mã theo số điện thoại).
+    ///
+    /// +84: bỏ ĐÚNG 2 ký tự đầu ("84") rồi thêm "0" — đúng cho CẢ di động lẫn
+    /// cố định:
+    ///   - Di động "84982072601"  (11 số) → "0982072601"  (10 số nội địa).
+    ///   - Cố định "842213825555" (12 số) → "02213825555" (11 số nội địa).
+    /// Trước đây dùng digits[^9..] (giữ 9 số cuối) — công thức chỉ đúng với di
+    /// động; với số cố định 12 số nó vứt mất một chữ số thật của tổng đài →
+    /// số sai, khách nhập hợp lệ bị trả "Số điện thoại không hợp lệ".
+    /// Bản sao logic này nằm ở frontend/src/lib/validation.ts — đổi ở đây phải
+    /// đổi cả ở đó để hai bên chặn/khớp nhau.
     /// </summary>
     private static string NormalizePhone(string? phone)
     {
         var digits = PhoneNumber.Normalize(phone);
-        if (digits.StartsWith("84") && digits.Length >= 11) return "0" + digits[^9..];
+
+        if (digits.StartsWith("84") && digits.Length > 2)
+        {
+            // Bỏ tiền tố "84"; nếu người dùng gõ nhầm "84" + số nội địa có sẵn
+            // số 0 đầu ("840982072601") thì TrimStart('0') bỏ số 0 đó, tránh
+            // tạo ra chuỗi "00..." vô nghĩa.
+            return "0" + digits[2..].TrimStart('0');
+        }
+
+        // Khách gõ thiếu số 0 đầu (9 số, đầu số di động) → thêm 0 cho đúng dạng.
         if (digits.Length == 9) return "0" + digits;
         return digits;
     }

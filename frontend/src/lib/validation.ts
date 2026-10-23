@@ -29,7 +29,19 @@ export function normalizePhone(raw: string): string {
   if (!digits) return "";
 
   // "+84 982 072 601" / "84 982072601" → "0982072601"
-  if (digits.startsWith("84") && digits.length >= 11) return "0" + digits.slice(-9);
+  // Bỏ ĐÚNG 2 ký tự đầu ("84") rồi thêm "0" — đúng cho CẢ di động lẫn cố định:
+  //   - Di động "84982072601"  (11 số) → "0982072601"  (10 số nội địa).
+  //   - Cố định "842213825555" (12 số) → "02213825555" (11 số nội địa).
+  // Trước đây dùng digits.slice(-9) (giữ 9 số cuối) — công thức chỉ đúng với di
+  // động; với số cố định 12 số nó vứt mất một chữ số thật của tổng đài → số
+  // sai, khách bị chặn "phone_invalid" dù nhập hợp lệ.
+  // Bản sao logic này nằm ở backend OrdersController.NormalizePhone — đổi một
+  // bên phải đổi cả bên kia để validate client và chuẩn hoá server khớp nhau.
+  if (digits.startsWith("84") && digits.length > 2) {
+    // Nếu người dùng gõ nhầm "84" + số nội địa có sẵn số 0 đầu
+    // ("840982072601") thì bỏ số 0 đó, tránh tạo ra "00..." vô nghĩa.
+    return "0" + digits.slice(2).replace(/^0+/, "");
+  }
   // Khách gõ thiếu số 0 đầu (9 số, đầu số di động) → thêm 0 cho đúng dạng.
   if (digits.length === 9) return "0" + digits;
   return digits;
