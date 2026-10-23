@@ -20,6 +20,7 @@ import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, M
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth, discountApi } from "@/services/api.service";
+import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
 import { useOrderForm } from "@/hooks/useOrderForm";
 import { useVnProvinces } from "@/hooks/useVnProvinces";
 import { wardsOf } from "@/lib/vnAddress";
@@ -101,6 +102,7 @@ export default function LandingPage() {
         adminAuth.login(result.adminToken);
         setIsAdminLoginModalOpen(false);
         setIsMobileMenuOpen(false);
+        triggerPageNavigation();
         router.push("/dashboard");
       } else {
         setAdminLoginError("Mã quản trị không hợp lệ.");
@@ -435,7 +437,12 @@ export default function LandingPage() {
   const { base, discount, final } = calculateTotal();
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground w-full max-w-full overflow-x-clip">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.32, ease: "easeOut" }}
+      className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground w-full max-w-full overflow-x-clip"
+    >
       {/* Thanh tiến trình cuộn — phản hồi tức thì vị trí đang đọc */}
       <ScrollProgressBar />
 
@@ -708,7 +715,11 @@ export default function LandingPage() {
                     </div>
                     <Link
                       href="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      prefetch={true}
+                      onClick={() => {
+                        triggerPageNavigation();
+                        setIsMobileMenuOpen(false);
+                      }}
                       className="w-full text-center py-2.5 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"
                     >
                       <LayoutDashboard className="w-4 h-4" /> Vào trang Quản trị
@@ -1532,10 +1543,10 @@ export default function LandingPage() {
               <div className="space-y-4">
                 <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
                 <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
-                  <li><Link href="/chinh-sach/giao-hang" className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
-                  <li><Link href="/chinh-sach/doi-tra" className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
-                  <li><Link href="/chinh-sach/bao-mat" className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
-                  <li><Link href="/chinh-sach/kiem-dinh" className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
+                  <li><Link href="/chinh-sach/giao-hang" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
+                  <li><Link href="/chinh-sach/doi-tra" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
+                  <li><Link href="/chinh-sach/bao-mat" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
+                  <li><Link href="/chinh-sach/kiem-dinh" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
                 </ul>
               </div>
             </div>
@@ -1811,6 +1822,6 @@ export default function LandingPage() {
         onBrowseProducts={() => scrollToSection("san-pham")}
       />
 
-    </div>
+    </motion.div>
   );
 }

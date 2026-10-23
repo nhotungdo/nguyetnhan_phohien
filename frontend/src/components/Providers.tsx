@@ -1,10 +1,12 @@
-﻿
+
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { useState } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+
+import { RouteProgressBar } from "@/components/layout/RouteProgressBar";
 
 function RealtimeSync() {
   // Tách thành component con để dùng useQueryClient() đã có trong Provider.
@@ -30,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <RealtimeSync />
+      <RouteProgressBar />
       {/* reducedMotion="user": người bật "giảm chuyển động" trong OS sẽ bỏ qua mọi
           animation transform của framer-motion (trượt/zoom/parallax) trên TOÀN bộ app,
           chỉ còn hiệu ứng mờ dần — nội dung vẫn hiện đầy đủ, không bị trượt mạnh. */}

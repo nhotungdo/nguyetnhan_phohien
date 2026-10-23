@@ -12,9 +12,11 @@ import {
   useSidebar
 } from "@/components/ui/sidebar"
 import { MessageSquare, Package, LayoutDashboard, LogOut, Globe, Ticket, CreditCard, ExternalLink } from "lucide-react"
+import React, { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { adminAuth, chatApi } from "@/services/api.service"
+import { triggerPageNavigation } from "@/components/layout/RouteProgressBar"
 
 const items = [
   { title: "Tổng quan", url: "/dashboard", icon: LayoutDashboard },
@@ -30,6 +32,15 @@ export function AppSidebar() {
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
 
+  // Tải trước các route quản trị trong nền ngay khi sidebar mount
+  useEffect(() => {
+    items.forEach((item) => {
+      router.prefetch(item.url);
+    });
+    router.prefetch("/products");
+    router.prefetch("/");
+  }, [router]);
+
   const { data: chatStats } = useQuery({
     queryKey: ["chat", "stats"],
     queryFn: () => chatApi.getStats(),
@@ -42,13 +53,17 @@ export function AppSidebar() {
     if (isMobile) {
       setOpenMobile(false);
     }
-    router.push(url);
+    if (pathname !== url) {
+      triggerPageNavigation();
+      router.push(url);
+    }
   };
 
   const handleLogout = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
+    triggerPageNavigation();
     adminAuth.logout();
     router.push("/");
   };
@@ -85,6 +100,8 @@ export function AppSidebar() {
                       isActive={isActive} 
                       tooltip={item.title}
                       onClick={() => handleNavigate(item.url)}
+                      onMouseEnter={() => router.prefetch(item.url)}
+                      onFocus={() => router.prefetch(item.url)}
                       className="py-2.5"
                     >
                       <item.icon className="w-5 h-5" />
@@ -110,8 +127,10 @@ export function AppSidebar() {
                 <SidebarMenuButton 
                   onClick={() => {
                     if (isMobile) setOpenMobile(false);
+                    triggerPageNavigation();
                     router.push("/");
                   }}
+                  onMouseEnter={() => router.prefetch("/")}
                   className="text-muted-foreground hover:text-primary py-2.5"
                 >
                   <ExternalLink className="w-4 h-4" />

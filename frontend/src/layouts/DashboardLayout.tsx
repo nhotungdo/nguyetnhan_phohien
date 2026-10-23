@@ -1,11 +1,13 @@
-"use client"
-import React from "react"
+"use client";
+
+import React, { useRef, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { useAdminGuard } from "@/hooks/useAdminGuard"
 import { adminAuth } from "@/services/api.service"
+import { triggerPageNavigation } from "@/components/layout/RouteProgressBar"
 import { ExternalLink, LogOut } from "lucide-react"
 
 const PAGE_TITLES: { prefix: string; title: string }[] = [
@@ -22,6 +24,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { isAuthorized, isLoading } = useAdminGuard();
   const pathname = usePathname() || "";
   const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Cuộn container nội dung admin lên đầu trang một cách mượt mà khi đổi tab
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [pathname]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground text-sm">Đang xác thực...</div>;
@@ -34,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const currentTitle = PAGE_TITLES.find((p) => pathname === p.prefix || pathname.startsWith(`${p.prefix}/`))?.title || "Quản trị";
 
   const handleLogout = () => {
+    triggerPageNavigation();
     adminAuth.logout();
     router.push("/");
   };
@@ -74,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </button>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 relative">
+          <div ref={contentRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 relative">
             {children}
           </div>
         </main>

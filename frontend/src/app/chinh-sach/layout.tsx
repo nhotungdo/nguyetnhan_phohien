@@ -6,7 +6,7 @@ export default function PolicyLayout({ children }: { children: React.ReactNode }
     <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-primary text-white py-4 shadow-md sticky top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover:text-accent transition-colors font-medium">
+          <Link href="/" prefetch={true} className="flex items-center gap-2 hover:text-accent transition-colors font-medium">
             <ArrowLeft className="w-5 h-5" /> Trở về trang chủ
           </Link>
           <div style={{ fontFamily: 'var(--font-dancing)' }} className="text-2xl font-bold">
