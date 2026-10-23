@@ -679,8 +679,73 @@ Hotline: 034 897 3285
         order.Status = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync();
-        return MapToResponse(order);
+        // Đổi trạng thái và hoàn lượt mã giảm giá chạy trong MỘT transaction:
+        // một bên lỗi là rollback cả cụm — không để lại "đơn đã huỷ nhưng lượt mã
+        // vẫn bị tính, hay lượt được trả về nhưng đơn vẫn chờ xác nhận".
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            // Khi huỷ đơn thì thêm điều kiện Status != Cancelled để chặn double-refund
+            // nếu hai tab admin bấm huỷ gần như cùng lúc: chỉ request đầu tiên được
+            // chuyển trạng thái và hoàn lượt, request sau nhận affected == 0. Với các
+            // chuyển trạng thái khác thì update vô điều kiện (mở lại đơn đã huỷ vẫn hoạt động).
+            var query = _db.Orders.Where(o => o.Id == id);
+            if (newStatus == OrderStatus.Cancelled)
+                query = query.Where(o => o.Status != OrderStatus.Cancelled);
+
+            var affected = await query.ExecuteUpdateAsync(s => s
+                .SetProperty(o => o.Status, newStatus)
+                .SetProperty(o => o.UpdatedAt, DateTime.UtcNow));
+
+            // Hoàn lượt dùng mã khi đơn CHUYỂN sang "Đã huỷ" (affected > 0 - tức là
+            // trạng thái trong DB thực sự đổi, không phải bấm huỷ lần thứ hai) và
+            // đơn này có áp mã. Đơn không có mã thì không có gì để hoàn.
+            if (affected > 0
+                && newStatus == OrderStatus.Cancelled
+                && !string.IsNullOrEmpty(order.DiscountCodeApplied))
+            {
+                await RefundDiscountUsageAsync(order);
+            }
+
+            await transaction.CommitAsync();
+            return MapToResponse(order);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Hoàn trả lượt dùng mã giảm giá của đơn bị huỷ: xoá dòng DiscountRedemption
+    /// gắn với đơn này (SĐT khách được dùng lại mã) và giảm UsageCount — không cho
+    /// rơi xuống dưới 0.
+    ///
+    /// Chỉ giảm lượt khi dòng redemption của đơn TỒN TẠI: sự tồn tại của nó chứng
+    /// minh UsageCount ĐANG bao gồm đơn này (khớp với luồng ghi năm CreateOrderAsync),
+    /// và chính thao tác xoá là chốt "hoàn đúng một lần" — hoàn lại lần nữa thì
+    /// deleted == 0 nên không giảm thêm. Đơn cũ trước khi có bảng redemption
+    /// (hiếm) sẽ không tự hoàn được, phải xử tay.
+    /// </summary>
+    private async Task RefundDiscountUsageAsync(Order order)
+    {
+        var codeId = await _db.DiscountRedemptions
+            .AsNoTracking()
+            .Where(r => r.OrderId == order.Id)
+            .Select(r => (Guid?)r.DiscountCodeId)
+            .FirstOrDefaultAsync();
+        if (codeId == null) return;
+
+        var deleted = await _db.DiscountRedemptions
+            .Where(r => r.OrderId == order.Id)
+            .ExecuteDeleteAsync();
+        if (deleted == 0) return; // dòng đã bị tab khác xoá (hoàn rồi) → không giảm thêm
+
+        // Mã đã bị admin xoá (không dòng nào khớp) thì không đổi gì — vẫn an toàn.
+        await _db.DiscountCodes
+            .Where(d => d.Id == codeId.Value && d.UsageCount > 0)
+            .ExecuteUpdateAsync(s => s.SetProperty(d => d.UsageCount, d => d.UsageCount - 1));
     }
 
     /// <summary>
