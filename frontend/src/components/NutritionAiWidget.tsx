@@ -59,7 +59,7 @@ const QUICK_PROMPTS = [
   {
     icon: "⚠️",
     label: "Kiểm tra dị ứng hạt",
-    prompt: "Tôi có cơ địa dị ứng hạt vỏ cứng (hạt điều, hạnh nhân, óc chó), cửa hàng có sản phẩm long nhãn nào an toàn tuyệt đối không chứa hạt không?",
+    prompt: "Tôi có cơ địa dị ứng hạt vỏ cứng (hạt điều, hạnh nhân, macca), cửa hàng có sản phẩm long nhãn nào an toàn tuyệt đối không chứa hạt không?",
     autoAllergy: true
   }
 ];
@@ -167,8 +167,8 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
       id: "welcome-init",
       role: "assistant",
       content: language === "en"
-        ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, walnuts, cashews). How may I assist your health and wellness goals today?"
-        : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Óc chó, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
+        ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
+        : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
       time: "Vừa xong"
     }
   ]);
@@ -193,7 +193,11 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
     };
   }, []);
 
-  const handleSendMessage = async (textToSend?: string) => {
+  const handleSendMessage = async (
+    textToSend?: string,
+    overrideGoal?: string | null,
+    overrideNutAllergic?: boolean
+  ) => {
     const text = (textToSend || input).trim();
     if (!text || isLoading) return;
 
@@ -233,17 +237,23 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         content: m.content
       }));
 
-    // Chuẩn bị Health Profile
-    let goalDescription: string | undefined = undefined;
-    if (selectedGoal === "diet") goalDescription = "Ăn kiêng, giảm calo, duy trì vóc dáng";
-    else if (selectedGoal === "insomnia") goalDescription = "Mất ngủ, khó ngủ, dưỡng tâm an thần";
-    else if (selectedGoal === "pregnancy") goalDescription = "Phụ nữ mang thai / sau sinh cần bồi bổ";
+    // Chuẩn bị Health Profile (ưu tiên giá trị truyền trực tiếp khi vừa bấm nút để tránh race-condition)
+    const activeGoal = overrideGoal !== undefined ? overrideGoal : selectedGoal;
+    const activeNutAllergic = overrideNutAllergic !== undefined ? overrideNutAllergic : isNutAllergic;
 
-    const healthProfile = {
-      goal: goalDescription,
-      healthCondition: selectedGoal === "pregnancy" ? "Phụ nữ mang thai / đang cho con bú" : undefined,
-      allergens: isNutAllergic ? ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Óc chó", "Macca"] : undefined
-    };
+    let goalDescription: string | undefined = undefined;
+    if (activeGoal === "diet") goalDescription = "Ăn kiêng, giảm calo, duy trì vóc dáng";
+    else if (activeGoal === "insomnia") goalDescription = "Mất ngủ, khó ngủ, dưỡng tâm an thần";
+    else if (activeGoal === "pregnancy") goalDescription = "Phụ nữ mang thai / sau sinh cần bồi bổ";
+
+    const hasAnyProfile = !!goalDescription || activeGoal === "pregnancy" || activeNutAllergic;
+    const healthProfile = hasAnyProfile
+      ? {
+          goal: goalDescription,
+          healthCondition: activeGoal === "pregnancy" ? "Phụ nữ mang thai / đang cho con bú" : undefined,
+          allergens: activeNutAllergic ? ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Macca"] : undefined
+        }
+      : undefined;
 
     // Khởi tạo AbortController mới
     abortControllerRef.current?.abort();
@@ -340,6 +350,41 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
     addItemToCart(cartProduct);
   };
 
+  const handleGoalSelect = (goal: "diet" | "insomnia" | "pregnancy") => {
+    if (isLoading) return;
+
+    if (selectedGoal === goal) {
+      // Bấm lần thứ hai để hủy chọn thể trạng
+      setSelectedGoal(null);
+      return;
+    }
+
+    setSelectedGoal(goal);
+
+    // Kích hoạt ngay tư vấn chuyên sâu theo thể trạng vừa chọn
+    const goalPrompts: Record<string, string> = {
+      diet: "Tôi đang theo chế độ ăn kiêng, giảm calo và giữ vóc dáng. Với thể trạng này, tôi nên sử dụng long nhãn và các sản phẩm của cửa hàng như thế nào để vừa đủ chất vừa không lo tăng cân?",
+      insomnia: "Tôi thường xuyên bị khó ngủ, mất ngủ, ngủ không sâu giấc. Hãy tư vấn giúp tôi liệu trình dưỡng tâm an thần và sản phẩm phù hợp từ Nguyệt Nhãn Phố Hiến.",
+      pregnancy: "Tôi là phụ nữ mang thai / sau sinh cần bồi bổ sức khỏe. Hãy tư vấn giúp tôi chế độ dinh dưỡng an toàn và các dòng sản phẩm phù hợp cho mẹ và bé."
+    };
+
+    handleSendMessage(goalPrompts[goal], goal, isNutAllergic);
+  };
+
+  const handleNutAllergyToggle = () => {
+    if (isLoading) return;
+    const nextVal = !isNutAllergic;
+    setIsNutAllergic(nextVal);
+
+    if (nextVal) {
+      handleSendMessage(
+        "Tôi có cơ địa dị ứng hạt vỏ cứng (Tree nuts). Cửa hàng có dòng sản phẩm nào an toàn tuyệt đối không chứa hạt cây để tôi sử dụng an tâm không?",
+        selectedGoal,
+        true
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col h-[380px] sm:h-[420px] bg-amber-50/20">
       {/* 1. Bộ chọn thể trạng nhanh (Health Profile Chips) */}
@@ -350,8 +395,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         </span>
 
         <button
-          onClick={() => setSelectedGoal((prev) => (prev === "diet" ? null : "diet"))}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium ${
+          onClick={() => handleGoalSelect("diet")}
+          disabled={isLoading}
+          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
             selectedGoal === "diet"
               ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -362,8 +408,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         </button>
 
         <button
-          onClick={() => setSelectedGoal((prev) => (prev === "insomnia" ? null : "insomnia"))}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium ${
+          onClick={() => handleGoalSelect("insomnia")}
+          disabled={isLoading}
+          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
             selectedGoal === "insomnia"
               ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -374,8 +421,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         </button>
 
         <button
-          onClick={() => setSelectedGoal((prev) => (prev === "pregnancy" ? null : "pregnancy"))}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium ${
+          onClick={() => handleGoalSelect("pregnancy")}
+          disabled={isLoading}
+          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
             selectedGoal === "pregnancy"
               ? "bg-pink-600 text-white border-pink-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -386,8 +434,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         </button>
 
         <button
-          onClick={() => setIsNutAllergic((prev) => !prev)}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 ${
+          onClick={handleNutAllergyToggle}
+          disabled={isLoading}
+          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 ${
             isNutAllergic
               ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
               : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
@@ -410,8 +459,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
             key={idx}
             disabled={isLoading}
             onClick={() => {
+              const nextAllergy = item.autoAllergy ? true : isNutAllergic;
               if (item.autoAllergy) setIsNutAllergic(true);
-              handleSendMessage(item.prompt);
+              handleSendMessage(item.prompt, selectedGoal, nextAllergy);
             }}
             className="text-[11px] bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full whitespace-nowrap shadow-xs transition-all active:scale-95 shrink-0 flex items-center gap-1 disabled:opacity-50"
           >

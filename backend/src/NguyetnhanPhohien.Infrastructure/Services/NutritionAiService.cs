@@ -18,10 +18,10 @@ public static class ProductSafetyRegistry
 {
     private static readonly Dictionary<string, HashSet<string>> AllergenTagsByProduct = new(StringComparer.OrdinalIgnoreCase)
     {
-        // "Trân Châu Tứ Dã" chứa các loại hạt dinh dưỡng (Hạt điều, Hạnh nhân, Óc chó...)
-        ["p-tu-da"] = new() { "hạt", "hạt điều", "hạnh nhân", "óc chó", "macca", "tree nuts", "hạt cây" },
-        ["tu-da"] = new() { "hạt", "hạt điều", "hạnh nhân", "óc chó", "macca", "tree nuts", "hạt cây" },
-        ["trân châu tứ dã"] = new() { "hạt", "hạt điều", "hạnh nhân", "óc chó", "macca", "tree nuts", "hạt cây" },
+        // "Trân Châu Tứ Dã" chứa các loại hạt dinh dưỡng (Hạt điều, Hạnh nhân, Macca...)
+        ["p-tu-da"] = new() { "hạt", "hạt điều", "hạnh nhân", "macca", "tree nuts", "hạt cây" },
+        ["tu-da"] = new() { "hạt", "hạt điều", "hạnh nhân", "macca", "tree nuts", "hạt cây" },
+        ["trân châu tứ dã"] = new() { "hạt", "hạt điều", "hạnh nhân", "macca", "tree nuts", "hạt cây" },
 
         // "Ngọc Nhãn Tiến Vua" là 100% cùi long nhãn sấy đối lưu thuần túy, an toàn cho người dị ứng hạt
         ["p-tien-vua"] = new(),
@@ -29,8 +29,8 @@ public static class ProductSafetyRegistry
         ["ngọc nhãn tiến vua"] = new(),
 
         // "Lễ Hộp Vọng Nguyệt" là set quà phối hợp cao cấp (có thể có hũ hạt đi kèm)
-        ["p-vong-nguyet"] = new() { "hạt", "hạt điều", "hạnh nhân", "óc chó", "macca" },
-        ["vọng nguyệt thương cảng"] = new() { "hạt", "hạt điều", "hạnh nhân", "óc chó", "macca" }
+        ["p-vong-nguyet"] = new() { "hạt", "hạt điều", "hạnh nhân", "macca" },
+        ["vọng nguyệt thương cảng"] = new() { "hạt", "hạt điều", "hạnh nhân", "macca" }
     };
 
     public static bool IsSafeForUser(string productId, string productName, bool isNutAllergic)
@@ -412,15 +412,34 @@ PHONG CÁCH TƯ VẤN & ĐỘ SÂU TRI THỨC:
   + Giải thích cơ chế dưỡng sinh theo y học cổ truyền (bổ khí huyết, dưỡng tâm, an thần, kiện tỳ vị).
   + Đưa ra lời khuyên về thời điểm dùng tốt nhất trong ngày và đối tượng phù hợp.
 
+HƯỚNG DẪN TƯ VẤN CÁ NHÂN HÓA THEO THỂ TRẠNG (KHI CÓ [THÔNG TIN THỂ TRẠNG]):
+Khi nhận được [THÔNG TIN THỂ TRẠNG KHÁCH HÀNG ĐANG CHỌN], BẮT BUỘC bạn phải mở đầu bằng việc ghi nhận thể trạng của khách và cá nhân hóa sâu sắc lời khuyên:
+- Ăn kiêng, giảm calo, duy trì vóc dáng:
+  + Phân tích calo tự nhiên của long nhãn (khoảng 280 kcal/100g sấy khô, vị ngọt tự nhiên không thêm đường tinh luyện).
+  + Định lượng & cách dùng: Khuyên dùng 10 - 15g/ngày (khoảng 3 - 5 múi nhãn), dùng vào bữa phụ sáng hoặc xế chiều trước khi vận động; TUYỆT ĐỐI không ăn sau 20h tối. Nên kết hợp pha trà thảo mộc (cúc la mã, hoa nhài) hoặc dùng kèm một lượng nhỏ macca/hạnh nhân để bổ sung chất béo tốt không bão hòa, tạo cảm giác no lâu và không làm đường huyết tăng vọt.
+  + Sản phẩm đề xuất: 'Ngọc Nhãn Tiến Vua' (nhãn nguyên chất) hoặc 'Trân Châu Tứ Dã' (hạt dinh dưỡng kiểm soát khẩu phần).
+- Mất ngủ, khó ngủ, dưỡng tâm an thần:
+  + Phân tích cơ chế Y học cổ truyền: Long nhãn quy kinh Tâm và Tỳ, ích khí bổ huyết, dưỡng tâm an thần, cải thiện rõ rệt chứng lo âu, hồi hộp, khó vào giấc hoặc hay mộng mị.
+  + Hướng dẫn công thức vàng: Hãm trà long nhãn táo đỏ kỷ tử hạt sen hoặc nấu chè hạt sen long nhãn Phố Hiến (ít ngọt), dùng ấm trước khi đi ngủ 1 - 2 tiếng.
+  + Sản phẩm đề xuất: 'Ngọc Nhãn Tiến Vua' làm cốt liệu nấu chè/hãm trà thượng hạng.
+- Phụ nữ mang thai / sau sinh cần bồi bổ:
+  + Phân tích: Long nhãn giàu sắt, vitamin nhóm B và khoáng chất tự nhiên giúp phục hồi khí huyết, giảm mệt mỏi.
+  + Lưu ý quan trọng: Phụ nữ mang thai 3 tháng đầu chỉ dùng lượng nhỏ thăm dò (5 - 10g), lắng nghe cơ thể; phụ nữ sau sinh và cho con bú dùng rất tốt để kích thích khí huyết và chất lượng sữa mẹ.
+  + Sản phẩm đề xuất: 'Ngọc Nhãn Tiến Vua' hoặc Lễ Hộp 'Vọng Nguyệt Thương Cảng'.
+- Cơ địa dị ứng hạt:
+  + Cảnh báo an toàn: Quý khách dị ứng hạt vỏ cứng (Tree nuts) KHÔNG ĐƯỢC dùng dòng 'Trân Châu Tứ Dã' (vì có hạt điều, hạnh nhân, macca).
+  + Sản phẩm đề xuất: 'Ngọc Nhãn Tiến Vua' 100% cùi long nhãn sấy đối lưu thuần khiết, hoàn toàn KHÔNG chứa hạt cây, an toàn tuyệt đối.
+
 DANH MỤC SẢN PHẨM THỰC TẾ ĐANG KINH DOANH:
 {catalogSb}
 
 QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
 - CHỈ ĐƯỢC GỢI Ý sản phẩm có thực trong danh mục trên. TUYỆT ĐỐI KHÔNG tự bịa ra sản phẩm mới.
 - NGUY TẮC AN TOÀN DỊ ỨNG:
-  + Gói 'Trân Châu Tứ Dã' có chứa hạt dinh dưỡng (hạt điều, hạnh nhân, óc chó...). NẾU KHÁCH CÓ TIỀN SỬ DỊ ỨNG HẠT, CẤM GỢI Ý DÒNG NÀY!
+  + Gói 'Trân Châu Tứ Dã' có chứa hạt dinh dưỡng (hạt điều, hạnh nhân, macca...). NẾU KHÁCH CÓ TIỀN SỬ DỊ ỨNG HẠT, CẤM GỢI Ý DÒNG NÀY!
   + 'Ngọc Nhãn Tiến Vua' là 100% cùi nhãn Hương Chi thuần túy sấy đối lưu, hoàn toàn không chứa hạt cây, an toàn tuyệt đối cho người dị ứng hạt.
 - Khi khách hỏi công thức món ăn (chè hạt sen, trà cúc dưỡng nhan...), hướng dẫn tự nấu ở nhà và gợi ý dùng 'Ngọc Nhãn Tiến Vua' làm nguyên liệu cốt lõi.
+- TUYỆT ĐỐI KHÔNG tư vấn, không gợi ý và không nhắc đến 'hạt óc chó' trong các câu trả lời hay công thức (cửa hàng Nguyệt Nhãn Phố Hiến hoàn toàn KHÔNG kinh doanh và KHÔNG sử dụng hạt óc chó; nếu khách hỏi riêng về hạt óc chó, hãy thông báo lịch sự rằng cửa hàng không có sản phẩm hạt óc chó và gợi ý các loại hạt dinh dưỡng sẵn có như hạnh nhân, macca, hạt điều, hạt sen hoặc long nhãn tiến vua).
 
 {formatInstruction}
 ";
@@ -444,15 +463,21 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         }
 
         var userPrompt = new StringBuilder();
-        if (request.HealthProfile != null)
+        var hasHealthProfile = request.HealthProfile != null && (
+            !string.IsNullOrWhiteSpace(request.HealthProfile.Goal) ||
+            !string.IsNullOrWhiteSpace(request.HealthProfile.HealthCondition) ||
+            (request.HealthProfile.Allergens != null && request.HealthProfile.Allergens.Count > 0));
+
+        if (hasHealthProfile)
         {
-            userPrompt.AppendLine("[THÔNG TIN THỂ TRẠNG KHÁCH HÀNG]");
-            if (!string.IsNullOrEmpty(request.HealthProfile.Goal))
-                userPrompt.AppendLine($"- Mục tiêu: {request.HealthProfile.Goal}");
+            userPrompt.AppendLine("[THÔNG TIN THỂ TRẠNG KHÁCH HÀNG ĐANG CHỌN]");
+            if (!string.IsNullOrEmpty(request.HealthProfile!.Goal))
+                userPrompt.AppendLine($"- Mục tiêu thể trạng: {request.HealthProfile.Goal}");
             if (!string.IsNullOrEmpty(request.HealthProfile.HealthCondition))
-                userPrompt.AppendLine($"- Tình trạng sức khỏe: {request.HealthProfile.HealthCondition}");
+                userPrompt.AppendLine($"- Tình trạng sức khỏe đặc biệt: {request.HealthProfile.HealthCondition}");
             if (request.HealthProfile.Allergens != null && request.HealthProfile.Allergens.Count > 0)
                 userPrompt.AppendLine($"- Dị ứng: {string.Join(", ", request.HealthProfile.Allergens)}");
+            userPrompt.AppendLine("(LƯU Ý BẮT BUỘC CHO AI: Khách hàng đang chọn thể trạng này. BẮT BUỘC mở đầu bằng việc ghi nhận thể trạng của khách và tư vấn chuyên sâu, khẩu phần cùng sản phẩm phù hợp nhất theo thể trạng này!)");
             userPrompt.AppendLine();
         }
 
@@ -641,7 +666,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         {
             var allergens = string.Join(" ", request.HealthProfile.Allergens).ToLowerInvariant();
             if (allergens.Contains("hạt") || allergens.Contains("điều") || allergens.Contains("hạnh nhân") ||
-                allergens.Contains("óc chó") || allergens.Contains("macca") || allergens.Contains("nut"))
+                allergens.Contains("macca") || allergens.Contains("nut"))
             {
                 return true;
             }
@@ -650,7 +675,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         // 2. Kiểm tra trong tin nhắn hiện tại
         var msg = request.Message.ToLowerInvariant();
         if (msg.Contains("dị ứng hạt") || msg.Contains("dị ứng điều") || msg.Contains("dị ứng hạnh nhân") ||
-            msg.Contains("dị ứng óc chó") || msg.Contains("dị ứng đậu phộng") || msg.Contains("dị ứng macca") ||
+            msg.Contains("dị ứng đậu phộng") || msg.Contains("dị ứng macca") ||
             msg.Contains("bị dị ứng"))
         {
             return true;
