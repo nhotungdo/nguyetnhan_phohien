@@ -364,6 +364,13 @@ public class OrderService : IOrderService
                     <p style='color: #7B6858; font-size: 14px; margin: 15px 0 0 0;'>Quét mã bằng ứng dụng ngân hàng để thanh toán tự động</p>
                 </div>
 
+                <!-- Cancellation Notice -->
+                <div style='margin-top: 25px; background-color: #FFF9ED; border: 1px solid #E2D5C4; border-left: 4px solid #D97706; padding: 16px 20px; border-radius: 8px; text-align: left;'>
+                    <p style='margin: 0; color: #3D3028; font-size: 14px; line-height: 1.6;'>
+                        <strong style='color: #D97706;'>* Lưu ý:</strong> Nếu muốn hủy đơn hàng thì liên hệ với số điện thoại <a href='tel:0348973285' style='color: #31572C; font-weight: 700; text-decoration: underline;'>034 897 3285</a> để được hủy đơn hàng trong vòng 5 phút.
+                    </p>
+                </div>
+
                 <!-- Thank you note -->
                 <div style='margin-top: 40px; text-align: center;'>
                     <p style='color: #31572C; font-family: ""Playfair Display"", ""Georgia"", serif; font-size: 20px; font-weight: 600; margin: 0 0 10px 0;'>🌿 Cảm ơn bạn đã lựa chọn đặc sản Hưng Yên</p>
@@ -422,6 +429,11 @@ HƯỚNG DẪN THANH TOÁN CHUYỂN KHOẢN
 - Ngân hàng: Vui lòng xem mã VietQR trong bản email định dạng đầy đủ.
 - Số tiền: {order.TotalAmount:N0} đ
 - Nội dung chuyển khoản: {TransferNote(order)}
+
+========================================
+LƯU Ý HỦY ĐƠN HÀNG
+========================================
+* Nếu muốn hủy đơn hàng thì liên hệ với số điện thoại 034 897 3285 để được hủy đơn hàng trong vòng 5 phút.
 
 ========================================
 LIÊN HỆ & HỖ TRỢ

@@ -797,6 +797,11 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
             </div>
           )}
 
+          {/* Cancellation note */}
+          <div style={{ border: "1px dashed #eab308", backgroundColor: "#fefce8", padding: "10px 14px", borderRadius: "6px", fontSize: "12px", color: "#854d0e", marginBottom: "20px" }}>
+            <strong>* Lưu ý:</strong> Nếu muốn hủy đơn hàng thì liên hệ với số điện thoại <strong>034 897 3285</strong> để được hủy đơn hàng trong vòng 5 phút.
+          </div>
+
           {/* Footer */}
           <div style={{ textAlign: "center", borderTop: "1px solid #ddd", paddingTop: "15px", fontSize: "12px", color: "#666" }}>
             <p style={{ margin: "0 0 4px 0", fontStyle: "italic" }}>
