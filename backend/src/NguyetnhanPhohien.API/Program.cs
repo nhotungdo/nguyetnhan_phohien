@@ -130,13 +130,34 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    options.AddPolicy("ai-nutrition", context =>
+    {
+        // Ưu tiên đọc client IP từ header X-Forwarded-For (hữu ích khi sau reverse proxy / NAT / CDN)
+        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0]?.Trim();
+        if (string.IsNullOrEmpty(clientIp))
+        {
+            clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20, // Nâng lên 20 lượt/phút để tránh chặn nhầm nhiều khách chung mạng Wi-Fi/NAT
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
     options.OnRejected = async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
-        await context.HttpContext.Response.WriteAsync(
-            "{\"message\":\"Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau ít phút.\"}",
-            cancellationToken);
+        var isAiRoute = context.HttpContext.Request.Path.StartsWithSegments("/api/ai");
+        var msg = isAiRoute
+            ? "{\"message\":\"Quá nhiều lượt hỏi tư vấn AI trong thời gian ngắn. Quý khách vui lòng thử lại sau ít phút.\"}"
+            : "{\"message\":\"Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau ít phút.\"}";
+        await context.HttpContext.Response.WriteAsync(msg, cancellationToken);
     };
 });
 
@@ -162,6 +183,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPaymentSettingsService, PaymentSettingsService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<INutritionAiService, NutritionAiService>();
 
 // ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====
 builder.Services.AddHostedService<WeeklyReportBackgroundService>();

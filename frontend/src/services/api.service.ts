@@ -408,6 +408,139 @@ export const dashboardApi = {
     apiFetch("/api/dashboard/stats", { headers: getAdminHeaders() }),
 };
 
+// ===== NUTRITION AI API (Trợ lý Dinh Dưỡng & Dưỡng Sinh Đa Hạt) =====
+export interface SuggestedProduct {
+  id: string;
+  name: string;
+  size: string;
+  price: number;
+  imageUrl?: string;
+  reason?: string;
+}
+
+export interface NutritionConsultationRequest {
+  message: string;
+  history?: { role: string; content: string }[];
+  healthProfile?: {
+    goal?: string;
+    healthCondition?: string;
+    allergens?: string[];
+  };
+}
+
+export interface NutritionConsultationResponse {
+  reply: string;
+  suggestedProducts: SuggestedProduct[];
+  portionTip?: string;
+  allergenNotice?: string;
+}
+
+export interface NutritionStreamMeta {
+  suggestedProducts?: SuggestedProduct[];
+  portionTip?: string;
+  allergenNotice?: string;
+}
+
+export interface NutritionStreamCallbacks {
+  onChunk: (text: string) => void;
+  onMeta?: (meta: NutritionStreamMeta) => void;
+  onError?: (err: Error) => void;
+  onDone?: () => void;
+}
+
+export const nutritionAiApi = {
+  consult: (req: NutritionConsultationRequest): Promise<NutritionConsultationResponse> =>
+    apiFetch("/api/ai/nutrition/consult", {
+      method: "POST",
+      body: JSON.stringify(req),
+    }),
+
+  stream: async (
+    req: NutritionConsultationRequest,
+    callbacks: NutritionStreamCallbacks,
+    signal?: AbortSignal
+  ): Promise<void> => {
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/api/ai/nutrition/stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify(req),
+        signal,
+      });
+    } catch (err: unknown) {
+      if ((err as Error)?.name === "AbortError") return;
+      throw new Error(connectionErrorMessage());
+    }
+
+    if (!res.ok) {
+      throw await readApiError(res);
+    }
+
+    if (!res.body) {
+      throw new Error("Trình duyệt không hỗ trợ đọc luồng phản hồi.");
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+          const dataStr = trimmed.substring(6).trim();
+          if (dataStr === "[DONE]") {
+            callbacks.onDone?.();
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.event === "chunk" && parsed.text) {
+              callbacks.onChunk(parsed.text);
+            } else if (parsed.event === "meta") {
+              const rawProducts = Array.isArray(parsed.suggestedProducts) ? parsed.suggestedProducts : [];
+              const normalizedProducts: SuggestedProduct[] = rawProducts.map((p: Record<string, unknown>) => ({
+                id: String(p.id ?? p.Id ?? ""),
+                name: String(p.name ?? p.Name ?? ""),
+                size: String(p.size ?? p.Size ?? ""),
+                price: typeof p.price === "number" ? p.price : typeof p.Price === "number" ? p.Price : (Number(p.price || p.Price) || 0),
+                imageUrl: (p.imageUrl ?? p.ImageUrl) ? String(p.imageUrl ?? p.ImageUrl) : undefined,
+                reason: (p.reason ?? p.Reason) ? String(p.reason ?? p.Reason) : undefined,
+              }));
+              callbacks.onMeta?.({
+                suggestedProducts: normalizedProducts,
+                portionTip: (parsed.portionTip ?? parsed.PortionTip) ? String(parsed.portionTip ?? parsed.PortionTip) : undefined,
+                allergenNotice: (parsed.allergenNotice ?? parsed.AllergenNotice) ? String(parsed.allergenNotice ?? parsed.AllergenNotice) : undefined,
+              });
+            } else if (parsed.event === "error") {
+              callbacks.onError?.(new Error(parsed.message || "Lỗi phản hồi từ AI."));
+            }
+          } catch {
+            // bỏ qua parse error cho chunk chưa hoàn chỉnh
+          }
+        }
+      }
+      callbacks.onDone?.();
+    } catch (err: unknown) {
+      if ((err as Error)?.name === "AbortError") return;
+      callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
+    }
+  },
+};
+
 // ===== ADMIN AUTH HELPERS =====
 export const adminAuth = {
   /** Lưu token admin vào localStorage sau khi đăng nhập thành công */
