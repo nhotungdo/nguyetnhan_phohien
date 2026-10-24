@@ -662,7 +662,7 @@ Hotline: 034 897 3285
         return order == null ? null : MapToResponse(order);
     }
 
-    public async Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status)
+    public async Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status, string? reason = null)
     {
         var order = await _db.Orders
             .Include(o => o.Items)
@@ -676,6 +676,7 @@ Hotline: 034 897 3285
         if (!Enum.TryParse<OrderStatus>(status, true, out var newStatus) || !Enum.IsDefined(newStatus))
             throw new ArgumentException($"Trạng thái không hợp lệ: {status}");
 
+        var oldStatus = order.Status;
         order.Status = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
 
@@ -695,7 +696,7 @@ Hotline: 034 897 3285
             var query = _db.Orders.Where(o => o.Id == id);
             if (newStatus == OrderStatus.Cancelled)
                 query = query.Where(o => o.Status != OrderStatus.Cancelled);
-            else if (order.Status == OrderStatus.Cancelled)
+            else if (oldStatus == OrderStatus.Cancelled)
                 query = query.Where(o => o.Status == OrderStatus.Cancelled);
 
             var affected = await query.ExecuteUpdateAsync(s => s
@@ -711,7 +712,7 @@ Hotline: 034 897 3285
                     // thứ hai; đơn không có mã thì không có gì để hoàn).
                     await RefundDiscountUsageAsync(order);
                 }
-                else if (order.Status == OrderStatus.Cancelled)
+                else if (oldStatus == OrderStatus.Cancelled)
                 {
                     // Mở lại đơn đã huỷ: tính lại lượt dùng mã như TRƯỚC KHI hoàn —
                     // tăng UsageCount và ghi lại dòng DiscountRedemption.
@@ -720,6 +721,14 @@ Hotline: 034 897 3285
             }
 
             await transaction.CommitAsync();
+
+            // Khi admin hủy đơn hàng (chuyển sang Cancelled thành công),
+            // tự động gửi email xác nhận hủy đơn về email của khách hàng.
+            if (affected > 0 && newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
+            {
+                _ = Task.Run(() => SendOrderCancellationEmailAsync(order, reason, throwOnFailure: false));
+            }
+
             return MapToResponse(order);
         }
         catch
@@ -841,6 +850,242 @@ Hotline: 034 897 3285
 
         _logger.LogInformation(
             "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
+    }
+
+    /// <summary>
+    /// [ADMIN] Gửi lại email xác nhận hủy đơn hàng cho khách hàng.
+    /// Dùng khi lần gửi tự động gặp sự cố hoặc khách yêu cầu nhận lại email thông báo hủy.
+    /// </summary>
+    public async Task ResendCancellationEmailAsync(Guid id, string? reason = null)
+    {
+        var order = await _db.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id)
+            ?? throw new KeyNotFoundException($"Không tìm thấy đơn hàng với Id: {id}");
+
+        if (string.IsNullOrWhiteSpace(order.CustomerEmail))
+            throw new InvalidOperationException("Đơn hàng này không có email khách hàng để gửi thông báo hủy.");
+
+        await SendOrderCancellationEmailAsync(order, reason, throwOnFailure: true);
+
+        _logger.LogInformation(
+            "[Admin] Đã gửi lại email xác nhận hủy đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
+    }
+
+    private async Task SendOrderCancellationEmailAsync(Order order, string? reason = null, bool throwOnFailure = false)
+    {
+        static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(order.CustomerEmail)) return;
+
+            var items = (order.Items != null && order.Items.Count > 0)
+                ? order.Items.ToList()
+                : new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        ProductName = order.ProductName ?? "Sản phẩm",
+                        ProductSize = order.ProductSize,
+                        Quantity = order.Quantity,
+                        UnitPrice = order.Quantity > 0 ? order.BaseAmount / order.Quantity : order.BaseAmount,
+                        TotalPrice = order.BaseAmount
+                    }
+                };
+
+            var itemsHtmlRows = string.Join("", items.Select((item, idx) => $@"
+                <tr>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{idx + 1}</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
+                        <strong style='font-weight: 600; text-decoration: line-through; color: #7B6858;'>{Esc(item.ProductName)}</strong>
+                        {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #8C7A6B;'>Phân loại: {Esc(item.ProductSize)}</span>")}
+                    </td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: right;'>{item.UnitPrice:N0}đ</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{item.Quantity}</td>
+                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #991B1B; text-align: right; font-weight: 600; text-decoration: line-through;'>{item.TotalPrice:N0}đ</td>
+                </tr>"));
+
+            string cancellationHtml = $@"<!DOCTYPE html>
+<html lang='vi'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Xác nhận hủy đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()}</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #F7F2E8;'>
+    <div style='background-color: #F7F2E8; padding: 40px 10px; font-family: ""Inter"", ""Segoe UI"", Tahoma, Geneva, sans-serif;'>
+        <div style='max-width: 620px; margin: auto; background-color: #FFF9ED; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 48, 40, 0.1); border: 1px solid #E2D5C4;'>
+            
+            <!-- Header & Logo -->
+            <div style='background-color: #31572C; padding: 40px 30px; text-align: center; color: #FFF9ED; position: relative;'>
+                <img src='cid:logo_nn' alt='Nguyệt Nhãn Phố Hiến' width='70' height='70' style='width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #E9B949; margin-bottom: 15px;' />
+                <h1 style='margin: 0; font-size: 28px; font-family: ""Playfair Display"", ""Georgia"", serif; font-weight: 600; letter-spacing: 1px; color: #FFF9ED;'>Nguyệt Nhãn Phố Hiến</h1>
+                <p style='margin: 8px 0 0 0; font-size: 15px; color: #E9B949; font-style: italic;'>Tinh hoa từ vùng đất Phố Hiến</p>
+            </div>
+
+            <!-- Body -->
+            <div style='padding: 35px 40px;'>
+                <h2 style='color: #B91C1C; font-size: 22px; font-family: ""Playfair Display"", ""Georgia"", serif; margin-top: 0; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;'>Xác nhận hủy đơn hàng</h2>
+                <p style='text-align: center; color: #7B6858; font-size: 14px; margin-top: 0; margin-bottom: 25px;'>#{order.Id.ToString().Substring(0, 8).ToUpper()} &bull; {order.CreatedAt:dd/MM/yyyy}</p>
+                
+                <!-- Notice Box -->
+                <div style='background-color: #FEF2F2; border: 1px solid #FECACA; border-left: 4px solid #DC2626; padding: 18px 20px; border-radius: 8px; margin-bottom: 25px;'>
+                    <p style='margin: 0 0 8px 0; color: #991B1B; font-weight: 700; font-size: 15px;'>Đơn hàng của bạn đã được xác nhận hủy</p>
+                    <p style='margin: 0; color: #7F1D1D; font-size: 14px; line-height: 1.5;'>
+                        Kính gửi Quý khách <strong>{Esc(order.CustomerName)}</strong>, Nguyệt Nhãn Phố Hiến xin thông báo đơn hàng mã số <strong>#{order.Id.ToString().Substring(0, 8).ToUpper()}</strong> đã được xác nhận hủy trên hệ thống quản lý.
+                    </p>
+                    {(string.IsNullOrWhiteSpace(reason) ? "" : $@"
+                    <p style='margin: 10px 0 0 0; color: #7F1D1D; font-size: 13.5px; line-height: 1.5;'>
+                        <strong>Lý do hủy:</strong> {Esc(reason)}
+                    </p>")}
+                </div>
+
+                <!-- Customer Info -->
+                <div style='background-color: #FFFFFF; border: 1px solid #E2D5C4; padding: 20px; border-radius: 12px; margin-bottom: 25px;'>
+                    <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Người nhận:</span> <strong>{Esc(order.CustomerName)}</strong></p>
+                    <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Điện thoại:</span> <strong>{Esc(order.CustomerPhone)}</strong></p>
+                    <p style='margin: 0 0 10px 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Địa chỉ:</span> <strong>{Esc(order.CustomerAddress)}</strong></p>
+                    <p style='margin: 0; color: #3D3028;'><span style='color: #7B6858; display: inline-block; width: 100px;'>Trạng thái:</span> <strong style='color: #DC2626; background: #FEE2E2; padding: 2px 8px; border-radius: 4px; font-size: 13px;'>Đã hủy đơn</strong></p>
+                </div>
+
+                <!-- Products -->
+                <h3 style='color: #3D3028; font-size: 16px; margin-top: 0; border-bottom: 2px solid #E2D5C4; padding-bottom: 10px;'>CHI TIẾT SẢN PHẨM TRONG ĐƠN</h3>
+                <table style='width: 100%; border-collapse: collapse; margin-top: 10px;'>
+                    <thead>
+                        <tr style='color: #7B6858; font-size: 13px;'>
+                            <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 5%;'>#</th>
+                            <th style='padding: 10px 8px; text-align: left; font-weight: 500; width: 45%;'>Sản phẩm</th>
+                            <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Đơn giá</th>
+                            <th style='padding: 10px 8px; text-align: center; font-weight: 500; width: 10%;'>SL</th>
+                            <th style='padding: 10px 8px; text-align: right; font-weight: 500; width: 20%;'>Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemsHtmlRows}
+                    </tbody>
+                </table>
+
+                <!-- Total -->
+                <div style='margin-top: 15px; padding-top: 15px;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 6px; text-align: right; color: #7B6858;'>Tạm tính:</td>
+                            <td style='padding: 6px; text-align: right; width: 130px; color: #7B6858; text-decoration: line-through;'>{order.BaseAmount:N0} đ</td>
+                        </tr>
+                        {(order.DiscountAmount > 0 ? $@"
+                        <tr>
+                            <td style='padding: 6px; text-align: right; color: #E9B949;'>Giảm giá ({Esc(order.DiscountCodeApplied)}):</td>
+                            <td style='padding: 6px; text-align: right; color: #E9B949; text-decoration: line-through;'>- {order.DiscountAmount:N0} đ</td>
+                        </tr>" : "")}
+                        <tr>
+                            <td colspan='2'><div style='border-top: 1px solid #E2D5C4; margin: 10px 0;'></div></td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 8px 6px; text-align: right; font-size: 16px; font-weight: 700; color: #3D3028;'>TỔNG TIỀN ĐÃ HỦY:</td>
+                            <td style='padding: 8px 6px; text-align: right; font-size: 18px; font-weight: 800; color: #DC2626;'>{order.TotalAmount:N0} đ</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Refund & Payment Guidance -->
+                <div style='margin-top: 30px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px;'>
+                    <h4 style='margin: 0 0 10px 0; color: #1E293B; font-size: 14.5px;'>
+                        ℹ️ Thông tin về thanh toán & hoàn tiền:
+                    </h4>
+                    <ul style='margin: 0; padding-left: 20px; color: #475569; font-size: 13.5px; line-height: 1.6;'>
+                        <li><strong>Chuyển khoản trước:</strong> Bộ phận CSKH sẽ chủ động liên hệ qua SĐT <strong>{Esc(order.CustomerPhone)}</strong> để xác nhận và thực hiện hoàn tiền trong vòng 24 giờ làm việc.</li>
+                        <li><strong>Thanh toán khi nhận hàng (COD):</strong> Quý khách không phải thanh toán bất kỳ khoản phí nào.</li>
+                        {(string.IsNullOrWhiteSpace(order.DiscountCodeApplied) ? "" : "<li><strong>Mã giảm giá:</strong> Lượt dùng của mã giảm giá đã được hoàn lại tự động cho số điện thoại của bạn.</li>")}
+                    </ul>
+                </div>
+
+                <!-- Shop button -->
+                <div style='margin-top: 35px; text-align: center;'>
+                    <p style='color: #7B6858; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;'>
+                        Nguyệt Nhãn Phố Hiến rất tiếc vì chưa thể phục vụ đơn hàng này của bạn và hy vọng sẽ có cơ hội được đồng hành cùng bạn trong những dịp tới!
+                    </p>
+                    <a href='{_frontendBaseUrl}' style='display: inline-block; background-color: #31572C; color: #FFF9ED; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;'>Tiếp tục mua sắm</a>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style='background-color: #31572C; padding: 25px 20px; text-align: center;'>
+                <p style='margin: 0 0 5px 0; color: #E9B949; font-weight: 700; font-size: 15px;'>Nguyệt Nhãn Phố Hiến - Đặc Sản Hưng Yên</p>
+                <p style='margin: 0 0 6px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Địa chỉ: Phường Hồng Châu, TP. Hưng Yên, Tỉnh Hưng Yên</p>
+                <p style='margin: 0 0 12px 0; color: #FFF9ED; font-size: 13px; opacity: 0.9;'>Hotline / Zalo: <strong>034 897 3285</strong> &bull; Email: <strong>nguyetnhanphohien@gmail.com</strong></p>
+                <div style='border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 10px; font-size: 11px; color: #FFF9ED; opacity: 0.7; line-height: 1.5;'>
+                    <a href='{_frontendBaseUrl}' style='color: #E9B949; text-decoration: underline;'>Truy cập website</a> &bull; Thư điện tử tự động thông báo tình trạng đơn hàng.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>";
+
+            string plainTextCancellation = $@"KÍNH GỬI QUÝ KHÁCH {order.CustomerName.ToUpper()},
+
+Nguyệt Nhãn Phố Hiến xin thông báo đơn hàng của bạn đã được xác nhận HỦY thành công trên hệ thống.
+Mã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
+Thời gian đặt: {order.CreatedAt:dd/MM/yyyy HH:mm}
+Thời gian cập nhật hủy: {DateTime.UtcNow.AddHours(7):dd/MM/yyyy HH:mm}
+{(string.IsNullOrWhiteSpace(reason) ? "" : $"Lý do hủy: {reason}\n")}
+========================================
+THÔNG TIN NGƯỜI NHẬN
+========================================
+- Khách hàng: {order.CustomerName}
+- Số điện thoại: {order.CustomerPhone}
+- Địa chỉ nhận hàng: {order.CustomerAddress}
+- Trạng thái: ĐÃ HỦY ĐƠN
+
+========================================
+CHI TIẾT SẢN PHẨM ĐÃ HỦY
+========================================
+{string.Join("\n", items.Select((item, idx) => $"{idx + 1}. {item.ProductName}{(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $" ({item.ProductSize})")}\n   Số lượng: {item.Quantity} | Đơn giá: {item.UnitPrice:N0}đ | Thành tiền: {item.TotalPrice:N0}đ"))}
+
+----------------------------------------
+Tạm tính: {order.BaseAmount:N0} đ
+{(order.DiscountAmount > 0 ? $"Giảm giá ({order.DiscountCodeApplied}): -{order.DiscountAmount:N0} đ\n" : "")}TỔNG TIỀN ĐÃ HỦY: {order.TotalAmount:N0} đ
+----------------------------------------
+
+========================================
+LƯU Ý VỀ THANH TOÁN & HOÀN TIỀN
+========================================
+- Nếu bạn đã chuyển khoản thanh toán, cửa hàng sẽ liên hệ qua SĐT {order.CustomerPhone} để hoàn tiền trong vòng 24 giờ làm việc.
+- Nếu bạn chọn thanh toán khi nhận hàng (COD), bạn không cần thực hiện thêm thao tác nào.
+{(string.IsNullOrWhiteSpace(order.DiscountCodeApplied) ? "" : "- Mã giảm giá đã được hoàn lại lượt dùng cho số điện thoại của bạn.\n")}
+========================================
+LIÊN HỆ & HỖ TRỢ
+========================================
+Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
+- Hotline/Zalo: 034 897 3285
+- Email: nguyetnhanphohien@gmail.com
+- Website: {_frontendBaseUrl}
+";
+
+            try
+            {
+                await _emailService.SendEmailAsync(
+                    order.CustomerEmail,
+                    $"Xác nhận hủy đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()} - Nguyệt Nhãn Phố Hiến",
+                    cancellationHtml,
+                    plainTextCancellation);
+                _logger.LogInformation("Đã gửi email xác nhận hủy đơn {OrderId} tới khách {Email}.", order.Id, order.CustomerEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "GỬI THẤT BẠI email xác nhận hủy đơn cho khách {Email} (đơn {OrderId}) sau 3 lần thử!",
+                    order.CustomerEmail, order.Id);
+
+                if (throwOnFailure) throw;
+            }
+        }
+        catch (Exception ex) when (!throwOnFailure)
+        {
+            _logger.LogError(ex, "Lỗi bất ngờ khi xử lý email hủy đơn {OrderId}.", order.Id);
+        }
     }
 
     /// <summary>

@@ -135,11 +135,11 @@ export const orderApi = {
   getById: (id: string): Promise<OrderResponse> =>
     apiFetch(`/api/orders/${id}`, { headers: getAdminHeaders() }),
 
-  /** [ADMIN] Cập nhật trạng thái đơn hàng */
-  updateStatus: (id: string, status: string): Promise<OrderResponse> =>
+  /** [ADMIN] Cập nhật trạng thái đơn hàng (tự động gửi email xác nhận hủy nếu chuyển sang Cancelled) */
+  updateStatus: (id: string, status: string, reason?: string): Promise<OrderResponse> =>
     apiFetch(`/api/orders/${id}/status`, {
       method: "PUT",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reason }),
       headers: getAdminHeaders(),
     }),
 
@@ -147,6 +147,14 @@ export const orderApi = {
   resendInvoice: (id: string): Promise<{ message: string }> =>
     apiFetch(`/api/orders/${id}/resend-invoice`, {
       method: "POST",
+      headers: getAdminHeaders(),
+    }),
+
+  /** [ADMIN] Gửi lại email xác nhận hủy đơn qua email tới khách hàng */
+  resendCancellation: (id: string, reason?: string): Promise<{ message: string }> =>
+    apiFetch(`/api/orders/${id}/resend-cancellation`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
       headers: getAdminHeaders(),
     }),
 };

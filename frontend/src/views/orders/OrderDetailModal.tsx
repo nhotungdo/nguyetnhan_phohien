@@ -37,9 +37,10 @@ interface OrderDetailModalProps {
   onClose: () => void;
   onUpdateStatus: (id: string, newStatus: string) => Promise<void>;
   onResendInvoice: (order: OrderResponse) => Promise<void>;
+  onResendCancellation?: (order: OrderResponse) => Promise<void>;
   isUpdatingStatus: boolean;
   isSendingInvoice: boolean;
-  addToast: (type: "success" | "error", message: string) => void;
+  addToast: (type: "success" | "error" | "info", message: string) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -71,6 +72,7 @@ export default function OrderDetailModal({
   onClose,
   onUpdateStatus,
   onResendInvoice,
+  onResendCancellation,
   isUpdatingStatus,
   isSendingInvoice,
   addToast,
@@ -266,11 +268,19 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
           </div>
 
           <button
-            onClick={() => onResendInvoice(order)}
+            onClick={() =>
+              order.status === "Cancelled"
+                ? onResendCancellation
+                  ? onResendCancellation(order)
+                  : onResendInvoice(order)
+                : onResendInvoice(order)
+            }
             disabled={isSendingInvoice || !order.customerEmail}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-medium transition-all ${
               order.customerEmail
-                ? "border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95"
+                ? order.status === "Cancelled"
+                  ? "border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 active:scale-95"
+                  : "border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95"
                 : "border-border text-muted-foreground/60 bg-muted/40 cursor-not-allowed opacity-60"
             }`}
           >
@@ -283,7 +293,9 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
               {isSendingInvoice
                 ? "Đang gửi..."
                 : order.customerEmail
-                ? `Gửi lại hóa đơn (${order.customerEmail})`
+                ? order.status === "Cancelled"
+                  ? `Gửi lại email hủy (${order.customerEmail})`
+                  : `Gửi lại hóa đơn (${order.customerEmail})`
                 : "Không có email khách hàng"}
             </span>
           </button>

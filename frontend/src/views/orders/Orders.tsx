@@ -36,7 +36,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 interface Toast {
   id: number;
-  type: "success" | "error";
+  type: "success" | "error" | "info";
   message: string;
 }
 
@@ -91,24 +91,38 @@ export default function Orders() {
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId) ?? null;
 
-  const addToast = (type: "success" | "error", message: string) => {
+  const addToast = (type: "success" | "error" | "info", message: string) => {
     const id = ++toastSeq;
     setToasts((prev) => [...prev, { id, type, message }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
+    if (newStatus === "Cancelled") {
+      const confirmed = window.confirm(
+        "Bạn có chắc chắn muốn hủy đơn hàng này? Hệ thống sẽ tự động gửi email xác nhận hủy đơn tới khách hàng (nếu đơn có email)."
+      );
+      if (!confirmed) return;
+    }
+
     setUpdatingId(id);
     try {
       // Dùng LUÔN bản server trả về làm dữ liệu cache: một lần gọi API vừa ghi vừa
-      // trả về trạng thái thật. Trước đây code setQueryData bằng giá trị client tự
-      // đoán rồi `invalidateQueries` NGAY LẬP TỨC → React Query vừa nhận bản optimistic
-      // lại vừa gọi API lần thứ hai để ghi đè chính nó (thừa 1 request, giá trị
-      // optimistic trở nên vô nghĩa).
+      // trả về trạng thái thật.
       const updated = await orderApi.updateStatus(id, newStatus);
       queryClient.setQueryData(["orders", "admin"], (old: OrderResponse[] | undefined) =>
         old ? old.map(order => (order.id === id ? updated : order)) : []
       );
+
+      if (newStatus === "Cancelled") {
+        if (updated.customerEmail) {
+          addToast("success", `Đã hủy đơn hàng & gửi email xác nhận hủy tới ${updated.customerEmail}`);
+        } else {
+          addToast("info", "Đã hủy đơn hàng thành công (khách hàng không cung cấp email).");
+        }
+      } else {
+        addToast("success", "Cập nhật trạng thái đơn hàng thành công!");
+      }
     } catch (err) {
       console.error("Update failed", err);
       addToast("error", "Cập nhật trạng thái thất bại!");
@@ -128,6 +142,23 @@ export default function Orders() {
       addToast("success", `Đã gửi hóa đơn tới ${order.customerEmail}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Gửi hóa đơn thất bại!";
+      addToast("error", message);
+    } finally {
+      setSendingInvoiceId(null);
+    }
+  };
+
+  const handleResendCancellation = async (order: OrderResponse) => {
+    if (!order.customerEmail) {
+      addToast("error", "Đơn hàng này không có email khách hàng.");
+      return;
+    }
+    setSendingInvoiceId(order.id);
+    try {
+      await orderApi.resendCancellation(order.id);
+      addToast("success", `Đã gửi lại email xác nhận hủy tới ${order.customerEmail}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gửi email xác nhận hủy thất bại!";
       addToast("error", message);
     } finally {
       setSendingInvoiceId(null);
@@ -155,11 +186,15 @@ export default function Orders() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-medium pointer-events-auto max-w-sm border ${
                 toast.type === "success"
                   ? "bg-green-50 text-green-800 border-green-200"
+                  : toast.type === "info"
+                  ? "bg-amber-50 text-amber-800 border-amber-200"
                   : "bg-red-50 text-red-800 border-red-200"
               }`}
             >
               {toast.type === "success" ? (
                 <MailCheck className="w-4 h-4 shrink-0" />
+              ) : toast.type === "info" ? (
+                <Mail className="w-4 h-4 shrink-0" />
               ) : (
                 <AlertTriangle className="w-4 h-4 shrink-0" />
               )}
@@ -348,21 +383,29 @@ export default function Orders() {
                           )}
                         </div>
 
-                        {/* Nút gửi hóa đơn qua email */}
+                        {/* Nút gửi hóa đơn / email xác nhận hủy qua email */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleResendInvoice(order);
+                            if (order.status === "Cancelled") {
+                              handleResendCancellation(order);
+                            } else {
+                              handleResendInvoice(order);
+                            }
                           }}
                           disabled={sendingInvoiceId === order.id || !order.customerEmail}
                           title={
                             order.customerEmail
-                              ? `Gửi hóa đơn tới ${order.customerEmail}`
+                              ? order.status === "Cancelled"
+                                ? `Gửi lại email xác nhận hủy tới ${order.customerEmail}`
+                                : `Gửi hóa đơn tới ${order.customerEmail}`
                               : "Khách hàng chưa cung cấp email"
                           }
                           className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border font-medium transition-all ${
                             order.customerEmail
-                              ? "border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 active:scale-95"
+                              ? order.status === "Cancelled"
+                                ? "border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 active:scale-95"
+                                : "border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 active:scale-95"
                               : "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed opacity-60"
                           }`}
                         >
@@ -371,7 +414,11 @@ export default function Orders() {
                           ) : (
                             <Send className="w-3.5 h-3.5" />
                           )}
-                          {sendingInvoiceId === order.id ? "Đang gửi..." : "Gửi hóa đơn"}
+                          {sendingInvoiceId === order.id
+                            ? "Đang gửi..."
+                            : order.status === "Cancelled"
+                            ? "Gửi email hủy"
+                            : "Gửi hóa đơn"}
                         </button>
 
                         <div className="text-[10px] text-muted-foreground">
@@ -556,16 +603,22 @@ export default function Orders() {
                     )}
                   </div>
 
-                  {/* Nút gửi lại hóa đơn */}
+                  {/* Nút gửi lại hóa đơn / email xác nhận hủy */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleResendInvoice(order);
+                      if (order.status === "Cancelled") {
+                        handleResendCancellation(order);
+                      } else {
+                        handleResendInvoice(order);
+                      }
                     }}
                     disabled={sendingInvoiceId === order.id || !order.customerEmail}
                     className={`w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 px-3 rounded-xl border transition-all ${
                       order.customerEmail
-                        ? "border-blue-200 text-blue-700 bg-blue-50 active:scale-95"
+                        ? order.status === "Cancelled"
+                          ? "border-rose-200 text-rose-700 bg-rose-50 active:scale-95"
+                          : "border-blue-200 text-blue-700 bg-blue-50 active:scale-95"
                         : "border-gray-200 text-gray-400 bg-gray-50 opacity-60 cursor-not-allowed"
                     }`}
                   >
@@ -574,7 +627,13 @@ export default function Orders() {
                     ) : (
                       <Send className="w-3.5 h-3.5" />
                     )}
-                    <span>{sendingInvoiceId === order.id ? "Đang gửi..." : "Gửi hóa đơn"}</span>
+                    <span>
+                      {sendingInvoiceId === order.id
+                        ? "Đang gửi..."
+                        : order.status === "Cancelled"
+                        ? "Gửi email hủy"
+                        : "Gửi hóa đơn"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -591,6 +650,7 @@ export default function Orders() {
             onClose={() => setSelectedOrderId(null)}
             onUpdateStatus={handleUpdateStatus}
             onResendInvoice={handleResendInvoice}
+            onResendCancellation={handleResendCancellation}
             isUpdatingStatus={updatingId === selectedOrder.id}
             isSendingInvoice={sendingInvoiceId === selectedOrder.id}
             addToast={addToast}

@@ -68,4 +68,11 @@ public class OrderResponse
 public class UpdateOrderStatusRequest
 {
     public string Status { get; set; } = string.Empty;
+    public string? Reason { get; set; }
+}
+
+// DTO Admin dùng để gửi lại email xác nhận hủy đơn
+public class ResendCancellationRequest
+{
+    public string? Reason { get; set; }
 }

@@ -194,7 +194,7 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            var order = await _orderService.UpdateOrderStatusAsync(id, request.Status);
+            var order = await _orderService.UpdateOrderStatusAsync(id, request.Status, request.Reason);
             await NotifyOrdersChangedAsync("status-changed", order.Id);
             return Ok(order);
         }
@@ -232,6 +232,34 @@ public class OrdersController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = $"Gửi hóa đơn thất bại: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// [ADMIN] Gửi lại email xác nhận hủy đơn hàng tới khách hàng.
+    /// Dùng khi email tự động thất bại hoặc khách yêu cầu nhận lại email xác nhận hủy.
+    /// </summary>
+    [HttpPost("{id:guid}/resend-cancellation")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ResendCancellation(Guid id, [FromBody] ResendCancellationRequest? request = null)
+    {
+        try
+        {
+            await _orderService.ResendCancellationEmailAsync(id, request?.Reason);
+            return Ok(new { message = "Email xác nhận hủy đơn hàng đã được gửi thành công." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gửi lại email xác nhận hủy đơn {OrderId}.", id);
+            return StatusCode(500, new { message = $"Gửi email xác nhận hủy đơn thất bại: {ex.Message}" });
         }
     }
 }
