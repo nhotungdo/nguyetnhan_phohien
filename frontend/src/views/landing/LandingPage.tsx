@@ -41,6 +41,7 @@ import { useCartStore } from "@/stores/useCartStore";
 import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
+import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
@@ -1023,10 +1024,9 @@ export default function LandingPage() {
         {/* BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
         <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full">
           <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#1C1917] via-[#292524] to-[#1C1917] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/20">
-              {/* Vệt sáng trang trí */}
-              <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
-              <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-orange-600/10 blur-3xl pointer-events-none" />
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#12100E] via-[#221B17] to-[#12100E] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/30">
+              {/* Nền sóng nước động hoàng kim & bụi vàng phát sáng lung linh */}
+              <AnimatedWaveBackground />
 
               <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
                 <div className="md:col-span-7 space-y-4 text-left">
