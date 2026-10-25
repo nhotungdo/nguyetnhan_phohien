@@ -602,7 +602,7 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                               <span className="font-semibold text-foreground">{item.productName}</span>
                               {item.isCustomMix && (
                                 <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">
-                                  ✨ Tự Chọn Hạt
+                                  Tự Chọn Hạt
                                 </span>
                               )}
                             </div>

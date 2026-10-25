@@ -51,7 +51,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       <div className="flex-1 min-w-0">
         {item.isCustomMix && (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full mb-1">
-            ✨ Tự Chọn Hạt
+            Tự Chọn Hạt
           </span>
         )}
         <p className="font-semibold text-primary text-sm leading-snug line-clamp-2">{item.productName}</p>

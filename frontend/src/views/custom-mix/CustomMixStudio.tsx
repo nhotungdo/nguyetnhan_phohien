@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   ShoppingBag,
-  Sparkles,
   Check,
   AlertCircle,
   Plus,
@@ -433,8 +432,8 @@ export default function CustomMixStudio() {
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-bold text-[#B45309] bg-[#FEF3C7] border border-[#FDE68A] px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-600" /> Custom Mix Studio
+                <span className="text-[10px] sm:text-xs font-bold text-[#B45309] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Custom Mix Studio
                 </span>
               </div>
               <h1 className="text-base sm:text-xl font-bold text-primary leading-tight mt-0.5">
@@ -635,7 +634,7 @@ export default function CustomMixStudio() {
               {/* Gợi ý công thức 1-click */}
               <div className="bg-[#FFFDF8] border border-[#FDE68A]/60 p-3.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                 <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> Công thức gợi ý:
+                  Công thức gợi ý:
                 </span>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   <button

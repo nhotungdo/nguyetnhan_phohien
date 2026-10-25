@@ -616,9 +616,8 @@ export default function LandingPage() {
             ))}
             <Link
               href="/tu-chon-hat"
-              className="text-xs lg:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
+              className="text-xs lg:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
               <span>Tự Chọn Hạt</span>
               <span className="bg-[#B45309] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                 Mới
@@ -729,7 +728,7 @@ export default function LandingPage() {
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-8 h-8 rounded-xl bg-[#B45309] text-white flex items-center justify-center shadow-sm">
-                    <Sparkles className="w-4 h-4" />
+                    <ShoppingBag className="w-4 h-4" />
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -894,9 +893,8 @@ export default function LandingPage() {
                 </motion.button>
                 <Link
                   href="/tu-chon-hat"
-                  className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-sm sm:text-base font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
+                  className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-sm sm:text-base font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
                 >
-                  <Sparkles className="w-4 h-4 text-amber-700 animate-pulse" />
                   <span>Tự Chọn Hạt Độc Bản</span>
                 </Link>
                 <motion.button
@@ -1005,7 +1003,7 @@ export default function LandingPage() {
               <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
                 <div className="md:col-span-7 space-y-4 text-left">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Trải Nghiệm Độc Bản
+                    <span>Trải Nghiệm Độc Bản</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
                     Tự Tay Phối Hạt · <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400">Khắc Tên Riêng</span>
@@ -1015,13 +1013,13 @@ export default function LandingPage() {
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      ✨ Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
+                      Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
                     </span>
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      ✨ Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
+                      Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
                     </span>
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      ✨ Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
+                      Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
                     </span>
                   </div>
                   <div className="pt-3">
@@ -1029,7 +1027,6 @@ export default function LandingPage() {
                       href="/tu-chon-hat"
                       className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-xl shadow-amber-950/50 hover:scale-105 active:scale-95 transition-all"
                     >
-                      <Sparkles className="w-4 h-4 text-stone-950" />
                       <span>Vào Xưởng Chế Tác Hạt Riêng</span>
                       <ArrowRight className="w-4 h-4 text-stone-950" />
                     </Link>
