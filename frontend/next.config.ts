@@ -37,6 +37,18 @@ const remotePatterns = [
 ];
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${API_URL}/api/:path*`,
+      },
+      {
+        source: "/uploads/:path*",
+        destination: `${API_URL}/uploads/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns,
     // Ảnh cắt sẵn dưới dạng AVIF/WebP — nhẹ hơn nhiều so với JPEG/PNG gốc

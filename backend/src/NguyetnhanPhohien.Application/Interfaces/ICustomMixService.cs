@@ -14,4 +14,9 @@ public interface ICustomMixService
     /// Kiểm tra tính hợp lệ của công thức phối hạt (tổng gram = 150g, 300g hoặc 900g) và lấy giá trọn gói niêm yết
     /// </summary>
     Task<ValidateCustomMixResponse> ValidateMixAsync(ValidateCustomMixRequest request);
+
+    /// <summary>
+    /// Xóa cache danh sách bao bì và hạt (dùng khi cập nhật giá hoặc danh sách nguyên liệu)
+    /// </summary>
+    void InvalidateOptionsCache();
 }

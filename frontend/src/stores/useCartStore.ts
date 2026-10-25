@@ -72,15 +72,23 @@ export const useCartStore = create<CartStore>()(
 
       addCustomMixItem: (customMix: CustomMixItemDetailDto, quantity = 1, imageUrl?: string) => {
         set((state) => {
-          // Kiểm tra xem đã có sản phẩm Custom Mix cùng cấu hình chưa (cùng bao bì, cùng tên, cùng công thức hạt)
-          const sameConfig = state.items.find(
-            (i) =>
-              i.isCustomMix &&
-              i.productId === customMix.packagingId &&
-              i.productName === customMix.customProductName &&
-              JSON.stringify(i.customMixDetails?.ingredients) === JSON.stringify(customMix.ingredients) &&
-              (i.customMixDetails?.customLabelMessage || "") === (customMix.customLabelMessage || "")
-          );
+          // Kiểm tra xem đã có sản phẩm Custom Mix cùng cấu hình chưa (cùng bao bì, cùng tên, cùng thông điệp và thành phần hạt)
+          const sameConfig = state.items.find((i) => {
+            if (!i.isCustomMix || !i.customMixDetails) return false;
+            const d = i.customMixDetails;
+            if (i.productId !== customMix.packagingId) return false;
+            if (i.productName !== customMix.customProductName) return false;
+            if ((d.customLabelMessage || "") !== (customMix.customLabelMessage || "")) return false;
+
+            const listA = d.ingredients || [];
+            const listB = customMix.ingredients || [];
+            if (listA.length !== listB.length) return false;
+
+            return listA.every((itemA) => {
+              const itemB = listB.find((b) => b.ingredientId === itemA.ingredientId);
+              return itemB != null && itemB.weightGrams === itemA.weightGrams;
+            });
+          });
 
           if (sameConfig) {
             const key = sameConfig.id || sameConfig.productId;

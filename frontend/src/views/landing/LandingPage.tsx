@@ -242,24 +242,6 @@ export default function LandingPage() {
     { requireAdministrativeUnits: !isManualAddress }
   );
 
-  // Khi bấm "Mua sản phẩm" trong giỏ hàng: nạp toàn bộ sản phẩm từ giỏ hàng vào form
-  // và chuyển màn hình mượt mà đến khu vực điền thông tin đặt hàng.
-  const handleCartCheckout = () => {
-    const cartItems = useCartStore.getState().items;
-    if (cartItems.length > 0) {
-      setCartItems(
-        cartItems.map((i) => ({
-          productId: i.productId,
-          quantity: i.quantity,
-          isCustomMix: i.isCustomMix,
-          customMixDetails: i.customMixDetails,
-        }))
-      );
-    }
-    closeCart();
-    scrollToSection("dat-hang");
-  };
-
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
   useEffect(() => {
     if (cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId && !form.items[0].isCustomMix) {
@@ -405,6 +387,42 @@ export default function LandingPage() {
     }
   };
 
+  // Khi bấm "Mua sản phẩm" trong giỏ hàng: nạp toàn bộ sản phẩm từ giỏ hàng vào form
+  // và chuyển màn hình mượt mà đến khu vực điền thông tin đặt hàng.
+  const handleCartCheckout = () => {
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0) {
+      setCartItems(
+        cartItems.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          isCustomMix: i.isCustomMix,
+          customMixDetails: i.customMixDetails,
+        }))
+      );
+    }
+    closeCart();
+    scrollToSection("dat-hang");
+  };
+
+  // Xử lý "Đặt Mua Ngay" trên các thẻ sản phẩm thường:
+  // Thêm sản phẩm vào giỏ hàng và đồng bộ toàn bộ giỏ (bao gồm cả các món Custom Mix đang có)
+  // vào form thanh toán để không bao giờ làm mất sản phẩm tự chọn hạt của khách.
+  const handleQuickBuy = (product: ProductResponse) => {
+    addCartItem(product);
+    const updatedCartItems = useCartStore.getState().items;
+    setCartItems(
+      updatedCartItems.map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+        isCustomMix: i.isCustomMix,
+        customMixDetails: i.customMixDetails,
+      }))
+    );
+    closeCart();
+    scrollToSection("dat-hang");
+  };
+
   const handleOpenChat = async () => {
     closeCart();
     setIsChatOpen(true);
@@ -479,8 +497,8 @@ export default function LandingPage() {
           language={language as "vi" | "en"}
           onClose={() => setGalleryProduct(null)}
           onOrder={() => {
-            selectSingleProduct(galleryProduct.id);
-            scrollToSection("dat-hang");
+            handleQuickBuy(galleryProduct);
+            setGalleryProduct(null);
           }}
           onAddToCart={(prod) => addCartItem(prod)}
         />
@@ -807,7 +825,12 @@ export default function LandingPage() {
                   const cartItems = useCartStore.getState().items;
                   if (cartItems.length > 0) {
                     setCartItems(
-                      cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+                      cartItems.map((i) => ({
+                        productId: i.productId,
+                        quantity: i.quantity,
+                        isCustomMix: i.isCustomMix,
+                        customMixDetails: i.customMixDetails,
+                      }))
                     );
                   }
                   scrollToSection("dat-hang");
@@ -985,8 +1008,13 @@ export default function LandingPage() {
           language={language as "vi" | "en"}
           cmsContent={cmsContent}
           onOrderProduct={(productId) => {
-            selectSingleProduct(productId);
-            scrollToSection("dat-hang");
+            const prod = effectiveProducts.find((p) => p.id === productId);
+            if (prod) {
+              handleQuickBuy(prod);
+            } else {
+              selectSingleProduct(productId);
+              scrollToSection("dat-hang");
+            }
           }}
           onOpenGallery={(prod) => setGalleryProduct(prod)}
           onAddToCart={(prod) => addCartItem(prod)}
@@ -2005,7 +2033,12 @@ export default function LandingPage() {
                 const cartItems = useCartStore.getState().items;
                 if (cartItems.length > 0) {
                   setCartItems(
-                    cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+                    cartItems.map((i) => ({
+                      productId: i.productId,
+                      quantity: i.quantity,
+                      isCustomMix: i.isCustomMix,
+                      customMixDetails: i.customMixDetails,
+                    }))
                   );
                 }
                 scrollToSection("dat-hang");

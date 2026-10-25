@@ -125,7 +125,7 @@ export function CartDrawer({ language, onCheckout, onBrowseProducts }: CartDrawe
               ) : (
                 <AnimatePresence initial={false}>
                   {items.map((item) => (
-                    <CartItemRow key={item.productId} item={item} />
+                    <CartItemRow key={item.id || item.productId} item={item} />
                   ))}
                 </AnimatePresence>
               )}

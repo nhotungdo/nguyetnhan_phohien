@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -150,7 +150,7 @@ function formatVND(amount: number) {
 
 export default function CustomMixStudio() {
   const router = useRouter();
-  const { addCustomMixItem, openCart, getTotalItems } = useCartStore();
+  const { addCustomMixItem, openCart, closeCart, getTotalItems } = useCartStore();
   const totalCartCount = getTotalItems();
 
   const [packagings, setPackagings] = useState<CustomPackaging[]>(FALLBACK_PACKAGINGS);
@@ -169,6 +169,7 @@ export default function CustomMixStudio() {
   const [showSuccessToast, setShowSuccessToast] = useState<boolean>(false);
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   // Tải danh sách bao bì & hạt từ API
   useEffect(() => {
@@ -256,10 +257,43 @@ export default function CustomMixStudio() {
     });
   };
 
+  // Helper tra cứu hạt theo loại ngữ nghĩa (bảo đảm an toàn tuyệt đối khi DB đổi thứ tự DisplayOrder)
+  const findNut = useCallback(
+    (key: "longnhan" | "sen" | "macca" | "dieu" | "hanhnhan" | "bixanh") => {
+      const SEED_IDS: Record<string, string> = {
+        longnhan: "d0000001-0000-0000-0000-000000000001",
+        sen: "d0000001-0000-0000-0000-000000000002",
+        macca: "d0000001-0000-0000-0000-000000000003",
+        dieu: "d0000001-0000-0000-0000-000000000004",
+        hanhnhan: "d0000001-0000-0000-0000-000000000005",
+        bixanh: "d0000001-0000-0000-0000-000000000006",
+      };
+      const KEYWORDS: Record<string, string[]> = {
+        longnhan: ["long nhãn", "long nhan"],
+        sen: ["sen"],
+        macca: ["macca", "mắc ca"],
+        dieu: ["điều", "dieu"],
+        hanhnhan: ["hạnh nhân", "hanh nhan"],
+        bixanh: ["bí xanh", "bi xanh", "hạt bí"],
+      };
+
+      const seedId = SEED_IDS[key];
+      const byId = ingredients.find((i) => i.id === seedId);
+      if (byId) return byId;
+
+      const words = KEYWORDS[key] || [];
+      return ingredients.find((i) => {
+        const lower = (i.name || "").toLowerCase();
+        return words.some((w) => lower.includes(w));
+      });
+    },
+    [ingredients]
+  );
+
   // Tự động bù đầy bằng Long Nhãn Phố Hiến
   const handleAutoFillLongNhan = () => {
     if (remainingGrams <= 0) return;
-    const longNhan = ingredients[0];
+    const longNhan = findNut("longnhan") || ingredients[0];
     if (!longNhan) return;
     const currentLongNhan = weights[longNhan.id] || 0;
     handleUpdateGrams(longNhan.id, currentLongNhan + remainingGrams);
@@ -274,7 +308,7 @@ export default function CustomMixStudio() {
     if (count === 0) return;
 
     const basePerNut = Math.floor(targetGrams / count / 10) * 10;
-    let allocatedTotal = basePerNut * count;
+    const allocatedTotal = basePerNut * count;
     const remainder = targetGrams - allocatedTotal;
 
     const newWeights: Record<string, number> = {};
@@ -293,12 +327,12 @@ export default function CustomMixStudio() {
   // Áp dụng công thức gợi ý
   const handleApplyPreset = (presetType: "duong-nhan" | "nang-luong" | "thuong-hang") => {
     const newWeights: Record<string, number> = {};
-    const longNhanId = ingredients[0]?.id;
-    const senId = ingredients[1]?.id;
-    const maccaId = ingredients[2]?.id;
-    const dieuId = ingredients[3]?.id;
-    const hanhNhanId = ingredients[4]?.id;
-    const biXanhId = ingredients[5]?.id;
+    const longNhanId = findNut("longnhan")?.id || ingredients[0]?.id;
+    const senId = findNut("sen")?.id || ingredients[1]?.id;
+    const maccaId = findNut("macca")?.id || ingredients[2]?.id;
+    const dieuId = findNut("dieu")?.id || ingredients[3]?.id;
+    const hanhNhanId = findNut("hanhnhan")?.id || ingredients[4]?.id;
+    const biXanhId = findNut("bixanh")?.id || ingredients[5]?.id;
 
     if (presetType === "duong-nhan") {
       // 40% Long nhãn, 30% Hạt sen, 30% Hạnh nhân
@@ -310,6 +344,7 @@ export default function CustomMixStudio() {
       if (hanhNhanId) newWeights[hanhNhanId] = w3;
       setCustomName("Hộp Dưỡng Nhan Thanh Tâm");
       setCustomMessage("Kính chúc Mẹ luôn bình an, tươi trẻ và ngủ thật ngon");
+      setNameError(null);
     } else if (presetType === "nang-luong") {
       // 30% Long nhãn, 25% Hạt điều, 25% Macca, 20% Hạt bí
       const w1 = Math.round((targetGrams * 0.3) / 10) * 10;
@@ -322,6 +357,7 @@ export default function CustomMixStudio() {
       if (biXanhId) newWeights[biXanhId] = w4;
       setCustomName("Mix Năng Lượng Đỉnh Cao");
       setCustomMessage("Tràn đầy năng lượng, bứt phá mọi mục tiêu");
+      setNameError(null);
     } else {
       // 40% Long nhãn Tiến Vua, 30% Macca, 30% Sen Phố Hiến
       const w1 = Math.round((targetGrams * 0.4) / 10) * 10;
@@ -332,6 +368,7 @@ export default function CustomMixStudio() {
       if (senId) newWeights[senId] = w3;
       setCustomName("Long Nhãn Tam Vị Tiến Vua");
       setCustomMessage("Kính chúc Quý Đối Tác vạn sự hanh thông, đại cát đại lợi");
+      setNameError(null);
     }
 
     setWeights(newWeights);
@@ -358,23 +395,66 @@ export default function CustomMixStudio() {
   const handleAddToCart = async (autoOpenCart = false) => {
     if (!isPerfectMatch || isValidating) return;
     setErrorMessage(null);
+
+    // Bắt buộc nhập tên sản phẩm theo dấu * quy ước
+    if (!customName.trim()) {
+      setNameError("Vui lòng đặt tên cho sản phẩm tự chọn hạt của bạn trước khi thêm vào giỏ.");
+      setErrorMessage("Vui lòng đặt tên cho sản phẩm tự chọn hạt của bạn trước khi thêm vào giỏ.");
+      const inputEl = document.getElementById("customProductNameInput");
+      if (inputEl) {
+        inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        inputEl.focus();
+      }
+      return;
+    }
+    setNameError(null);
     setIsValidating(true);
 
     try {
-      const validateRes = await customMixApi.validate({
-        packagingId: activePackaging.id,
-        customProductName: customName.trim(),
-        customLabelMessage: customMessage.trim() || undefined,
-        ingredients: selectedNutsList.map((n) => ({
-          ingredientId: n.ingredientId,
-          weightGrams: n.weightGrams,
-        })),
-      });
+      let validatedFixedPrice = activePackaging.fixedPrice;
+      let validatedIngredients = selectedNutsList;
 
-      if (!validateRes.isValid) {
-        setErrorMessage(validateRes.message || "Công thức phối hạt chưa hợp lệ.");
-        setIsValidating(false);
-        return;
+      try {
+        const validateRes = await customMixApi.validate({
+          packagingId: activePackaging.id,
+          customProductName: customName.trim(),
+          customLabelMessage: customMessage.trim() || undefined,
+          ingredients: selectedNutsList.map((n) => ({
+            ingredientId: n.ingredientId,
+            weightGrams: n.weightGrams,
+          })),
+        });
+
+        // Nếu backend phản hồi từ chối công thức (lỗi nghiệp vụ do server trả về)
+        if (validateRes && !validateRes.isValid) {
+          setErrorMessage(validateRes.message || "Công thức phối hạt chưa hợp lệ.");
+          setIsValidating(false);
+          return;
+        }
+
+        if (validateRes?.isValid) {
+          if (validateRes.fixedPrice && validateRes.fixedPrice > 0) {
+            validatedFixedPrice = validateRes.fixedPrice;
+          }
+          if (validateRes.ingredients?.length) {
+            validatedIngredients = validateRes.ingredients.map((ing) => {
+              const matched = ingredients.find((i) => i.id === ing.ingredientId);
+              return {
+                ingredientId: ing.ingredientId,
+                name: ing.name || matched?.name || "Hạt dinh dưỡng",
+                weightGrams: ing.weightGrams,
+                percentage: ing.percentage ?? (targetGrams > 0 ? Math.round((ing.weightGrams * 100) / targetGrams) : 0),
+                imageUrl: matched?.imageUrl || "/images/setqua.jpg",
+              };
+            });
+          }
+        }
+      } catch (apiErr) {
+        // Fallback an toàn: nếu API kiểm tra tạm thời gặp lỗi mạng / 404 / mất kết nối server,
+        // vì công thức phía client đã được kiểm định đạt chuẩn chính xác (isPerfectMatch),
+        // cho phép khách tiếp tục lưu vào giỏ hàng với công thức và đơn giá đã tính
+        // để không làm gián đoạn trải nghiệm mua hàng (server sẽ thẩm định lại lần nữa khi tạo đơn).
+        console.warn("API custom-mix validate unreachable or error, falling back to client-verified mix:", apiErr);
       }
 
       const payload: CustomMixItemDetailDto = {
@@ -383,13 +463,8 @@ export default function CustomMixStudio() {
         targetWeightGrams: activePackaging.capacityGrams,
         customProductName: customName.trim() || `Sản phẩm Tự Chọn Hạt (${activePackaging.capacityGrams}g)`,
         customLabelMessage: customMessage.trim() || undefined,
-        ingredients: validateRes.ingredients?.length
-          ? validateRes.ingredients.map((ing) => ({
-              ...ing,
-              imageUrl: ingredients.find((i) => i.id === ing.ingredientId)?.imageUrl,
-            }))
-          : selectedNutsList,
-        fixedPrice: validateRes.fixedPrice || activePackaging.fixedPrice,
+        ingredients: validatedIngredients,
+        fixedPrice: validatedFixedPrice,
       };
 
       addCustomMixItem(payload, quantity, activePackaging.imageUrl);
@@ -400,7 +475,7 @@ export default function CustomMixStudio() {
         openCart();
       }
     } catch (err: unknown) {
-      setErrorMessage((err as Error)?.message || "Không thể xác thực công thức hạt với máy chủ.");
+      setErrorMessage((err as Error)?.message || "Không thể thêm vào giỏ hàng.");
     } finally {
       setIsValidating(false);
     }
@@ -731,14 +806,14 @@ export default function CustomMixStudio() {
                           </button>
                         </div>
 
-                        {/* Nút tắt nhanh: +25g */}
+                        {/* Nút tắt nhanh: +50g (bội số của bước 10g để backend luôn chấp nhận) */}
                         <button
-                          onClick={() => handleUpdateGrams(ing.id, currentWeight + 25)}
-                          disabled={totalGrams + 25 > targetGrams}
+                          onClick={() => handleUpdateGrams(ing.id, currentWeight + 50)}
+                          disabled={totalGrams + 50 > targetGrams}
                           type="button"
                           className="px-2 py-1 rounded-lg bg-neutral-50 hover:bg-[#FEF3C7] border border-border/80 text-[11px] font-semibold text-neutral-700 transition-colors disabled:opacity-30"
                         >
-                          +25g
+                          +50g
                         </button>
                       </div>
                     </div>
@@ -769,13 +844,26 @@ export default function CustomMixStudio() {
                     type="text"
                     maxLength={50}
                     value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
+                    onChange={(e) => {
+                      setCustomName(e.target.value);
+                      if (nameError && e.target.value.trim()) setNameError(null);
+                    }}
                     placeholder="Ví dụ: Hộp Dưỡng Nhan Mẹ Yêu, Mix Năng Lượng Của Nam..."
-                    className="w-full bg-[#FFFDF8] border border-border/80 rounded-2xl px-4 py-3 text-sm font-semibold text-primary outline-none focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] transition-all"
+                    className={`w-full bg-[#FFFDF8] border rounded-2xl px-4 py-3 text-sm font-semibold text-primary outline-none transition-all ${
+                      nameError
+                        ? "border-red-500 ring-2 ring-red-200"
+                        : "border-border/80 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
+                    }`}
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    Tên này sẽ được in nổi bật ở trung tâm tem nhãn sản phẩm.
-                  </p>
+                  {nameError ? (
+                    <p className="text-xs text-red-600 font-semibold mt-1.5 flex items-center gap-1">
+                      <span>⚠️</span> {nameError}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      Tên này sẽ được in nổi bật ở trung tâm tem nhãn sản phẩm.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1022,6 +1110,9 @@ export default function CustomMixStudio() {
       <CartDrawer
         language="vi"
         onCheckout={() => {
+          // Đóng drawer trước khi sang trang đặt hàng: nếu để mở, overlay + khoá
+          // scroll của giỏ hàng sẽ phủ lên form khi trang chủ vừa hiển thị.
+          closeCart();
           router.push("/#dat-hang");
         }}
       />

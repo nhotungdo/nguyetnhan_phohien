@@ -208,11 +208,11 @@ public class OrderService : IOrderService
                     _ => 0m
                 };
 
-                // Làm sạch tên sản phẩm khách đặt (tối đa 80 ký tự)
+                // Làm sạch tên sản phẩm khách đặt (bắt buộc nhập theo dấu * quy ước, tối đa 80 ký tự)
                 var rawName = details.CustomProductName?.Trim();
-                var customName = string.IsNullOrWhiteSpace(rawName)
-                    ? $"Sản Phẩm Tự Chọn Hạt ({packaging.CapacityGrams}g)"
-                    : (rawName.Length > 80 ? rawName[..80] : rawName);
+                if (string.IsNullOrWhiteSpace(rawName))
+                    throw new ArgumentException("Sản phẩm tự chọn hạt bắt buộc phải có tên riêng.");
+                var customName = rawName.Length > 80 ? rawName[..80] : rawName;
 
                 details.PackagingName = packaging.Name;
                 details.TargetWeightGrams = packaging.CapacityGrams;

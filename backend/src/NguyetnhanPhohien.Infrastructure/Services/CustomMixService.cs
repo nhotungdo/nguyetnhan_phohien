@@ -75,8 +75,8 @@ public class CustomMixService : ICustomMixService
             Ingredients = ingredients
         };
 
-        // Cache 5 phút
-        _cache.Set(OptionsCacheKey, response, TimeSpan.FromMinutes(5));
+        // Cache ngắn 30 giây để cập nhật giá thay đổi từ DB gần như tức thì
+        _cache.Set(OptionsCacheKey, response, TimeSpan.FromSeconds(30));
 
         return response;
     }
@@ -89,6 +89,15 @@ public class CustomMixService : ICustomMixService
             {
                 IsValid = false,
                 Message = "Dữ liệu yêu cầu không hợp lệ."
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(request.CustomProductName))
+        {
+            return new ValidateCustomMixResponse
+            {
+                IsValid = false,
+                Message = "Vui lòng đặt tên cho sản phẩm tự chọn hạt của bạn."
             };
         }
 
@@ -240,5 +249,10 @@ public class CustomMixService : ICustomMixService
             Message = "Công thức phối hạt hoàn toàn hợp lệ.",
             Ingredients = activeIngredientItems
         };
+    }
+
+    public void InvalidateOptionsCache()
+    {
+        _cache.Remove(OptionsCacheKey);
     }
 }
