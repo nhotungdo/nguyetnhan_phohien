@@ -28,9 +28,19 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
-import type { OrderResponse } from "@/types/api.types";
+import type { OrderResponse, OrderItemResponse, CustomMixItemDetailDto } from "@/types/api.types";
 import { paymentSettingsApi } from "@/services/api.service";
 import { buildVietQrUrl } from "@/lib/vietqr";
+
+function parseCustomMixDetails(item: OrderItemResponse): CustomMixItemDetailDto | null {
+  if (item.customDetails) return item.customDetails;
+  if (!item.customDetailsJson) return null;
+  try {
+    return JSON.parse(item.customDetailsJson) as CustomMixItemDetailDto;
+  } catch {
+    return null;
+  }
+}
 
 interface OrderDetailModalProps {
   order: OrderResponse;
@@ -583,16 +593,52 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {order.items && order.items.length > 0 ? (
-                    order.items.map((item, idx) => (
-                      <tr key={item.id || idx} className="hover:bg-muted/20 transition-colors">
-                        <td className="px-4 py-3.5">
-                          <div className="font-semibold text-foreground">{item.productName}</div>
-                          {item.productSize && (
-                            <span className="inline-block mt-0.5 text-[11px] font-medium bg-secondary text-primary px-2 py-0.5 rounded-md border border-primary/20">
-                              Quy cách: {item.productSize}
-                            </span>
-                          )}
-                        </td>
+                    order.items.map((item, idx) => {
+                      const customMix = item.isCustomMix ? parseCustomMixDetails(item) : null;
+                      return (
+                        <tr key={item.id || idx} className="hover:bg-muted/20 transition-colors">
+                          <td className="px-4 py-3.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-semibold text-foreground">{item.productName}</span>
+                              {item.isCustomMix && (
+                                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">
+                                  ✨ Tự Chọn Hạt
+                                </span>
+                              )}
+                            </div>
+                            {item.productSize && (
+                              <span className="inline-block mt-0.5 text-[11px] font-medium bg-secondary text-primary px-2 py-0.5 rounded-md border border-primary/20">
+                                Quy cách: {item.productSize}
+                              </span>
+                            )}
+
+                            {/* Chi tiết công thức hạt cho nhân viên kho đóng gói */}
+                            {customMix && (
+                              <div className="mt-2.5 p-2.5 bg-amber-500/10 border border-amber-500/25 rounded-xl space-y-1.5 text-xs max-w-lg">
+                                <div className="font-bold text-amber-900 flex items-center gap-1.5">
+                                  <span>📦 Công thức đóng hạt ({customMix.targetWeightGrams}g):</span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-0.5">
+                                  {customMix.ingredients?.map((ing, iIdx) => (
+                                    <div
+                                      key={iIdx}
+                                      className="bg-white/90 dark:bg-card px-2 py-1 rounded border border-amber-200/70 flex items-center justify-between"
+                                    >
+                                      <span className="text-foreground/90 font-medium truncate mr-1">
+                                        {ing.name || "Hạt"}:
+                                      </span>
+                                      <span className="font-bold text-amber-800 shrink-0">{ing.weightGrams}g</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                {customMix.customLabelMessage && (
+                                  <div className="pt-1 border-t border-amber-200/50 text-[11px] text-amber-950 italic">
+                                    <strong>In tem nhãn:</strong> &ldquo;{customMix.customLabelMessage}&rdquo;
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
                         <td className="px-4 py-3.5 text-right font-medium text-muted-foreground">
                           {item.unitPrice.toLocaleString("vi-VN")}đ
                         </td>
@@ -603,8 +649,9 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                           {item.totalPrice.toLocaleString("vi-VN")}đ
                         </td>
                       </tr>
-                    ))
-                  ) : (
+                    );
+                  })
+                ) : (
                     <tr className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="font-semibold text-foreground">
@@ -730,13 +777,28 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
             </thead>
             <tbody>
               {order.items && order.items.length > 0 ? (
-                order.items.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: "1px solid #ddd" }}>
-                    <td style={{ padding: "8px 4px" }}>{idx + 1}</td>
-                    <td style={{ padding: "8px 4px" }}>
-                      {item.productName}
-                      {item.productSize ? ` (${item.productSize})` : ""}
-                    </td>
+                order.items.map((item, idx) => {
+                  const customMix = item.isCustomMix ? parseCustomMixDetails(item) : null;
+                  const formula = customMix?.ingredients?.map((i) => `${i.name || "Hạt"}: ${i.weightGrams}g`).join(", ");
+                  return (
+                    <tr key={idx} style={{ borderBottom: "1px solid #ddd" }}>
+                      <td style={{ padding: "8px 4px" }}>{idx + 1}</td>
+                      <td style={{ padding: "8px 4px" }}>
+                        <div style={{ fontWeight: "bold" }}>
+                          {item.productName}
+                          {item.productSize ? ` (${item.productSize})` : ""}
+                        </div>
+                        {item.isCustomMix && (
+                          <div style={{ fontSize: "11px", color: "#444", marginTop: "3px" }}>
+                            {formula && (
+                              <div>&bull; <strong>Tự chọn hạt:</strong> {formula}</div>
+                            )}
+                            {customMix?.customLabelMessage && (
+                              <div>&bull; <strong>In nhãn riêng:</strong> &ldquo;{customMix.customLabelMessage}&rdquo;</div>
+                            )}
+                          </div>
+                        )}
+                      </td>
                     <td style={{ padding: "8px 4px", textAlign: "right" }}>
                       {item.unitPrice.toLocaleString("vi-VN")}đ
                     </td>
@@ -745,8 +807,9 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                       {item.totalPrice.toLocaleString("vi-VN")}đ
                     </td>
                   </tr>
-                ))
-              ) : (
+                );
+              })
+            ) : (
                 <tr style={{ borderBottom: "1px solid #ddd" }}>
                   <td style={{ padding: "8px 4px" }}>1</td>
                   <td style={{ padding: "8px 4px" }}>

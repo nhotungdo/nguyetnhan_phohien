@@ -12,6 +12,9 @@ import type {
   UpdateContentRequest,
   PaymentSettings,
   DashboardStatsResponse,
+  CustomMixOptionsResponse,
+  ValidateCustomMixRequest,
+  ValidateCustomMixResponse,
 } from "@/types/api.types";
 
 // Kết quả đăng nhập admin từ POST /api/auth/admin-login
@@ -546,6 +549,22 @@ export const nutritionAiApi = {
       if ((err as Error)?.name === "AbortError") return;
       callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
     }
+  },
+};
+
+// ===== CUSTOM MIX (TỰ CHỌN HẠT) API =====
+export const customMixApi = {
+  /** [PUBLIC] Lấy danh sách quy cách bao bì (150g, 300g, 900g) và 6 loại hạt đang mở bán */
+  getOptions: async (): Promise<CustomMixOptionsResponse> => {
+    return apiFetch<CustomMixOptionsResponse>("/api/custom-mix/options");
+  },
+
+  /** [PUBLIC] Kiểm tra tính hợp lệ của công thức tự chọn hạt và tính giá niêm yết */
+  validate: async (request: ValidateCustomMixRequest): Promise<ValidateCustomMixResponse> => {
+    return apiFetch<ValidateCustomMixResponse>("/api/custom-mix/validate", {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
   },
 };
 

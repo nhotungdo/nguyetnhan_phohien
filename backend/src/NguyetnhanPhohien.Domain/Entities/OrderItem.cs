@@ -15,4 +15,14 @@ public class OrderItem
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; } = 1;
     public decimal TotalPrice { get; set; }
+
+    /// <summary>
+    /// Đánh dấu sản phẩm này là sản phẩm tự chọn hạt (Custom Mix)
+    /// </summary>
+    public bool IsCustomMix { get; set; } = false;
+
+    /// <summary>
+    /// Lưu chuỗi JSON công thức phối hạt chi tiết (bao bì, tên riêng khách đặt, từng loại hạt và gram cân)
+    /// </summary>
+    public string? CustomDetailsJson { get; set; }
 }

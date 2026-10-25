@@ -99,7 +99,7 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChatSessionId");
+                    b.HasIndex("ChatSessionId", "SentAt");
 
                     b.ToTable("ChatMessages");
                 });
@@ -134,6 +134,8 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LastMessageAt");
+
                     b.HasIndex("SessionId")
                         .IsUnique();
 
@@ -165,6 +167,111 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.HasIndex("FacebookPageId");
 
                     b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.CustomIngredient", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CaloriesPer100g")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MaxGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MinGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("StepGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tagline")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("CustomIngredients");
+                });
+
+            modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.CustomPackaging", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CapacityGrams")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("FixedPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PackagingType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("CustomPackagings");
                 });
 
             modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.Customer", b =>
@@ -418,7 +525,13 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerPhone");
+
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("Orders");
                 });
@@ -428,6 +541,12 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("CustomDetailsJson")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCustomMix")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");

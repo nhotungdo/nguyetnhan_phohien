@@ -28,6 +28,10 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
 
+    // ===== CUSTOM MIX (TỰ CHỌN HẠT) =====
+    public DbSet<CustomPackaging> CustomPackagings { get; set; } = null!;
+    public DbSet<CustomIngredient> CustomIngredients { get; set; } = null!;
+
     // ===== LIVE CHAT =====
     public DbSet<ChatSession> ChatSessions { get; set; } = null!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
@@ -118,6 +122,25 @@ public class AppDbContext : DbContext
             .WithMany(o => o.Items)
             .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<OrderItem>()
+            .Property(i => i.CustomDetailsJson)
+            .HasColumnType("text");
+
+        // ===== CUSTOM PACKAGING & INGREDIENT =====
+        modelBuilder.Entity<CustomPackaging>().HasKey(p => p.Id);
+        modelBuilder.Entity<CustomPackaging>()
+            .Property(p => p.FixedPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<CustomPackaging>()
+            .HasIndex(p => p.IsActive);
+        modelBuilder.Entity<CustomPackaging>()
+            .HasIndex(p => p.DisplayOrder);
+
+        modelBuilder.Entity<CustomIngredient>().HasKey(i => i.Id);
+        modelBuilder.Entity<CustomIngredient>()
+            .HasIndex(i => i.IsActive);
+        modelBuilder.Entity<CustomIngredient>()
+            .HasIndex(i => i.DisplayOrder);
 
         // ===== DISCOUNT CODE =====
         modelBuilder.Entity<DiscountCode>().HasKey(d => d.Id);

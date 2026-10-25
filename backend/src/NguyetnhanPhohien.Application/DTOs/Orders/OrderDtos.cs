@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NguyetnhanPhohien.Application.DTOs.CustomMix;
 
 namespace NguyetnhanPhohien.Application.DTOs.Orders;
 
@@ -7,6 +8,8 @@ public class OrderItemRequest
 {
     public string ProductId { get; set; } = string.Empty;
     public int Quantity { get; set; } = 1;
+    public bool IsCustomMix { get; set; } = false;
+    public CustomMixItemDetailDto? CustomMixDetails { get; set; }
 }
 
 public class OrderItemResponse
@@ -18,6 +21,9 @@ public class OrderItemResponse
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
     public decimal TotalPrice { get; set; }
+    public bool IsCustomMix { get; set; } = false;
+    public string? CustomDetailsJson { get; set; }
+    public CustomMixItemDetailDto? CustomDetails { get; set; }
 }
 
 // DTO nhận dữ liệu từ Form đặt hàng của khách.

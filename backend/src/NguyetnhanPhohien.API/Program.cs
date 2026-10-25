@@ -184,6 +184,7 @@ builder.Services.AddScoped<IPaymentSettingsService, PaymentSettingsService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<INutritionAiService, NutritionAiService>();
+builder.Services.AddScoped<ICustomMixService, CustomMixService>();
 
 // ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====
 builder.Services.AddHostedService<WeeklyReportBackgroundService>();

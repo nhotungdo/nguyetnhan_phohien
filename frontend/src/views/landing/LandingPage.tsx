@@ -190,6 +190,10 @@ export default function LandingPage() {
     ];
     if (isMounted) {
       for (const item of cartStoreItems) {
+        // Sản phẩm tự chọn hạt dùng Id bao bì làm productId nên không phải sản phẩm
+        // thật: đưa vào danh sách sẽ tạo option trùng tên trong ô chọn sản phẩm và
+        // khi khách chọn phải thì backend trả 400. Dòng của nó tự hiển thị công thức.
+        if (item.isCustomMix) continue;
         if (!baseList.some((p) => p.id === item.productId)) {
           baseList.push({
             id: item.productId,
@@ -244,7 +248,12 @@ export default function LandingPage() {
     const cartItems = useCartStore.getState().items;
     if (cartItems.length > 0) {
       setCartItems(
-        cartItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+        cartItems.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          isCustomMix: i.isCustomMix,
+          customMixDetails: i.customMixDetails,
+        }))
       );
     }
     closeCart();
@@ -253,9 +262,14 @@ export default function LandingPage() {
 
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
   useEffect(() => {
-    if (cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId) {
+    if (cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId && !form.items[0].isCustomMix) {
       setCartItems(
-        cartStoreItems.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+        cartStoreItems.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          isCustomMix: i.isCustomMix,
+          customMixDetails: i.customMixDetails,
+        }))
       );
     }
   }, [cartStoreItems, form.items, setCartItems]);
@@ -583,7 +597,7 @@ export default function LandingPage() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
@@ -594,12 +608,22 @@ export default function LandingPage() {
               <button
                 key={index}
                 onClick={() => scrollToSection(item.id)}
-                className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out relative group"
+                className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out relative group cursor-pointer"
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 ease-in-out group-hover:w-full"></span>
               </button>
             ))}
+            <Link
+              href="/tu-chon-hat"
+              className="text-xs lg:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
+              <span>Tự Chọn Hạt</span>
+              <span className="bg-[#B45309] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                Mới
+              </span>
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
@@ -696,6 +720,29 @@ export default function LandingPage() {
                   <ChevronRight className="w-4 h-4 text-accent/70" />
                 </motion.button>
               ))}
+
+              {/* Lối tắt Tự Chọn Hạt trên Mobile */}
+              <Link
+                href="/tu-chon-hat"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full text-base font-bold text-amber-900 bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/60 p-3 rounded-2xl flex items-center justify-between border border-amber-300 shadow-sm active:scale-98 transition-all my-1"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-xl bg-[#B45309] text-white flex items-center justify-center shadow-sm">
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold">Tự Chọn Hạt Độc Bản</span>
+                      <span className="bg-[#B45309] text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        Mới
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-amber-800/80 font-normal">Tự phối 6 loại hạt & in tên riêng</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-amber-700" />
+              </Link>
 
               {/* Thông tin liên hệ nhanh trong Mobile Menu */}
               <div className="pt-2 flex flex-col gap-2">
@@ -836,7 +883,7 @@ export default function LandingPage() {
               <p className="text-base sm:text-lg md:text-xl text-foreground/80 leading-relaxed">
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -845,6 +892,13 @@ export default function LandingPage() {
                 >
                   {t.hero.discover} <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
+                <Link
+                  href="/tu-chon-hat"
+                  className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-sm sm:text-base font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-700 animate-pulse" />
+                  <span>Tự Chọn Hạt Độc Bản</span>
+                </Link>
                 <motion.button
                   whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
                   whileTap={{ scale: 0.95 }}
@@ -939,6 +993,70 @@ export default function LandingPage() {
           onOpenGallery={(prod) => setGalleryProduct(prod)}
           onAddToCart={(prod) => addCartItem(prod)}
         />
+
+        {/* BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
+        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full">
+          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#1C1917] via-[#292524] to-[#1C1917] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/20">
+              {/* Vệt sáng trang trí */}
+              <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+              <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-orange-600/10 blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-7 space-y-4 text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Trải Nghiệm Độc Bản
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                    Tự Tay Phối Hạt · <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400">Khắc Tên Riêng</span>
+                  </h2>
+                  <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
+                    Tự do lựa chọn tỉ lệ vàng từ 6 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Hạt sen sấy giòn, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      ✨ Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
+                    </span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      ✨ Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
+                    </span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      ✨ Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
+                    </span>
+                  </div>
+                  <div className="pt-3">
+                    <Link
+                      href="/tu-chon-hat"
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-xl shadow-amber-950/50 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <Sparkles className="w-4 h-4 text-stone-950" />
+                      <span>Vào Xưởng Chế Tác Hạt Riêng</span>
+                      <ArrowRight className="w-4 h-4 text-stone-950" />
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="md:col-span-5 relative flex justify-center">
+                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border-2 border-amber-500/30 shadow-2xl bg-stone-900/60 group">
+                    <FastImage
+                      src="/images/setqua.jpg"
+                      alt="Tự Chọn Hạt Độc Bản"
+                      fill
+                      sizes="(max-width: 768px) 240px, 288px"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
+                      <div>
+                        <span className="text-amber-300 font-bold text-xs block">Miễn phí thiết kế nhãn riêng</span>
+                        <span className="text-stone-300 text-[11px]">Đóng gói chuẩn quy trình ATVSTP</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
         <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full">
@@ -1350,23 +1468,42 @@ export default function LandingPage() {
                       </button>
                     </div>
 
-                    {form.items.map((item, idx) => (
+                    {form.items.map((item, idx) => {
+                      const custom = item.isCustomMix ? item.customMixDetails : undefined;
+                      return (
                       <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-background border border-[#FDE68A] shadow-sm">
                         <div className="flex-1 min-w-0">
-                          <select
-                            required
-                            aria-label={`${t.order.select_product} ${idx + 1}`}
-                            value={item.productId}
-                            onChange={(e) => updateItem(idx, "productId", e.target.value)}
-                            className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all truncate"
-                          >
-                            <option value="">{t.order.select_default}</option>
-                            {effectiveProducts.map((prod) => (
-                              <option key={prod.id} value={prod.id}>
-                                {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
-                              </option>
-                            ))}
-                          </select>
+                          {custom ? (
+                            // Sản phẩm tự chọn hạt: công thức do khách chốt trong Custom Mix
+                            // Studio nên hiển thị cố định, không cho đổi sang sản phẩm khác
+                            // (đổi ô chọn cũng không làm thay đổi đơn vì backend dùng công thức).
+                            <div className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2">
+                              <p className="text-sm font-semibold text-foreground truncate">
+                                {custom.customProductName}
+                              </p>
+                              <p className="text-xs text-foreground/60 truncate">
+                                {custom.packagingName} ({custom.targetWeightGrams}g)
+                                {custom.ingredients?.length
+                                  ? ` · ${custom.ingredients.map((ing) => `${ing.name} ${ing.weightGrams}g`).join(", ")}`
+                                  : ""}
+                              </p>
+                            </div>
+                          ) : (
+                            <select
+                              required
+                              aria-label={`${t.order.select_product} ${idx + 1}`}
+                              value={item.productId}
+                              onChange={(e) => updateItem(idx, "productId", e.target.value)}
+                              className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all truncate"
+                            >
+                              <option value="">{t.order.select_default}</option>
+                              {effectiveProducts.map((prod) => (
+                                <option key={prod.id} value={prod.id}>
+                                  {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                         </div>
                         <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
                           <div className="w-24 shrink-0">
@@ -1392,7 +1529,8 @@ export default function LandingPage() {
                           )}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Mã giảm giá */}
@@ -1435,12 +1573,18 @@ export default function LandingPage() {
                     <div className="bg-secondary/50 rounded-xl px-5 py-4 space-y-2">
                       <div className="space-y-1 pb-2 border-b border-gray-200/60 text-xs text-foreground/80">
                         {form.items.map((item, idx) => {
+                          const custom = item.isCustomMix ? item.customMixDetails : undefined;
                           const prod = effectiveProducts.find((p) => p.id === item.productId);
-                          if (!prod) return null;
-                          const itemTotal = prod.price * (item.quantity || 1);
+                          if (!custom && !prod) return null;
+                          const unitPrice = custom?.fixedPrice ?? prod!.price;
+                          const name = custom?.customProductName ?? prod!.name;
+                          const size = custom
+                            ? `${custom.packagingName} (${custom.targetWeightGrams}g)`
+                            : prod!.size;
+                          const itemTotal = unitPrice * (item.quantity || 1);
                           return (
                             <div key={idx} className="flex justify-between items-start gap-2">
-                              <span className="flex-1 min-w-0 break-words">{prod.name} ({prod.size}) x{item.quantity}</span>
+                              <span className="flex-1 min-w-0 break-words">{name} ({size}) x{item.quantity}</span>
                               <span className="font-medium shrink-0">
                                 {language === "en"
                                   ? `$${(itemTotal / 25000).toFixed(2).replace(',', '.')}`

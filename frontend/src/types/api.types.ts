@@ -1,7 +1,72 @@
+// ===== CUSTOM MIX (TỰ CHỌN HẠT) TYPES =====
+export interface CustomPackaging {
+  id: string;
+  name: string;
+  packagingType: string;
+  capacityGrams: number;
+  fixedPrice: number;
+  imageUrl: string;
+  description: string;
+  displayOrder: number;
+}
+
+export interface CustomIngredient {
+  id: string;
+  name: string;
+  caloriesPer100g: number;
+  imageUrl: string;
+  description: string;
+  tagline: string;
+  minGrams: number;
+  maxGrams: number;
+  stepGrams: number;
+  displayOrder: number;
+}
+
+export interface CustomMixOptionsResponse {
+  packagings: CustomPackaging[];
+  ingredients: CustomIngredient[];
+}
+
+export interface CustomMixSelectedIngredient {
+  ingredientId: string;
+  name?: string;
+  weightGrams: number;
+  percentage?: number;
+}
+
+export interface CustomMixItemDetailDto {
+  packagingId: string;
+  packagingName: string;
+  targetWeightGrams: number;
+  customProductName: string;
+  customLabelMessage?: string;
+  ingredients: CustomMixSelectedIngredient[];
+  fixedPrice: number;
+}
+
+export interface ValidateCustomMixRequest {
+  packagingId: string;
+  customProductName?: string;
+  customLabelMessage?: string;
+  ingredients: CustomMixSelectedIngredient[];
+}
+
+export interface ValidateCustomMixResponse {
+  isValid: boolean;
+  totalGrams: number;
+  targetGrams: number;
+  fixedPrice: number;
+  message?: string;
+  ingredients: CustomMixSelectedIngredient[];
+}
+
 // ===== ORDER TYPES =====
 export interface OrderItemRequest {
   productId: string;
   quantity: number;
+  isCustomMix?: boolean;
+  customMixDetails?: CustomMixItemDetailDto;
 }
 
 export interface OrderItemResponse {
@@ -12,6 +77,9 @@ export interface OrderItemResponse {
   unitPrice: number;
   quantity: number;
   totalPrice: number;
+  isCustomMix?: boolean;
+  customDetailsJson?: string;
+  customDetails?: CustomMixItemDetailDto;
 }
 
 // Backend tự tính tổng tiền từ giá sản phẩm trong DB — client KHÔNG gửi totalAmount.

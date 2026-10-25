@@ -1,7 +1,9 @@
 using System.Net;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NguyetnhanPhohien.Application.DTOs.CustomMix;
 using NguyetnhanPhohien.Application.DTOs.Orders;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Application.Payment;
@@ -48,16 +50,30 @@ public class OrderService : IOrderService
         // ===== 1. CHUẨN HÓA VÀ VALIDATE DANH SÁCH SẢN PHẨM =====
         var requestedItems = new List<(Guid ProductId, int Quantity)>();
 
+        // ===== 1. TÍNH TIỀN HÀNG DỰA TRÊN SẢN PHẨM / CÔNG THỨC TRONG DB =====
+        var orderItems = new List<OrderItem>();
+        decimal baseAmount = 0;
+
+        var standardRequests = new List<(Guid ProductId, int Quantity)>();
+        var customMixRequests = new List<OrderItemRequest>();
+
         if (request.Items != null && request.Items.Count > 0)
         {
             foreach (var item in request.Items)
             {
-                if (!Guid.TryParse(item.ProductId, out var pId))
-                    throw new ArgumentException("ID sản phẩm không hợp lệ.");
                 if (item.Quantity < 1 || item.Quantity > 999)
                     throw new ArgumentException("Số lượng phải từ 1 đến 999.");
 
-                requestedItems.Add((pId, item.Quantity));
+                if (item.IsCustomMix)
+                {
+                    customMixRequests.Add(item);
+                }
+                else
+                {
+                    if (!Guid.TryParse(item.ProductId, out var pId))
+                        throw new ArgumentException("ID sản phẩm không hợp lệ.");
+                    standardRequests.Add((pId, item.Quantity));
+                }
             }
         }
         else if (!string.IsNullOrWhiteSpace(request.ProductId) && Guid.TryParse(request.ProductId, out var legacyId))
@@ -66,47 +82,159 @@ public class OrderService : IOrderService
             if (qty < 1 || qty > 999)
                 throw new ArgumentException("Số lượng phải từ 1 đến 999.");
 
-            requestedItems.Add((legacyId, qty));
+            standardRequests.Add((legacyId, qty));
         }
 
-        if (requestedItems.Count == 0)
+        if (standardRequests.Count == 0 && customMixRequests.Count == 0)
             throw new ArgumentException("Vui lòng chọn ít nhất 1 sản phẩm.");
 
-        // Gom nhóm sản phẩm nếu client gửi trùng ProductId
-        var groupedItems = requestedItems
-            .GroupBy(i => i.ProductId)
-            .Select(g => (ProductId: g.Key, Quantity: g.Sum(i => i.Quantity)))
-            .ToList();
-
-        var productIds = groupedItems.Select(g => g.ProductId).ToList();
-
-        // Lấy thông tin sản phẩm từ DB (chỉ tin giá từ DB)
-        var products = await _db.Products
-            .Where(p => productIds.Contains(p.Id) && p.IsActive)
-            .ToDictionaryAsync(p => p.Id);
-
-        if (products.Count != productIds.Count)
-            throw new ArgumentException("Có sản phẩm không tồn tại hoặc đã ngừng bán.");
-
-        // Tạo danh sách OrderItem và tính BaseAmount
-        var orderItems = new List<OrderItem>();
-        decimal baseAmount = 0;
-
-        foreach (var item in groupedItems)
+        // 1A. XỬ LÝ SẢN PHẨM TIÊU CHUẨN
+        if (standardRequests.Count > 0)
         {
-            var product = products[item.ProductId];
-            var totalPrice = product.Price * item.Quantity;
-            baseAmount += totalPrice;
+            var groupedItems = standardRequests
+                .GroupBy(i => i.ProductId)
+                .Select(g => (ProductId: g.Key, Quantity: g.Sum(i => i.Quantity)))
+                .ToList();
 
-            orderItems.Add(new OrderItem
+            var productIds = groupedItems.Select(g => g.ProductId).ToList();
+
+            var products = await _db.Products
+                .Where(p => productIds.Contains(p.Id) && p.IsActive)
+                .ToDictionaryAsync(p => p.Id);
+
+            if (products.Count != productIds.Count)
+                throw new ArgumentException("Có sản phẩm không tồn tại hoặc đã ngừng bán.");
+
+            foreach (var item in groupedItems)
             {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                ProductSize = product.Size,
-                UnitPrice = product.Price,
-                Quantity = item.Quantity,
-                TotalPrice = totalPrice
-            });
+                var product = products[item.ProductId];
+                var totalPrice = product.Price * item.Quantity;
+                baseAmount += totalPrice;
+
+                orderItems.Add(new OrderItem
+                {
+                    ProductId = product.Id,
+                    ProductName = product.Name,
+                    ProductSize = product.Size,
+                    UnitPrice = product.Price,
+                    Quantity = item.Quantity,
+                    TotalPrice = totalPrice,
+                    IsCustomMix = false
+                });
+            }
+        }
+
+        // 1B. XỬ LÝ SẢN PHẨM TỰ CHỌN HẠT (CUSTOM MIX)
+        if (customMixRequests.Count > 0)
+        {
+            var packagingIds = customMixRequests
+                .Where(r => r.CustomMixDetails != null)
+                .Select(r => r.CustomMixDetails!.PackagingId)
+                .Distinct()
+                .ToList();
+
+            var packagings = await _db.CustomPackagings
+                .Where(p => packagingIds.Contains(p.Id) && p.IsActive)
+                .ToDictionaryAsync(p => p.Id);
+
+            var allIngredientIds = customMixRequests
+                .Where(r => r.CustomMixDetails?.Ingredients != null)
+                .SelectMany(r => r.CustomMixDetails!.Ingredients)
+                .Where(i => i.WeightGrams > 0)
+                .Select(i => i.IngredientId)
+                .Distinct()
+                .ToList();
+
+            var ingredients = await _db.CustomIngredients
+                .Where(i => allIngredientIds.Contains(i.Id) && i.IsActive)
+                .ToDictionaryAsync(i => i.Id);
+
+            foreach (var customReq in customMixRequests)
+            {
+                var details = customReq.CustomMixDetails
+                    ?? throw new ArgumentException("Thiếu thông tin chi tiết cho sản phẩm tự chọn hạt.");
+
+                if (!packagings.TryGetValue(details.PackagingId, out var packaging))
+                    throw new ArgumentException("Quy cách bao bì tự chọn hạt không tồn tại hoặc đã ngừng cung cấp.");
+
+                // 1. Chặn số âm
+                if (details.Ingredients != null && details.Ingredients.Any(i => i.WeightGrams < 0))
+                    throw new ArgumentException("Khối lượng từng loại hạt không được là số âm.");
+
+                // 2. Gộp trùng lặp IngredientId và lọc bỏ hạt 0g
+                var activeIngredients = details.Ingredients?
+                    .Where(i => i.WeightGrams > 0)
+                    .GroupBy(i => i.IngredientId)
+                    .Select(g => new CustomMixSelectedIngredientDto
+                    {
+                        IngredientId = g.Key,
+                        WeightGrams = g.Sum(x => x.WeightGrams)
+                    })
+                    .ToList() ?? new();
+
+                if (activeIngredients.Count == 0)
+                    throw new ArgumentException("Vui lòng chọn ít nhất 1 loại hạt trong sản phẩm tự chọn hạt.");
+
+                var totalGrams = activeIngredients.Sum(i => i.WeightGrams);
+                if (totalGrams != packaging.CapacityGrams)
+                    throw new ArgumentException($"Tổng khối lượng hạt ({totalGrams}g) không khớp với dung tích {packaging.CapacityGrams}g của bao bì đã chọn.");
+
+                // 3. Validate từng loại hạt, kiểm tra StepGrams, MinGrams, MaxGrams và tính lại tỉ lệ %
+                foreach (var ingItem in activeIngredients)
+                {
+                    if (!ingredients.TryGetValue(ingItem.IngredientId, out var ingDb))
+                        throw new ArgumentException("Có loại hạt không hợp lệ hoặc đã tạm ngừng kinh doanh.");
+
+                    int step = ingDb.StepGrams > 0 ? ingDb.StepGrams : 10;
+                    if (ingItem.WeightGrams % step != 0)
+                        throw new ArgumentException($"Khối lượng {ingDb.Name} ({ingItem.WeightGrams}g) phải là bội số của {step}g.");
+
+                    if (ingDb.MinGrams > 0 && ingItem.WeightGrams < ingDb.MinGrams)
+                        throw new ArgumentException($"Khối lượng {ingDb.Name} tối thiểu là {ingDb.MinGrams}g.");
+
+                    if (ingDb.MaxGrams > 0 && ingItem.WeightGrams > ingDb.MaxGrams)
+                        throw new ArgumentException($"Khối lượng {ingDb.Name} tối đa là {ingDb.MaxGrams}g.");
+
+                    ingItem.Name = ingDb.Name;
+                    ingItem.Percentage = Math.Round((decimal)ingItem.WeightGrams * 100m / packaging.CapacityGrams, 1);
+                }
+
+                // Giá trọn gói ưu tiên theo FixedPrice trong DB (fallback theo dung tích nếu DB chưa set)
+                decimal fixedPrice = packaging.FixedPrice > 0 ? packaging.FixedPrice : packaging.CapacityGrams switch
+                {
+                    150 => 69000m,
+                    300 => 153000m,
+                    900 => 756000m,
+                    _ => 0m
+                };
+
+                // Làm sạch tên sản phẩm khách đặt (tối đa 80 ký tự)
+                var rawName = details.CustomProductName?.Trim();
+                var customName = string.IsNullOrWhiteSpace(rawName)
+                    ? $"Sản Phẩm Tự Chọn Hạt ({packaging.CapacityGrams}g)"
+                    : (rawName.Length > 80 ? rawName[..80] : rawName);
+
+                details.PackagingName = packaging.Name;
+                details.TargetWeightGrams = packaging.CapacityGrams;
+                details.CustomProductName = customName;
+                details.FixedPrice = fixedPrice;
+                details.Ingredients = activeIngredients;
+
+                var lineTotal = fixedPrice * customReq.Quantity;
+                baseAmount += lineTotal;
+
+                orderItems.Add(new OrderItem
+                {
+                    ProductId = packaging.Id,
+                    ProductName = customName,
+                    ProductSize = $"{packaging.Name} ({packaging.CapacityGrams}g)",
+                    UnitPrice = fixedPrice,
+                    Quantity = customReq.Quantity,
+                    TotalPrice = lineTotal,
+                    IsCustomMix = true,
+                    CustomDetailsJson = JsonSerializer.Serialize(details)
+                });
+            }
         }
 
         // ===== 2. VALIDATE MÃ GIẢM GIÁ VÀ TÍNH SỐ TIỀN GIẢM =====
@@ -268,17 +396,40 @@ public class OrderService : IOrderService
             string adminEmail = _adminNotifyEmail;
 
             // Render HTML bảng danh sách các mặt hàng (Phong cách Premium Specialty)
-            var itemsHtmlRows = string.Join("", order.Items.Select((item, idx) => $@"
+            var itemsHtmlRows = string.Join("", order.Items.Select((item, idx) =>
+            {
+                string customSubtext = "";
+                if (item.IsCustomMix && !string.IsNullOrWhiteSpace(item.CustomDetailsJson))
+                {
+                    try
+                    {
+                        var details = JsonSerializer.Deserialize<CustomMixItemDetailDto>(item.CustomDetailsJson);
+                        if (details?.Ingredients?.Count > 0)
+                        {
+                            var ingSummary = string.Join(", ", details.Ingredients.Select(g => $"{g.Name} ({g.WeightGrams}g)"));
+                            customSubtext = $"<br/><span style='font-size: 12px; color: #B45309; font-style: italic;'>[Tự chọn hạt]: {Esc(ingSummary)}</span>";
+                            if (!string.IsNullOrWhiteSpace(details.CustomLabelMessage))
+                            {
+                                customSubtext += $"<br/><span style='font-size: 12px; color: #7B6858;'>Lời chúc: \"{Esc(details.CustomLabelMessage)}\"</span>";
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                return $@"
                 <tr>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{idx + 1}</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
                         <strong style='font-weight: 600;'>{Esc(item.ProductName)}</strong>
                         {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #7B6858;'>Phân loại: {Esc(item.ProductSize)}</span>")}
+                        {customSubtext}
                     </td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: right;'>{item.UnitPrice:N0}đ</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{item.Quantity}</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #31572C; text-align: right; font-weight: 700;'>{item.TotalPrice:N0}đ</td>
-                </tr>"));
+                </tr>";
+            }));
 
             // URL QR VietQR (đã kèm số tiền + nội dung chuyển khoản) do caller truyền vào
             // — xem PaymentQr.Build: nơi duy nhất định nghĩa định dạng URL này.
@@ -610,7 +761,26 @@ THÔNG TIN KHÁCH HÀNG
 ========================================
 SẢN PHẨM ĐẶT HÀNG ({order.Items.Count} mặt hàng)
 ========================================
-{string.Join("\n", order.Items.Select((item, idx) => $"{idx + 1}. {item.ProductName}{(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $" ({item.ProductSize})")}\n   Số lượng: {item.Quantity} | Đơn giá: {item.UnitPrice:N0}đ | Thành tiền: {item.TotalPrice:N0}đ"))}
+{string.Join("\n", order.Items.Select((item, idx) =>
+{
+    var line = $"{idx + 1}. {item.ProductName}{(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $" ({item.ProductSize})")}\n   Số lượng: {item.Quantity} | Đơn giá: {item.UnitPrice:N0}đ | Thành tiền: {item.TotalPrice:N0}đ";
+    if (item.IsCustomMix && !string.IsNullOrWhiteSpace(item.CustomDetailsJson))
+    {
+        try
+        {
+            var details = JsonSerializer.Deserialize<CustomMixItemDetailDto>(item.CustomDetailsJson);
+            if (details?.Ingredients?.Count > 0)
+            {
+                var ings = string.Join(", ", details.Ingredients.Select(g => $"{g.Name} ({g.WeightGrams}g)"));
+                line += $"\n   >> CÔNG THỨC MIX: {ings}";
+                if (!string.IsNullOrWhiteSpace(details.CustomLabelMessage))
+                    line += $"\n   >> LỜI CHÚC NHÃN: \"{details.CustomLabelMessage}\"";
+            }
+        }
+        catch { }
+    }
+    return line;
+}))}
 
 ----------------------------------------
 Tạm tính: {order.BaseAmount:N0} đ
@@ -1115,15 +1285,31 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
 
     private static OrderResponse MapToResponse(Order order)
     {
-        var items = order.Items.Select(i => new OrderItemResponse
+        var items = order.Items.Select(i =>
         {
-            Id = i.Id,
-            ProductId = i.ProductId,
-            ProductName = i.ProductName,
-            ProductSize = i.ProductSize,
-            UnitPrice = i.UnitPrice,
-            Quantity = i.Quantity,
-            TotalPrice = i.TotalPrice
+            CustomMixItemDetailDto? customDetails = null;
+            if (i.IsCustomMix && !string.IsNullOrWhiteSpace(i.CustomDetailsJson))
+            {
+                try
+                {
+                    customDetails = JsonSerializer.Deserialize<CustomMixItemDetailDto>(i.CustomDetailsJson);
+                }
+                catch { }
+            }
+
+            return new OrderItemResponse
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                ProductSize = i.ProductSize,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity,
+                TotalPrice = i.TotalPrice,
+                IsCustomMix = i.IsCustomMix,
+                CustomDetailsJson = i.CustomDetailsJson,
+                CustomDetails = customDetails
+            };
         }).ToList();
 
         var firstItem = items.FirstOrDefault();

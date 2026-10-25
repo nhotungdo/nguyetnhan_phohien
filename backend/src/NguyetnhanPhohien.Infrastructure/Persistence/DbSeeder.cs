@@ -95,6 +95,135 @@ public static class DbSeeder
             db.Products.AddRange(products);
         }
 
+        // ===== SEED BAO BÌ TỰ CHỌN HẠT (CUSTOM MIX PACKAGINGS) =====
+        if (!await db.CustomPackagings.AnyAsync())
+        {
+            var packagings = new List<CustomPackaging>
+            {
+                new()
+                {
+                    Id = new Guid("c0000001-0000-0000-0000-000000000150"),
+                    Name = "Túi Zip Khóa Khí Tiện Lợi",
+                    PackagingType = "ZipBag",
+                    CapacityGrams = 150,
+                    FixedPrice = 69000,
+                    ImageUrl = "/images/tuizip.jpg",
+                    Description = "Túi zip tráng bạc khóa kín khí, giữ trọn hương vị và độ giòn tan, tiện lợi mang theo hàng ngày.",
+                    DisplayOrder = 1
+                },
+                new()
+                {
+                    Id = new Guid("c0000001-0000-0000-0000-000000000300"),
+                    Name = "Hộp Nhựa Mica Trong Suốt",
+                    PackagingType = "Box",
+                    CapacityGrams = 300,
+                    FixedPrice = 153000,
+                    ImageUrl = "/images/hopnhua.jpg",
+                    Description = "Hộp tròn mica cao cấp nắp nhôm xé, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
+                    DisplayOrder = 2
+                },
+                new()
+                {
+                    Id = new Guid("c0000001-0000-0000-0000-000000000900"),
+                    Name = "Lễ Hộp Quà Tặng Hoàng Gia",
+                    PackagingType = "GiftSet",
+                    CapacityGrams = 900,
+                    FixedPrice = 756000,
+                    ImageUrl = "/images/setqua.jpg",
+                    Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến ngàn năm kèm túi xách trang trọng, món quà thượng hạng trao gửi yêu thương.",
+                    DisplayOrder = 3
+                }
+            };
+            db.CustomPackagings.AddRange(packagings);
+        }
+
+        // ===== SEED 6 LOẠI HẠT NGUYÊN LIỆU (KHÔNG ÓC CHÓ, KHÔNG TÁO ĐỎ, KHÔNG KỶ TỬ) =====
+        if (!await db.CustomIngredients.AnyAsync())
+        {
+            var ingredients = new List<CustomIngredient>
+            {
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000001"),
+                    Name = "Long Nhãn Phố Hiến Tuyển Chọn",
+                    CaloriesPer100g = 310,
+                    ImageUrl = "/images/nuts/longnhan.jpg",
+                    Description = "Cùi dày dẻo thơm, màu vàng cánh gián hổ phách, sấy đối lưu nhiệt nóng bí truyền, vị ngọt thanh tao tự nhiên.",
+                    Tagline = "Đặc sản Phố Hiến tiến vua, bổ khí huyết, an thần ngủ ngon",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 1
+                },
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000002"),
+                    Name = "Hạt Sen Phố Hiến Sấy Giòn",
+                    CaloriesPer100g = 350,
+                    ImageUrl = "/images/nuts/hatsen.jpg",
+                    Description = "Hạt sen đều tăm tắp sấy giòn rụm xốp mịn, vị bùi béo ngậy thanh mát tự nhiên.",
+                    Tagline = "Đặc sản hồ sen Phố Hiến, dưỡng tâm an thần, thanh nhiệt",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 2
+                },
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000003"),
+                    Name = "Hạt Macca Tây Nguyên (Tách Nhân)",
+                    CaloriesPer100g = 718,
+                    ImageUrl = "/images/nuts/macca.jpg",
+                    Description = "Nữ hoàng các loại hạt, nhân trắng ngà béo ngậy thơm ngon, tan nhẹ trên đầu lưỡi.",
+                    Tagline = "Giàu Omega-7 và chất béo không bão hòa đơn tốt cho tim mạch",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 3
+                },
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000004"),
+                    Name = "Hạt Điều Bình Phước Rang Mộc (A+)",
+                    CaloriesPer100g = 553,
+                    ImageUrl = "/images/nuts/hatdieu.jpg",
+                    Description = "Hạt điều to mập mẩy, rang mộc giữ trọn độ giòn rụm và vị ngọt bùi thuần khiết.",
+                    Tagline = "Bổ sung năng lượng tức thì, giàu protein và magie tự nhiên",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 4
+                },
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000005"),
+                    Name = "Hạnh Nhân Nướng Mộc California",
+                    CaloriesPer100g = 579,
+                    ImageUrl = "/images/nuts/hanhnhan.jpg",
+                    Description = "Hạnh nhân nguyên hạt nướng mộc tự nhiên, giòn chắc thơm bùi đậm vị.",
+                    Tagline = "Dồi dào Vitamin E và chất xơ, hỗ trợ vóc dáng & làn da mịn màng",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 5
+                },
+                new()
+                {
+                    Id = new Guid("d0000001-0000-0000-0000-000000000006"),
+                    Name = "Hạt Bí Xanh Ấn Độ",
+                    CaloriesPer100g = 559,
+                    ImageUrl = "/images/nuts/bixanh.jpg",
+                    Description = "Hạt mẩy xanh ngọc đều đặn, vị bùi béo thanh nhẹ, sấy mộc giòn thơm.",
+                    Tagline = "Giàu kẽm, magie và chất chống oxy hóa tăng cường đề kháng",
+                    MinGrams = 0,
+                    MaxGrams = 900,
+                    StepGrams = 10,
+                    DisplayOrder = 6
+                }
+            };
+            db.CustomIngredients.AddRange(ingredients);
+        }
+
         await db.SaveChangesAsync();
     }
 }

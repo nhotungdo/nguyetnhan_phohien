@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { orderApi, discountApi, adminAuth } from "@/services/api.service";
-import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest } from "@/types/api.types";
+import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
 import {
   composeAddress,
   hasErrors,
@@ -15,6 +15,8 @@ import {
 export interface OrderItemFormState {
   productId: string;
   quantity: number;
+  isCustomMix?: boolean;
+  customMixDetails?: CustomMixItemDetailDto;
 }
 
 interface OrderFormState extends OrderFormValues {
@@ -148,7 +150,12 @@ export function useOrderForm(
   };
 
   const setCartItems = useCallback((
-    cartItems: { productId: string; quantity: number }[],
+    cartItems: {
+      productId: string;
+      quantity: number;
+      isCustomMix?: boolean;
+      customMixDetails?: CustomMixItemDetailDto;
+    }[],
     discountCode?: string
   ) => {
     if (cartItems.length > 0) {
@@ -157,6 +164,12 @@ export function useOrderForm(
         items: cartItems.map((c) => ({
           productId: c.productId,
           quantity: c.quantity > 0 ? c.quantity : 1,
+          // Sản phẩm tự chọn hạt KHÔNG có ProductId riêng (dùng Id bao bì), nên phải
+          // mang theo công thức + giá: thiếu 2 field này thì đơn gửi lên bị coi là
+          // sản phẩm thường và backend trả 400 "sản phẩm không tồn tại".
+          ...(c.isCustomMix
+            ? { isCustomMix: true as const, customMixDetails: c.customMixDetails }
+            : {}),
         })),
         ...(discountCode !== undefined ? { discountCode } : {}),
       }));
@@ -205,6 +218,10 @@ export function useOrderForm(
   const calculateTotal = (): { base: number; discount: number; final: number } => {
     let base = 0;
     for (const item of form.items) {
+      if (item.isCustomMix && item.customMixDetails?.fixedPrice) {
+        base += item.customMixDetails.fixedPrice * (item.quantity || 1);
+        continue;
+      }
       if (!item.productId) continue;
       const product = products.find((p) => p.id === item.productId);
       if (product) {
@@ -237,8 +254,13 @@ export function useOrderForm(
     setIsSubmitting(true);
 
     const validItems: OrderItemRequest[] = form.items
-      .filter((i) => i.productId && i.quantity > 0)
-      .map((i) => ({ productId: i.productId, quantity: Number(i.quantity) || 1 }));
+      .filter((i) => (i.productId || i.isCustomMix) && i.quantity > 0)
+      .map((i) => ({
+        productId: i.productId || i.customMixDetails?.packagingId || "",
+        quantity: Number(i.quantity) || 1,
+        isCustomMix: i.isCustomMix,
+        customMixDetails: i.customMixDetails,
+      }));
 
     if (validItems.length === 0) {
       setErrorMessage("Vui lòng chọn ít nhất 1 sản phẩm.");

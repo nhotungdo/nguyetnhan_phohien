@@ -2,15 +2,21 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { ProductResponse } from "@/types/api.types";
+import type { ProductResponse, CustomMixItemDetailDto } from "@/types/api.types";
 
 export interface CartItem {
+  /** Định danh duy nhất của dòng sản phẩm trong giỏ (đặc biệt quan trọng với Custom Mix) */
+  id?: string;
   productId: string;
   productName: string;
   price: number;
   size: string;
   imageUrl?: string;
   quantity: number;
+  /** Cờ đánh dấu sản phẩm tự phối hạt độc bản */
+  isCustomMix?: boolean;
+  /** Toàn bộ công thức phối hạt, tên nhãn, lời chúc */
+  customMixDetails?: CustomMixItemDetailDto;
 }
 
 interface CartStore {
@@ -18,8 +24,9 @@ interface CartStore {
   isOpen: boolean;
   // Actions
   addItem: (product: ProductResponse) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, qty: number) => void;
+  addCustomMixItem: (customMix: CustomMixItemDetailDto, quantity?: number, imageUrl?: string) => void;
+  removeItem: (idOrProductId: string) => void;
+  updateQuantity: (idOrProductId: string, qty: number) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -37,11 +44,12 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (product: ProductResponse) => {
         set((state) => {
-          const existing = state.items.find((i) => i.productId === product.id);
+          const existing = state.items.find((i) => !i.isCustomMix && (i.id === product.id || i.productId === product.id));
           if (existing) {
+            const key = existing.id || existing.productId;
             return {
               items: state.items.map((i) =>
-                i.productId === product.id
+                (i.id || i.productId) === key
                   ? { ...i, quantity: i.quantity + 1 }
                   : i
               ),
@@ -49,30 +57,80 @@ export const useCartStore = create<CartStore>()(
             };
           }
           const newItem: CartItem = {
+            id: product.id,
             productId: product.id,
             productName: product.name,
             price: product.price,
             size: product.size,
             imageUrl: product.images?.[0]?.imagePath,
             quantity: 1,
+            isCustomMix: false,
           };
           return { items: [...state.items, newItem], isOpen: true };
         });
       },
 
-      removeItem: (productId: string) =>
+      addCustomMixItem: (customMix: CustomMixItemDetailDto, quantity = 1, imageUrl?: string) => {
+        set((state) => {
+          // Kiểm tra xem đã có sản phẩm Custom Mix cùng cấu hình chưa (cùng bao bì, cùng tên, cùng công thức hạt)
+          const sameConfig = state.items.find(
+            (i) =>
+              i.isCustomMix &&
+              i.productId === customMix.packagingId &&
+              i.productName === customMix.customProductName &&
+              JSON.stringify(i.customMixDetails?.ingredients) === JSON.stringify(customMix.ingredients) &&
+              (i.customMixDetails?.customLabelMessage || "") === (customMix.customLabelMessage || "")
+          );
+
+          if (sameConfig) {
+            const key = sameConfig.id || sameConfig.productId;
+            return {
+              items: state.items.map((i) =>
+                (i.id || i.productId) === key
+                  ? { ...i, quantity: i.quantity + quantity }
+                  : i
+              ),
+              isOpen: true,
+            };
+          }
+
+          const defaultImg =
+            customMix.targetWeightGrams === 150
+              ? "/images/tuizip.jpg"
+              : customMix.targetWeightGrams === 300
+              ? "/images/hopnhua.jpg"
+              : "/images/setqua.jpg";
+
+          const cartItemId = `custom-${customMix.packagingId}-${Date.now()}`;
+          const newItem: CartItem = {
+            id: cartItemId,
+            productId: customMix.packagingId,
+            productName: customMix.customProductName || "Sản phẩm Tự Chọn Hạt",
+            price: customMix.fixedPrice,
+            size: `${customMix.packagingName} (${customMix.targetWeightGrams}g)`,
+            imageUrl: imageUrl || defaultImg,
+            quantity: Math.max(1, quantity),
+            isCustomMix: true,
+            customMixDetails: customMix,
+          };
+
+          return { items: [...state.items, newItem], isOpen: true };
+        });
+      },
+
+      removeItem: (idOrProductId: string) =>
         set((state) => ({
-          items: state.items.filter((i) => i.productId !== productId),
+          items: state.items.filter((i) => (i.id || i.productId) !== idOrProductId && i.productId !== idOrProductId),
         })),
 
-      updateQuantity: (productId: string, qty: number) => {
+      updateQuantity: (idOrProductId: string, qty: number) => {
         if (qty < 1) {
-          get().removeItem(productId);
+          get().removeItem(idOrProductId);
           return;
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.productId === productId ? { ...i, quantity: qty } : i
+            (i.id || i.productId) === idOrProductId ? { ...i, quantity: qty } : i
           ),
         }));
       },
