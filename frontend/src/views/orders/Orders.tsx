@@ -165,11 +165,22 @@ export default function Orders() {
     }
   };
 
-  const filteredOrders = orders.filter((o) =>
-    o.customerPhone.includes(searchTerm) ||
-    o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (o.customerEmail?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  );
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  const validOrdersCount = orders.filter((o) => o.status !== "Cancelled").length;
+  const cancelledOrdersCount = orders.filter((o) => o.status === "Cancelled").length;
+
+  const filteredOrders = orders.filter((o) => {
+    const matchesSearch =
+      o.customerPhone.includes(searchTerm) ||
+      o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o.customerEmail?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (statusFilter === "all") return true;
+    if (statusFilter === "active") return o.status !== "Cancelled";
+    return o.status === statusFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -207,7 +218,14 @@ export default function Orders() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Quản lý Đơn hàng</h2>
-          <p className="text-muted-foreground">Tất cả thông tin khách hàng và trạng thái giao hàng.</p>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            Tổng đơn hiệu lực: <strong className="text-primary font-bold">{validOrdersCount}</strong>
+            {cancelledOrdersCount > 0 && (
+              <span className="text-muted-foreground/80 ml-1.5 font-normal">
+                ({cancelledOrdersCount} đơn đã huỷ không cộng vào tổng)
+              </span>
+            )}
+          </p>
         </div>
 
         <div className="relative w-full sm:w-72">
@@ -220,6 +238,53 @@ export default function Orders() {
             className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm"
           />
         </div>
+      </div>
+
+      {/* THANH LỌC TRẠNG THÁI VÀ ĐẾM SỐ ĐƠN */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <button
+          type="button"
+          onClick={() => setStatusFilter("all")}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-colors shrink-0 cursor-pointer ${
+            statusFilter === "all"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Tất cả ({orders.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter("active")}
+          className={`px-3 py-1.5 rounded-lg font-semibold transition-colors shrink-0 cursor-pointer ${
+            statusFilter === "active"
+              ? "bg-emerald-700 text-white shadow-xs"
+              : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/60"
+          }`}
+        >
+          Hiệu lực ({validOrdersCount})
+        </button>
+        {Object.entries(STATUS_LABELS).map(([statusKey, label]) => {
+          const count = orders.filter((o) => o.status === statusKey).length;
+          const isSelected = statusFilter === statusKey;
+          return (
+            <button
+              key={statusKey}
+              type="button"
+              onClick={() => setStatusFilter(statusKey)}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                isSelected
+                  ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                  : statusKey === "Cancelled"
+                  ? "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200/60"
+                  : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>{label}</span>
+              <span className="text-[11px] opacity-80">({count})</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* DESKTOP TABLE VIEW (≥ 768px) */}

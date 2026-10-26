@@ -115,18 +115,19 @@ public class WeeklyReportBackgroundService : BackgroundService
             .Where(o => o.CreatedAt >= startUtc && o.CreatedAt < endUtc)
             .ToListAsync(ct);
 
+        var validOrders = orders.Where(o => o.Status != OrderStatus.Cancelled).ToList();
         var completedOrders = orders.Where(o => o.Status == OrderStatus.Completed).ToList();
         var revenue = completedOrders.Sum(o => o.TotalAmount);
         var avgOrderValue = completedOrders.Count > 0 ? Math.Round(revenue / completedOrders.Count) : 0m;
 
-        // Doanh thu theo ngày (7 ngày, Thứ Hai → Chủ Nhật)
+        // Doanh thu theo ngày (7 ngày, Thứ Hai → Chủ Nhật, chỉ tính đơn không huỷ)
         var byDay = new List<(string DayLabel, int Orders, decimal Revenue)>();
         for (var i = 0; i < 7; i++)
         {
             var day = periodStartVn.AddDays(i);
             var dayStartUtc = TimeZoneInfo.ConvertTimeToUtc(day, VnTimeZone);
             var dayEndUtc = TimeZoneInfo.ConvertTimeToUtc(day.AddDays(1), VnTimeZone);
-            var dayOrders = orders.Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt < dayEndUtc).ToList();
+            var dayOrders = validOrders.Where(o => o.CreatedAt >= dayStartUtc && o.CreatedAt < dayEndUtc).ToList();
 
             byDay.Add((
                 day.ToString("dd/MM"),
@@ -134,9 +135,9 @@ public class WeeklyReportBackgroundService : BackgroundService
                 dayOrders.Where(o => o.Status == OrderStatus.Completed).Sum(o => o.TotalAmount)));
         }
 
-        // Top 5 sản phẩm bán chạy: gom items đơn mới + fallback đơn legacy 1 sản phẩm
+        // Top 5 sản phẩm bán chạy: gom items đơn mới + fallback đơn legacy 1 sản phẩm (chỉ tính đơn không huỷ)
         var productAgg = new Dictionary<string, (string Name, string Size, int Quantity, decimal Revenue)>();
-        foreach (var order in orders)
+        foreach (var order in validOrders)
         {
             if (order.Items.Count > 0)
             {
@@ -170,7 +171,7 @@ public class WeeklyReportBackgroundService : BackgroundService
         var subject = $"[Báo cáo tuần {periodStartVn:dd/MM} - {periodEndVn.AddDays(-1):dd/MM}] " +
                       $"Doanh thu {revenue:N0}đ - Nguyệt Nhãn Phố Hiến";
         var html = BuildReportHtml(periodStartVn, periodEndVn.AddDays(-1),
-            orders.Count, revenue, completedOrders.Count, avgOrderValue,
+            validOrders.Count, revenue, completedOrders.Count, avgOrderValue,
             statusSummary, byDay, topProducts, FrontendBaseUrl);
 
         await _emailService.SendEmailAsync(recipient, subject, html);

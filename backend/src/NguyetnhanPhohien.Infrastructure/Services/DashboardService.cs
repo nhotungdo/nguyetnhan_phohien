@@ -31,15 +31,17 @@ public class DashboardService : IDashboardService
             return cached;
         }
 
-        // 1. Tổng doanh thu (đơn Completed) & Tổng số đơn
-        var totalOrders = await _db.Orders.CountAsync();
+        // 1. Tổng doanh thu (đơn Completed) & Tổng số đơn (loại trừ đơn Đã huỷ)
+        var totalOrders = await _db.Orders
+            .Where(o => o.Status != OrderStatus.Cancelled)
+            .CountAsync();
         var totalRevenue = await _db.Orders
             .Where(o => o.Status == OrderStatus.Completed)
             .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
-        // 2. Số khách hàng duy nhất (theo SĐT)
+        // 2. Số khách hàng duy nhất (theo SĐT, loại trừ đơn Đã huỷ)
         var customersCount = await _db.Orders
-            .Where(o => !string.IsNullOrEmpty(o.CustomerPhone))
+            .Where(o => o.Status != OrderStatus.Cancelled && !string.IsNullOrEmpty(o.CustomerPhone))
             .Select(o => o.CustomerPhone)
             .Distinct()
             .CountAsync();
@@ -48,7 +50,7 @@ public class DashboardService : IDashboardService
         var messagesCount = await _db.ChatSessions.CountAsync();
         var unreadMessages = await _db.ChatSessions.CountAsync(s => s.HasUnreadMessages);
 
-        // 4. Biểu đồ 30 ngày gần nhất (theo giờ Việt Nam UTC+7)
+        // 4. Biểu đồ 30 ngày gần nhất (theo giờ Việt Nam UTC+7, chỉ tính đơn không huỷ)
         var vnOffset = TimeSpan.FromHours(7);
         var nowVn = DateTime.UtcNow.Add(vnOffset);
         var todayVnDate = nowVn.Date;
@@ -70,7 +72,7 @@ public class DashboardService : IDashboardService
         var cutoffUtc = DateTime.UtcNow.AddDays(-32);
         var recentOrders = await _db.Orders
             .AsNoTracking()
-            .Where(o => o.CreatedAt >= cutoffUtc)
+            .Where(o => o.CreatedAt >= cutoffUtc && o.Status != OrderStatus.Cancelled)
             .Select(o => new { o.CreatedAt, o.Status, o.TotalAmount })
             .ToListAsync();
 
@@ -88,9 +90,10 @@ public class DashboardService : IDashboardService
             }
         }
 
-        // 5. Top sản phẩm bán chạy (natively grouped in PostgreSQL)
+        // 5. Top sản phẩm bán chạy (chỉ tính đơn hợp lệ không bị huỷ)
         var rawTop = await _db.OrderItems
             .AsNoTracking()
+            .Where(i => i.Order.Status != OrderStatus.Cancelled)
             .GroupBy(i => new { i.ProductName, i.ProductSize })
             .Select(g => new
             {
