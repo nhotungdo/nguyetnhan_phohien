@@ -584,7 +584,7 @@ export default function CustomMixStudio() {
             <span className="inline-block text-xs uppercase tracking-widest text-[#E9B949] font-bold">
               Đặc sản Phố Hiến độc bản
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#FFF9ED] font-serif leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#FFF9ED] leading-tight">
               Tự Tay Mix Hạt Theo Sở Thích & Đặt Tên Cho Tuyệt Tác Của Bạn
             </h2>
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-light">
@@ -1085,7 +1085,7 @@ export default function CustomMixStudio() {
                       {customName.trim() || "Sản Phẩm Tự Chọn Hạt"}
                     </span>
                     {customMessage.trim() && (
-                      <p className="text-xs text-[#78350F] italic mt-1 font-serif">
+                      <p className="text-xs text-[#78350F] italic mt-1 font-sans">
                         &ldquo;{customMessage.trim()}&rdquo;
                       </p>
                     )}
@@ -1334,7 +1334,7 @@ export default function CustomMixStudio() {
               {/* Thông tin chi tiết loại hạt */}
               <div className="p-4 sm:p-5 bg-gradient-to-b from-stone-900 to-stone-950 text-white space-y-2 border-t border-amber-500/20">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-base sm:text-lg text-[#FFF9ED] font-serif">
+                  <h3 className="font-bold text-base sm:text-lg text-[#FFF9ED]">
                     {previewNut.name}
                   </h3>
                   <span className="shrink-0 flex items-center gap-1 font-semibold text-xs text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
