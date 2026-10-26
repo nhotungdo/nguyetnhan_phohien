@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +29,17 @@ import type {
   CustomIngredient,
   CustomMixItemDetailDto,
 } from "@/types/api.types";
+
+interface NutProgressNotification {
+  nutName: string;
+  nutGrams: number;
+  nutPercentage: number;
+  totalGrams: number;
+  targetGrams: number;
+  totalPercentage: number;
+  status: "under" | "match" | "over";
+  remainingGrams: number;
+}
 
 // Dữ liệu dự phòng mặc định (Fallback) nếu chưa kết nối API Backend
 const FALLBACK_PACKAGINGS: CustomPackaging[] = [
@@ -154,6 +165,30 @@ export default function CustomMixStudio() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  // Tham chiếu & trạng thái theo dõi khối đo lường trên mobile
+  const mobileCapacityRef = useRef<HTMLDivElement>(null);
+  const [isCapacityOutOfView, setIsCapacityOutOfView] = useState<boolean>(false);
+  const [nutPopup, setNutPopup] = useState<NutProgressNotification | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Theo dõi khi phần Đo lường dung tích bị cuộn khuất khỏi tầm nhìn trên mobile
+  useEffect(() => {
+    const el = mobileCapacityRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsCapacityOutOfView(!entry.isIntersecting);
+      },
+      {
+        threshold: 0.15,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   // Tải danh sách bao bì & hạt từ API
   useEffect(() => {
     let isMounted = true;
@@ -226,6 +261,62 @@ export default function CustomMixStudio() {
     }
   };
 
+  // Hàm kích hoạt popup thông báo % khi khối đo lường bị khuất màn hình mobile
+  const triggerNutPopup = useCallback(
+    (ingredientId: string, nextWeight: number, nextTotal: number) => {
+      // Chỉ kích hoạt trên mobile (< 1024px)
+      if (typeof window !== "undefined" && window.innerWidth >= 1024) return;
+
+      // Kiểm tra tức thì khối đo lường có đang nằm ngoài màn hình không
+      const el = mobileCapacityRef.current;
+      let outOfView = isCapacityOutOfView;
+      if (el && typeof window !== "undefined") {
+        const rect = el.getBoundingClientRect();
+        // Nếu cạnh dưới cuộn lên trên tầm mắt (< 80px) hoặc cạnh trên vượt quá đáy màn hình
+        if (rect.bottom < 80 || rect.top > window.innerHeight) {
+          outOfView = true;
+        } else if (rect.top >= 60 && rect.bottom <= window.innerHeight) {
+          outOfView = false;
+        }
+      }
+
+      if (!outOfView) return;
+
+      const ing = ingredients.find((i) => i.id === ingredientId);
+      if (!ing) return;
+
+      const nutPct = targetGrams > 0 ? Math.round((nextWeight * 100) / targetGrams) : 0;
+      const totalPct = targetGrams > 0 ? Math.round((nextTotal * 100) / targetGrams) : 0;
+      const rem = targetGrams - nextTotal;
+
+      const status: "under" | "match" | "over" =
+        nextTotal === targetGrams
+          ? "match"
+          : nextTotal > targetGrams
+          ? "over"
+          : "under";
+
+      setNutPopup({
+        nutName: ing.name,
+        nutGrams: nextWeight,
+        nutPercentage: nutPct,
+        totalGrams: nextTotal,
+        targetGrams,
+        totalPercentage: totalPct,
+        status,
+        remainingGrams: rem,
+      });
+
+      if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current);
+      }
+      popupTimerRef.current = setTimeout(() => {
+        setNutPopup(null);
+      }, 3000);
+    },
+    [ingredients, isCapacityOutOfView, targetGrams]
+  );
+
   // Cập nhật số gram của 1 hạt
   const handleUpdateGrams = (ingredientId: string, newGrams: number) => {
     const clamped = Math.max(0, Math.min(targetGrams, newGrams));
@@ -236,6 +327,8 @@ export default function CustomMixStudio() {
       } else {
         next[ingredientId] = clamped;
       }
+      const newTotal = Object.values(next).reduce((sum, g) => sum + (g || 0), 0);
+      triggerNutPopup(ingredientId, clamped, newTotal);
       return next;
     });
   };
@@ -560,7 +653,92 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
-      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
+      {/* POPUP THÔNG BÁO TIẾN ĐỘ & PHẦN TRĂM HẠT TRÊN MOBILE KHI KHUẤT KHỐI ĐO LƯỜNG */}
+      <AnimatePresence>
+        {nutPopup && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -15, scale: 0.95 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:hidden fixed top-[4.5rem] left-3 right-3 sm:left-6 sm:right-6 z-50 pointer-events-auto"
+          >
+            <div className="bg-[#23452F]/95 backdrop-blur-md text-white rounded-2xl p-3.5 shadow-2xl border border-[#E9B949]/70 ring-1 ring-black/25">
+              {/* Hàng 1: Loại hạt vừa thao tác & % của riêng loại hạt đó */}
+              <div className="flex items-center justify-between gap-2 border-b border-emerald-800/80 pb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-[#E9B949] shrink-0 animate-ping" />
+                  <span className="font-bold text-xs sm:text-sm text-[#FFF9ED] truncate">
+                    {nutPopup.nutName}
+                  </span>
+                </div>
+                <div className="shrink-0 flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 bg-[#E9B949]/20 border border-[#E9B949]/40 px-2.5 py-0.5 rounded-lg">
+                    <span className="text-xs font-mono font-extrabold text-[#E9B949]">
+                      {nutPopup.nutGrams}g
+                    </span>
+                    <span className="text-[11px] font-bold text-amber-200">
+                      ({nutPopup.nutPercentage}% hộp)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNutPopup(null)}
+                    className="w-5 h-5 rounded-full bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
+                    aria-label="Đóng thông báo"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Hàng 2: Tiến độ dung tích tổng thể của hộp */}
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-emerald-100/90 font-medium flex items-center gap-1">
+                    <span>Tổng hộp:</span>
+                    <strong className="text-white font-mono font-bold">
+                      {nutPopup.totalGrams}g
+                    </strong>
+                    <span className="text-emerald-300">/{nutPopup.targetGrams}g</span>
+                  </span>
+                  <span
+                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                      nutPopup.status === "match"
+                        ? "bg-emerald-500 text-white"
+                        : nutPopup.status === "over"
+                        ? "bg-rose-500 text-white"
+                        : "bg-amber-400 text-stone-950"
+                    }`}
+                  >
+                    {nutPopup.status === "match"
+                      ? "🟢 Đã đủ 100%"
+                      : nutPopup.status === "over"
+                      ? `🔴 Vượt ${Math.abs(nutPopup.remainingGrams)}g`
+                      : `🟡 Đạt ${nutPopup.totalPercentage}% (Thiếu ${nutPopup.remainingGrams}g)`}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full h-2 bg-emerald-950/80 rounded-full overflow-hidden p-0.5 border border-emerald-800/60">
+                  <div
+                    style={{ width: `${Math.min(100, nutPopup.totalPercentage)}%` }}
+                    className={`h-full rounded-full transition-all duration-200 ${
+                      nutPopup.status === "match"
+                        ? "bg-emerald-400"
+                        : nutPopup.status === "over"
+                        ? "bg-rose-400"
+                        : "bg-gradient-to-r from-amber-400 to-[#E9B949]"
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-28 lg:pb-10 max-w-7xl">
         {/* INTRO HERO BANNER */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#23452F] via-[#2F5A3E] to-[#1C3625] text-white p-6 sm:p-10 mb-8 sm:mb-12 shadow-xl border border-emerald-900/40">
           <div className="relative z-10 max-w-3xl space-y-3">
@@ -602,30 +780,37 @@ export default function CustomMixStudio() {
                       key={pkg.id}
                       onClick={() => handleSelectPackaging(pkg)}
                       type="button"
-                      className={`text-left p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between ${
+                      className={`group text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between ${
                         isSelected
                           ? "border-[#B45309] bg-[#FFFBEB] shadow-md ring-2 ring-[#B45309]/20"
                           : "border-border/60 hover:border-[#FDE68A] hover:bg-[#FFFDF8]"
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#B45309] text-white flex items-center justify-center">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-5 h-5 rounded-full bg-[#B45309] text-white flex items-center justify-center shadow-sm">
                           <Check className="w-3.5 h-3.5" />
                         </div>
                       )}
                       <div>
-                        <div className="w-full h-24 rounded-xl overflow-hidden mb-2.5 bg-neutral-100 relative">
+                        {/* Khung ảnh trọn vẹn quy cách bao bì không bị cắt xén */}
+                        <div className="w-full h-52 sm:h-56 rounded-xl overflow-hidden mb-3 bg-[#FAF7F2] border border-amber-100/70 relative flex items-center justify-center p-2 shadow-2xs">
                           <FastImage
                             src={pkg.imageUrl}
                             alt={pkg.name}
                             fill
-                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 240px"
+                            className="object-contain p-1 group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                         <h4 className="font-bold text-sm text-foreground leading-snug">{pkg.name}</h4>
                         <span className="inline-block mt-1 text-xs font-bold text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-md">
                           Khối lượng: {pkg.capacityGrams}g
                         </span>
+                        {pkg.description && (
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
+                            {pkg.description}
+                          </p>
+                        )}
                       </div>
                       <div className="mt-3 pt-2.5 border-t border-border/40 flex items-baseline justify-between">
                         <span className="text-[11px] text-muted-foreground">Trọn gói:</span>
@@ -683,6 +868,84 @@ export default function CustomMixStudio() {
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
+                </div>
+              </div>
+
+              {/* THANH ĐO TIẾN TRÌNH TRÊN MOBILE (HIỂN THỊ NGAY TRONG BƯỚC 2 ĐỂ KHÔNG PHẢI CUỘN XUỐNG DƯỚI) */}
+              <div ref={mobileCapacityRef} className="lg:hidden bg-gradient-to-br from-[#FFFDF8] via-[#FFFBEB] to-[#FEF3C7]/40 rounded-2xl p-4 border-2 border-[#FDE68A] shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center">
+                      <Scale className="w-3.5 h-3.5 text-[#B45309]" />
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                      Đo lường dung tích
+                    </span>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${
+                      isPerfectMatch
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : isOverweight
+                        ? "bg-rose-50 text-rose-800 border-rose-300"
+                        : "bg-amber-50 text-amber-800 border-amber-300"
+                    }`}
+                  >
+                    {isPerfectMatch
+                      ? "🟢 Chuẩn xác 100%"
+                      : isOverweight
+                      ? `🔴 Vượt ${Math.abs(remainingGrams)}g`
+                      : `🟡 Còn thiếu ${remainingGrams}g`}
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <span className="text-2xl font-extrabold text-primary font-mono tracking-tight">
+                      {totalGrams}g
+                      <span className="text-xs font-medium text-muted-foreground font-sans ml-1">
+                        / {targetGrams}g
+                      </span>
+                    </span>
+                    <span className="text-xs font-bold text-[#B45309]">
+                      {progressPercent}%
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full h-3 bg-neutral-200/80 rounded-full overflow-hidden p-0.5 border border-border/60">
+                    <motion.div
+                      initial={false}
+                      animate={{ width: `${progressPercent}%` }}
+                      transition={{ duration: 0.25 }}
+                      className={`h-full rounded-full transition-colors ${
+                        isPerfectMatch
+                          ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                          : isOverweight
+                          ? "bg-gradient-to-r from-rose-500 to-rose-600"
+                          : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-xs leading-relaxed">
+                  {isPerfectMatch ? (
+                    <p className="text-emerald-800 bg-emerald-50/90 px-3 py-2 rounded-xl border border-emerald-200 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Tuyệt vời! Khối lượng hạt đã đạt đúng chuẩn <strong>{targetGrams}g</strong>. Bạn có thể sang Bước 3 đặt tên!</span>
+                    </p>
+                  ) : isOverweight ? (
+                    <p className="text-rose-800 bg-rose-50/90 px-3 py-2 rounded-xl border border-rose-200 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>Đã vượt quá <strong>{Math.abs(remainingGrams)}g</strong>. Vui lòng bấm dấu trừ để giảm bớt.</span>
+                    </p>
+                  ) : (
+                    <p className="text-amber-900 bg-amber-50/90 px-3 py-2 rounded-xl border border-amber-200 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Cần chọn thêm <strong>{remainingGrams}g</strong> nữa để đóng gói hộp {targetGrams}g.</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -803,7 +1066,7 @@ export default function CustomMixStudio() {
             </section>
 
             {/* STEP 3: ĐẶT TÊN SẢN PHẨM & LỜI CHÚC */}
-            <section className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4">
+            <section id="step3Section" className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4">
               <div className="flex items-center gap-2.5 border-b border-[#FDE68A]/40 pb-3">
                 <span className="w-7 h-7 rounded-full bg-[#B45309] text-white font-bold text-xs flex items-center justify-center">
                   3
@@ -869,8 +1132,8 @@ export default function CustomMixStudio() {
 
           {/* CỘT PHẢI: THANH TIẾN TRÌNH & BẢN XEM TRƯỚC TEM NHÃN 3D (5 CỘT) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-            {/* THANH ĐO TIẾN TRÌNH KHỐI LƯỢNG MỤC TIÊU */}
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#FDE68A]/60 shadow-sm space-y-4">
+            {/* THANH ĐO TIẾN TRÌNH KHỐI LƯỢNG MỤC TIÊU (DESKTOP) */}
+            <div className="hidden lg:block bg-white rounded-3xl p-5 sm:p-6 border border-[#FDE68A]/60 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Đo lường dung tích
@@ -1084,6 +1347,93 @@ export default function CustomMixStudio() {
           </div>
         </div>
       </main>
+
+      {/* THANH ĐO LƯỜNG DUNG TÍCH CỐ ĐỊNH DƯỚI ĐÁY MÀN HÌNH (STICKY BOTTOM BAR CHO MOBILE) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#FDE68A] shadow-[0_-6px_25px_rgba(0,0,0,0.12)] px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+          {/* Cụm đo lường khối lượng */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-primary flex items-center gap-1">
+                <span>Dung tích:</span>
+                <strong className="text-sm font-extrabold text-[#B45309] font-mono">
+                  {totalGrams}g
+                </strong>
+                <span className="text-[11px] text-muted-foreground font-normal">
+                  /{targetGrams}g
+                </span>
+              </span>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  isPerfectMatch
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                    : isOverweight
+                    ? "bg-rose-50 text-rose-800 border-rose-300"
+                    : "bg-amber-50 text-amber-800 border-amber-300"
+                }`}
+              >
+                {isPerfectMatch
+                  ? "🟢 Đã đủ 100%"
+                  : isOverweight
+                  ? `🔴 Thừa ${Math.abs(remainingGrams)}g`
+                  : `🟡 Thiếu ${remainingGrams}g`}
+              </span>
+            </div>
+
+            {/* Thanh tiến trình mini */}
+            <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden border border-border/60">
+              <div
+                style={{ width: `${progressPercent}%` }}
+                className={`h-full rounded-full transition-all duration-300 ${
+                  isPerfectMatch
+                    ? "bg-emerald-500"
+                    : isOverweight
+                    ? "bg-rose-500"
+                    : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Nút hành động nhanh */}
+          <div className="shrink-0 flex items-center gap-1.5">
+            {remainingGrams > 0 ? (
+              <button
+                type="button"
+                onClick={handleAutoFillLongNhan}
+                className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-[#78350F] text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Tự động bù số gram còn thiếu bằng Long Nhãn"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-amber-700" />
+                <span>Bù đầy</span>
+              </button>
+            ) : isPerfectMatch ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const step3 = document.getElementById("step3Section");
+                  if (step3) {
+                    step3.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-emerald-950/20 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Đặt tên</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Đặt lại</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* NÚT GIỎ HÀNG NỔI & DRAWER */}
       <CartButton />
