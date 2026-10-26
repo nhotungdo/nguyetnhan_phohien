@@ -13,8 +13,8 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { dashboardApi } from "@/services/api.service";
-import type { DashboardStatsResponse, DayPointDto } from "@/types/api.types";
+import { dashboardApi, orderApi } from "@/services/api.service";
+import type { DashboardStatsResponse, DayPointDto, OrderResponse } from "@/types/api.types";
 
 const RANGES = [7, 14, 30] as const;
 
@@ -24,11 +24,16 @@ const compactVnd = (v: number) => {
   return `${v}`;
 };
 
-const DASHBOARD_CACHE_KEY = "dashboard_stats_cache_v2";
+const DASHBOARD_CACHE_KEY = "dashboard_stats_cache_v3";
+const ORDERS_CACHE_KEY = "orders_admin_cache_v1";
 
 function readCachedStats(): DashboardStatsResponse | null {
   if (typeof window === "undefined") return null;
   try {
+    // Xoá cache v2 cũ để đảm bảo không hiển thị lại số liệu còn đơn huỷ
+    if (localStorage.getItem("dashboard_stats_cache_v2")) {
+      localStorage.removeItem("dashboard_stats_cache_v2");
+    }
     const raw = localStorage.getItem(DASHBOARD_CACHE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
@@ -41,6 +46,16 @@ function writeCachedStats(data: DashboardStatsResponse) {
   try {
     localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(data));
   } catch {}
+}
+
+function readCachedOrders(): OrderResponse[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ORDERS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Skeleton hiển thị lập tức nếu chưa có bộ nhớ đệm (thay vì trang trắng xoay vòng) */
@@ -113,7 +128,44 @@ export default function Dashboard() {
     staleTime: 30 * 1000,
   });
 
+  // Truy vấn danh sách đơn hàng để kiểm chứng và hiển thị số lượng đơn huỷ được loại trừ
+  const { data: rawOrders } = useQuery<OrderResponse[]>({
+    queryKey: ["orders", "admin"],
+    queryFn: async () => {
+      try {
+        return await orderApi.getAll();
+      } catch {
+        return readCachedOrders() ?? [];
+      }
+    },
+    initialData: () => readCachedOrders() ?? undefined,
+    initialDataUpdatedAt: 0,
+    staleTime: 60 * 1000,
+  });
+
+  const cancelledCount = useMemo(() => {
+    if (!rawOrders) return 0;
+    return rawOrders.filter((o) => o.status === "Cancelled").length;
+  }, [rawOrders]);
+
   const stats = useMemo(() => {
+    // Nếu có danh sách đơn hàng, tính số đơn hiệu lực (loại trừ Cancelled)
+    if (rawOrders && rawOrders.length > 0) {
+      const valid = rawOrders.filter((o) => o.status !== "Cancelled");
+      const completedRevenue = valid
+        .filter((o) => o.status === "Completed")
+        .reduce((s, o) => s + (o.totalAmount || 0), 0);
+      const uniquePhones = new Set(valid.map((o) => o.customerPhone).filter(Boolean));
+
+      return {
+        revenue: completedRevenue || (dashboardStats?.revenue ?? 0),
+        ordersCount: valid.length,
+        customersCount: uniquePhones.size || (dashboardStats?.customersCount ?? 0),
+        messagesCount: dashboardStats?.messagesCount ?? 0,
+        unreadMessages: dashboardStats?.unreadMessages ?? 0,
+      };
+    }
+
     return {
       revenue: dashboardStats?.revenue ?? 0,
       ordersCount: dashboardStats?.ordersCount ?? 0,
@@ -121,9 +173,9 @@ export default function Dashboard() {
       messagesCount: dashboardStats?.messagesCount ?? 0,
       unreadMessages: dashboardStats?.unreadMessages ?? 0,
     };
-  }, [dashboardStats]);
+  }, [dashboardStats, rawOrders]);
 
-  // Cắt N ngày gần nhất từ chuỗi 30 ngày do server tính sẵn (0ms delay khi bấm chuyển tab)
+  // Cắt N ngày gần nhất từ chuỗi 30 ngày do server tính sẵn (đã loại trừ đơn huỷ)
   const chartData = useMemo<DayPointDto[]>(() => {
     const all = dashboardStats?.dailyStats ?? [];
     if (all.length === 0) return [];
@@ -131,8 +183,52 @@ export default function Dashboard() {
   }, [dashboardStats?.dailyStats, rangeDays]);
 
   const topProducts = useMemo(() => {
+    if (rawOrders && rawOrders.length > 0) {
+      const valid = rawOrders.filter((o) => o.status !== "Cancelled");
+      const map: Record<string, { key: string; name: string; size: string | null; quantity: number; revenue: number }> = {};
+
+      for (const o of valid) {
+        if (o.items && o.items.length > 0) {
+          for (const it of o.items) {
+            const k = `${it.productName}_${it.productSize ?? ""}`;
+            if (!map[k]) {
+              map[k] = {
+                key: k,
+                name: it.productName,
+                size: it.productSize ?? null,
+                quantity: 0,
+                revenue: 0,
+              };
+            }
+            map[k].quantity += it.quantity;
+            map[k].revenue += it.totalPrice;
+          }
+        } else if (o.productName) {
+          const k = `${o.productName}_${o.productSize ?? ""}`;
+          if (!map[k]) {
+            map[k] = {
+              key: k,
+              name: o.productName,
+              size: o.productSize ?? null,
+              quantity: 0,
+              revenue: 0,
+            };
+          }
+          map[k].quantity += o.quantity ?? 1;
+          map[k].revenue += o.totalAmount;
+        }
+      }
+
+      const list = Object.values(map).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+      const maxQty = list.length > 0 ? list[0].quantity : 0;
+      return list.map((item) => ({
+        ...item,
+        sharePct: maxQty > 0 ? Math.round((item.quantity / maxQty) * 1000) / 10 : 0,
+      }));
+    }
+
     return dashboardStats?.topProducts ?? [];
-  }, [dashboardStats?.topProducts]);
+  }, [dashboardStats?.topProducts, rawOrders]);
 
   const chartSummary = useMemo(() => {
     const totalRevenue = chartData.reduce((s, p) => s + p.revenue, 0);
@@ -140,8 +236,8 @@ export default function Dashboard() {
     return {
       revenueLabel: `${totalRevenue.toLocaleString("vi-VN")}đ`,
       avgRevenueLabel: `${Math.round(totalRevenue / rangeDays).toLocaleString("vi-VN")}đ`,
-      ordersLabel: `${totalOrders} đơn`,
-      avgOrdersLabel: `${(totalOrders / rangeDays).toFixed(1)} đơn`,
+      ordersLabel: `${totalOrders} đơn hiệu lực`,
+      avgOrdersLabel: `${(totalOrders / rangeDays).toFixed(1)} đơn/ngày`,
     };
   }, [chartData, rangeDays]);
 
@@ -162,26 +258,30 @@ export default function Dashboard() {
 
     const L: string[] = [];
     L.push("sep=;");
-    L.push("BÁO CÁO DOANH THU - NGUYỆT NHÃN PHỐ HIẾN");
+    L.push("BÁO CÁO DOANH THU & ĐƠN HÀNG - NGUYỆT NHÃN PHỐ HIẾN");
     L.push(`Kỳ báo cáo;${rangeDays} ngày qua`);
     L.push(`Xuất lúc;${new Date().toLocaleString("vi-VN")}`);
+    L.push("Ghi chú;Chỉ tính các đơn hàng có hiệu lực (không tính đơn đã huỷ)");
     L.push("");
 
     L.push("TỔNG QUAN");
     L.push(`Tổng doanh thu (đơn Đã giao);${totalRevenue}`);
-    L.push(`Tổng số đơn;${totalOrders}`);
+    L.push(`Tổng số đơn hiệu lực;${totalOrders}`);
+    if (cancelledCount > 0) {
+      L.push(`Số đơn huỷ (đã loại trừ);${cancelledCount}`);
+    }
     L.push(`Doanh thu TB/ngày;${Math.round(totalRevenue / rangeDays)}`);
-    L.push(`Số đơn TB/ngày;${(totalOrders / rangeDays).toFixed(1).replace(".", ",")}`);
+    L.push(`Số đơn hiệu lực TB/ngày;${(totalOrders / rangeDays).toFixed(1).replace(".", ",")}`);
     L.push("");
 
     L.push("CHI TIẾT THEO NGÀY");
-    L.push("Ngày;Doanh thu (Đã giao);Số đơn tạo");
+    L.push("Ngày;Doanh thu (Đã giao);Số đơn hiệu lực");
     for (const p of chartData) {
       L.push(`${fullDate(p.key)};${p.revenue};${p.orders}`);
     }
     L.push("");
 
-    L.push("TOP SẢN PHẨM BÁN CHẠY");
+    L.push("TOP SẢN PHẨM BÁN CHẠY (TỪ ĐƠN HIỆU LỰC)");
     L.push("#;Sản phẩm;Kích cỡ;Số lượng;Doanh thu");
     topProducts.forEach((p, i) => {
       L.push(`${i + 1};${esc(p.name)};${esc(p.size ?? "")};${p.quantity};${p.revenue}`);
@@ -203,7 +303,7 @@ export default function Dashboard() {
   };
 
   // Chỉ hiện skeleton khi không có bất kỳ bộ nhớ đệm nào và đang đợi request đầu tiên
-  if (isLoading && !dashboardStats) {
+  if (isLoading && !dashboardStats && !rawOrders) {
     return <DashboardSkeleton />;
   }
 
@@ -212,14 +312,14 @@ export default function Dashboard() {
       active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-primary"
     }`;
 
-  const hasData = (dashboardStats?.ordersCount ?? 0) > 0 || (dashboardStats?.messagesCount ?? 0) > 0;
+  const hasData = stats.ordersCount > 0 || stats.messagesCount > 0 || stats.revenue > 0;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Nguyệt Nhãn Phố Hiến</h2>
-          <p className="text-muted-foreground">Tổng quan tình hình kinh doanh &amp; tương tác.</p>
+          <p className="text-muted-foreground">Tổng quan tình hình kinh doanh &amp; tương tác (chỉ tính đơn hiệu lực).</p>
         </div>
         <div className="flex items-center gap-2">
           {isFetching ? (
@@ -246,18 +346,26 @@ export default function Dashboard() {
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Doanh thu</h3>
             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary relative z-10 truncate" title={`${stats.revenue.toLocaleString("vi-VN")}đ`}>
-            {stats.revenue.toLocaleString("vi-VN")}đ
-          </p>
+          <div>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary relative z-10 truncate" title={`${stats.revenue.toLocaleString("vi-VN")}đ`}>
+              {stats.revenue.toLocaleString("vi-VN")}đ
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 relative z-10">Đơn hoàn thành</p>
+          </div>
         </div>
 
         {/* ĐƠN HÀNG */}
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Tổng Đơn Hàng</h3>
+            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Tổng Đơn Hiệu Lực</h3>
             <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
+          <div>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {cancelledCount > 0 ? `(Đã loại trừ ${cancelledCount} đơn huỷ)` : "Chỉ tính đơn có hiệu lực"}
+            </p>
+          </div>
         </div>
 
         {/* KHÁCH HÀNG */}
@@ -266,7 +374,10 @@ export default function Dashboard() {
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Khách Hàng</h3>
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
+          <div>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Khách có đơn hiệu lực</p>
+          </div>
         </div>
 
         {/* TIN NHẮN */}
@@ -275,13 +386,16 @@ export default function Dashboard() {
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Phiên Chat</h3>
             <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
-            {stats.unreadMessages > 0 && (
-              <span className="text-[10px] sm:text-xs font-bold text-red-500 bg-red-100 px-1.5 py-0.5 rounded-full">
-                {stats.unreadMessages} mới
-              </span>
-            )}
+          <div>
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
+              {stats.unreadMessages > 0 && (
+                <span className="text-[10px] sm:text-xs font-bold text-red-500 bg-red-100 px-1.5 py-0.5 rounded-full">
+                  {stats.unreadMessages} mới
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Tư vấn trực tuyến</p>
           </div>
         </div>
       </div>
@@ -294,7 +408,7 @@ export default function Dashboard() {
           <div>
             <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
             <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
-              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span>
+              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span> (đã loại trừ đơn huỷ)
             </p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
@@ -305,7 +419,7 @@ export default function Dashboard() {
             </span>
             <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
               <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
-              Đơn hàng
+              Đơn hiệu lực
             </span>
             <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
             {RANGES.map((r) => (
@@ -374,7 +488,7 @@ export default function Dashboard() {
                   formatter={(value, name) =>
                     name === "Doanh thu"
                       ? [`${Number(value).toLocaleString("vi-VN")}đ`, name]
-                      : [`${Number(value)} đơn`, name]
+                      : [`${Number(value)} đơn hiệu lực`, name]
                   }
                   labelFormatter={(label) => `Ngày ${label}`}
                   contentStyle={{
@@ -388,7 +502,7 @@ export default function Dashboard() {
                 <Bar
                   yAxisId="orders"
                   dataKey="orders"
-                  name="Đơn hàng"
+                  name="Đơn hiệu lực"
                   fill="var(--chart-2)"
                   fillOpacity={0.85}
                   radius={[6, 6, 0, 0]}
@@ -416,7 +530,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-bold text-lg text-primary">Top sản phẩm bán chạy</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Xếp theo số lượng đã bán</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Xếp theo số lượng đã bán (chỉ tính đơn hiệu lực, không tính đơn huỷ)</p>
           </div>
           <Trophy className="w-5 h-5 text-accent" />
         </div>
