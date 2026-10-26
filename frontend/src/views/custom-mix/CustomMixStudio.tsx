@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,8 @@ import {
   Flame,
   CheckCircle2,
   Loader2,
+  ZoomIn,
+  X,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -29,17 +31,6 @@ import type {
   CustomIngredient,
   CustomMixItemDetailDto,
 } from "@/types/api.types";
-
-interface NutProgressNotification {
-  nutName: string;
-  nutGrams: number;
-  nutPercentage: number;
-  totalGrams: number;
-  targetGrams: number;
-  totalPercentage: number;
-  status: "under" | "match" | "over";
-  remainingGrams: number;
-}
 
 // Dữ liệu dự phòng mặc định (Fallback) nếu chưa kết nối API Backend
 const FALLBACK_PACKAGINGS: CustomPackaging[] = [
@@ -164,30 +155,19 @@ export default function CustomMixStudio() {
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [previewNut, setPreviewNut] = useState<CustomIngredient | null>(null);
 
-  // Tham chiếu & trạng thái theo dõi khối đo lường trên mobile
-  const mobileCapacityRef = useRef<HTMLDivElement>(null);
-  const [isCapacityOutOfView, setIsCapacityOutOfView] = useState<boolean>(false);
-  const [nutPopup, setNutPopup] = useState<NutProgressNotification | null>(null);
-  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Theo dõi khi phần Đo lường dung tích bị cuộn khuất khỏi tầm nhìn trên mobile
+  // Lắng nghe phím ESC để đóng modal xem ảnh phóng to
   useEffect(() => {
-    const el = mobileCapacityRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsCapacityOutOfView(!entry.isIntersecting);
-      },
-      {
-        threshold: 0.15,
+    if (!previewNut) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPreviewNut(null);
       }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewNut]);
 
   // Tải danh sách bao bì & hạt từ API
   useEffect(() => {
@@ -261,62 +241,6 @@ export default function CustomMixStudio() {
     }
   };
 
-  // Hàm kích hoạt popup thông báo % khi khối đo lường bị khuất màn hình mobile
-  const triggerNutPopup = useCallback(
-    (ingredientId: string, nextWeight: number, nextTotal: number) => {
-      // Chỉ kích hoạt trên mobile (< 1024px)
-      if (typeof window !== "undefined" && window.innerWidth >= 1024) return;
-
-      // Kiểm tra tức thì khối đo lường có đang nằm ngoài màn hình không
-      const el = mobileCapacityRef.current;
-      let outOfView = isCapacityOutOfView;
-      if (el && typeof window !== "undefined") {
-        const rect = el.getBoundingClientRect();
-        // Nếu cạnh dưới cuộn lên trên tầm mắt (< 80px) hoặc cạnh trên vượt quá đáy màn hình
-        if (rect.bottom < 80 || rect.top > window.innerHeight) {
-          outOfView = true;
-        } else if (rect.top >= 60 && rect.bottom <= window.innerHeight) {
-          outOfView = false;
-        }
-      }
-
-      if (!outOfView) return;
-
-      const ing = ingredients.find((i) => i.id === ingredientId);
-      if (!ing) return;
-
-      const nutPct = targetGrams > 0 ? Math.round((nextWeight * 100) / targetGrams) : 0;
-      const totalPct = targetGrams > 0 ? Math.round((nextTotal * 100) / targetGrams) : 0;
-      const rem = targetGrams - nextTotal;
-
-      const status: "under" | "match" | "over" =
-        nextTotal === targetGrams
-          ? "match"
-          : nextTotal > targetGrams
-          ? "over"
-          : "under";
-
-      setNutPopup({
-        nutName: ing.name,
-        nutGrams: nextWeight,
-        nutPercentage: nutPct,
-        totalGrams: nextTotal,
-        targetGrams,
-        totalPercentage: totalPct,
-        status,
-        remainingGrams: rem,
-      });
-
-      if (popupTimerRef.current) {
-        clearTimeout(popupTimerRef.current);
-      }
-      popupTimerRef.current = setTimeout(() => {
-        setNutPopup(null);
-      }, 3000);
-    },
-    [ingredients, isCapacityOutOfView, targetGrams]
-  );
-
   // Cập nhật số gram của 1 hạt
   const handleUpdateGrams = (ingredientId: string, newGrams: number) => {
     const clamped = Math.max(0, Math.min(targetGrams, newGrams));
@@ -327,8 +251,6 @@ export default function CustomMixStudio() {
       } else {
         next[ingredientId] = clamped;
       }
-      const newTotal = Object.values(next).reduce((sum, g) => sum + (g || 0), 0);
-      triggerNutPopup(ingredientId, clamped, newTotal);
       return next;
     });
   };
@@ -653,90 +575,7 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
-      {/* POPUP THÔNG BÁO TIẾN ĐỘ & PHẦN TRĂM HẠT TRÊN MOBILE KHI KHUẤT KHỐI ĐO LƯỜNG */}
-      <AnimatePresence>
-        {nutPopup && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -15, scale: 0.95 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:hidden fixed top-[4.5rem] left-3 right-3 sm:left-6 sm:right-6 z-50 pointer-events-auto"
-          >
-            <div className="bg-[#23452F]/95 backdrop-blur-md text-white rounded-2xl p-3.5 shadow-2xl border border-[#E9B949]/70 ring-1 ring-black/25">
-              {/* Hàng 1: Loại hạt vừa thao tác & % của riêng loại hạt đó */}
-              <div className="flex items-center justify-between gap-2 border-b border-emerald-800/80 pb-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-[#E9B949] shrink-0 animate-ping" />
-                  <span className="font-bold text-xs sm:text-sm text-[#FFF9ED] truncate">
-                    {nutPopup.nutName}
-                  </span>
-                </div>
-                <div className="shrink-0 flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 bg-[#E9B949]/20 border border-[#E9B949]/40 px-2.5 py-0.5 rounded-lg">
-                    <span className="text-xs font-mono font-extrabold text-[#E9B949]">
-                      {nutPopup.nutGrams}g
-                    </span>
-                    <span className="text-[11px] font-bold text-amber-200">
-                      ({nutPopup.nutPercentage}% hộp)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setNutPopup(null)}
-                    className="w-5 h-5 rounded-full bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 hover:text-white flex items-center justify-center text-xs font-bold transition-colors cursor-pointer"
-                    aria-label="Đóng thông báo"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
 
-              {/* Hàng 2: Tiến độ dung tích tổng thể của hộp */}
-              <div className="mt-2 space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-emerald-100/90 font-medium flex items-center gap-1">
-                    <span>Tổng hộp:</span>
-                    <strong className="text-white font-mono font-bold">
-                      {nutPopup.totalGrams}g
-                    </strong>
-                    <span className="text-emerald-300">/{nutPopup.targetGrams}g</span>
-                  </span>
-                  <span
-                    className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                      nutPopup.status === "match"
-                        ? "bg-emerald-500 text-white"
-                        : nutPopup.status === "over"
-                        ? "bg-rose-500 text-white"
-                        : "bg-amber-400 text-stone-950"
-                    }`}
-                  >
-                    {nutPopup.status === "match"
-                      ? "🟢 Đã đủ 100%"
-                      : nutPopup.status === "over"
-                      ? `🔴 Vượt ${Math.abs(nutPopup.remainingGrams)}g`
-                      : `🟡 Đạt ${nutPopup.totalPercentage}% (Thiếu ${nutPopup.remainingGrams}g)`}
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full h-2 bg-emerald-950/80 rounded-full overflow-hidden p-0.5 border border-emerald-800/60">
-                  <div
-                    style={{ width: `${Math.min(100, nutPopup.totalPercentage)}%` }}
-                    className={`h-full rounded-full transition-all duration-200 ${
-                      nutPopup.status === "match"
-                        ? "bg-emerald-400"
-                        : nutPopup.status === "over"
-                        ? "bg-rose-400"
-                        : "bg-gradient-to-r from-amber-400 to-[#E9B949]"
-                    }`}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-28 lg:pb-10 max-w-7xl">
         {/* INTRO HERO BANNER */}
@@ -872,7 +711,7 @@ export default function CustomMixStudio() {
               </div>
 
               {/* THANH ĐO TIẾN TRÌNH TRÊN MOBILE (HIỂN THỊ NGAY TRONG BƯỚC 2 ĐỂ KHÔNG PHẢI CUỘN XUỐNG DƯỚI) */}
-              <div ref={mobileCapacityRef} className="lg:hidden bg-gradient-to-br from-[#FFFDF8] via-[#FFFBEB] to-[#FEF3C7]/40 rounded-2xl p-4 border-2 border-[#FDE68A] shadow-xs space-y-3">
+              <div className="lg:hidden bg-gradient-to-br from-[#FFFDF8] via-[#FFFBEB] to-[#FEF3C7]/40 rounded-2xl p-4 border-2 border-[#FDE68A] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 rounded-lg bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center">
@@ -995,15 +834,28 @@ export default function CustomMixStudio() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-neutral-100 relative group">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewNut(ing)}
+                          className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-neutral-100 relative group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#B45309]/50 transition-all hover:border-[#B45309]/60 text-left"
+                          title={`Bấm để phóng to ảnh ${ing.name}`}
+                          aria-label={`Phóng to ảnh ${ing.name}`}
+                        >
                           <FastImage
                             src={ing.imageUrl}
                             alt={ing.name}
                             fill
                             sizes="72px"
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
                           />
-                        </div>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+                          </div>
+                          {/* Huy hiệu kính lúp nhỏ ở góc ảnh */}
+                          <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center shadow-2xs pointer-events-none">
+                            <ZoomIn className="w-2.5 h-2.5" />
+                          </div>
+                        </button>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-sm text-foreground leading-snug line-clamp-1">
                             {ing.name}
@@ -1375,8 +1227,8 @@ export default function CustomMixStudio() {
                 {isPerfectMatch
                   ? "🟢 Đã đủ 100%"
                   : isOverweight
-                  ? `🔴 Thừa ${Math.abs(remainingGrams)}g`
-                  : `🟡 Thiếu ${remainingGrams}g`}
+                  ? `🔴 Thừa ${Math.abs(remainingGrams)}g (${progressPercent}%)`
+                  : `🟡 Thiếu ${remainingGrams}g (${progressPercent}%)`}
               </span>
             </div>
 
@@ -1434,6 +1286,77 @@ export default function CustomMixStudio() {
           </div>
         </div>
       </div>
+
+      {/* MODAL PHÓNG TO HÌNH ẢNH HẠT */}
+      <AnimatePresence>
+        {previewNut && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setPreviewNut(null)}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Xem ảnh lớn ${previewNut.name}`}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm sm:max-w-md bg-stone-900 rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col"
+            >
+              {/* Nút đóng */}
+              <button
+                type="button"
+                onClick={() => setPreviewNut(null)}
+                className="absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-colors border border-white/20 cursor-pointer shadow-md"
+                aria-label="Đóng"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Khung ảnh phóng to sắc nét */}
+              <div className="relative w-full aspect-square bg-stone-950 flex items-center justify-center overflow-hidden">
+                <FastImage
+                  src={previewNut.imageUrl}
+                  alt={previewNut.name}
+                  fill
+                  sizes="(max-width: 640px) 90vw, 450px"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+
+              {/* Thông tin chi tiết loại hạt */}
+              <div className="p-4 sm:p-5 bg-gradient-to-b from-stone-900 to-stone-950 text-white space-y-2 border-t border-amber-500/20">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-bold text-base sm:text-lg text-[#FFF9ED] font-serif">
+                    {previewNut.name}
+                  </h3>
+                  <span className="shrink-0 flex items-center gap-1 font-semibold text-xs text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                    <Flame className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{previewNut.caloriesPer100g} kcal/100g</span>
+                  </span>
+                </div>
+                {previewNut.tagline && (
+                  <p className="text-xs text-amber-200/90 leading-relaxed font-light">
+                    {previewNut.tagline}
+                  </p>
+                )}
+                {previewNut.description && (
+                  <p className="text-xs text-stone-300 leading-relaxed font-light line-clamp-3">
+                    {previewNut.description}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* NÚT GIỎ HÀNG NỔI & DRAWER */}
       <CartButton />
