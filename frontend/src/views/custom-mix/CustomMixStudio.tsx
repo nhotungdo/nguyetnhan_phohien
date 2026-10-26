@@ -15,13 +15,8 @@ import {
   Scale,
   RotateCcw,
   Package,
-  Heart,
   Flame,
-  ShieldCheck,
-  Tag,
   CheckCircle2,
-  Calendar,
-  Gift,
   Loader2,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
@@ -208,7 +203,7 @@ export default function CustomMixStudio() {
     const newTarget = pkg.capacityGrams;
 
     if (totalGrams > newTarget) {
-      const activeEntries = Object.entries(weights).filter(([_, g]) => (g || 0) > 0);
+      const activeEntries = Object.entries(weights).filter(([, g]) => (g || 0) > 0);
       if (activeEntries.length > 0) {
         const scaled: Record<string, number> = {};
         let allocated = 0;

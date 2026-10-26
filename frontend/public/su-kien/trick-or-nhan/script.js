@@ -77,7 +77,7 @@
   function safeStorageGet(key) {
     try {
       return window.localStorage.getItem(key);
-    } catch (err) {
+    } catch {
       return null;
     }
   }
@@ -85,7 +85,7 @@
   function safeStorageSet(key, value) {
     try {
       window.localStorage.setItem(key, value);
-    } catch (err) {
+    } catch {
       /* Trình duyệt chặn localStorage — bỏ qua, game vẫn chạy trong phiên hiện tại. */
     }
   }
@@ -153,7 +153,7 @@
           }));
       }
       if (typeof data.sound === "boolean") state.sound = data.sound;
-    } catch (err) {
+    } catch {
       /* Dữ liệu cũ hỏng — bắt đầu lại với danh sách trống. */
     }
   }
@@ -580,7 +580,7 @@
         await navigator.clipboard.writeText(text);
         return true;
       }
-    } catch (err) {
+    } catch {
       /* Clipboard API bị chặn (quyền/tiêu điểm) — thử cách cũ bên dưới. */
     }
     try {
@@ -595,7 +595,7 @@
       const ok = document.execCommand("copy");
       document.body.removeChild(ta);
       return ok;
-    } catch (err) {
+    } catch {
       return false;
     }
   }

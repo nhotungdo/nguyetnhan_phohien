@@ -12,23 +12,28 @@ interface Particle {
   delay: number;
 }
 
+const PARTICLES: Particle[] = [
+  { id: 0, x: 12, y: 18, size: 2.5, duration: 8.5, delay: 0.5 },
+  { id: 1, x: 84, y: 25, size: 3.8, duration: 10.2, delay: 1.8 },
+  { id: 2, x: 45, y: 62, size: 1.8, duration: 6.8, delay: 2.1 },
+  { id: 3, x: 28, y: 78, size: 4.2, duration: 9.4, delay: 0.2 },
+  { id: 4, x: 67, y: 34, size: 2.1, duration: 7.6, delay: 1.4 },
+  { id: 5, x: 91, y: 71, size: 3.2, duration: 10.8, delay: 2.7 },
+  { id: 6, x: 19, y: 44, size: 1.9, duration: 8.1, delay: 0.9 },
+  { id: 7, x: 53, y: 89, size: 4.0, duration: 6.4, delay: 1.1 },
+  { id: 8, x: 76, y: 15, size: 2.7, duration: 9.9, delay: 2.3 },
+  { id: 9, x: 38, y: 52, size: 3.5, duration: 7.2, delay: 0.7 },
+  { id: 10, x: 8, y: 83, size: 1.6, duration: 10.5, delay: 1.6 },
+  { id: 11, x: 62, y: 96, size: 4.4, duration: 8.9, delay: 2.9 },
+  { id: 12, x: 95, y: 48, size: 2.3, duration: 7.8, delay: 0.4 },
+  { id: 13, x: 33, y: 29, size: 3.1, duration: 9.1, delay: 1.9 },
+  { id: 14, x: 50, y: 12, size: 2.0, duration: 6.9, delay: 2.5 },
+  { id: 15, x: 82, y: 66, size: 3.6, duration: 10.1, delay: 1.2 },
+];
+
 export function AnimatedWaveBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [particles, setParticles] = useState<Particle[]>([]);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
-
-  useEffect(() => {
-    // Tạo 16 hạt bụi vàng ngẫu nhiên (chỉ chạy client-side để tránh hydration mismatch)
-    const pts: Particle[] = Array.from({ length: 16 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3 + 1.5, // 1.5px - 4.5px
-      duration: Math.random() * 5 + 6, // 6s - 11s
-      delay: Math.random() * 3,
-    }));
-    setParticles(pts);
-  }, []);
 
   useEffect(() => {
     const parent = containerRef.current?.parentElement;
@@ -243,7 +248,7 @@ export function AnimatedWaveBackground() {
       </div>
 
       {/* 5. CÁC HẠT BỤI VÀNG LƠ LỬNG NHẤP NHÁY (Floating Golden Dust Particles) */}
-      {particles.map((p) => (
+      {PARTICLES.map((p) => (
         <motion.div
           key={p.id}
           className="absolute rounded-full bg-amber-300 shadow-[0_0_8px_#F59E0B]"

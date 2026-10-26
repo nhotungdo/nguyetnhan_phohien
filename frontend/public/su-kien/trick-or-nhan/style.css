@@ -83,6 +83,32 @@ button { font: inherit; }
   70% { transform: translate3d(-18px, 16px, 0) rotate(-4deg); }
 }
 
+/* ─── Banner bài đăng Facebook (đầu trang) ─────────────────── */
+.post-banner {
+  position: relative; z-index: 6;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 4px 10px; padding: 11px 18px;
+  font-size: .84rem; line-height: 1.35; text-decoration: none; color: #2a1500;
+  background: linear-gradient(100deg, #ffd79a, #ffb463 48%, #f2903a);
+  border-bottom: 1px solid rgba(74, 34, 0, .28);
+  box-shadow: 0 8px 22px -16px rgba(0, 0, 0, .85);
+  transition: filter .2s ease;
+}
+.post-banner:hover { filter: brightness(1.05); }
+.post-banner:focus-visible { outline: 3px solid #fff3dd; outline-offset: -4px; }
+
+.post-banner__icon { display: inline-flex; width: 21px; height: 21px; }
+.post-banner__icon svg { width: 100%; height: 100%; fill: currentColor; }
+.post-banner__title { font-weight: 700; }
+.post-banner__sub { display: none; color: rgba(42, 21, 0, .72); }
+.post-banner__cta {
+  display: inline-flex; align-items: center; padding: 5px 12px;
+  border-radius: 999px; font-size: .76rem; font-weight: 700; letter-spacing: .02em;
+  color: #fff6e6; background: #2b1600;
+  transition: background .2s ease;
+}
+.post-banner:hover .post-banner__cta { background: #4a2600; }
+
 /* ─── Thanh đầu trang ───────────────────────────────────────── */
 .topbar {
   position: relative; z-index: 5;
@@ -592,6 +618,9 @@ kbd {
 
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (min-width: 640px) {
+  .post-banner { font-size: .9rem; }
+  .post-banner__sub { display: inline; }
+  .post-banner__cta { margin-left: 4px; }
   .topbar__nav a { display: inline-block; }
   .sound-btn__label { display: inline; }
   .rules__grid { grid-template-columns: repeat(3, 1fr); }
