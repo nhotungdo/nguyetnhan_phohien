@@ -756,7 +756,7 @@ export default function LandingPage() {
                         Mới
                       </span>
                     </div>
-                    <p className="text-[11px] text-amber-800/80 font-normal">Tự phối 6 loại hạt & in tên riêng</p>
+                    <p className="text-[11px] text-amber-800/80 font-normal">Tự phối 5 loại hạt & in tên riêng</p>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-amber-700" />
@@ -1037,7 +1037,7 @@ export default function LandingPage() {
                     Tự Tay Phối Hạt · <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400">Khắc Tên Riêng</span>
                   </h2>
                   <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                    Tự do lựa chọn tỉ lệ vàng từ 6 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Hạt sen sấy giòn, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
+                    Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>🎃 Minigame TRICK OR “NHÃN” – Quay số 00–99 | Nguyệt Nhãn Phố Hiến</title>
+<meta name="description" content="Minigame Halloween TRICK OR “NHÃN” của Nguyệt Nhãn Phố Hiến: quay số ngẫu nhiên 00–99 chọn 03 người thắng cuộc từ những bình luận hợp lệ. Mỗi tài khoản nhận tối đa 01 giải." />
+<meta name="theme-color" content="#173522" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Nguyệt Nhãn Phố Hiến" />
+<meta property="og:title" content="🎃 Minigame TRICK OR “NHÃN” – Quay số 00–99" />
+<meta property="og:description" content="Quay số may mắn chọn 03 người thắng cuộc – 03 phần quà từ Nguyệt Nhãn Phố Hiến." />
+<meta property="og:image" content="poster.jpg" />
+<link rel="icon" href="logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!-- lớp trang trí nền -->
+<div class="bg-decor" aria-hidden="true">
+  <span class="glow glow--orange"></span>
+  <span class="glow glow--green"></span>
+  <span class="web web--tl"></span>
+  <span class="web web--br"></span>
+  <span class="bat bat--1">🦇</span>
+  <span class="bat bat--2">🦇</span>
+  <span class="bat bat--3">🦇</span>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <img src="logo.png" alt="Logo Nguyệt Nhãn Phố Hiến" width="44" height="44" />
+    <span class="brand__text">
+      <strong>Nguyệt Nhãn</strong>
+      <small>PHỐ HIẾN</small>
+    </span>
+  </a>
+  <nav class="topbar__nav">
+    <a href="#the-le">Thể lệ</a>
+    <a href="#quay-so">Quay số</a>
+    <button class="sound-btn" id="soundToggle" type="button" aria-pressed="true" title="Bật/tắt âm thanh">
+      <span id="soundIcon">🔊</span><span class="sound-btn__label">Âm thanh</span>
+    </button>
+  </nav>
+</header>
+
+<main id="top">
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="hero__copy">
+      <p class="eyebrow">🎃 Minigame Halloween · Nguyệt Nhãn Phố Hiến</p>
+      <h1 class="hero__title">
+        <span class="trick">TRICK OR</span>
+        <span class="nhan">“NHÃN”</span>
+      </h1>
+      <p class="hero__lead">
+        Nguyệt Nhãn quay số ngẫu nhiên từ <strong>00 – 99</strong> để chọn ra
+        <strong>03 người thắng cuộc</strong> trong những bình luận hợp lệ.
+        Mỗi tài khoản nhận tối đa <strong>01 giải</strong>.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="#quay-so">🎰 Quay số ngay</a>
+        <a class="btn btn--ghost" href="#the-le">Xem thể lệ</a>
+      </div>
+      <ul class="hero__stats">
+        <li><strong>00–99</strong><span>Dải số quay</span></li>
+        <li><strong>03</strong><span>Phần quà may mắn</span></li>
+        <li><strong>01</strong><span>Giải / tài khoản</span></li>
+      </ul>
+    </div>
+
+    <figure class="poster">
+      <img src="poster.jpg" alt="Poster minigame Trick or Nhãn với 03 phần quà may mắn của Nguyệt Nhãn Phố Hiến" width="1080" height="810" loading="eager" />
+      <figcaption>03 phần quà may mắn đang chờ chủ nhân 🎁</figcaption>
+    </figure>
+  </section>
+
+  <!-- ══ GAME ══ -->
+  <section class="game" id="quay-so">
+    <div class="section-head">
+      <p class="eyebrow">🎰 Lồng quay may mắn</p>
+      <h2>Quay số <span>00 – 99</span></h2>
+      <p>Bấm <strong>QUAY SỐ</strong> để Nguyệt Nhãn chọn người thắng. Kết quả hiển thị ngay bên dưới.</p>
+    </div>
+
+    <div class="game__grid">
+      <div class="reel-card">
+        <div class="reel" id="reel">
+          <div class="reel__ring" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="reel__window">
+            <span class="digit" id="digitA">0</span>
+            <span class="digit" id="digitB">0</span>
+            <span class="reel__shine" aria-hidden="true"></span>
+          </div>
+          <span class="reel__cap" aria-hidden="true"></span>
+        </div>
+
+        <button class="spin-btn" id="spinBtn" type="button">
+          <span class="spin-btn__icon" aria-hidden="true">🎃</span>
+          <span class="spin-btn__text" id="spinLabel">QUAY SỐ</span>
+        </button>
+
+        <p class="game__hint" id="gameHint" role="status" aria-live="polite">
+          Đã có <strong>0</strong> bình luận hợp lệ trong danh sách quay.
+        </p>
+        <p class="game__note">Mẹo: nhấn <kbd>Space</kbd> để quay nhanh.</p>
+      </div>
+
+      <aside class="winners">
+        <div class="winners__head">
+          <h3>🏆 Người thắng cuộc</h3>
+          <span class="winners__count" id="winCount">0/3</span>
+        </div>
+        <ol class="winner-list" id="winnerList">
+          <li class="winner-slot" data-slot="0">
+            <span class="winner-slot__num">Giải 1</span>
+            <span class="winner-slot__name">Đang chờ quay…</span>
+            <span class="winner-slot__ticket">--</span>
+          </li>
+          <li class="winner-slot" data-slot="1">
+            <span class="winner-slot__num">Giải 2</span>
+            <span class="winner-slot__name">Đang chờ quay…</span>
+            <span class="winner-slot__ticket">--</span>
+          </li>
+          <li class="winner-slot" data-slot="2">
+            <span class="winner-slot__num">Giải 3</span>
+            <span class="winner-slot__name">Đang chờ quay…</span>
+            <span class="winner-slot__ticket">--</span>
+          </li>
+        </ol>
+        <div class="winners__actions">
+          <button class="btn btn--small btn--ghost" id="copyResult" type="button">📋 Sao chép kết quả</button>
+          <button class="btn btn--small btn--ghost" id="resetDraw" type="button">↺ Quay lại từ đầu</button>
+        </div>
+        <p class="winners__privacy">Danh sách và kết quả chỉ lưu trên thiết bị này, không gửi đi đâu cả.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ══ THỂ LỆ ══ -->
+  <section class="rules" id="the-le">
+    <div class="section-head">
+      <p class="eyebrow">📜 Thể lệ</p>
+      <h2>Cách Nguyệt Nhãn chọn người thắng</h2>
+    </div>
+    <div class="rules__grid">
+      <article class="rule-card">
+        <span class="rule-card__no">01</span>
+        <h3>Quay số ngẫu nhiên</h3>
+        <p>Nguyệt Nhãn quay số từ <strong>00 đến 99</strong> để chọn ra <strong>03 người</strong> trong số những bình luận hợp lệ dưới bài đăng minigame.</p>
+      </article>
+      <article class="rule-card">
+        <span class="rule-card__no">02</span>
+        <h3>Mỗi tài khoản 01 giải</h3>
+        <p>Mỗi tài khoản nhận tối đa <strong>01 giải thưởng</strong>. Nếu số đã trúng, lượt quay kế tiếp sẽ tiếp tục tìm chủ nhân khác.</p>
+      </article>
+      <article class="rule-card">
+        <span class="rule-card__no">03</span>
+        <h3>03 phần quà may mắn</h3>
+        <p>Ba người thắng cuộc nhận <strong>phần quà từ Nguyệt Nhãn Phố Hiến</strong>. Nguyệt Nhãn liên hệ trực tiếp qua tài khoản đã bình luận để gửi quà.</p>
+      </article>
+    </div>
+    <ul class="rules__list">
+      <li>Chỉ những bình luận hợp lệ dưới bài đăng minigame mới được đưa vào danh sách quay.</li>
+      <li>Kết quả quay được công bố ngay trên trang này và tại bài đăng minigame.</li>
+      <li>Người thắng vui lòng phản hồi thông tin nhận quà khi Nguyệt Nhãn liên hệ.</li>
+      <li>Quyết định của Ban tổ chức là quyết định cuối cùng.</li>
+    </ul>
+  </section>
+
+  <!-- ══ KHU VỰC BAN TỔ CHỨC ══ -->
+  <section class="admin" id="btc">
+    <details class="admin__box">
+      <summary>
+        <span>🔒 Khu vực Ban tổ chức</span>
+        <small>Dán danh sách bình luận hợp lệ để quay số</small>
+      </summary>
+      <div class="admin__body">
+        <p class="admin__desc">
+          Mỗi dòng là <strong>01 tài khoản</strong> đã bình luận hợp lệ. Hệ thống tự đánh số
+          <strong>00 → 99</strong> theo thứ tự (tối đa 100 tài khoản), tự bỏ dòng trùng và lưu lại
+          trên trình duyệt này.
+        </p>
+        <label class="sr-only" for="namesInput">Danh sách tài khoản bình luận hợp lệ</label>
+        <textarea id="namesInput" rows="6" spellcheck="false"
+          placeholder="Nguyễn Thu Hà&#10;Trần Minh Anh&#10;Phạm Quốc Bảo&#10;…"></textarea>
+        <div class="admin__row">
+          <button class="btn btn--small btn--primary" id="saveNames" type="button">💾 Lưu danh sách</button>
+          <button class="btn btn--small btn--ghost" id="clearNames" type="button">🗑 Xoá danh sách</button>
+          <button class="btn btn--small btn--ghost" id="demoNames" type="button">✨ Dùng danh sách mẫu</button>
+          <span class="admin__status" id="adminStatus" role="status" aria-live="polite"></span>
+        </div>
+        <div class="admin__table-wrap">
+          <table class="admin__table">
+            <thead>
+              <tr><th>Số</th><th>Tài khoản</th></tr>
+            </thead>
+            <tbody id="namesTable">
+              <tr class="admin__empty"><td colspan="2">Chưa có tài khoản nào. Dán danh sách ở trên rồi bấm “Lưu danh sách”.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ══ CTA ══ -->
+  <section class="cta">
+    <div class="cta__inner">
+      <p class="eyebrow">🌿 Nguyệt Nhãn Phố Hiến</p>
+      <h2>Kế hoạch kinh doanh sản phẩm từ long nhãn</h2>
+      <p>Hướng tới người tiêu dùng quan tâm đến sức khỏe – đặc sản long nhãn tiến vua Hưng Yên.</p>
+      <a class="btn btn--primary" href="https://nguyetnhanphohien.com/" target="_blank" rel="noopener">🛒 Đặt hàng tại nguyetnhanphohien.com</a>
+    </div>
+  </section>
+</main>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="footer__grid">
+    <div class="footer__brand">
+      <img src="logo.png" alt="" width="48" height="48" />
+      <div>
+        <strong>Nguyệt Nhãn Phố Hiến</strong>
+        <span>Đặc sản long nhãn tiến vua Hưng Yên</span>
+      </div>
+    </div>
+    <div class="footer__contact">
+      <a href="https://nguyetnhanphohien.com/" target="_blank" rel="noopener">
+        <span aria-hidden="true">🌐</span>
+        <span><small>Website đặt hàng</small><strong>nguyetnhanphohien.com</strong></span>
+      </a>
+      <a href="mailto:nguyetnhanphohien@gmail.com">
+        <span aria-hidden="true">✉️</span>
+        <span><small>Email</small><strong>nguyetnhanphohien@gmail.com</strong></span>
+      </a>
+      <a href="tel:+84348973285">
+        <span aria-hidden="true">📞</span>
+        <span><small>Số điện thoại</small><strong>034 897 3285</strong></span>
+      </a>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Trưởng dự án: <strong>Nguyễn Thu Hiền</strong></span>
+    <span>© <span id="year">2026</span> Nguyệt Nhãn Phố Hiến · Minigame TRICK OR “NHÃN”</span>
+  </div>
+</footer>
+
+<!-- ══ OVERLAY CHÚC MỪNG ══ -->
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-labelledby="revealTitle" hidden>
+  <canvas class="reveal__canvas" id="confetti" aria-hidden="true"></canvas>
+  <div class="reveal__card">
+    <p class="reveal__tag">🎉 Chúc mừng người thắng cuộc</p>
+    <p class="reveal__num" id="revealNum">00</p>
+    <h2 id="revealTitle">Tên tài khoản</h2>
+    <p class="reveal__prize" id="revealPrize">Giải 1 · Phần quà từ Nguyệt Nhãn Phố Hiến</p>
+    <button class="btn btn--primary" id="revealClose" type="button">Tuyệt vời! 🎃</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

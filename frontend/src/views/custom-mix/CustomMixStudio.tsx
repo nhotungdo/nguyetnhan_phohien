@@ -83,18 +83,6 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     displayOrder: 1,
   },
   {
-    id: "d0000001-0000-0000-0000-000000000002",
-    name: "Hạt Sen Phố Hiến Sấy Giòn",
-    caloriesPer100g: 350,
-    imageUrl: "/images/nuts/hatsen.jpg",
-    description: "Hạt sen tròn đều sấy giòn rụm xốp mịn, vị bùi béo ngậy thanh mát tự nhiên.",
-    tagline: "Dưỡng tâm an thần, cải thiện giấc ngủ sâu",
-    minGrams: 0,
-    maxGrams: 900,
-    stepGrams: 10,
-    displayOrder: 2,
-  },
-  {
     id: "d0000001-0000-0000-0000-000000000003",
     name: "Hạt Macca Tây Nguyên (Tách Nhân)",
     caloriesPer100g: 718,
@@ -104,7 +92,7 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     minGrams: 0,
     maxGrams: 900,
     stepGrams: 10,
-    displayOrder: 3,
+    displayOrder: 2,
   },
   {
     id: "d0000001-0000-0000-0000-000000000004",
@@ -116,7 +104,7 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     minGrams: 0,
     maxGrams: 900,
     stepGrams: 10,
-    displayOrder: 4,
+    displayOrder: 3,
   },
   {
     id: "d0000001-0000-0000-0000-000000000005",
@@ -128,7 +116,7 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     minGrams: 0,
     maxGrams: 900,
     stepGrams: 10,
-    displayOrder: 5,
+    displayOrder: 4,
   },
   {
     id: "d0000001-0000-0000-0000-000000000006",
@@ -140,7 +128,7 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     minGrams: 0,
     maxGrams: 900,
     stepGrams: 10,
-    displayOrder: 6,
+    displayOrder: 5,
   },
 ];
 
@@ -259,10 +247,9 @@ export default function CustomMixStudio() {
 
   // Helper tra cứu hạt theo loại ngữ nghĩa (bảo đảm an toàn tuyệt đối khi DB đổi thứ tự DisplayOrder)
   const findNut = useCallback(
-    (key: "longnhan" | "sen" | "macca" | "dieu" | "hanhnhan" | "bixanh") => {
+    (key: "longnhan" | "macca" | "dieu" | "hanhnhan" | "bixanh") => {
       const SEED_IDS: Record<string, string> = {
         longnhan: "d0000001-0000-0000-0000-000000000001",
-        sen: "d0000001-0000-0000-0000-000000000002",
         macca: "d0000001-0000-0000-0000-000000000003",
         dieu: "d0000001-0000-0000-0000-000000000004",
         hanhnhan: "d0000001-0000-0000-0000-000000000005",
@@ -270,7 +257,6 @@ export default function CustomMixStudio() {
       };
       const KEYWORDS: Record<string, string[]> = {
         longnhan: ["long nhãn", "long nhan"],
-        sen: ["sen"],
         macca: ["macca", "mắc ca"],
         dieu: ["điều", "dieu"],
         hanhnhan: ["hạnh nhân", "hanh nhan"],
@@ -328,19 +314,18 @@ export default function CustomMixStudio() {
   const handleApplyPreset = (presetType: "duong-nhan" | "nang-luong" | "thuong-hang") => {
     const newWeights: Record<string, number> = {};
     const longNhanId = findNut("longnhan")?.id || ingredients[0]?.id;
-    const senId = findNut("sen")?.id || ingredients[1]?.id;
-    const maccaId = findNut("macca")?.id || ingredients[2]?.id;
-    const dieuId = findNut("dieu")?.id || ingredients[3]?.id;
-    const hanhNhanId = findNut("hanhnhan")?.id || ingredients[4]?.id;
-    const biXanhId = findNut("bixanh")?.id || ingredients[5]?.id;
+    const maccaId = findNut("macca")?.id || ingredients[1]?.id;
+    const dieuId = findNut("dieu")?.id || ingredients[2]?.id;
+    const hanhNhanId = findNut("hanhnhan")?.id || ingredients[3]?.id;
+    const biXanhId = findNut("bixanh")?.id || ingredients[4]?.id;
 
     if (presetType === "duong-nhan") {
-      // 40% Long nhãn, 30% Hạt sen, 30% Hạnh nhân
+      // 40% Long nhãn, 30% Hạt macca, 30% Hạnh nhân
       const w1 = Math.round((targetGrams * 0.4) / 10) * 10;
       const w2 = Math.round((targetGrams * 0.3) / 10) * 10;
       const w3 = targetGrams - w1 - w2;
       if (longNhanId) newWeights[longNhanId] = w1;
-      if (senId) newWeights[senId] = w2;
+      if (maccaId) newWeights[maccaId] = w2;
       if (hanhNhanId) newWeights[hanhNhanId] = w3;
       setCustomName("Hộp Dưỡng Nhan Thanh Tâm");
       setCustomMessage("Kính chúc Mẹ luôn bình an, tươi trẻ và ngủ thật ngon");
@@ -359,13 +344,13 @@ export default function CustomMixStudio() {
       setCustomMessage("Tràn đầy năng lượng, bứt phá mọi mục tiêu");
       setNameError(null);
     } else {
-      // 40% Long nhãn Tiến Vua, 30% Macca, 30% Sen Phố Hiến
+      // 40% Long nhãn Tiến Vua, 35% Macca, 25% Hạt điều
       const w1 = Math.round((targetGrams * 0.4) / 10) * 10;
-      const w2 = Math.round((targetGrams * 0.3) / 10) * 10;
+      const w2 = Math.round((targetGrams * 0.35) / 10) * 10;
       const w3 = targetGrams - w1 - w2;
       if (longNhanId) newWeights[longNhanId] = w1;
       if (maccaId) newWeights[maccaId] = w2;
-      if (senId) newWeights[senId] = w3;
+      if (dieuId) newWeights[dieuId] = w3;
       setCustomName("Long Nhãn Tam Vị Tiến Vua");
       setCustomMessage("Kính chúc Quý Đối Tác vạn sự hanh thông, đại cát đại lợi");
       setNameError(null);
@@ -591,7 +576,7 @@ export default function CustomMixStudio() {
               Tự Tay Mix Hạt Theo Sở Thích & Đặt Tên Cho Tuyệt Tác Của Bạn
             </h2>
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-light">
-              Tự do lựa chọn tỉ lệ từ 6 loại hạt dinh dưỡng & đặc sản trứ danh. Đạt đúng khối lượng tịnh yêu cầu với mức giá cố định trọn gói, được in tem nhãn cá nhân hóa miễn phí.
+              Tự do lựa chọn tỉ lệ từ 5 loại hạt dinh dưỡng & đặc sản trứ danh. Đạt đúng khối lượng tịnh yêu cầu với mức giá cố định trọn gói, được in tem nhãn cá nhân hóa miễn phí.
             </p>
           </div>
           {/* Decorative glowing circle */}
@@ -659,7 +644,7 @@ export default function CustomMixStudio() {
               </div>
             </section>
 
-            {/* STEP 2: CHỌN & CHỈNH LƯỢNG 6 LOẠI HẠT */}
+            {/* STEP 2: CHỌN & CHỈNH LƯỢNG 5 LOẠI HẠT */}
             <section className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#FDE68A]/40 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -736,7 +721,7 @@ export default function CustomMixStudio() {
                 </div>
               </div>
 
-              {/* GRID 6 LOẠI HẠT */}
+              {/* GRID 5 LOẠI HẠT */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {ingredients.map((ing) => {
                   const currentWeight = weights[ing.id] || 0;

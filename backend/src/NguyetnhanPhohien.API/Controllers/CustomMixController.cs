@@ -17,7 +17,7 @@ public class CustomMixController : ControllerBase
     }
 
     /// <summary>
-    /// [PUBLIC] Lấy danh sách quy cách đóng gói (150g, 300g, 900g) và 6 loại hạt đặc sản đang mở bán
+    /// [PUBLIC] Lấy danh sách quy cách đóng gói (150g, 300g, 900g) và 5 loại hạt đặc sản đang mở bán
     /// </summary>
     [HttpGet("options")]
     public async Task<ActionResult<CustomMixOptionsResponse>> GetOptions()

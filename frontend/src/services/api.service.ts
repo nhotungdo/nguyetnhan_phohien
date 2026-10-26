@@ -554,7 +554,7 @@ export const nutritionAiApi = {
 
 // ===== CUSTOM MIX (TỰ CHỌN HẠT) API =====
 export const customMixApi = {
-  /** [PUBLIC] Lấy danh sách quy cách bao bì (150g, 300g, 900g) và 6 loại hạt đang mở bán */
+  /** [PUBLIC] Lấy danh sách quy cách bao bì (150g, 300g, 900g) và 5 loại hạt đang mở bán */
   getOptions: async (): Promise<CustomMixOptionsResponse> => {
     return apiFetch<CustomMixOptionsResponse>("/api/custom-mix/options");
   },

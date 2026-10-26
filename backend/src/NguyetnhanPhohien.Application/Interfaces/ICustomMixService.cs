@@ -6,7 +6,7 @@ namespace NguyetnhanPhohien.Application.Interfaces;
 public interface ICustomMixService
 {
     /// <summary>
-    /// Lấy danh sách quy cách bao bì và 6 loại hạt đang kích hoạt để hiển thị trên giao diện Studio
+    /// Lấy danh sách quy cách bao bì và 5 loại hạt đang kích hoạt để hiển thị trên giao diện Studio
     /// </summary>
     Task<CustomMixOptionsResponse> GetOptionsAsync();
 

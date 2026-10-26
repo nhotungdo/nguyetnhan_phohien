@@ -137,7 +137,7 @@ public static class DbSeeder
             db.CustomPackagings.AddRange(packagings);
         }
 
-        // ===== SEED 6 LOẠI HẠT NGUYÊN LIỆU (KHÔNG ÓC CHÓ, KHÔNG TÁO ĐỎ, KHÔNG KỶ TỬ) =====
+        // ===== SEED 5 LOẠI HẠT NGUYÊN LIỆU (KHÔNG ÓC CHÓ, KHÔNG TÁO ĐỎ, KHÔNG KỶ TỬ, KHÔNG HẠT SEN) =====
         if (!await db.CustomIngredients.AnyAsync())
         {
             var ingredients = new List<CustomIngredient>
@@ -157,19 +157,6 @@ public static class DbSeeder
                 },
                 new()
                 {
-                    Id = new Guid("d0000001-0000-0000-0000-000000000002"),
-                    Name = "Hạt Sen Phố Hiến Sấy Giòn",
-                    CaloriesPer100g = 350,
-                    ImageUrl = "/images/nuts/hatsen.jpg",
-                    Description = "Hạt sen đều tăm tắp sấy giòn rụm xốp mịn, vị bùi béo ngậy thanh mát tự nhiên.",
-                    Tagline = "Đặc sản hồ sen Phố Hiến, dưỡng tâm an thần, thanh nhiệt",
-                    MinGrams = 0,
-                    MaxGrams = 900,
-                    StepGrams = 10,
-                    DisplayOrder = 2
-                },
-                new()
-                {
                     Id = new Guid("d0000001-0000-0000-0000-000000000003"),
                     Name = "Hạt Macca Tây Nguyên (Tách Nhân)",
                     CaloriesPer100g = 718,
@@ -179,7 +166,7 @@ public static class DbSeeder
                     MinGrams = 0,
                     MaxGrams = 900,
                     StepGrams = 10,
-                    DisplayOrder = 3
+                    DisplayOrder = 2
                 },
                 new()
                 {
@@ -192,7 +179,7 @@ public static class DbSeeder
                     MinGrams = 0,
                     MaxGrams = 900,
                     StepGrams = 10,
-                    DisplayOrder = 4
+                    DisplayOrder = 3
                 },
                 new()
                 {
@@ -205,7 +192,7 @@ public static class DbSeeder
                     MinGrams = 0,
                     MaxGrams = 900,
                     StepGrams = 10,
-                    DisplayOrder = 5
+                    DisplayOrder = 4
                 },
                 new()
                 {
@@ -218,10 +205,19 @@ public static class DbSeeder
                     MinGrams = 0,
                     MaxGrams = 900,
                     StepGrams = 10,
-                    DisplayOrder = 6
+                    DisplayOrder = 5
                 }
             };
             db.CustomIngredients.AddRange(ingredients);
+        }
+        else
+        {
+            // Tắt kích hoạt Hạt Sen nếu đã seed trước đó để đồng bộ 5 loại hạt
+            var sen = await db.CustomIngredients.FirstOrDefaultAsync(i => i.Id == new Guid("d0000001-0000-0000-0000-000000000002"));
+            if (sen != null && sen.IsActive)
+            {
+                sen.IsActive = false;
+            }
         }
 
         await db.SaveChangesAsync();

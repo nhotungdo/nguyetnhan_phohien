@@ -49,6 +49,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        // Trang tĩnh minigame Halloween (HTML/CSS/JS thuần) nằm trong public/:
+        // link gọn /su-kien/trick-or-nhan chuyển sang index.html để các đường dẫn
+        // tương đối (style.css, script.js, ảnh) vẫn đúng.
+        source: "/su-kien/trick-or-nhan",
+        destination: "/su-kien/trick-or-nhan/index.html",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns,
     // Ảnh cắt sẵn dưới dạng AVIF/WebP — nhẹ hơn nhiều so với JPEG/PNG gốc
