@@ -68,10 +68,18 @@ public class DiscountService : IDiscountService
             return new DiscountResult { IsValid = false, Message = "Mã đã được sử dụng hết lượt." };
         }
 
-        // ===== QUY TẮc: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
+        // ===== QUY TẮC: mỗi SĐT chỉ dùng một mã giảm giá ĐÚNG MỘT LẦN =====
         var normalizedPhone = PhoneNumber.Normalize(customerPhone);
-        if (normalizedPhone.Length > 0
-            && await _db.DiscountRedemptions.AnyAsync(r =>
+        if (string.IsNullOrWhiteSpace(normalizedPhone) || normalizedPhone.Length < 10)
+        {
+            return new DiscountResult
+            {
+                IsValid = false,
+                Message = "Vui lòng nhập số điện thoại hợp lệ trước khi áp dụng mã giảm giá để kiểm tra lượt sử dụng."
+            };
+        }
+
+        if (await _db.DiscountRedemptions.AnyAsync(r =>
                 r.DiscountCodeId == discountCode.Id && r.CustomerPhone == normalizedPhone))
         {
             return new DiscountResult

