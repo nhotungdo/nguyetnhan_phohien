@@ -22,7 +22,7 @@ public class CustomIngredient
     public int CaloriesPer100g { get; set; }
 
     /// <summary>
-    /// Đường dẫn ảnh chụp cận cảnh sắc nét của hạt (ví dụ: "/images/nuts/longnhan.jpg")
+    /// Đường dẫn ảnh chụp cận cảnh sắc nét của hạt (ví dụ: "/images/nuts/longnhanomsen.jpg")
     /// </summary>
     public string ImageUrl { get; set; } = string.Empty;
 

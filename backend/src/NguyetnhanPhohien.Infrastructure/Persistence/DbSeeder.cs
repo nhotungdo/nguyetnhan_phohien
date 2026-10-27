@@ -147,7 +147,7 @@ public static class DbSeeder
                     Id = new Guid("d0000001-0000-0000-0000-000000000001"),
                     Name = "Long Nhãn Phố Hiến Tuyển Chọn",
                     CaloriesPer100g = 310,
-                    ImageUrl = "/images/nuts/longnhan.jpg",
+                    ImageUrl = "/images/nuts/longnhanomsen.jpg",
                     Description = "Cùi dày dẻo thơm, màu vàng cánh gián hổ phách, sấy đối lưu nhiệt nóng bí truyền, vị ngọt thanh tao tự nhiên.",
                     Tagline = "Đặc sản Phố Hiến tiến vua, bổ khí huyết, an thần ngủ ngon",
                     MinGrams = 0,
@@ -217,6 +217,13 @@ public static class DbSeeder
             if (sen != null && sen.IsActive)
             {
                 sen.IsActive = false;
+            }
+
+            // Đồng bộ ảnh Long Nhãn ôm sen mới nhất
+            var longNhan = await db.CustomIngredients.FirstOrDefaultAsync(i => i.Id == new Guid("d0000001-0000-0000-0000-000000000001"));
+            if (longNhan != null && longNhan.ImageUrl != "/images/nuts/longnhanomsen.jpg")
+            {
+                longNhan.ImageUrl = "/images/nuts/longnhanomsen.jpg";
             }
         }
 

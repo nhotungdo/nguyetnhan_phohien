@@ -71,7 +71,7 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
     id: "d0000001-0000-0000-0000-000000000001",
     name: "Long Nhãn Phố Hiến Tuyển Chọn",
     caloriesPer100g: 310,
-    imageUrl: "/images/nuts/longnhan.jpg",
+    imageUrl: "/images/nuts/longnhanomsen.jpg",
     description: "Cùi dày dẻo thơm, màu vàng cánh gián hổ phách, sấy đối lưu nhiệt nóng bí truyền, vị ngọt thanh tao tự nhiên.",
     tagline: "Đặc sản tiến vua, bổ huyết, an thần ngủ ngon",
     minGrams: 0,
