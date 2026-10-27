@@ -7,6 +7,7 @@ import type { OrderResponse } from "@/types/api.types";
 import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck, Mail, MailCheck, AlertTriangle, Send, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OrderDetailModal from "./OrderDetailModal";
+import EmailStatusBadge from "./EmailStatusBadge";
 
 // Phải khớp với enum OrderStatus phía backend:
 // PendingConfirmation, Confirmed, Shipping, Completed, Cancelled
@@ -340,11 +341,16 @@ export default function Orders() {
                         </a>
                       </div>
                       {order.customerEmail ? (
-                        <div className="flex items-center gap-1.5 text-blue-600 text-xs mb-1">
-                          <Mail className="w-3 h-3 shrink-0" />
-                          <span className="truncate max-w-[180px]" title={order.customerEmail}>
-                            {order.customerEmail}
-                          </span>
+                        <div className="flex flex-col gap-1 mb-1">
+                          <div className="flex items-center gap-1.5 text-blue-600 text-xs">
+                            <Mail className="w-3 h-3 shrink-0" />
+                            <span className="truncate max-w-[180px]" title={order.customerEmail}>
+                              {order.customerEmail}
+                            </span>
+                          </div>
+                          <div>
+                            <EmailStatusBadge order={order} />
+                          </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 text-muted-foreground/50 text-xs mb-1 italic">
@@ -559,9 +565,14 @@ export default function Orders() {
                   <span className="text-foreground/90 font-medium leading-relaxed">{order.customerAddress}</span>
                 </div>
                 {order.customerEmail ? (
-                  <div className="flex items-center gap-1.5 text-blue-600">
-                    <Mail className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{order.customerEmail}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-1.5 text-blue-600">
+                      <Mail className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{order.customerEmail}</span>
+                    </div>
+                    <div className="pt-0.5">
+                      <EmailStatusBadge order={order} />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 text-muted-foreground/50 italic">

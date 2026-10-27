@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     // ===== ORDER =====
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<EmailOutbox> EmailOutbox { get; set; } = null!;
     public DbSet<DiscountCode> DiscountCodes { get; set; } = null!;
     public DbSet<DiscountRedemption> DiscountRedemptions { get; set; } = null!;
     public DbSet<WebsiteContent> WebsiteContents { get; set; } = null!;
@@ -109,6 +110,35 @@ public class AppDbContext : DbContext
             .HasIndex(o => o.Status);
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.CustomerPhone);
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.InvoiceEmailSentAt);
+
+        // ===== EMAIL OUTBOX =====
+        modelBuilder.Entity<EmailOutbox>().HasKey(e => e.Id);
+        modelBuilder.Entity<EmailOutbox>()
+            .HasIndex(e => new { e.Status, e.NextRetryAt, e.CreatedAt });
+        modelBuilder.Entity<EmailOutbox>()
+            .HasIndex(e => e.OrderId);
+        modelBuilder.Entity<EmailOutbox>()
+            .Property(e => e.RecipientEmail)
+            .HasMaxLength(255);
+        modelBuilder.Entity<EmailOutbox>()
+            .Property(e => e.Subject)
+            .HasMaxLength(500);
+        modelBuilder.Entity<EmailOutbox>()
+            .Property(e => e.HtmlBody)
+            .HasColumnType("text");
+        modelBuilder.Entity<EmailOutbox>()
+            .Property(e => e.PlainTextBody)
+            .HasColumnType("text");
+        modelBuilder.Entity<EmailOutbox>()
+            .Property(e => e.LastError)
+            .HasColumnType("text");
+        modelBuilder.Entity<EmailOutbox>()
+            .HasOne<Order>()
+            .WithMany()
+            .HasForeignKey(e => e.OrderId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<OrderItem>().HasKey(i => i.Id);
         modelBuilder.Entity<OrderItem>()

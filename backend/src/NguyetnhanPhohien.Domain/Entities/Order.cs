@@ -29,6 +29,11 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.PendingConfirmation;
     public string? DiscountCodeApplied { get; set; }
     public decimal DiscountAmount { get; set; } = 0;
+
+    // Trạng thái gửi email hóa đơn cho khách hàng
+    public DateTime? InvoiceEmailSentAt { get; set; }
+    public string? InvoiceEmailError { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

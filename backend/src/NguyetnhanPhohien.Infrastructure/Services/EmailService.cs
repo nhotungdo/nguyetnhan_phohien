@@ -14,6 +14,13 @@ public class EmailService : IEmailService
     private const int MaxAttempts = 3;
     private static readonly TimeSpan[] RetryDelays = { TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) };
 
+    /// <summary>
+    /// Giới hạn thời gian cho MỘT lần gọi API gửi mail — khớp timeout 15s của SmtpClient.
+    /// Không đặt thì HttpClient mặc định chờ tới 100s: một endpoint treo sẽ giữ
+    /// task gửi mail (chạy nền) lây 100s mỗi lần thử × 3 lần retry.
+    /// </summary>
+    private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(15);
+
     private readonly IConfiguration _config;
     private readonly ILogger<EmailService> _logger;
     private readonly HttpClient _httpClient;
@@ -23,6 +30,58 @@ public class EmailService : IEmailService
         _config = config;
         _logger = logger;
         _httpClient = httpClientFactory?.CreateClient() ?? new HttpClient();
+        // Đặt TRƯỚC lần gửi đầu tiên (HttpClient.Timeout ném nếu đã gửi request rồi).
+        _httpClient.Timeout = HttpTimeout;
+    }
+
+    /// <summary>
+    /// Retry 3 lần với backoff 2s → 5s cho đường gửi qua HTTP API (Brevo/Resend).
+    ///
+    /// Trước đây chỉ SMTP có retry — còn Brevo/Resend gọi MỘT lần rồi bỏ cuộc, trong khi
+    /// mọi caller (OrderService, WeeklyReport) lại ghi chú "EmailService đã tự retry 3 lần"
+    /// → một lần 5xx / nảy mạng là email khách mất vĩnh viễn, chỉ còn dòng log ERROR.
+    /// Đúng nghĩa "gửi ngay" là gửi NGAY nhưng vẫn không bỏ cuộc giữa chừng vì một lỗi tạm.
+    ///
+    /// Lưu ý: timeout của HttpClient ném TaskCanceledException (một OperationCanceledException).
+    /// Chỉ rethrow khi CancellationToken do app yêu cầu thật sự — nếu rethrow tất cả OCE thì
+    /// timeout bị coi là "app đang tắt" và không bao giờ được retry.
+    /// </summary>
+    private async Task SendWithRetryAsync(
+        Func<Task> send,
+        string provider,
+        string to,
+        string subject,
+        CancellationToken cancellationToken = default)
+    {
+        for (int attempt = 1; attempt <= MaxAttempts; attempt++)
+        {
+            try
+            {
+                await send();
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw; // App đang tắt — không retry.
+            }
+            catch (Exception ex) when (attempt < MaxAttempts)
+            {
+                var delay = RetryDelays[Math.Min(attempt - 1, RetryDelays.Length - 1)];
+                _logger.LogWarning(
+                    ex,
+                    "{Provider}: gửi email tới {To} thất bại (lần {Attempt}/{MaxAttempts}): {ErrorMessage}. Thử lại sau {Delay}s...",
+                    provider, to, attempt, MaxAttempts, ex.Message, delay.TotalSeconds);
+                await Task.Delay(delay, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "{Provider}: gửi email tới {To} THẤT BẠI SAU {MaxAttempts} LẦN — Tiêu đề: \"{Subject}\".",
+                    provider, to, MaxAttempts, subject);
+                throw;
+            }
+        }
     }
 
     public async Task SendEmailAsync(string to, string subject, string htmlMessage, string? plainTextMessage = null)
@@ -31,7 +90,9 @@ public class EmailService : IEmailService
         var brevoApiKey = _config["Brevo:ApiKey"] ?? _config["BREVO_API_KEY"];
         if (!string.IsNullOrWhiteSpace(brevoApiKey))
         {
-            await SendViaBrevoApiAsync(to, subject, htmlMessage, plainTextMessage, brevoApiKey);
+            await SendWithRetryAsync(
+                () => SendViaBrevoApiAsync(to, subject, htmlMessage, plainTextMessage, brevoApiKey),
+                "Brevo API", to, subject);
             return;
         }
 
@@ -39,7 +100,9 @@ public class EmailService : IEmailService
         var resendApiKey = _config["Resend:ApiKey"] ?? _config["RESEND_API_KEY"];
         if (!string.IsNullOrWhiteSpace(resendApiKey))
         {
-            await SendViaResendApiAsync(to, subject, htmlMessage, plainTextMessage, resendApiKey);
+            await SendWithRetryAsync(
+                () => SendViaResendApiAsync(to, subject, htmlMessage, plainTextMessage, resendApiKey),
+                "Resend API", to, subject);
             return;
         }
 

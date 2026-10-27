@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NguyetnhanPhohien.API.BackgroundJobs;
 using NguyetnhanPhohien.API.Controllers;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.Interfaces;
@@ -251,6 +252,10 @@ builder.Services.AddScoped<ICustomMixService, CustomMixService>();
 
 // ===== BÁO CÁO DOANH THU TUẦN (gửi email định kỳ cho chủ cửa hàng) =====
 builder.Services.AddHostedService<WeeklyReportBackgroundService>();
+
+// ===== EMAIL OUTBOX PROCESSOR (xử lý hàng đợi email outbox bền vững) =====
+builder.Services.AddSingleton<IEmailOutboxChannel, EmailOutboxChannel>();
+builder.Services.AddHostedService<EmailOutboxProcessor>();
 
 // ===== CORS (Cho phép Frontend Next.js gọi API) =====
 builder.Services.AddCors(options =>

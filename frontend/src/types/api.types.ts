@@ -113,6 +113,8 @@ export interface OrderResponse {
   productName?: string;
   productSize?: string;
   quantity?: number;
+  invoiceEmailSentAt?: string | null;
+  invoiceEmailError?: string | null;
   createdAt: string;
 }
 

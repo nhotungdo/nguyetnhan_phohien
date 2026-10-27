@@ -27,10 +27,12 @@ import {
   Share2,
   Loader2,
   ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import type { OrderResponse, OrderItemResponse, CustomMixItemDetailDto } from "@/types/api.types";
 import { paymentSettingsApi } from "@/services/api.service";
 import { buildVietQrUrl } from "@/lib/vietqr";
+import EmailStatusBadge from "./EmailStatusBadge";
 
 function parseCustomMixDetails(item: OrderItemResponse): CustomMixItemDetailDto | null {
   if (item.customDetails) return item.customDetails;
@@ -363,8 +365,9 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                 </div>
 
                 <div>
-                  <div className="text-[11px] text-muted-foreground uppercase font-semibold">
-                    Email nhận hóa đơn
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground uppercase font-semibold">
+                    <span>Email nhận hóa đơn</span>
+                    {order.customerEmail && <EmailStatusBadge order={order} />}
                   </div>
                   {order.customerEmail ? (
                     <div className="flex items-center gap-2 mt-0.5">
@@ -393,6 +396,23 @@ ${order.discountAmount > 0 ? `🎁 Giảm giá (${order.discountCodeApplied || "
                     <div className="flex items-center gap-1.5 text-muted-foreground/60 italic text-xs mt-0.5">
                       <Mail className="w-3.5 h-3.5" />
                       <span>Khách hàng không để lại email</span>
+                    </div>
+                  )}
+
+                  {order.invoiceEmailSentAt && (
+                    <div className="mt-1 text-[11px] text-emerald-700 flex items-center gap-1 font-medium">
+                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span>Đã gửi thành công vào {new Date(order.invoiceEmailSentAt).toLocaleString("vi-VN")}</span>
+                    </div>
+                  )}
+
+                  {order.invoiceEmailError && (
+                    <div className="mt-1.5 p-2 bg-rose-50 border border-rose-200/80 rounded-lg text-xs text-rose-700 flex items-start gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <div className="leading-tight">
+                        <span className="font-semibold">Chi tiết lỗi: </span>
+                        <span>{order.invoiceEmailError}</span>
+                      </div>
                     </div>
                   )}
                 </div>

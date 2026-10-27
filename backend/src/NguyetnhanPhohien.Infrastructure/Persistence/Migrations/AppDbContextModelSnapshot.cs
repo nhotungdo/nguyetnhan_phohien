@@ -376,6 +376,67 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.ToTable("DiscountRedemptions");
                 });
 
+            modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.EmailOutbox", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EmailType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("NextRetryAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PlainTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status", "NextRetryAt", "CreatedAt");
+
+                    b.ToTable("EmailOutbox");
+                });
+
             modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.FacebookPage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -498,6 +559,12 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.Property<string>("DiscountCodeApplied")
                         .HasColumnType("text");
 
+                    b.Property<string>("InvoiceEmailError")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("InvoiceEmailSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -528,6 +595,8 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("CustomerPhone");
+
+                    b.HasIndex("InvoiceEmailSentAt");
 
                     b.HasIndex("ProductId");
 
@@ -755,6 +824,14 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.EmailOutbox", b =>
+                {
+                    b.HasOne("NguyetnhanPhohien.Domain.Entities.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("NguyetnhanPhohien.Domain.Entities.FacebookPost", b =>

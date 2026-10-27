@@ -67,6 +67,11 @@ public class OrderResponse
     public string? ProductName { get; set; }
     public string? ProductSize { get; set; }
     public int Quantity { get; set; }
+
+    // Trạng thái gửi email hóa đơn cho khách hàng
+    public DateTime? InvoiceEmailSentAt { get; set; }
+    public string? InvoiceEmailError { get; set; }
+
     public DateTime CreatedAt { get; set; }
 }
 

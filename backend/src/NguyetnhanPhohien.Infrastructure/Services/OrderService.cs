@@ -19,6 +19,7 @@ public class OrderService : IOrderService
 {
     private readonly AppDbContext _db;
     private readonly IEmailService _emailService;
+    private readonly IEmailOutboxChannel _outboxChannel;
     private readonly ILogger<OrderService> _logger;
     private readonly string _frontendBaseUrl;
     private readonly string _adminNotifyEmail;
@@ -28,12 +29,14 @@ public class OrderService : IOrderService
         AppDbContext db,
         IEmailService emailService,
         IPaymentSettingsService paymentSettings,
+        IEmailOutboxChannel outboxChannel,
         ILogger<OrderService> logger,
         IConfiguration config)
     {
         _db = db;
         _emailService = emailService;
         _paymentSettings = paymentSettings;
+        _outboxChannel = outboxChannel;
         _logger = logger;
         // Domain frontend để gắn vào link trong email — hardcode "localhost:3000"
         _frontendBaseUrl = (config["Frontend:BaseUrl"] ?? "https://nguyetnhanphohien.com").TrimEnd('/');
@@ -373,9 +376,42 @@ public class OrderService : IOrderService
         var qrUrl = PaymentQr.Build(
             await _paymentSettings.GetAsync(), order.TotalAmount, TransferNote(order));
 
-        // Gửi email bất đồng bộ (fire-and-forget): EmailService tự retry 3 lần với backoff;
-        // nếu vẫn fail thì lỗi được ghi log ERROR kèm OrderId để tra cứu và gửi thủ công.
-        _ = Task.Run(() => SendOrderEmailsAsync(order, qrUrl, adminNotify: true));
+        // Enqueue email vào bảng EmailOutbox (Transactional Outbox Pattern):
+        // Email được lưu bền vững vào DB trước khi trả về kết quả cho khách,
+        // không phụ thuộc Task.Run in-memory nên không bao giờ mất khi restart/deploy/crash.
+        if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
+        {
+            var (invoiceHtml, plainTextInvoice) = BuildInvoiceEmail(order, qrUrl);
+            _db.EmailOutbox.Add(new EmailOutbox
+            {
+                OrderId = order.Id,
+                EmailType = "OrderInvoice",
+                RecipientEmail = order.CustomerEmail,
+                Subject = $"Xác nhận đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()} - Nguyệt Nhãn Phố Hiến",
+                HtmlBody = invoiceHtml,
+                PlainTextBody = plainTextInvoice,
+                Status = EmailOutboxStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        var (adminHtml, adminPlainText) = BuildAdminNotificationEmail(order, qrUrl);
+        _db.EmailOutbox.Add(new EmailOutbox
+        {
+            OrderId = order.Id,
+            EmailType = "AdminNotification",
+            RecipientEmail = _adminNotifyEmail,
+            Subject = $"Đơn hàng mới #{order.Id.ToString().Substring(0, 8).ToUpper()} từ {order.CustomerName}",
+            HtmlBody = adminHtml,
+            PlainTextBody = adminPlainText,
+            Status = EmailOutboxStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+
+        // Đánh thức BackgroundProcessor xử lý ngay lập tức
+        _outboxChannel.NotifyNewEmail();
 
         return MapToResponse(order);
     }
@@ -384,40 +420,31 @@ public class OrderService : IOrderService
     private static string TransferNote(Order order) =>
         $"Thanh toan don {order.Id.ToString().Substring(0, 8)}";
 
-    private async Task SendOrderEmailsAsync(Order order, string qrUrl, bool adminNotify = true, bool throwOnFailure = false)
+    private static string BuildItemsHtmlRows(IEnumerable<OrderItem> items)
     {
-        // Escape mọi dữ liệu người dùng nhập trước khi ghép vào HTML email:
-        // tên/địa chỉ/ghi chú chứa thẻ HTML sẽ bị chèn thẳng vào mail admin
-        // (HTML injection), trong khi báo cáo tuần đã escape đúng cách.
         static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
-
-        try
+        return string.Join("", items.Select((item, idx) =>
         {
-            string adminEmail = _adminNotifyEmail;
-
-            // Render HTML bảng danh sách các mặt hàng (Phong cách Premium Specialty)
-            var itemsHtmlRows = string.Join("", order.Items.Select((item, idx) =>
+            string customSubtext = "";
+            if (item.IsCustomMix && !string.IsNullOrWhiteSpace(item.CustomDetailsJson))
             {
-                string customSubtext = "";
-                if (item.IsCustomMix && !string.IsNullOrWhiteSpace(item.CustomDetailsJson))
+                try
                 {
-                    try
+                    var details = JsonSerializer.Deserialize<CustomMixItemDetailDto>(item.CustomDetailsJson);
+                    if (details?.Ingredients?.Count > 0)
                     {
-                        var details = JsonSerializer.Deserialize<CustomMixItemDetailDto>(item.CustomDetailsJson);
-                        if (details?.Ingredients?.Count > 0)
+                        var ingSummary = string.Join(", ", details.Ingredients.Select(g => $"{g.Name} ({g.WeightGrams}g)"));
+                        customSubtext = $"<br/><span style='font-size: 12px; color: #B45309; font-style: italic;'>[Tự chọn hạt]: {Esc(ingSummary)}</span>";
+                        if (!string.IsNullOrWhiteSpace(details.CustomLabelMessage))
                         {
-                            var ingSummary = string.Join(", ", details.Ingredients.Select(g => $"{g.Name} ({g.WeightGrams}g)"));
-                            customSubtext = $"<br/><span style='font-size: 12px; color: #B45309; font-style: italic;'>[Tự chọn hạt]: {Esc(ingSummary)}</span>";
-                            if (!string.IsNullOrWhiteSpace(details.CustomLabelMessage))
-                            {
-                                customSubtext += $"<br/><span style='font-size: 12px; color: #7B6858;'>Lời chúc: \"{Esc(details.CustomLabelMessage)}\"</span>";
-                            }
+                            customSubtext += $"<br/><span style='font-size: 12px; color: #7B6858;'>Lời chúc: \"{Esc(details.CustomLabelMessage)}\"</span>";
                         }
                     }
-                    catch { }
                 }
+                catch { }
+            }
 
-                return $@"
+            return $@"
                 <tr>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{idx + 1}</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
@@ -429,13 +456,14 @@ public class OrderService : IOrderService
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028; text-align: center;'>{item.Quantity}</td>
                     <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #31572C; text-align: right; font-weight: 700;'>{item.TotalPrice:N0}đ</td>
                 </tr>";
-            }));
+        }));
+    }
 
-            // URL QR VietQR (đã kèm số tiền + nội dung chuyển khoản) do caller truyền vào
-            // — xem PaymentQr.Build: nơi duy nhất định nghĩa định dạng URL này.
-            
-            string invoiceHtml = $@"<!DOCTYPE html>
-<html lang='vi'>
+    private (string html, string plainText) BuildInvoiceEmail(Order order, string qrUrl)
+    {
+        static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
+        var itemsHtmlRows = BuildItemsHtmlRows(order.Items);
+        string invoiceHtml = $@"<!DOCTYPE html><html lang='vi'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -548,8 +576,8 @@ public class OrderService : IOrderService
 </body>
 </html>";
 
-            // Tạo phiên bản văn bản thuần (Plain Text) cho email giao dịch hợp chuẩn RFC
-            string plainTextInvoice = $@"KÍNH GỬI QUÝ KHÁCH {order.CustomerName.ToUpper()},
+            // Tạo phiên bản văn bản thuần (Plain Text) cho email giao dịch hợp chuẩn RFC;
+        string plainTextInvoice = $@"KÍNH GỬI QUÝ KHÁCH{order.CustomerName.ToUpper()},
 
 Cảm ơn bạn đã tin tưởng và đặt hàng tại NGUYỆT NHÃN PHỐ HIẾN!
 Mã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
@@ -595,36 +623,14 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
 - Email hỗ trợ: nguyetnhanphohien@gmail.com
 - Website: {_frontendBaseUrl}
 ";
+        return (invoiceHtml, plainTextInvoice);
+    }
 
-            // Gửi cho khách và admin TÁCH RIÊNG: một bên fail không chặn bên còn lại.
-            // EmailService đã tự retry 3 lần — tới đây vẫn fail thì log ERROR để gửi thủ công.
-            if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
-            {
-                try
-                {
-                    await _emailService.SendEmailAsync(
-                        order.CustomerEmail,
-                        $"Xác nhận đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()} - Nguyệt Nhãn Phố Hiến",
-                        invoiceHtml,
-                        plainTextInvoice);
-                    _logger.LogInformation("Đã gửi email xác nhận đơn {OrderId} tới khách {Email}.", order.Id, order.CustomerEmail);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "GỬI THẤT BẠI email xác nhận cho khách {Email} (đơn {OrderId}) sau 3 lần thử — email có thể bị mất, cần gửi thủ công!",
-                        order.CustomerEmail, order.Id);
-
-                    if (throwOnFailure) throw;
-                }
-            }
-
-            // Send to Admin (chỉ khi tạo đơn mới, không gửi khi Admin gửi lại hóa đơn thủ công)
-            if (adminNotify)
-            {
-                string adminHtml = $@"<!DOCTYPE html>
-<html lang='vi'>
+    private (string html, string plainText) BuildAdminNotificationEmail(Order order, string qrUrl)
+    {
+        static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
+        var itemsHtmlRows = BuildItemsHtmlRows(order.Items);
+        string adminHtml = $@"<!DOCTYPE html><html lang='vi'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -743,10 +749,8 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
         </div>
     </div>
 </body>
-</html>";
-
-                string adminPlainText = $@"THÔNG BÁO ĐƠN HÀNG MỚI TỪ WEBSITE NGUYỆT NHÃN PHỐ HIẾN
-Mã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
+</html>";;
+        string adminPlainText = $@"THÔNG BÁO ĐƠN HÀNG MỚI TỪ WEBSITE NGUYỆT NHÃN PHỐ HIẾNMã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
 Thời gian đặt: {order.CreatedAt:dd/MM/yyyy HH:mm}
 
 ========================================
@@ -794,15 +798,47 @@ Xem chi tiết đơn hàng tại Dashboard:
 Website: {_frontendBaseUrl}
 Hotline: 034 897 3285
 ";
+        return (adminHtml, adminPlainText);
+    }
 
+    private async Task SendOrderEmailsAsync(Order order, string qrUrl, bool adminNotify = true, bool throwOnFailure = false)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
+            {
+                var (invoiceHtml, plainTextInvoice) = BuildInvoiceEmail(order, qrUrl);
                 try
                 {
                     await _emailService.SendEmailAsync(
-                        adminEmail,
+                        order.CustomerEmail,
+                        $"Xác nhận đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()} - Nguyệt Nhãn Phố Hiến",
+                        invoiceHtml,
+                        plainTextInvoice);
+                    _logger.LogInformation("Đã gửi email xác nhận đơn {OrderId} tới khách {Email}.", order.Id, order.CustomerEmail);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "GỬI THẤT BẠI email xác nhận cho khách {Email} (đơn {OrderId}) sau 3 lần thử — email có thể bị mất, cần gửi thủ công!",
+                        order.CustomerEmail, order.Id);
+
+                    if (throwOnFailure) throw;
+                }
+            }
+
+            if (adminNotify)
+            {
+                var (adminHtml, adminPlainText) = BuildAdminNotificationEmail(order, qrUrl);
+                try
+                {
+                    await _emailService.SendEmailAsync(
+                        _adminNotifyEmail,
                         $"Đơn hàng mới #{order.Id.ToString().Substring(0, 8).ToUpper()} từ {order.CustomerName}",
                         adminHtml,
                         adminPlainText);
-                    _logger.LogInformation("Đã gửi email thông báo đơn {OrderId} tới admin {AdminEmail}.", order.Id, adminEmail);
+                    _logger.LogInformation("Đã gửi email thông báo đơn {OrderId} tới admin {AdminEmail}.", order.Id, _adminNotifyEmail);
                 }
                 catch (Exception ex)
                 {
@@ -813,10 +849,6 @@ Hotline: 034 897 3285
                 }
             }
         }
-        // Lưới an toàn cuối cùng cho luồng fire-and-forget: không để lỗi trong Task.Run
-        // bị nuốt im lặng. CHỈ áp dụng khi throwOnFailure = false — nếu không, catch này
-        // sẽ nuốt luôn lỗi mà ResendInvoiceAsync cố tình ném ra và API lại trả 200
-        // "đã gửi thành công" trong khi email thất bại.
         catch (Exception ex) when (!throwOnFailure)
         {
             _logger.LogError(ex, "Lỗi bất ngờ khi xử lý email cho đơn {OrderId}.", order.Id);
@@ -917,13 +949,30 @@ Hotline: 034 897 3285
                 }
             }
 
-            await transaction.CommitAsync();
-
             // Khi admin hủy đơn hàng (chuyển sang Cancelled thành công),
-            // tự động gửi email xác nhận hủy đơn về email của khách hàng.
+            // lưu email xác nhận hủy đơn vào EmailOutbox trong cùng transaction
             if (affected > 0 && newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
             {
-                _ = Task.Run(() => SendOrderCancellationEmailAsync(order, reason, throwOnFailure: false));
+                var (cancelHtml, cancelPlainText) = BuildCancellationEmail(order, reason);
+                _db.EmailOutbox.Add(new EmailOutbox
+                {
+                    OrderId = order.Id,
+                    EmailType = "OrderCancellation",
+                    RecipientEmail = order.CustomerEmail,
+                    Subject = $"Xác nhận hủy đơn hàng #{order.Id.ToString().Substring(0, 8).ToUpper()} - Nguyệt Nhãn Phố Hiến",
+                    HtmlBody = cancelHtml,
+                    PlainTextBody = cancelPlainText,
+                    Status = EmailOutboxStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _db.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            if (affected > 0 && newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
+            {
+                _outboxChannel.NotifyNewEmail();
             }
 
             return MapToResponse(order);
@@ -1043,10 +1092,24 @@ Hotline: 034 897 3285
         var qrUrl = PaymentQr.Build(
             await _paymentSettings.GetAsync(), order.TotalAmount, TransferNote(order));
 
-        await SendOrderEmailsAsync(order, qrUrl, adminNotify: false, throwOnFailure: true);
+        try
+        {
+            await SendOrderEmailsAsync(order, qrUrl, adminNotify: false, throwOnFailure: true);
 
-        _logger.LogInformation(
-            "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
+            order.InvoiceEmailSentAt = DateTime.UtcNow;
+            order.InvoiceEmailError = null;
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "[Admin] Đã gửi lại hóa đơn đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
+        }
+        catch (Exception ex)
+        {
+            order.InvoiceEmailError = ex.Message;
+            await _db.SaveChangesAsync();
+            _logger.LogError(ex, "[Admin] Gửi lại hóa đơn đơn hàng {OrderId} thất bại.", id);
+            throw;
+        }
     }
 
     /// <summary>
@@ -1069,42 +1132,37 @@ Hotline: 034 897 3285
             "[Admin] Đã gửi lại email xác nhận hủy đơn hàng {OrderId} tới khách {Email}.", id, order.CustomerEmail);
     }
 
-    private async Task SendOrderCancellationEmailAsync(Order order, string? reason = null, bool throwOnFailure = false)
+    private (string html, string plainText) BuildCancellationEmail(Order order, string? reason = null)
     {
         static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
 
-        try
-        {
-            if (string.IsNullOrWhiteSpace(order.CustomerEmail)) return;
-
-            var items = (order.Items != null && order.Items.Count > 0)
-                ? order.Items.ToList()
-                : new List<OrderItem>
+        var items = (order.Items != null && order.Items.Count > 0)
+            ? order.Items.ToList()
+            : new List<OrderItem>
+            {
+                new OrderItem
                 {
-                    new OrderItem
-                    {
-                        ProductName = order.ProductName ?? "Sản phẩm",
-                        ProductSize = order.ProductSize,
-                        Quantity = order.Quantity,
-                        UnitPrice = order.Quantity > 0 ? order.BaseAmount / order.Quantity : order.BaseAmount,
-                        TotalPrice = order.BaseAmount
-                    }
-                };
+                    ProductName = order.ProductName ?? "Sản phẩm",
+                    ProductSize = order.ProductSize,
+                    Quantity = order.Quantity,
+                    UnitPrice = order.Quantity > 0 ? order.BaseAmount / order.Quantity : order.BaseAmount,
+                    TotalPrice = order.BaseAmount
+                }
+            };
 
-            var itemsHtmlRows = string.Join("", items.Select((item, idx) => $@"
-                <tr>
-                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{idx + 1}</td>
-                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
-                        <strong style='font-weight: 600; text-decoration: line-through; color: #7B6858;'>{Esc(item.ProductName)}</strong>
-                        {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #8C7A6B;'>Phân loại: {Esc(item.ProductSize)}</span>")}
-                    </td>
-                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: right;'>{item.UnitPrice:N0}đ</td>
-                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{item.Quantity}</td>
-                    <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #991B1B; text-align: right; font-weight: 600; text-decoration: line-through;'>{item.TotalPrice:N0}đ</td>
-                </tr>"));
+        var itemsHtmlRows = string.Join("", items.Select((item, idx) => $@"
+            <tr>
+                <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{idx + 1}</td>
+                <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #3D3028;'>
+                    <strong style='font-weight: 600; text-decoration: line-through; color: #7B6858;'>{Esc(item.ProductName)}</strong>
+                    {(string.IsNullOrWhiteSpace(item.ProductSize) ? "" : $"<br/><span style='font-size: 13px; color: #8C7A6B;'>Phân loại: {Esc(item.ProductSize)}</span>")}
+                </td>
+                <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: right;'>{item.UnitPrice:N0}đ</td>
+                <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #7B6858; text-align: center;'>{item.Quantity}</td>
+                <td style='padding: 12px 8px; border-bottom: 1px dashed #E2D5C4; color: #991B1B; text-align: right; font-weight: 600; text-decoration: line-through;'>{item.TotalPrice:N0}đ</td>
+            </tr>"));
 
-            string cancellationHtml = $@"<!DOCTYPE html>
-<html lang='vi'>
+        string cancellationHtml = $@"<!DOCTYPE html><html lang='vi'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -1218,9 +1276,8 @@ Hotline: 034 897 3285
         </div>
     </div>
 </body>
-</html>";
-
-            string plainTextCancellation = $@"KÍNH GỬI QUÝ KHÁCH {order.CustomerName.ToUpper()},
+</html>";;
+        string plainTextCancellation = $@"KÍNH GỬI QUÝ KHÁCH{order.CustomerName.ToUpper()},
 
 Nguyệt Nhãn Phố Hiến xin thông báo đơn hàng của bạn đã được xác nhận HỦY thành công trên hệ thống.
 Mã đơn hàng: #{order.Id.ToString().Substring(0, 8).ToUpper()}
@@ -1259,6 +1316,15 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
 - Email: nguyetnhanphohien@gmail.com
 - Website: {_frontendBaseUrl}
 ";
+        return (cancellationHtml, plainTextCancellation);
+    }
+
+    private async Task SendOrderCancellationEmailAsync(Order order, string? reason = null, bool throwOnFailure = false)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(order.CustomerEmail)) return;
+            var (cancellationHtml, plainTextCancellation) = BuildCancellationEmail(order, reason);
 
             try
             {
@@ -1347,6 +1413,8 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
             ProductName = firstItem?.ProductName ?? order.ProductName ?? string.Empty,
             ProductSize = firstItem?.ProductSize ?? order.ProductSize,
             Quantity = firstItem?.Quantity ?? order.Quantity,
+            InvoiceEmailSentAt = order.InvoiceEmailSentAt,
+            InvoiceEmailError = order.InvoiceEmailError,
             CreatedAt = order.CreatedAt
         };
     }
