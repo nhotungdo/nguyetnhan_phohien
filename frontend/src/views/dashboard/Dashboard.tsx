@@ -158,9 +158,9 @@ export default function Dashboard() {
       const uniquePhones = new Set(valid.map((o) => o.customerPhone).filter(Boolean));
 
       return {
-        revenue: completedRevenue || (dashboardStats?.revenue ?? 0),
+        revenue: completedRevenue,
         ordersCount: valid.length,
-        customersCount: uniquePhones.size || (dashboardStats?.customersCount ?? 0),
+        customersCount: uniquePhones.size,
         messagesCount: dashboardStats?.messagesCount ?? 0,
         unreadMessages: dashboardStats?.unreadMessages ?? 0,
       };
@@ -408,7 +408,7 @@ export default function Dashboard() {
           <div>
             <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
             <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
-              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span> (đã loại trừ đơn huỷ)
+              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span> (đơn hoàn thành)
             </p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
@@ -419,7 +419,7 @@ export default function Dashboard() {
             </span>
             <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
               <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
-              Đơn hiệu lực
+              Đơn hoàn thành
             </span>
             <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
             {RANGES.map((r) => (

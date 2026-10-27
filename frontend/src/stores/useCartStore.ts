@@ -27,6 +27,7 @@ interface CartStore {
   addCustomMixItem: (customMix: CustomMixItemDetailDto, quantity?: number, imageUrl?: string) => void;
   removeItem: (idOrProductId: string) => void;
   updateQuantity: (idOrProductId: string, qty: number) => void;
+  syncProductPrices: (products: ProductResponse[]) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -128,7 +129,10 @@ export const useCartStore = create<CartStore>()(
 
       removeItem: (idOrProductId: string) =>
         set((state) => ({
-          items: state.items.filter((i) => (i.id || i.productId) !== idOrProductId && i.productId !== idOrProductId),
+          items: state.items.filter((i) => {
+            if (i.id) return i.id !== idOrProductId;
+            return i.productId !== idOrProductId;
+          }),
         })),
 
       updateQuantity: (idOrProductId: string, qty: number) => {
@@ -137,10 +141,40 @@ export const useCartStore = create<CartStore>()(
           return;
         }
         set((state) => ({
-          items: state.items.map((i) =>
-            (i.id || i.productId) === idOrProductId ? { ...i, quantity: qty } : i
-          ),
+          items: state.items.map((i) => {
+            const isMatch = i.id ? i.id === idOrProductId : i.productId === idOrProductId;
+            return isMatch ? { ...i, quantity: qty } : i;
+          }),
         }));
+      },
+
+      syncProductPrices: (products: ProductResponse[]) => {
+        if (!products || products.length === 0) return;
+        const productMap = new Map(products.map((p) => [p.id, p]));
+        set((state) => {
+          let hasChanges = false;
+          const updatedItems = state.items.map((item) => {
+            if (item.isCustomMix) return item;
+            const latest = productMap.get(item.productId);
+            if (
+              latest &&
+              (item.price !== latest.price ||
+                item.productName !== latest.name ||
+                item.size !== latest.size)
+            ) {
+              hasChanges = true;
+              return {
+                ...item,
+                price: latest.price,
+                productName: latest.name,
+                size: latest.size,
+                imageUrl: latest.images?.[0]?.imagePath || item.imageUrl,
+              };
+            }
+            return item;
+          });
+          return hasChanges ? { items: updatedItems } : state;
+        });
       },
 
       clearCart: () => set({ items: [] }),

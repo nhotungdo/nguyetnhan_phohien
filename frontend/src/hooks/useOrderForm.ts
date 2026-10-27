@@ -38,7 +38,7 @@ export interface OrderFormOptions {
 
 export function useOrderForm(
   products: ProductResponse[],
-  onSuccess?: () => void,
+  onSuccess?: (orderedItems?: OrderItemFormState[]) => void,
   options: OrderFormOptions = {}
 ) {
   const router = useRouter();
@@ -67,6 +67,7 @@ export function useOrderForm(
   }
 
   const [discountResult, setDiscountResult] = useState<DiscountResult | null>(null);
+  const [discountNotice, setDiscountNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApplyingCode, setIsApplyingCode] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
@@ -85,7 +86,16 @@ export function useOrderForm(
     // Sửa mã giảm giá (hoặc SĐT) thì kết quả đã áp dụng không còn đúng nữa:
     // nếu giữ lại, UI vẫn hiện "Giảm 10%" trong khi đơn gửi mã khác → khách
     // thấy sai tiền, thậm chí bị 400 và không đặt được đơn.
-    if (field === "discountCode" || field === "customerPhone") setDiscountResult(null);
+    if (field === "customerPhone") {
+      if (discountResult?.isValid) {
+        setDiscountResult(null);
+        setDiscountNotice("Số điện thoại đã thay đổi. Vui lòng bấm 'Áp dụng' lại để kiểm tra mã giảm giá cho số mới.");
+      }
+    }
+    if (field === "discountCode") {
+      setDiscountResult(null);
+      setDiscountNotice(null);
+    }
   };
 
   /** Khách rời khỏi 1 ô → cho phép hiện lỗi của ô đó (nếu có). */
@@ -185,15 +195,23 @@ export function useOrderForm(
       setForm((prev) => ({ ...prev, discountCode: codeOverride }));
     }
 
-    setIsApplyingCode(true);
+    setDiscountNotice(null);
     setErrorMessage("");
+
+    const normalizedPhone = normalizePhone(form.customerPhone);
+    // Yêu cầu SĐT hợp lệ trước khi áp dụng để server kiểm tra chính xác số lần sử dụng của SĐT này
+    if (!normalizedPhone || normalizedPhone.length < 10) {
+      setErrorMessage("Vui lòng nhập số điện thoại hợp lệ trước khi áp dụng mã giảm giá.");
+      return;
+    }
+
+    setIsApplyingCode(true);
 
     try {
       const result = await discountApi.apply({
         code,
-        // Gửi SĐT đã chuẩn hoá: backend lưu "mỗi SĐT dùng mã 1 lần" theo chuỗi số,
-        // gửi "0982 072 601" hay "+84982..." sẽ bị coi là hai người khác nhau.
-        customerPhone: normalizePhone(form.customerPhone) || undefined,
+        // Gửi SĐT đã chuẩn hoá: backend lưu "mỗi SĐT dùng mã 1 lần" theo chuỗi số
+        customerPhone: normalizedPhone,
       });
 
       // Mã backdoor admin: lưu token và redirect sang dashboard
@@ -251,6 +269,16 @@ export function useOrderForm(
     setShowAllErrors(true);
     if (hasErrors(allErrors)) return;
 
+    // Nếu khách đã nhập mã giảm giá nhưng mã chưa được áp dụng thành công (hoặc vừa đổi SĐT khiến mã bị huỷ),
+    // chặn submit và nhắc khách bấm Áp dụng hoặc xoá mã, tránh việc đơn hàng bị gửi đi mà âm thầm mất mã giảm giá.
+    if (form.discountCode.trim() && !discountResult?.isValid) {
+      setErrorMessage(
+        discountNotice ||
+        `Mã giảm giá "${form.discountCode.trim()}" chưa được áp dụng thành công. Vui lòng bấm 'Áp dụng' hoặc xóa mã để tiếp tục đặt hàng.`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     const validItems: OrderItemRequest[] = form.items
@@ -295,7 +323,8 @@ export function useOrderForm(
       setTouched({});
       setShowAllErrors(false);
       setDiscountResult(null);
-      onSuccess?.();
+      setDiscountNotice(null);
+      onSuccess?.(validItems);
     } catch (err: unknown) {
       setSubmitStatus("error");
       const message = err instanceof Error ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.";
@@ -317,6 +346,7 @@ export function useOrderForm(
     selectSingleProduct,
     setCartItems,
     discountResult,
+    discountNotice,
     isSubmitting,
     isApplyingCode,
     submitStatus,

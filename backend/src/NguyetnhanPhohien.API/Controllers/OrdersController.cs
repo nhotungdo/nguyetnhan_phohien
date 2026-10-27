@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 using NguyetnhanPhohien.API.Hubs;
@@ -106,6 +107,7 @@ public class OrdersController : ControllerBase
     /// Tổng tiền và số tiền giảm giá được tính lại hoàn toàn phía server.
     /// </summary>
     [HttpPost]
+    [EnableRateLimiting("order-create")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CustomerName) ||

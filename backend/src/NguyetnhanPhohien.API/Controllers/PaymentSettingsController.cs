@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Payment;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -17,10 +19,12 @@ namespace NguyetnhanPhohien.API.Controllers;
 public class PaymentSettingsController : ControllerBase
 {
     private readonly IPaymentSettingsService _paymentSettings;
+    private readonly IHubContext<ProductsHub> _hub;
 
-    public PaymentSettingsController(IPaymentSettingsService paymentSettings)
+    public PaymentSettingsController(IPaymentSettingsService paymentSettings, IHubContext<ProductsHub> hub)
     {
         _paymentSettings = paymentSettings;
+        _hub = hub;
     }
 
     /// <summary>[ADMIN] Lấy cấu hình nhận thanh toán hiện tại.</summary>
@@ -43,6 +47,7 @@ public class PaymentSettingsController : ControllerBase
         try
         {
             var settings = await _paymentSettings.UpdateAsync(request);
+            await _hub.Clients.Group("Admins").SendAsync("PaymentSettingsChanged");
             return Ok(settings);
         }
         catch (ArgumentException ex)

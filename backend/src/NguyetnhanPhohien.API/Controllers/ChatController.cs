@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 using NguyetnhanPhohien.API.Hubs;
@@ -58,6 +59,7 @@ public class ChatController : ControllerBase
     /// id của người khác là đọc được tin nhắn Admin trả lời cho người đó.
     /// </summary>
     [HttpPost("session")]
+    [EnableRateLimiting("chat-session")]
     public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest? request)
     {
         var credentials = await _chatService.CreateGuestSessionAsync(request?.GuestName, request?.GuestPhone);

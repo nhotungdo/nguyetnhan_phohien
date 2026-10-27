@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NguyetnhanPhohien.Domain.Entities;
+using NguyetnhanPhohien.Domain.Enums;
 using NguyetnhanPhohien.Infrastructure.Persistence;
 
 namespace NguyetnhanPhohien.Infrastructure.Persistence;
@@ -225,6 +226,50 @@ public static class DbSeeder
             {
                 longNhan.ImageUrl = "/images/nuts/longnhanomsen.jpg";
             }
+        }
+
+        // ===== DỌN DẸP DỮ LIỆU REDEMPTION CỦA ĐƠN HÀNG ĐÃ HUỶ (Correction) =====
+        try
+        {
+            var cancelledRedemptions = await (
+                from r in db.DiscountRedemptions
+                join o in db.Orders on r.OrderId equals o.Id
+                where o.Status == OrderStatus.Cancelled
+                select r
+            ).ToListAsync();
+
+            if (cancelledRedemptions.Count > 0)
+            {
+                var groupedByCode = cancelledRedemptions
+                    .GroupBy(r => r.DiscountCodeId)
+                    .Select(g => new { CodeId = g.Key, Count = g.Count() })
+                    .ToList();
+
+                foreach (var group in groupedByCode)
+                {
+                    var code = await db.DiscountCodes.FindAsync(group.CodeId);
+                    if (code != null)
+                    {
+                        code.UsageCount = Math.Max(0, code.UsageCount - group.Count);
+                    }
+                }
+
+                db.DiscountRedemptions.RemoveRange(cancelledRedemptions);
+            }
+
+            // Dọn dẹp các bản ghi redemption mồ côi (OrderId trỏ tới đơn đã bị xoá khỏi hệ thống)
+            var orphanedRedemptions = await db.DiscountRedemptions
+                .Where(r => r.OrderId != null && !db.Orders.Any(o => o.Id == r.OrderId))
+                .ToListAsync();
+
+            if (orphanedRedemptions.Count > 0)
+            {
+                db.DiscountRedemptions.RemoveRange(orphanedRedemptions);
+            }
+        }
+        catch
+        {
+            // Bỏ qua nếu môi trường test/in-memory chưa khởi tạo bảng
         }
 
         await db.SaveChangesAsync();

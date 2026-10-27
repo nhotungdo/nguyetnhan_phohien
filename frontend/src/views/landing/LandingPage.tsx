@@ -233,12 +233,32 @@ export default function LandingPage() {
   };
 
   const {
-    form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, isSubmitting, isApplyingCode,
+    form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, discountNotice, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(
     effectiveProducts,
-    () => {
-      useCartStore.getState().clearCart();
+    (orderedItems) => {
+      if (!orderedItems || orderedItems.length === 0) {
+        useCartStore.getState().clearCart();
+        return;
+      }
+      const cartStore = useCartStore.getState();
+      orderedItems.forEach((ordered) => {
+        if (ordered.isCustomMix && ordered.customMixDetails) {
+          const match = cartStore.items.find(
+            (ci) =>
+              ci.isCustomMix &&
+              ci.productId === ordered.productId &&
+              ci.productName === ordered.customMixDetails?.customProductName &&
+              (ci.customMixDetails?.customLabelMessage || "") === (ordered.customMixDetails?.customLabelMessage || "")
+          );
+          if (match && match.id) {
+            cartStore.removeItem(match.id);
+          }
+        } else if (ordered.productId) {
+          cartStore.removeItem(ordered.productId);
+        }
+      });
     },
     { requireAdministrativeUnits: !isManualAddress }
   );
@@ -1587,6 +1607,12 @@ export default function LandingPage() {
                           : `Giảm ${discountResult.amountOff?.toLocaleString()}đ`
                         }
                       </p>
+                    )}
+                    {discountNotice && (
+                      <div className="text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                        <span>{discountNotice}</span>
+                      </div>
                     )}
                     {errorMessage && !submitStatus.includes("error") && (
                       <p className="text-red-500 text-sm">{errorMessage}</p>

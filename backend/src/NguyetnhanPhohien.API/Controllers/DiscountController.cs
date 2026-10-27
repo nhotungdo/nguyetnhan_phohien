@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 
@@ -10,16 +13,19 @@ namespace NguyetnhanPhohien.API.Controllers;
 public class DiscountController : ControllerBase
 {
     private readonly IDiscountService _discountService;
+    private readonly IHubContext<ProductsHub> _hub;
 
-    public DiscountController(IDiscountService discountService)
+    public DiscountController(IDiscountService discountService, IHubContext<ProductsHub> hub)
     {
         _discountService = discountService;
+        _hub = hub;
     }
 
     /// <summary>
-    /// Xác thực mã giảm giá.
+    /// Xác thực mã giảm giá. Giới hạn 10 lần / phút theo IP để chống brute-force mã.
     /// </summary>
     [HttpPost("apply")]
+    [EnableRateLimiting("discount-apply")]
     public async Task<IActionResult> ApplyCode([FromBody] ApplyDiscountRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Code))
@@ -57,6 +63,7 @@ public class DiscountController : ControllerBase
         try
         {
             var result = await _discountService.CreateAsync(request);
+            await _hub.Clients.Group("Admins").SendAsync("DiscountsChanged");
             return Ok(result);
         }
         catch (Exception ex)
@@ -72,6 +79,7 @@ public class DiscountController : ControllerBase
         try
         {
             var result = await _discountService.UpdateAsync(id, request);
+            await _hub.Clients.Group("Admins").SendAsync("DiscountsChanged");
             return Ok(result);
         }
         catch (Exception ex)
@@ -86,6 +94,7 @@ public class DiscountController : ControllerBase
     {
         var success = await _discountService.DeleteAsync(id);
         if (!success) return NotFound();
+        await _hub.Clients.Group("Admins").SendAsync("DiscountsChanged");
         return NoContent();
     }
 }

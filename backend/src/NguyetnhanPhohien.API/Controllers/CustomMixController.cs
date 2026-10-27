@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NguyetnhanPhohien.Application.DTOs.CustomMix;
 using NguyetnhanPhohien.Application.Interfaces;
@@ -34,5 +35,16 @@ public class CustomMixController : ControllerBase
     {
         var result = await _customMixService.ValidateMixAsync(request);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// [ADMIN] Xóa cache tùy chọn đóng gói & nguyên liệu hạt để cập nhật tức thì
+    /// </summary>
+    [HttpPost("options/clear-cache")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult ClearOptionsCache()
+    {
+        _customMixService.InvalidateOptionsCache();
+        return Ok(new { message = "Đã làm mới cache tùy chọn tự chọn hạt." });
     }
 }

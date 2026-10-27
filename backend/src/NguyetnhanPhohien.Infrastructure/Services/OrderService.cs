@@ -859,8 +859,6 @@ Hotline: 034 897 3285
             throw new ArgumentException($"Trạng thái không hợp lệ: {status}");
 
         var oldStatus = order.Status;
-        order.Status = newStatus;
-        order.UpdatedAt = DateTime.UtcNow;
 
         // Đổi trạng thái và hoàn lượt mã giảm giá chạy trong MỘT transaction:
         // một bên lỗi là rollback cả cụm — không để lại "đơn đã huỷ nhưng lượt mã
@@ -884,6 +882,23 @@ Hotline: 034 897 3285
             var affected = await query.ExecuteUpdateAsync(s => s
                 .SetProperty(o => o.Status, newStatus)
                 .SetProperty(o => o.UpdatedAt, DateTime.UtcNow));
+
+            if (affected > 0)
+            {
+                order.Status = newStatus;
+                order.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // Khi affected == 0 (do điều kiện DB không khớp hoặc tab khác vừa đổi),
+                // tải lại trạng thái thực tế từ DB để response trả về không bị giả lập sai trạng thái mới.
+                var fresh = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
+                if (fresh != null)
+                {
+                    order.Status = fresh.Status;
+                    order.UpdatedAt = fresh.UpdatedAt;
+                }
+            }
 
             if (affected > 0 && !string.IsNullOrEmpty(order.DiscountCodeApplied))
             {

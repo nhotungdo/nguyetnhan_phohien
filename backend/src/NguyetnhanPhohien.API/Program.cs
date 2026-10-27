@@ -149,13 +149,76 @@ builder.Services.AddRateLimiter(options =>
             });
     });
 
+    options.AddPolicy("discount-apply", context =>
+    {
+        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0]?.Trim();
+        if (string.IsNullOrEmpty(clientIp))
+        {
+            clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
+    options.AddPolicy("order-create", context =>
+    {
+        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0]?.Trim();
+        if (string.IsNullOrEmpty(clientIp))
+        {
+            clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0
+            });
+    });
+
+    options.AddPolicy("chat-session", context =>
+    {
+        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0]?.Trim();
+        if (string.IsNullOrEmpty(clientIp))
+        {
+            clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
     options.OnRejected = async (context, cancellationToken) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
         var isAiRoute = context.HttpContext.Request.Path.StartsWithSegments("/api/ai");
+        var isDiscountRoute = context.HttpContext.Request.Path.StartsWithSegments("/api/discount");
+        var isOrderRoute = context.HttpContext.Request.Path.StartsWithSegments("/api/orders");
+        var isChatRoute = context.HttpContext.Request.Path.StartsWithSegments("/api/chat");
         var msg = isAiRoute
             ? "{\"message\":\"Quá nhiều lượt hỏi tư vấn AI trong thời gian ngắn. Quý khách vui lòng thử lại sau ít phút.\"}"
+            : isDiscountRoute
+            ? "{\"message\":\"Quá nhiều lần thử áp dụng mã giảm giá. Vui lòng thử lại sau ít phút.\"}"
+            : isOrderRoute
+            ? "{\"message\":\"Quá nhiều đơn hàng được gửi từ mạng của bạn. Vui lòng chờ ít phút trước khi đặt thêm.\"}"
+            : isChatRoute
+            ? "{\"message\":\"Quá nhiều phiên chat được khởi tạo. Vui lòng thử lại sau ít phút.\"}"
             : "{\"message\":\"Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau ít phút.\"}";
         await context.HttpContext.Response.WriteAsync(msg, cancellationToken);
     };

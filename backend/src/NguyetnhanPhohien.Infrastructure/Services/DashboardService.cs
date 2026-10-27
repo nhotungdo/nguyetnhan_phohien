@@ -72,7 +72,7 @@ public class DashboardService : IDashboardService
         var cutoffUtc = DateTime.UtcNow.AddDays(-32);
         var recentOrders = await _db.Orders
             .AsNoTracking()
-            .Where(o => o.CreatedAt >= cutoffUtc && o.Status != OrderStatus.Cancelled)
+            .Where(o => o.CreatedAt >= cutoffUtc && o.Status == OrderStatus.Completed)
             .Select(o => new { o.CreatedAt, o.Status, o.TotalAmount })
             .ToListAsync();
 
@@ -83,10 +83,7 @@ public class DashboardService : IDashboardService
             if (dailyMap.TryGetValue(key, out var point))
             {
                 point.Orders += 1;
-                if (order.Status == OrderStatus.Completed)
-                {
-                    point.Revenue += order.TotalAmount;
-                }
+                point.Revenue += order.TotalAmount;
             }
         }
 

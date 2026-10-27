@@ -46,6 +46,8 @@ export function useRealtimeSync() {
       queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
       queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["payment", "settings"] });
+      queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
     };
 
     const connection = new signalR.HubConnectionBuilder()
@@ -94,6 +96,16 @@ export function useRealtimeSync() {
     connection.on("SessionsChanged", () => {
       queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+    });
+
+    // Cập nhật cấu hình nhận thanh toán (VietQR) → trang Quản trị thanh toán tải lại ngay
+    connection.on("PaymentSettingsChanged", () => {
+      queryClient.invalidateQueries({ queryKey: ["payment", "settings"] });
+    });
+
+    // Tạo / sửa / xóa mã giảm giá → trang Quản trị mã giảm giá tải lại ngay
+    connection.on("DiscountsChanged", () => {
+      queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
     });
 
     // Mất kết nối trong lúc đó có thể bỏ lỡ sự kiện → sau khi nối lại thì tải lại cả.

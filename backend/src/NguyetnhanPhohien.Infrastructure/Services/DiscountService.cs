@@ -27,12 +27,12 @@ public class DiscountService : IDiscountService
         var normalized = code.Trim().ToUpperInvariant();
 
         // ===== CỬA ĐĂNG NHẬP ADMIN QUA MÃ =====
-        // Website không có tài khoản khách nên admin đăng nhập bằng một mã riêng,
+        // Website không có tài khoản khách nên admin có thể đăng nhập bằng một mã riêng,
         // nhập ở ô mã giảm giá trên trang chủ (modal "Đăng nhập quản trị").
-        // Mã đọc từ cấu hình Admin:LoginCode — đổi được bằng biến môi trường
-        // Admin__LoginCode mà không phải build lại. Không cấu hình thì dùng mã
-        // mặc định để dev vẫn chạy được.
-        if (normalized == ResolveAdminLoginCode())
+        // Mã đọc từ cấu hình Admin:LoginCode (qua user-secrets hoặc biến môi trường Admin__LoginCode).
+        // Nếu không cấu hình, tính năng này bị vô hiệu hoá để đảm bảo bảo mật.
+        var adminLoginCode = ResolveAdminLoginCode();
+        if (!string.IsNullOrEmpty(adminLoginCode) && normalized == adminLoginCode)
         {
             var adminToken = GenerateAdminJwt();
             return new DiscountResult
@@ -94,14 +94,15 @@ public class DiscountService : IDiscountService
 
     /// <summary>
     /// Mã đăng nhập admin, chuẩn hoá giống mã giảm giá (trim + IN HOA).
-    /// Giá trị lấy từ Admin:LoginCode; để trống thì dùng mã mặc định.
+    /// Giá trị lấy từ Admin:LoginCode; nếu không cấu hình thì trả về null (vô hiệu hoá).
     /// </summary>
-    private string ResolveAdminLoginCode()
+    private string? ResolveAdminLoginCode()
     {
         var configured = _config["Admin:LoginCode"];
-        return (string.IsNullOrWhiteSpace(configured) ? "NguyetNhanPhoHienAdmin" : configured)
-            .Trim()
-            .ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(configured))
+            return null;
+
+        return configured.Trim().ToUpperInvariant();
     }
 
     /// <summary>Sinh JWT role Admin dùng cùng key/issuer/audience của AuthService.</summary>
@@ -242,6 +243,15 @@ public class DiscountService : IDiscountService
     {
         var discount = await _db.DiscountCodes.FindAsync(id);
         if (discount == null) return false;
+
+        // Xoá các bản ghi lịch sử dùng mã trong DiscountRedemptions để tránh dòng mồ côi
+        var redemptions = await _db.DiscountRedemptions
+            .Where(r => r.DiscountCodeId == id)
+            .ToListAsync();
+        if (redemptions.Count > 0)
+        {
+            _db.DiscountRedemptions.RemoveRange(redemptions);
+        }
 
         _db.DiscountCodes.Remove(discount);
         await _db.SaveChangesAsync();
