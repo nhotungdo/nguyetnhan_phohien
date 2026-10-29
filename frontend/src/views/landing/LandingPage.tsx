@@ -42,6 +42,7 @@ import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
+import { FireworksCelebration } from "@/components/FireworksCelebration";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
@@ -262,6 +263,15 @@ export default function LandingPage() {
     },
     { requireAdministrativeUnits: !isManualAddress }
   );
+
+  // Hiệu ứng bắn pháo hoa khi đặt hàng và gửi email thành công
+  const [showFireworks, setShowFireworks] = useState(false);
+
+  useEffect(() => {
+    if (submitStatus === "success") {
+      setShowFireworks(true);
+    }
+  }, [submitStatus]);
 
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
   useEffect(() => {
@@ -1294,23 +1304,70 @@ export default function LandingPage() {
                   {submitStatus === "success" && (
                     <motion.div
                       key="order-success"
-                      initial={{ opacity: 0, y: -14 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -14 }}
+                      initial={{ opacity: 0, y: -14, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -14, scale: 0.98 }}
                       transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
-                      className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-xl"
+                      className="mb-6 bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 text-emerald-900 p-5 rounded-2xl shadow-lg relative overflow-hidden"
                     >
-                      <div className="flex items-center gap-3 mb-1">
-                        <CheckCircle className="w-5 h-5 shrink-0" />
-                        <p className="font-medium">{t.order.success}</p>
+                      {/* Biểu tượng ánh sao lễ hội */}
+                      <div className="absolute top-2 right-2 text-amber-500 opacity-70 pointer-events-none text-xl animate-pulse">
+                        ✨
                       </div>
-                      {lastSubmittedEmail && (
-                        <p className="text-sm text-green-700 ml-8">
+
+                      <div className="flex items-start sm:items-center gap-3.5 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                          <CheckCircle className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-base sm:text-lg font-bold text-emerald-950 flex items-center gap-2">
+                            <span>🎉 {t.order.success}</span>
+                          </p>
+                          <p className="text-xs sm:text-sm text-emerald-800">
+                            {language === "en"
+                              ? "Thank you for choosing Nguyet Nhan Pho Hien!"
+                              : "Cảm ơn bạn đã tin tưởng và đặt hàng tại Nguyệt Nhãn Phố Hiến!"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {lastSubmittedEmail ? (
+                        <div className="mt-3 ml-0 sm:ml-13 bg-white/90 backdrop-blur-xs border border-emerald-200 rounded-xl p-3.5 shadow-xs space-y-1">
+                          <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
+                            <span className="text-base">📧</span>
+                            <span>
+                              {language === "en"
+                                ? "Order confirmation & invoice sent successfully to:"
+                                : "Đã gửi email xác nhận & hóa đơn thành công tới:"}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-emerald-950 pl-6 break-all">
+                            {lastSubmittedEmail}
+                          </p>
+                          <p className="text-xs text-neutral-600 pl-6 italic">
+                            {language === "en"
+                              ? "(Please check your inbox or spam / junk folder)"
+                              : "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam)"}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-emerald-800 mt-2 ml-0 sm:ml-13">
                           {language === "en"
-                            ? `📧 Invoice sent to ${lastSubmittedEmail}`
-                            : `📧 Hóa đơn đã được gửi tới ${lastSubmittedEmail}`}
+                            ? "We will contact you shortly by phone to confirm your order."
+                            : "Chúng tôi sẽ sớm liên hệ qua số điện thoại để xác nhận đơn hàng."}
                         </p>
                       )}
+
+                      <div className="mt-3.5 ml-0 sm:ml-13 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowFireworks(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs"
+                        >
+                          <span>🎆</span>
+                          <span>{language === "en" ? "Launch fireworks again" : "Bắn pháo hoa ăn mừng 🎆"}</span>
+                        </button>
+                      </div>
                     </motion.div>
                   )}
 
@@ -2086,6 +2143,12 @@ export default function LandingPage() {
         language={language as "vi" | "en"}
         onCheckout={handleCartCheckout}
         onBrowseProducts={() => scrollToSection("san-pham")}
+      />
+
+      {/* Hiệu ứng bắn pháo hoa khi đặt hàng thành công */}
+      <FireworksCelebration
+        isActive={showFireworks}
+        onClose={() => setShowFireworks(false)}
       />
 
     </motion.div>
