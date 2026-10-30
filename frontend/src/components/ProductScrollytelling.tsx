@@ -71,7 +71,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
   const lineHeight = useSpring(scrollYProgress, { stiffness: 80, damping: 25, restDelta: 0.001 });
 
   return (
-    <section ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40 w-full max-w-full">
+    <section id="quy-trinh" ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40 w-full max-w-full scroll-mt-20 sm:scroll-mt-24">
       {/* Nền trang trí */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-0 right-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,transparent_70%)] pointer-events-none" />

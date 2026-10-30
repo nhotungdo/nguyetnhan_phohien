@@ -663,9 +663,10 @@ export default function LandingPage() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             {[
-              { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
               { label: t.nav.history, id: "lich-su" },
+              { label: t.nav.process, id: "quy-trinh" },
+              { label: t.nav.products, id: "san-pham" },
               { label: t.nav.culture, id: "van-hoa" },
               { label: t.nav.contact, id: "lien-he" }
             ].map((item, index) => (
@@ -765,9 +766,10 @@ export default function LandingPage() {
               </div>
 
               {[
-                { label: t.nav.products, id: "san-pham" },
                 { label: t.nav.story, id: "cau-chuyen" },
                 { label: t.nav.history, id: "lich-su" },
+                { label: t.nav.process, id: "quy-trinh" },
+                { label: t.nav.products, id: "san-pham" },
                 { label: t.nav.culture, id: "van-hoa" },
                 { label: t.nav.contact, id: "lien-he" }
               ].map((item, index) => (
@@ -993,31 +995,73 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2b. Dải cam kết thương hiệu — Thanh lịch, quý phái chuẩn vị tiến vua */}
+        {/* 2b. Dải cam kết thương hiệu — Tinh tế, tương tác sống động chuẩn hoàng gia */}
         <div className="relative border-y border-amber-200/50 bg-gradient-to-r from-amber-50/40 via-[#FCFBF7] to-amber-50/40 py-3 sm:py-4 w-full max-w-full overflow-hidden shadow-[0_2px_12px_-4px_rgba(133,77,14,0.06)]">
           {/* Đường viền ánh kim hoàng gia lướt nhẹ trên đỉnh & đáy */}
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
 
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-wrap items-center justify-center lg:justify-between gap-x-4 sm:gap-x-6 gap-y-2.5 max-w-6xl mx-auto">
-              {brandCommitments.map((item) => {
+          {/* Tia sáng hoàng kim lướt nhẹ qua ribbon định kỳ (Shimmer ray) */}
+          <motion.div
+            aria-hidden="true"
+            initial={{ x: "-100%" }}
+            animate={prefersReducedMotion ? undefined : { x: "400%" }}
+            transition={{
+              repeat: Infinity,
+              duration: 6.5,
+              ease: "easeInOut",
+              repeatDelay: 3,
+            }}
+            className="absolute inset-y-0 w-48 bg-gradient-to-r from-transparent via-amber-300/20 to-transparent -skew-x-12 pointer-events-none z-[1]"
+          />
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-50px" }}
+              className="flex flex-wrap items-center justify-center lg:justify-between gap-x-4 sm:gap-x-6 gap-y-2.5 max-w-6xl mx-auto"
+            >
+              {brandCommitments.map((item, idx) => {
                 const IconComponent = item.icon;
                 return (
-                  <div
+                  <motion.div
                     key={item.id}
-                    className="group flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 rounded-full hover:bg-amber-100/50 transition-all duration-200 cursor-default"
+                    variants={fadeUp}
+                    whileHover={prefersReducedMotion ? undefined : { y: -3, scale: 1.03 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                    transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
+                    className="group flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full hover:bg-amber-100/60 transition-colors duration-200 cursor-default"
                   >
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/80 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-xs group-hover:scale-110 group-hover:ring-amber-500 transition-all duration-300">
-                      <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E]" strokeWidth={2.2} />
-                    </div>
+                    {/* Huy hiệu đồng tiền vàng kim với hiệu ứng nhấp nhô êm ả và sáng viền khi hover */}
+                    <motion.div
+                      animate={
+                        prefersReducedMotion
+                          ? undefined
+                          : {
+                              y: [0, -2.5, 0],
+                            }
+                      }
+                      transition={{
+                        repeat: Infinity,
+                        duration: 3 + idx * 0.4,
+                        ease: "easeInOut",
+                      }}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/80 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-xs group-hover:ring-amber-500 group-hover:scale-110 group-hover:shadow-[0_4px_12px_rgba(217,119,6,0.25)] transition-all duration-300"
+                    >
+                      <IconComponent
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E] transition-transform duration-300 group-hover:rotate-12"
+                        strokeWidth={2.2}
+                      />
+                    </motion.div>
                     <span className="text-xs sm:text-[13px] md:text-sm font-semibold text-stone-800 tracking-tight whitespace-nowrap group-hover:text-[#92400E] transition-colors duration-200">
                       {item.label}
                     </span>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -1115,87 +1159,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 4. Khu vực sản phẩm tương tác cao cấp */}
-        <ProductInteractiveShowcase
-          products={effectiveProducts}
-          language={language as "vi" | "en"}
-          cmsContent={cmsContent}
-          onOrderProduct={(productId) => {
-            const prod = effectiveProducts.find((p) => p.id === productId);
-            if (prod) {
-              handleQuickBuy(prod);
-            } else {
-              selectSingleProduct(productId);
-              scrollToSection("dat-hang");
-            }
-          }}
-          onOpenGallery={(prod) => setGalleryProduct(prod)}
-          onAddToCart={(prod) => addCartItem(prod)}
-        />
-
-        {/* BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
-        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full">
-          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#12100E] via-[#221B17] to-[#12100E] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/30">
-              {/* Nền sóng nước động hoàng kim & bụi vàng phát sáng lung linh */}
-              <AnimatedWaveBackground />
-
-              <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4 text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                    <span>Trải Nghiệm Độc Bản</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                    Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span>
-                  </h2>
-                  <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                    Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
-                    </span>
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
-                    </span>
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
-                    </span>
-                  </div>
-                  <div className="pt-3">
-                    <Link
-                      href="/tu-chon-hat"
-                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg shadow-black/35 hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <span>Vào Xưởng Chế Tác Hạt Riêng</span>
-                      <ArrowRight className="w-4 h-4 text-stone-950" />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="md:col-span-5 relative flex justify-center">
-                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/30 group">
-                    <FastImage
-                      src="/images/setqua3.jpg"
-                      alt="Tự Chọn Hạt Độc Bản"
-                      fill
-                      sizes="(max-width: 768px) 240px, 288px"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
-                      <div>
-                        <span className="text-amber-300 font-bold text-xs block">Miễn phí thiết kế nhãn riêng</span>
-                        <span className="text-stone-300 text-xs">Đóng gói chuẩn quy trình ATVSTP</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Câu chuyện & 6. Lịch sử (Combined Flow) */}
+        {/* 4. Khởi nguồn & Câu chuyện di sản */}
         <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full">
           <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16">
@@ -1230,17 +1194,17 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => scrollToSection("van-hoa")}
-                  className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all"
+                  onClick={() => scrollToSection("lich-su")}
+                  className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all cursor-pointer"
                 >
-                  {language === "en" ? "Learn about the land's culture" : "Tìm hiểu văn hóa vùng đất"} <ArrowRight className="w-5 h-5" />
+                  {language === "en" ? "Explore historical timeline" : "Khám phá dòng chảy lịch sử"} <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Lịch sử */}
+        {/* 5. Dòng chảy lịch sử Phố Hiến */}
         <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl w-full max-w-full">
             <Reveal>
@@ -1309,18 +1273,98 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 6. Scrollytelling Hành trình nghệ nhân chế biến long nhãn */}
+        <ProductScrollytelling language={language as "vi" | "en"} />
+
+        {/* 7. Khu vực sản phẩm tương tác cao cấp */}
+        <ProductInteractiveShowcase
+          products={effectiveProducts}
+          language={language as "vi" | "en"}
+          cmsContent={cmsContent}
+          onOrderProduct={(productId) => {
+            const prod = effectiveProducts.find((p) => p.id === productId);
+            if (prod) {
+              handleQuickBuy(prod);
+            } else {
+              selectSingleProduct(productId);
+              scrollToSection("dat-hang");
+            }
+          }}
+          onOpenGallery={(prod) => setGalleryProduct(prod)}
+          onAddToCart={(prod) => addCartItem(prod)}
+        />
+
+        {/* 8. So sánh minh bạch chất lượng */}
+        <ProductComparisonSection language={language as "vi" | "en"} />
+
+        {/* 9. BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
+        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full">
+          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#12100E] via-[#221B17] to-[#12100E] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/30">
+              {/* Nền sóng nước động hoàng kim & bụi vàng phát sáng lung linh */}
+              <AnimatedWaveBackground />
+
+              <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-7 space-y-4 text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                    <span>Trải Nghiệm Độc Bản</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                    Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span>
+                  </h2>
+                  <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
+                    Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
+                    </span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
+                    </span>
+                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
+                      Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
+                    </span>
+                  </div>
+                  <div className="pt-3">
+                    <Link
+                      href="/tu-chon-hat"
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg shadow-black/35 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      <span>Vào Xưởng Chế Tác Hạt Riêng</span>
+                      <ArrowRight className="w-4 h-4 text-stone-950" />
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="md:col-span-5 relative flex justify-center">
+                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/30 group">
+                    <FastImage
+                      src="/images/setqua3.jpg"
+                      alt="Tự Chọn Hạt Độc Bản"
+                      fill
+                      sizes="(max-width: 768px) 240px, 288px"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
+                      <div>
+                        <span className="text-amber-300 font-bold text-xs block">Miễn phí thiết kế nhãn riêng</span>
+                        <span className="text-stone-300 text-xs">Đóng gói chuẩn quy trình ATVSTP</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 10. Văn hóa ẩm thực Phố Hiến & Thưởng thức đúng điệu (Kết hợp Hồn Quê Trong Từng Thớ Nhãn & Cẩm nang pha chế) */}
         <ProductPairingSection
           language={language as "vi" | "en"}
           cultureImage={cmsContent.CultureImage ? resolveCmsImage(cmsContent.CultureImage) : undefined}
           onOrderClick={() => scrollToSection("dat-hang")}
         />
-
-        {/* Scrollytelling Hành trình nghệ nhân chế biến long nhãn */}
-        <ProductScrollytelling language={language as "vi" | "en"} />
-
-        {/* So sánh minh bạch chất lượng */}
-        <ProductComparisonSection language={language as "vi" | "en"} />
 
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden w-full max-w-full">
