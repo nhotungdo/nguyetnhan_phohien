@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 
 export interface FireworksCelebrationProps {
   /** Khi true, kích hoạt chuỗi bắn pháo hoa */
@@ -85,7 +85,6 @@ export function FireworksCelebration({
   enableSound = true,
 }: FireworksCelebrationProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isShowing, setIsShowing] = useState(false);
   const isMutedRef = useRef(!enableSound);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -179,12 +178,7 @@ export function FireworksCelebration({
   }, [enableSound]);
 
   useEffect(() => {
-    if (!isActive) {
-      setIsShowing(false);
-      return;
-    }
-
-    setIsShowing(true);
+    if (!isActive) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -195,14 +189,13 @@ export function FireworksCelebration({
     const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
       const timer = setTimeout(() => {
-        setIsShowing(false);
         onClose?.();
       }, 300);
       return () => clearTimeout(timer);
     }
 
     let animId = 0;
-    let startTime = performance.now();
+    const startTime = performance.now();
     let isEnding = false;
 
     let width = 0;
@@ -606,7 +599,6 @@ export function FireworksCelebration({
       // Kiểm tra kết thúc hoàn toàn
       if (isEnding && rockets.length === 0 && sparks.length === 0 && confetti.length === 0) {
         ctx.clearRect(0, 0, width * dpr, height * dpr);
-        setIsShowing(false);
         onClose?.();
         return;
       }
@@ -628,7 +620,7 @@ export function FireworksCelebration({
     };
   }, [isActive, duration, onClose, playExplosionSound, playLaunchSound]);
 
-  if (!isShowing && !isActive) return null;
+  if (!isActive) return null;
 
   return (
     <div

@@ -16,9 +16,9 @@ if (typeof window !== "undefined") {
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Sparkles } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Sparkles, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { EASE_OUT_EXPO, fadeUp, Marquee, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
+import { EASE_OUT_EXPO, fadeUp, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth, discountApi } from "@/services/api.service";
 import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
 import { useOrderForm } from "@/hooks/useOrderForm";
@@ -233,12 +233,16 @@ export default function LandingPage() {
     openCart();
   };
 
+  // Hiệu ứng bắn pháo hoa khi đặt hàng và gửi email thành công
+  const [showFireworks, setShowFireworks] = useState(false);
+
   const {
     form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, discountNotice, isSubmitting, isApplyingCode,
     submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(
     effectiveProducts,
     (orderedItems) => {
+      setShowFireworks(true);
       if (!orderedItems || orderedItems.length === 0) {
         useCartStore.getState().clearCart();
         return;
@@ -263,15 +267,6 @@ export default function LandingPage() {
     },
     { requireAdministrativeUnits: !isManualAddress }
   );
-
-  // Hiệu ứng bắn pháo hoa khi đặt hàng và gửi email thành công
-  const [showFireworks, setShowFireworks] = useState(false);
-
-  useEffect(() => {
-    if (submitStatus === "success") {
-      setShowFireworks(true);
-    }
-  }, [submitStatus]);
 
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
   useEffect(() => {
@@ -318,13 +313,33 @@ export default function LandingPage() {
   const { content: cmsContent } = useWebsiteContent();
   const { t, language, setLanguage } = useLanguageStore();
 
-  // Dải chữ chạy chỉ lặp lại các cam kết đã có sẵn trong bản dịch — không thêm thông tin mới.
-  const marqueeItems = [
-    t.about.natural_title,
-    t.about.traditional_title,
-    t.about.safe_title,
-    t.hero.quality,
-    t.nav.support,
+  // Dải cam kết thương hiệu danh giá — các bảo chứng nguồn gốc và chất lượng tiến vua
+  const brandCommitments = [
+    {
+      id: "natural",
+      label: t.about.natural_title,
+      icon: Leaf,
+    },
+    {
+      id: "traditional",
+      label: t.about.traditional_title,
+      icon: Flame,
+    },
+    {
+      id: "safe",
+      label: t.about.safe_title,
+      icon: ShieldCheck,
+    },
+    {
+      id: "quality",
+      label: t.hero.quality,
+      icon: Award,
+    },
+    {
+      id: "support",
+      label: t.nav.support,
+      icon: Headphones,
+    },
   ];
 
   // Tiêu đề Hero lấy từ CMS (key HeroTitle), chia 2 dòng để giữ bố cục gradient.
@@ -978,16 +993,30 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2b. Dải cam kết thương hiệu — tĩnh, thanh lịch, tôn trọng nhịp đọc của khách */}
-        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-4 sm:py-5 w-full max-w-full">
+        {/* 2b. Dải cam kết thương hiệu — Thanh lịch, quý phái chuẩn vị tiến vua */}
+        <div className="relative border-y border-amber-200/50 bg-gradient-to-r from-amber-50/40 via-[#FCFBF7] to-amber-50/40 py-3 sm:py-4 w-full max-w-full overflow-hidden shadow-[0_2px_12px_-4px_rgba(133,77,14,0.06)]">
+          {/* Đường viền ánh kim hoàng gia lướt nhẹ trên đỉnh & đáy */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+
           <div className="container mx-auto px-4 md:px-6">
-            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-12 text-xs sm:text-sm font-bold text-[#854D0E]">
-              {marqueeItems.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent/60 shrink-0" />
-                  <span>{item}</span>
-                </div>
-              ))}
+            <div className="flex flex-wrap items-center justify-center lg:justify-between gap-x-4 sm:gap-x-6 gap-y-2.5 max-w-6xl mx-auto">
+              {brandCommitments.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <div
+                    key={item.id}
+                    className="group flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 rounded-full hover:bg-amber-100/50 transition-all duration-200 cursor-default"
+                  >
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/80 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-xs group-hover:scale-110 group-hover:ring-amber-500 transition-all duration-300">
+                      <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E]" strokeWidth={2.2} />
+                    </div>
+                    <span className="text-xs sm:text-[13px] md:text-sm font-semibold text-stone-800 tracking-tight whitespace-nowrap group-hover:text-[#92400E] transition-colors duration-200">
+                      {item.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
