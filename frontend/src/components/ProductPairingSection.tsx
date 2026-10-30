@@ -250,7 +250,7 @@ export function ProductPairingSection({
             </Reveal>
 
             <Reveal delay={0.16}>
-              <p className="text-foreground/80 text-base md:text-lg leading-relaxed mb-6 sm:mb-8">
+              <p className="text-foreground/80 text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl">
                 {language === "en"
                   ? "Pho Hien culinary culture lies not only in flavor, but in the artful and mindful way of enjoyment. Longan is both a soothing, cooling treasure in summer lotus seed sweet soups, and a revered herbal elixir when infused with royal tea or steeped in traditional wine to welcome esteemed guests."
                   : "Văn hóa ẩm thực Phố Hiến không chỉ nằm ở hương vị, mà còn ở cách thưởng thức tao nhã lưu truyền trăm năm. Long nhãn vừa là thức quà ngọt mát giải nhiệt trong bát chè sen ngày hạ, vừa là vị thuốc quý bồi bổ khí huyết khi hãm trà hoa, ngâm rượu thơm thiết đãi khách quý."}
@@ -306,13 +306,13 @@ export function ProductPairingSection({
                   <div className="flex flex-col items-center justify-center p-6 text-center text-accent">
                     <span className="text-5xl mb-3">🍵</span>
                     <span className="font-bold text-sm text-primary">Văn Hóa Thưởng Trà</span>
-                    <span className="text-xs text-foreground/60 mt-1">Đệ Nhất Danh Quả Phố Hiến</span>
+                    <span className="text-xs text-stone-800 font-medium mt-1">Đệ Nhất Danh Quả Phố Hiến</span>
                   </div>
                 )}
               </div>
 
               {/* Huy hiệu nổi bật góc ảnh */}
-              <div className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-[#FDE68A] shadow-lg flex items-center gap-2">
+              <div className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-2 bg-white px-3.5 py-2 rounded-2xl border border-[#FDE68A] shadow-lg flex items-center gap-2">
                 <Award className="w-4 h-4 text-accent shrink-0" />
                 <span className="text-xs font-bold text-primary">
                   {language === "en" ? "Royal Tribute Legacy" : "Sản Vật Tiến Vua"}
@@ -348,7 +348,7 @@ export function ProductPairingSection({
 
           {/* Bộ 3 Tab chuyển đổi */}
           <div className="flex justify-center mb-8 sm:mb-10 w-full max-w-full">
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 p-1.5 rounded-2xl sm:rounded-3xl bg-white/90 backdrop-blur-md border border-[#FDE68A]/80 shadow-md max-w-2xl w-full">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 p-1.5 rounded-2xl sm:rounded-3xl bg-white border border-[#FDE68A]/80 shadow-md max-w-2xl w-full">
               {RECIPES.map((r) => {
                 const isActive = r.id === activeId;
                 const Icon = r.id === "tra-cuc" ? Coffee : r.id === "che-sen" ? UtensilsCrossed : Wine;
@@ -369,19 +369,19 @@ export function ProductPairingSection({
                   <button
                     key={r.id}
                     onClick={() => setActiveId(r.id)}
-                    className={`relative px-2 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                      isActive ? "text-white shadow-md" : "text-foreground/75 hover:text-primary hover:bg-secondary/40"
+                    className={`relative px-2 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer overflow-hidden ${
+                      isActive ? "text-white shadow-md" : "text-stone-700 hover:text-primary hover:bg-secondary/40"
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="activeRecipeTab"
-                        className="absolute inset-0 bg-gradient-to-r from-[#B45309] to-[#D97706] rounded-xl sm:rounded-2xl -z-10 shadow-sm"
+                        className="absolute inset-0 bg-gradient-to-r from-[#92400E] to-[#B45309] rounded-xl sm:rounded-2xl shadow-sm"
                         transition={{ type: "spring", stiffness: 350, damping: 28 }}
                       />
                     )}
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                    <span className="truncate">{label}</span>
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 relative z-10" />
+                    <span className="truncate relative z-10">{label}</span>
                   </button>
                 );
               })}
@@ -467,7 +467,7 @@ export function ProductPairingSection({
                   </div>
 
                   {/* Bí quyết nghệ nhân */}
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-secondary/40 border border-[#FDE68A] text-xs md:text-sm text-foreground/85">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 text-xs md:text-sm text-foreground/85">
                     <span className="font-bold text-primary block mb-1">
                       💡 {language === "en" ? "Artisan's Secret:" : "Bí quyết từ nghệ nhân:"}
                     </span>
@@ -477,12 +477,12 @@ export function ProductPairingSection({
                   </div>
                 </div>
 
-                {/* Cột phải: Danh sách nguyên liệu & Nút Mua ngay */}
-                <div className="lg:col-span-5 bg-gradient-to-br from-[#FFFDF8] to-[#FAF4E6] p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#FDE68A] shadow-md flex flex-col justify-between space-y-5 w-full min-w-0 sticky top-24">
+                {/* Cột phải: Danh sách nguyên liệu & Nút Mua ngay (Làm phẳng, không lồng card trong card) */}
+                <div className="lg:col-span-5 bg-amber-50/50 p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col justify-between space-y-5 w-full min-w-0 sticky top-24">
                   <div>
                     <div className="text-xs font-bold uppercase tracking-wider text-primary/85 mb-3 flex items-center justify-between">
                       <span>{language === "en" ? "Ingredients Required" : "Nguyên Liệu Chuẩn Bị"}</span>
-                      <span className="text-[11px] text-accent font-semibold">
+                      <span className="text-xs text-accent font-semibold">
                         {language === "en" ? "Serves 2 - 4" : "Khẩu phần 2 - 4 người"}
                       </span>
                     </div>

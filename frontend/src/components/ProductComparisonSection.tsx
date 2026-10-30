@@ -105,20 +105,22 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                     <span>{row.criteria}</span>
                   </div>
 
-                  <div className="bg-emerald-50/90 border border-emerald-200/90 p-3 rounded-xl text-xs space-y-1">
-                    <div className="font-bold text-emerald-900 flex items-center gap-1.5">
+                  {/* Nguyệt Nhãn Phố Hiến (Phẳng, không lồng card) */}
+                  <div className="space-y-1 pl-1">
+                    <div className="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>Nguyệt Nhãn Phố Hiến:</span>
                     </div>
-                    <p className="text-emerald-950 font-medium pl-5 leading-relaxed">{row.nguyetNhan}</p>
+                    <p className="text-emerald-950 font-medium pl-5 text-xs leading-relaxed">{row.nguyetNhan}</p>
                   </div>
 
-                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl text-xs space-y-1">
-                    <div className="font-bold text-gray-700 flex items-center gap-1.5">
+                  {/* Hàng đại trà thị trường (Phẳng, không lồng card) */}
+                  <div className="space-y-1 pl-1 pt-1 border-t border-[#FDE68A]/30">
+                    <div className="font-bold text-stone-700 text-xs flex items-center gap-1.5">
                       <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
                       <span>Hàng đại trà thị trường:</span>
                     </div>
-                    <p className="text-gray-600 pl-5 leading-relaxed">{row.market}</p>
+                    <p className="text-stone-600 pl-5 text-xs leading-relaxed">{row.market}</p>
                   </div>
                 </div>
               ))}
@@ -159,7 +161,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
               </div>
 
               {activeMobileCard === "nguyetNhan" ? (
-                <div className="rounded-2xl bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-5 border-2 border-accent shadow-xl relative overflow-hidden">
+                <div className="rounded-2xl bg-gradient-to-b from-[#FFFDF8] to-amber-50/20 p-5 border-2 border-accent shadow-xl relative overflow-hidden">
                   <h3 className="text-xl font-extrabold text-primary mb-4">Nguyệt Nhãn Phố Hiến</h3>
                   <div className="space-y-4">
                     {COMPARISONS.map((row, idx) => (
@@ -210,7 +212,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-            className="rounded-3xl bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-7 md:p-9 border-2 border-accent shadow-xl relative overflow-hidden flex flex-col justify-between"
+            className="rounded-3xl bg-gradient-to-b from-[#FFFDF8] to-amber-50/20 p-7 md:p-9 border-2 border-accent shadow-xl relative overflow-hidden flex flex-col justify-between"
           >
             {/* Nhãn nổi "Tiêu chuẩn hoàng gia" */}
             <div className="absolute top-0 right-0 bg-accent text-white text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded-bl-2xl shadow-md flex items-center gap-1.5">

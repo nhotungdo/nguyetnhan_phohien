@@ -786,7 +786,7 @@ export default function LandingPage() {
                         Mới
                       </span>
                     </div>
-                    <p className="text-[11px] text-amber-800/80 font-normal">Tự phối 5 loại hạt & in tên riêng</p>
+                    <p className="text-xs text-amber-900 font-normal">Tự phối 5 loại hạt & in tên riêng</p>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-amber-700" />
@@ -901,13 +901,9 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-8 max-w-xl"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-accent text-sm font-medium border border-[#FDE68A] shadow-sm">
-                {/* Vòng sóng lan ra từ chấm vàng → mắt nhận ra "đang hoạt động" ngay */}
-                <span className="relative flex w-2 h-2">
-                  <span aria-hidden className="absolute inline-flex w-full h-full rounded-full bg-accent animate-pulse-ring" />
-                  <span className="relative inline-flex w-2 h-2 rounded-full bg-accent" />
-                </span>
-                Tinh túy đất Phố Hiến
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary text-accent text-xs sm:text-sm font-semibold border border-[#FDE68A] shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
+                <span>Tinh túy đất Phố Hiến</span>
               </div>
               <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-primary leading-[1.15] sm:leading-[1.1] tracking-tight">
                 <motion.span
@@ -982,9 +978,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2b. Dải cam kết chạy ngang — nhịp nghỉ giữa hero và phần giới thiệu */}
-        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-5 text-accent w-full max-w-full overflow-hidden">
-          <Marquee items={marqueeItems} className="marquee-mask w-full max-w-full" />
+        {/* 2b. Dải cam kết thương hiệu — tĩnh, thanh lịch, tôn trọng nhịp đọc của khách */}
+        <div className="relative border-y border-[#FDE68A]/70 bg-[#FFFDF8] py-4 sm:py-5 w-full max-w-full">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-12 text-xs sm:text-sm font-bold text-[#854D0E]">
+              {marqueeItems.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent/60 shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* 3. Giới thiệu thương hiệu */}
@@ -998,7 +1003,7 @@ export default function LandingPage() {
               className="max-w-3xl mx-auto text-center space-y-6"
             >
               <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}</h2>
-              <p className="text-lg text-foreground/80 leading-relaxed">
+              <p className="text-lg text-foreground/80 leading-relaxed max-w-2xl mx-auto">
                 {language === "en" ? t.about.desc : cmsContent.AboutDescription || t.about.desc}
               </p>
             </motion.div>
@@ -1082,7 +1087,7 @@ export default function LandingPage() {
                   <div className="pt-3">
                     <Link
                       href="/tu-chon-hat"
-                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-xl shadow-amber-950/50 hover:scale-105 active:scale-95 transition-all"
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg shadow-black/35 hover:scale-105 active:scale-95 transition-all"
                     >
                       <span>Vào Xưởng Chế Tác Hạt Riêng</span>
                       <ArrowRight className="w-4 h-4 text-stone-950" />
@@ -1091,7 +1096,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="md:col-span-5 relative flex justify-center">
-                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border-2 border-amber-500/30 shadow-2xl bg-stone-900/60 group">
+                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/30 group">
                     <FastImage
                       src="/images/setqua.jpg"
                       alt="Tự Chọn Hạt Độc Bản"
@@ -1102,7 +1107,7 @@ export default function LandingPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
                       <div>
                         <span className="text-amber-300 font-bold text-xs block">Miễn phí thiết kế nhãn riêng</span>
-                        <span className="text-stone-300 text-[11px]">Đóng gói chuẩn quy trình ATVSTP</span>
+                        <span className="text-stone-300 text-xs">Đóng gói chuẩn quy trình ATVSTP</span>
                       </div>
                     </div>
                   </div>
@@ -1138,11 +1143,11 @@ export default function LandingPage() {
               </div>
               <div className="flex-1 space-y-8">
                 <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}</h2>
-                <p className="text-lg text-foreground/80 leading-relaxed">
+                <p className="text-lg text-foreground/80 leading-relaxed max-w-2xl">
                   {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : cmsContent.StoryDescription || "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
                 <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
-                  <p className="text-foreground/80 italic">
+                  <p className="text-foreground/80 italic max-w-xl">
                     {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For generations, the people here preserve the craft of making longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
@@ -1183,7 +1188,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.c16_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2">{t.history.c16_desc.split(". ")[0]}.</p>
-                  <div className="bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border text-xs sm:text-sm">{t.history.c16_desc.split(". ")[1]}</div>
+                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.c16_desc.split(". ")[1]}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8 flex-row-reverse">
@@ -1201,7 +1206,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-right">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.tree_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
-                  <div className="bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border text-xs sm:text-sm">{t.history.tree_desc}</div>
+                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.tree_desc}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8">
@@ -1219,7 +1224,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.year2010_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2">{t.history.year2010_desc.split(". ")[0]}.</p>
-                  <div className="bg-card p-4 sm:p-6 rounded-2xl shadow-sm border border-border text-xs sm:text-sm">{t.history.year2010_desc.split(". ")[1]}</div>
+                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.year2010_desc.split(". ")[1]}</div>
                 </div>
               </div>
             </div>
@@ -1241,9 +1246,7 @@ export default function LandingPage() {
 
         {/* 11. Khu vực đặt hàng */}
         <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden w-full max-w-full">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-            <div className="absolute top-0 right-0 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(120,53,15,0.7)_0%,transparent_70%)] rounded-full opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none animate-float-slower will-change-transform"></div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/35 pointer-events-none -z-10" />
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
@@ -1259,7 +1262,7 @@ export default function LandingPage() {
                   </h2>
                 </Reveal>
                 <Reveal delay={0.08}>
-                  <p className="text-sm sm:text-lg text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90">
+                  <p className="text-sm sm:text-lg text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90 max-w-xl">
                     {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : cmsContent.OrderDescription || "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                   </p>
                 </Reveal>
@@ -1295,7 +1298,7 @@ export default function LandingPage() {
               </div>
 
               {/* Form Đặt Hàng */}
-              <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 md:p-10 shadow-2xl text-foreground">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-xl shadow-black/20 text-foreground">
                 <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4 sm:mb-6">{t.order.title}</h3>
 
                 {/* Kết quả gửi đơn trượt vào/ra mượt thay vì bật hiện đột ngột */}
@@ -1307,7 +1310,7 @@ export default function LandingPage() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -14, scale: 0.98 }}
                       transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
-                      className="mb-6 bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 text-emerald-900 p-5 rounded-2xl shadow-lg relative overflow-hidden"
+                      className="mb-6 bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 text-emerald-900 p-5 rounded-2xl relative overflow-hidden"
                     >
                       {/* Biểu tượng ánh sao lễ hội */}
                       <div className="absolute top-2 right-2 text-amber-500 opacity-70 pointer-events-none text-xl animate-pulse">
@@ -1315,7 +1318,7 @@ export default function LandingPage() {
                       </div>
 
                       <div className="flex items-start sm:items-center gap-3.5 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                        <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
                           <CheckCircle className="w-6 h-6" />
                         </div>
                         <div>
@@ -1331,7 +1334,7 @@ export default function LandingPage() {
                       </div>
 
                       {lastSubmittedEmail ? (
-                        <div className="mt-3 ml-0 sm:ml-13 bg-white/90 backdrop-blur-xs border border-emerald-200 rounded-xl p-3.5 shadow-xs space-y-1">
+                        <div className="mt-3 ml-0 sm:ml-13 bg-white/90 backdrop-blur-xs border border-emerald-200 rounded-xl p-3.5 space-y-1">
                           <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
                             <span className="text-base">📧</span>
                             <span>
@@ -1572,7 +1575,7 @@ export default function LandingPage() {
                     {form.items.map((item, idx) => {
                       const custom = item.isCustomMix ? item.customMixDetails : undefined;
                       return (
-                      <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-background border border-[#FDE68A] shadow-sm">
+                      <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-amber-50/70">
                         <div className="flex-1 min-w-0">
                           {custom ? (
                             // Sản phẩm tự chọn hạt: công thức do khách chốt trong Custom Mix
@@ -1745,7 +1748,7 @@ export default function LandingPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || !form.items.some((i) => i.productId)}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg transition-all hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    className="w-full bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-black/25 transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   >
                     {isSubmitting ? (
                       <><Loader2 className="w-5 h-5 animate-spin" /> {t.order.submitting}</>
@@ -1781,13 +1784,13 @@ export default function LandingPage() {
                   </div>
                   <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-stone-300 text-sm leading-relaxed">
                   {language === "en" ? "The brand providing authentic Pho Hien Dried Longan specialty. 100% natural, no preservatives, preserving traditional flavors." : "Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống."}
                 </p>
               </div>
               <div className="space-y-4">
                 <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
-                <ul className="space-y-2 text-muted-foreground text-sm">
+                <ul className="space-y-2 text-stone-300 text-sm">
                   <li>Hotline/Zalo: {cmsContent.FooterHotline || "034 897 3285"}</li>
                   <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien@gmail.com"}</li>
                   <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
@@ -1796,7 +1799,7 @@ export default function LandingPage() {
               </div>
               <div className="space-y-4">
                 <h4 className="text-lg font-bold text-white">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
-                <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                <ul className="space-y-2 text-stone-300 text-sm flex flex-col items-start">
                   <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">{t.nav.products}</button></li>
                   <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">{t.nav.story}</button></li>
                   <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">{t.history.title}</button></li>
@@ -1805,7 +1808,7 @@ export default function LandingPage() {
               </div>
               <div className="space-y-4">
                 <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
-                <ul className="space-y-2 text-muted-foreground text-sm flex flex-col items-start">
+                <ul className="space-y-2 text-stone-300 text-sm flex flex-col items-start">
                   <li><Link href="/chinh-sach/giao-hang" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
                   <li><Link href="/chinh-sach/doi-tra" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
                   <li><Link href="/chinh-sach/bao-mat" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
@@ -1814,7 +1817,7 @@ export default function LandingPage() {
               </div>
             </div>
           </Reveal>
-          <div className="border-t border-primary mt-12 pt-8 text-center text-muted-foreground text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t border-primary mt-12 pt-8 text-center text-stone-300 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex gap-4 items-center">
               {/* Social Icons */}
               <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
@@ -1875,7 +1878,7 @@ export default function LandingPage() {
                         title={language === "en" ? "View Cart" : "Xem giỏ hàng"}
                       >
                         <ShoppingBag className="w-4.5 h-4.5 text-white" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center border border-white">
                           {totalCartItems > 99 ? "99+" : totalCartItems}
                         </span>
                       </button>
@@ -2052,7 +2055,7 @@ export default function LandingPage() {
           {!isChatOpen && (
             <>
               <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
-              <span className="absolute -top-2 -left-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
+              <span className="absolute -top-2 -left-2 bg-emerald-800 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
                 <Sparkles className="w-2.5 h-2.5" /> AI
               </span>
             </>
@@ -2093,12 +2096,12 @@ export default function LandingPage() {
               <div className="relative">
                 <ShoppingCart className="w-4 h-4 text-accent mb-0.5" />
                 {totalCartItems > 0 && (
-                  <span className="absolute -top-1.5 -right-2 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center border border-white">
                     {totalCartItems > 99 ? "99+" : totalCartItems}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-bold">Giỏ Hàng</span>
+              <span className="text-[11px] font-bold">Giỏ Hàng</span>
             </button>
 
             <button
@@ -2107,7 +2110,7 @@ export default function LandingPage() {
               aria-label="Tư vấn"
             >
               <MessageCircle className="w-4 h-4 text-accent mb-0.5" />
-              <span className="text-[10px] font-bold">Tư Vấn</span>
+              <span className="text-[11px] font-bold">Tư Vấn</span>
             </button>
 
             <button

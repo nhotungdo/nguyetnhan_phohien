@@ -89,7 +89,7 @@
     --nguyet-brown: #8B6748;      /* Nâu nhãn */
     --nguyet-orange: #D98A43;     /* Cam nhãn */
     
-    --nguyet-bg-cream: #F8F3E8;   /* Kem nền */
+    --nguyet-bg-cream: #FCFBF7;   /* Kem nền sang trọng, tinh tế */
     --nguyet-bg-white: #FFFDF8;   /* Trắng ấm */
     --nguyet-bg-green: #EDF3E9;   /* Xanh kem */
     
@@ -108,7 +108,7 @@
     --secondary: var(--nguyet-bg-green);
     --secondary-foreground: var(--nguyet-brand);
     --muted: var(--nguyet-bg-green);
-    --muted-foreground: var(--nguyet-brown);
+    --muted-foreground: #57534E;
     --accent: var(--nguyet-gold);
     --accent-foreground: #FFFFFF;
     --destructive: #ef4444;

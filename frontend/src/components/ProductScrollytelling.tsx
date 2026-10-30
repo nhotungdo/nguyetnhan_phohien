@@ -151,10 +151,10 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                           isEven ? "md:justify-end" : "justify-start"
                         }`}
                       >
-                        <span className="text-xl sm:text-2xl font-black text-[#FDE68A] group-hover:text-accent transition-colors">
+                        <span className="text-xl sm:text-2xl font-black text-amber-900/80 group-hover:text-amber-950 transition-colors">
                           {item.step}
                         </span>
-                        <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
+                        <span className="text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
                           {item.badge}
                         </span>
                       </div>

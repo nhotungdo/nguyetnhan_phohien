@@ -121,7 +121,7 @@ export function ProductInteractiveShowcase({
   };
 
   return (
-    <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-gradient-to-b from-[#FFFDF8] via-[#F8F3E8] to-[#FFFDF8] w-full max-w-full">
+    <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-gradient-to-b from-white via-amber-50/20 to-white w-full max-w-full">
       {/* Nền trang trí hạt ánh sáng */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[800px] max-w-[150vw] h-[400px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.25)_0%,transparent_70%)] rounded-full pointer-events-none" />
@@ -155,7 +155,7 @@ export function ProductInteractiveShowcase({
 
         {/* Thanh Tab chọn sản phẩm */}
         <div className="flex justify-center mb-6 sm:mb-8 px-2 w-full max-w-full">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/85 backdrop-blur-md border border-[#FDE68A]/60 shadow-md overflow-x-auto no-scrollbar max-w-full">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-[#FDE68A]/60 shadow-md overflow-x-auto no-scrollbar max-w-full">
             {displayProducts.map((prod, idx) => {
               const isSelected = idx === selectedIndex;
               return (
@@ -165,19 +165,19 @@ export function ProductInteractiveShowcase({
                     setSelectedIndex(idx);
                     setActiveHotspot(null);
                   }}
-                  className={`relative px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 z-10 flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                    isSelected ? "text-white" : "text-foreground/70 hover:text-primary"
+                  className={`relative px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center gap-1.5 shrink-0 cursor-pointer overflow-hidden ${
+                    isSelected ? "text-white" : "text-stone-700 hover:text-primary"
                   }`}
                 >
                   {isSelected && (
                     <motion.div
                       layoutId="activeShowcaseTab"
-                      className="absolute inset-0 bg-gradient-to-r from-[#B45309] to-[#D97706] rounded-xl shadow-xs -z-10"
+                      className="absolute inset-0 bg-gradient-to-r from-[#92400E] to-[#B45309] rounded-xl shadow-xs"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="whitespace-nowrap">{prod.name}</span>
-                  <span className={`text-[11px] px-2 py-0.5 rounded-full ${isSelected ? "bg-white/20 text-white" : "bg-secondary text-accent font-bold"}`}>
+                  <span className="whitespace-nowrap relative z-10">{prod.name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full relative z-10 ${isSelected ? "bg-[#78350F] text-amber-100 font-bold" : "bg-secondary text-accent font-bold"}`}>
                     {prod.size}
                   </span>
                 </button>
@@ -188,7 +188,7 @@ export function ProductInteractiveShowcase({
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
-          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/70 shadow-md relative overflow-hidden">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/70 shadow-md relative overflow-hidden">
             
             {/* Cột Trái (Ảnh 3D Parallax + Hotspot Pins) */}
             <div className="lg:col-span-5 flex flex-col items-center w-full min-w-0 max-w-full">
@@ -197,7 +197,7 @@ export function ProductInteractiveShowcase({
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => setActiveHotspot(null)}
-                className="relative w-full aspect-[4/5] max-h-[360px] sm:max-h-[400px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#FEF3C7]/40 via-white to-[#FDE68A]/30 border border-[#FDE68A]/50 shadow-sm cursor-crosshair group select-none flex items-center justify-center"
+                className="relative w-full aspect-[4/5] max-h-[360px] sm:max-h-[400px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50/40 via-white to-amber-100/20 cursor-crosshair group select-none flex items-center justify-center"
                 style={{
                   perspective: 1000,
                 }}
@@ -319,7 +319,7 @@ export function ProductInteractiveShowcase({
 
                 {/* Gợi ý tương tác góc dưới trái */}
                 <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-20 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground/80 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium border border-border/50 shadow-xs pointer-events-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
                   <span className="hidden sm:inline">Chạm điểm tròn để khám phá</span>
                   <span className="sm:hidden">Chạm điểm tròn</span>
                 </div>
@@ -336,10 +336,10 @@ export function ProductInteractiveShowcase({
                         setSelectedIndex(idx);
                         setActiveHotspot(null);
                       }}
-                      className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl border text-center sm:text-left transition-all cursor-pointer ${
+                      className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
                         isCurrent
-                          ? "bg-amber-50/90 border-accent ring-1 ring-accent/30 shadow-xs"
-                          : "bg-white/70 border-border/60 hover:bg-white hover:border-accent/40"
+                          ? "bg-amber-100/90 ring-1 ring-amber-700/30"
+                          : "bg-stone-100/70 hover:bg-stone-100"
                       }`}
                     >
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden relative border border-border/40 shrink-0 bg-white">
@@ -356,7 +356,7 @@ export function ProductInteractiveShowcase({
                         <div className="text-xs font-bold text-primary line-clamp-2 leading-tight" title={prod.name}>
                           {prod.name}
                         </div>
-                        <div className="text-xs font-semibold text-accent leading-tight">
+                        <div className="text-xs font-bold text-[#854D0E] leading-tight">
                           {formatPrice(prod.price)}
                         </div>
                       </div>
@@ -400,15 +400,15 @@ export function ProductInteractiveShowcase({
 
                 {/* Bảng chỉ số cảm quan (Sensory Metrics) với bố cục 2 cột gọn gàng */}
                 <div className="space-y-2 mb-3.5 w-full">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-primary/70 flex items-center gap-1.5">
-                    <Layers className="w-3 h-3 text-accent" />
+                  <div className="text-xs font-bold uppercase tracking-wider text-primary/80 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-accent" />
                     <span>Chỉ Số Tinh Túy Cảm Quan</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                     {PRODUCT_METRICS.map((metric, idx) => (
                       <div key={idx} className="space-y-0.5 w-full">
-                        <div className="flex justify-between text-[11px] font-medium">
+                        <div className="flex justify-between text-xs font-medium">
                           <span className="text-foreground/85 truncate">
                             {language === "en" ? metric.labelEn : metric.label}
                           </span>
@@ -429,7 +429,7 @@ export function ProductInteractiveShowcase({
                 </div>
 
                 {/* Cam kết chất lượng 4 điểm */}
-                <div className="grid grid-cols-2 gap-2 py-2.5 border-t border-b border-border/50 mb-3.5 text-[11px] sm:text-xs text-foreground/80 w-full">
+                <div className="grid grid-cols-2 gap-2 py-2.5 border-t border-b border-border/50 mb-3.5 text-xs text-foreground/80 w-full">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span className="truncate">Sấy nhiệt nóng (đối lưu)</span>
