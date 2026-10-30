@@ -177,7 +177,7 @@ export function ProductInteractiveShowcase({
                     />
                   )}
                   <span className="whitespace-nowrap">{prod.name}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? "bg-white/20 text-white" : "bg-secondary text-accent font-bold"}`}>
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full ${isSelected ? "bg-white/20 text-white" : "bg-secondary text-accent font-bold"}`}>
                     {prod.size}
                   </span>
                 </button>
@@ -188,7 +188,7 @@ export function ProductInteractiveShowcase({
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
-          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/60 shadow-xl relative overflow-hidden">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/70 shadow-md relative overflow-hidden">
             
             {/* Cột Trái (Ảnh 3D Parallax + Hotspot Pins) */}
             <div className="lg:col-span-5 flex flex-col items-center w-full min-w-0 max-w-full">
@@ -197,7 +197,7 @@ export function ProductInteractiveShowcase({
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 onClick={() => setActiveHotspot(null)}
-                className="relative w-full aspect-[4/5] max-h-[360px] sm:max-h-[400px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#FEF3C7]/40 via-white to-[#FDE68A]/30 border-2 border-white shadow-lg cursor-crosshair group select-none flex items-center justify-center"
+                className="relative w-full aspect-[4/5] max-h-[360px] sm:max-h-[400px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#FEF3C7]/40 via-white to-[#FDE68A]/30 border border-[#FDE68A]/50 shadow-sm cursor-crosshair group select-none flex items-center justify-center"
                 style={{
                   perspective: 1000,
                 }}
@@ -283,13 +283,13 @@ export function ProductInteractiveShowcase({
                             }`}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[9px] font-bold uppercase tracking-wider text-accent bg-secondary px-2 py-0.5 rounded-full">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-secondary px-2 py-0.5 rounded-full">
                                 {spot.badge}
                               </span>
-                              <Info className="w-3 h-3 text-muted-foreground" />
+                              <Info className="w-3.5 h-3.5 text-muted-foreground" />
                             </div>
                             <h4 className="text-xs sm:text-sm font-bold text-primary leading-tight mb-0.5">{spot.title}</h4>
-                            <p className="text-[11px] text-foreground/80 leading-relaxed">{spot.desc}</p>
+                            <p className="text-xs text-foreground/80 leading-relaxed">{spot.desc}</p>
                             {/* Mũi tên tam giác */}
                             <div className={`hidden sm:block absolute left-1/2 -translate-x-1/2 w-0 h-0 border-x-6 border-x-transparent ${
                               isTopHalf 
@@ -310,15 +310,15 @@ export function ProductInteractiveShowcase({
                       e.stopPropagation();
                       onOpenGallery(activeProduct);
                     }}
-                    className="flex items-center gap-1.5 bg-black/65 hover:bg-black/85 text-white backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1.5 bg-black/65 hover:bg-black/85 text-white backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
                   >
-                    <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <Eye className="w-3.5 h-3.5" />
                     <span>{language === "en" ? "Gallery" : "Xem Ảnh"}</span>
                   </button>
                 </div>
 
                 {/* Gợi ý tương tác góc dưới trái */}
-                <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-20 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-medium border border-border/50 shadow-xs pointer-events-none">
+                <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-20 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground/80 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium border border-border/50 shadow-xs pointer-events-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
                   <span className="hidden sm:inline">Chạm điểm tròn để khám phá</span>
                   <span className="sm:hidden">Chạm điểm tròn</span>
@@ -353,10 +353,10 @@ export function ProductInteractiveShowcase({
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-[10px] sm:text-[11px] font-bold text-primary line-clamp-2 leading-tight" title={prod.name}>
+                        <div className="text-xs font-bold text-primary line-clamp-2 leading-tight" title={prod.name}>
                           {prod.name}
                         </div>
-                        <div className="text-[9px] sm:text-[11px] font-semibold text-accent leading-tight">
+                        <div className="text-xs font-semibold text-accent leading-tight">
                           {formatPrice(prod.price)}
                         </div>
                       </div>
@@ -389,11 +389,11 @@ export function ProductInteractiveShowcase({
                 </p>
 
                 {/* Giá bán nổi bật */}
-                <div className="flex flex-wrap items-baseline gap-2 p-2.5 sm:p-3 rounded-xl bg-[#FFFDF8] border border-[#FDE68A]/70 mb-3.5 shadow-xs w-full">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-accent font-sans shrink-0">
+                <div className="flex flex-wrap items-baseline gap-2.5 mb-3.5 pt-0.5">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-[#78350F] font-sans shrink-0">
                     {formatPrice(activeProduct.price)}
                   </div>
-                  <span className="text-[11px] sm:text-xs text-muted-foreground font-medium leading-tight">
+                  <span className="text-xs text-muted-foreground font-medium">
                     (Đã bao gồm VAT & Cam kết 100% tự nhiên)
                   </span>
                 </div>
@@ -466,7 +466,7 @@ export function ProductInteractiveShowcase({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
-                  className="flex-[1.2] bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#B45309]/20 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap"
+                  className="flex-[1.2] bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap"
                 >
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>

@@ -144,7 +144,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/60 shadow-lg hover:shadow-2xl transition-all group overflow-hidden w-full"
+                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/70 shadow-sm hover:shadow-md transition-all group overflow-hidden w-full"
                     >
                       <div
                         className={`flex items-center gap-2.5 sm:gap-3 mb-2 sm:mb-3 ${
@@ -154,7 +154,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                         <span className="text-xl sm:text-2xl font-black text-[#FDE68A] group-hover:text-accent transition-colors">
                           {item.step}
                         </span>
-                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
+                        <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
                           {item.badge}
                         </span>
                       </div>

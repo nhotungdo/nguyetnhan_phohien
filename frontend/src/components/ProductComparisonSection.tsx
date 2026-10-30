@@ -160,7 +160,6 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
               {activeMobileCard === "nguyetNhan" ? (
                 <div className="rounded-2xl bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-5 border-2 border-accent shadow-xl relative overflow-hidden">
-                  <div className="text-accent font-bold text-[11px] uppercase tracking-widest mb-1">Đặc Sản Chính Gốc</div>
                   <h3 className="text-xl font-extrabold text-primary mb-4">Nguyệt Nhãn Phố Hiến</h3>
                   <div className="space-y-4">
                     {COMPARISONS.map((row, idx) => (
@@ -173,14 +172,14 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       </div>
                     ))}
                   </div>
-                  <div className="mt-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold text-center">
-                    ✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản
+                  <div className="mt-5 pt-3.5 border-t border-[#FDE68A]/70 flex items-center justify-center gap-1.5 text-xs text-emerald-800 font-semibold text-center">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản</span>
                   </div>
                 </div>
               ) : (
                 <div className="rounded-2xl bg-gray-50 p-5 border border-gray-200 shadow-md">
-                  <div className="text-muted-foreground font-bold text-[11px] uppercase tracking-widest mb-1">Hàng Trôi Nổi</div>
-                  <h3 className="text-xl font-bold text-gray-600 mb-4">Long Nhãn Đại Trà</h3>
+                  <h3 className="text-xl font-bold text-gray-700 mb-4">Long Nhãn Đại Trà</h3>
                   <div className="space-y-4">
                     {COMPARISONS.map((row, idx) => (
                       <div key={idx} className="space-y-1 pb-3 border-b border-gray-200 last:border-none">
@@ -192,8 +191,9 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       </div>
                     ))}
                   </div>
-                  <div className="mt-5 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium text-center">
-                    ⚠ Nguy cơ tồn dư lưu huỳnh và tẩm đường hóa học
+                  <div className="mt-5 pt-3.5 border-t border-gray-200 flex items-center justify-center gap-1.5 text-xs text-red-700 font-medium text-center">
+                    <X className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>Nguy cơ tồn dư lưu huỳnh và tẩm đường hóa học</span>
                   </div>
                 </div>
               )}
@@ -210,7 +210,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-            className="rounded-[2.5rem] bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-8 md:p-10 border-2 border-accent shadow-2xl relative overflow-hidden flex flex-col justify-between"
+            className="rounded-3xl bg-gradient-to-b from-[#FFFDF8] to-[#F8F3E8] p-7 md:p-9 border-2 border-accent shadow-xl relative overflow-hidden flex flex-col justify-between"
           >
             {/* Nhãn nổi "Tiêu chuẩn hoàng gia" */}
             <div className="absolute top-0 right-0 bg-accent text-white text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded-bl-2xl shadow-md flex items-center gap-1.5">
@@ -219,7 +219,6 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             </div>
 
             <div>
-              <div className="text-accent font-bold text-xs uppercase tracking-widest mb-2">Đặc Sản Chính Gốc</div>
               <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-6">
                 Nguyệt Nhãn Phố Hiến
               </h3>
@@ -239,8 +238,9 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
               </div>
             </div>
 
-            <div className="mt-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold text-center">
-              ✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại
+            <div className="mt-8 pt-5 border-t border-[#FDE68A]/70 flex items-center justify-center gap-2 text-xs text-emerald-800 font-semibold text-center">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại</span>
             </div>
           </motion.div>
 
@@ -250,11 +250,10 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-            className="rounded-[2.5rem] bg-gray-50/80 p-8 md:p-10 border border-gray-200 shadow-md flex flex-col justify-between"
+            className="rounded-3xl bg-gray-50/80 p-7 md:p-9 border border-gray-200 shadow-sm flex flex-col justify-between"
           >
             <div>
-              <div className="text-muted-foreground font-bold text-xs uppercase tracking-widest mb-2">Hàng Đại Trà Thị Trường</div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-500 mb-6">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
                 Long Nhãn Trôi Nổi
               </h3>
 
@@ -273,8 +272,9 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
               </div>
             </div>
 
-            <div className="mt-8 p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium text-center">
-              ⚠ Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp, tẩm đường làm tăng đường huyết
+            <div className="mt-8 pt-5 border-t border-gray-200 flex items-center justify-center gap-2 text-xs text-red-700 font-medium text-center">
+              <X className="w-4 h-4 text-red-500 shrink-0" />
+              <span>Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp, tẩm đường làm tăng đường huyết</span>
             </div>
           </motion.div>
 

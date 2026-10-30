@@ -668,7 +668,7 @@ export default function LandingPage() {
               className="text-xs lg:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
             >
               <span>Tự Chọn Hạt</span>
-              <span className="bg-[#B45309] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-[#B45309] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Mới
               </span>
             </Link>
@@ -782,7 +782,7 @@ export default function LandingPage() {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold">Tự Chọn Hạt Độc Bản</span>
-                      <span className="bg-[#B45309] text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                      <span className="bg-[#B45309] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase">
                         Mới
                       </span>
                     </div>
@@ -925,8 +925,7 @@ export default function LandingPage() {
                       initial={{ opacity: 0, y: 26 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.9, delay: 0.52, ease: EASE_OUT_EXPO }}
-                      // Gradient giãn 200% rồi trôi qua lại trên chữ → ánh vàng lấp lánh rất nhẹ
-                      className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] bg-[length:200%_auto] animate-gradient-pan"
+                      className="inline-block text-[#92400E]"
                     >
                       {heroLine2}
                     </motion.span>
@@ -1064,7 +1063,7 @@ export default function LandingPage() {
                     <span>Trải Nghiệm Độc Bản</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                    Tự Tay Phối Hạt · <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-200 to-amber-400">Khắc Tên Riêng</span>
+                    Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span>
                   </h2>
                   <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
                     Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
@@ -1990,11 +1989,11 @@ export default function LandingPage() {
                         </motion.div>
                       ))}
                       {isAdminTyping && (
-                        <div className="bg-white border p-2.5 sm:p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:0ms]"></span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:150ms]"></span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-bounce [animation-delay:300ms]"></span>
-                          <span className="ml-2 text-[11px] sm:text-xs text-foreground/60">
+                        <div className="bg-white border p-2.5 sm:p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1.5" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:0ms]"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:200ms]"></span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:400ms]"></span>
+                          <span className="ml-2 text-xs text-foreground/75 font-medium">
                             {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
                           </span>
                         </div>
@@ -2030,7 +2029,7 @@ export default function LandingPage() {
                         </button>
                       </div>
                       {chatSendError && (
-                        <p className="text-[11px] text-red-500 mt-1.5 px-2">
+                        <p className="text-xs text-red-500 mt-1.5 px-2">
                           Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!
                         </p>
                       )}
@@ -2053,14 +2052,14 @@ export default function LandingPage() {
           {!isChatOpen && (
             <>
               <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
-              <span className="absolute -top-2 -left-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
+              <span className="absolute -top-2 -left-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
                 <Sparkles className="w-2.5 h-2.5" /> AI
               </span>
             </>
           )}
           {isChatOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
           {!isChatOpen && unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-[10px] sm:text-xs font-bold text-white shadow-lg animate-bounce border-2 border-white">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

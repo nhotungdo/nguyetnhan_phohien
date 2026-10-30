@@ -274,7 +274,7 @@ export function ProductPairingSection({
                   <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">
                     {pill.icon}
                   </div>
-                  <h4 className="font-bold text-primary text-sm mb-1">{pill.title}</h4>
+                  <h3 className="font-bold text-primary text-sm mb-1">{pill.title}</h3>
                   <p className="text-xs text-foreground/70 leading-snug">{pill.desc}</p>
                 </motion.div>
               ))}
@@ -444,13 +444,13 @@ export function ProductPairingSection({
                       <span>{language === "en" ? "Step-by-Step Preparation" : "Các Bước Thực Hiện Chuẩn Vị"}</span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-1">
                       {activeRecipe.steps.map((st, sIdx) => (
                         <div
                           key={sIdx}
-                          className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFFDF8] border border-[#FDE68A]/60"
+                          className="flex items-start gap-3 py-2.5 border-b border-[#FDE68A]/40 last:border-none"
                         >
-                          <div className="w-6 h-6 rounded-full bg-accent text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-6 h-6 rounded-full bg-accent/15 text-accent font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                             {sIdx + 1}
                           </div>
                           <div className="text-xs sm:text-sm text-foreground/85">
@@ -487,11 +487,11 @@ export function ProductPairingSection({
                       </span>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="divide-y divide-[#FDE68A]/50">
                       {activeRecipe.ingredients.map((ing, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-white/95 border border-[#FDE68A]/40 text-xs sm:text-sm"
+                          className="flex items-center justify-between py-2 text-xs sm:text-sm"
                         >
                           <div className="flex items-center gap-2 font-medium text-foreground">
                             <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />

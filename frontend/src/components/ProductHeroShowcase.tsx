@@ -109,8 +109,8 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
           <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground leading-tight">Truyền thống</div>
-          <div className="text-[11px] sm:text-xs font-bold text-primary leading-tight">Đặc Sản Tiến Vua</div>
+          <div className="text-[11px] sm:text-xs uppercase font-bold text-muted-foreground leading-tight">Truyền thống</div>
+          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">Đặc Sản Tiến Vua</div>
         </div>
       </motion.div>
 
@@ -124,8 +124,8 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
           <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground leading-tight">Cam kết</div>
-          <div className="text-[11px] sm:text-xs font-bold text-primary leading-tight">100% Tự Nhiên</div>
+          <div className="text-[11px] sm:text-xs uppercase font-bold text-muted-foreground leading-tight">Cam kết</div>
+          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
         </div>
       </motion.div>
 
@@ -139,8 +139,8 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
           <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground leading-tight">Phương pháp</div>
-          <div className="text-[11px] sm:text-xs font-bold text-primary leading-tight">Sấy Nhiệt Nóng (Đối Lưu)</div>
+          <div className="text-[11px] sm:text-xs uppercase font-bold text-muted-foreground leading-tight">Phương pháp</div>
+          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">Sấy Nhiệt Nóng (Đối Lưu)</div>
         </div>
       </motion.div>
     </div>

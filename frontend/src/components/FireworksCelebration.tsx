@@ -191,8 +191,15 @@ export function FireworksCelebration({
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    // Kiểm tra prefers-reduced-motion
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Tuân thủ quyền trợ năng: nếu người dùng bật giảm chuyển động, không bắn pháo hoa
+    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      const timer = setTimeout(() => {
+        setIsShowing(false);
+        onClose?.();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
 
     let animId = 0;
     let startTime = performance.now();

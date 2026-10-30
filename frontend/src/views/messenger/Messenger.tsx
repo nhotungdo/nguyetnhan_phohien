@@ -287,10 +287,10 @@ export default function Messenger() {
               ))}
               {isGuestTyping && (
                 <div className="flex justify-start">
-                  <div className="py-2.5 px-3.5 bg-white border rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1" aria-label="Khách đang gõ">
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]"></span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]"></span>
+                  <div className="py-2.5 px-3.5 bg-white border rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1.5" aria-label="Khách đang gõ">
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-pulse [animation-delay:0ms]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-pulse [animation-delay:200ms]"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-pulse [animation-delay:400ms]"></span>
                     <span className="ml-2 text-xs text-muted-foreground">Khách đang gõ...</span>
                   </div>
                 </div>

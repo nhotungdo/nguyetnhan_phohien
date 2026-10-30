@@ -83,8 +83,8 @@
     --nguyet-brand-dark: #173522; /* Xanh đậm */
     --nguyet-brand-light: #4F7D3A;/* Xanh lá */
     
-    --nguyet-gold: #B68A45;       /* Vàng đồng (CTA) */
-    --nguyet-gold-light: #D5B477; /* Vàng nhạt */
+    --nguyet-gold: #854D0E;       /* Vàng hổ phách Phố Hiến (Đạt chuẩn tương phản WCAG AA 6.8:1) */
+    --nguyet-gold-light: #FDE68A; /* Vàng nhạt viền */
     
     --nguyet-brown: #8B6748;      /* Nâu nhãn */
     --nguyet-orange: #D98A43;     /* Cam nhãn */
@@ -110,7 +110,7 @@
     --muted: var(--nguyet-bg-green);
     --muted-foreground: var(--nguyet-brown);
     --accent: var(--nguyet-gold);
-    --accent-foreground: var(--nguyet-bg-white);
+    --accent-foreground: #FFFFFF;
     --destructive: #ef4444;
     --border: var(--nguyet-gold-light);
     --input: var(--nguyet-gold-light);
@@ -196,6 +196,16 @@
     overflow-x: clip;
     width: 100%;
     max-width: 100%;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+  p, li {
+    text-wrap: pretty;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #57534E;
+    opacity: 1;
   }
   .container {
     width: 100%;
