@@ -1,10 +1,10 @@
 export const en = {
   // Navigation
   nav: {
+    products: "Products",
     story: "Our Story",
     history: "History",
     process: "Craft Process",
-    products: "Products",
     culture: "Culture",
     contact: "Contact",
     buyNow: "Buy Now",

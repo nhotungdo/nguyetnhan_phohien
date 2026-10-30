@@ -1,10 +1,10 @@
 export const vi = {
   // Navigation
   nav: {
+    products: "Sản phẩm",
     story: "Câu chuyện",
     history: "Lịch sử",
     process: "Quy trình",
-    products: "Sản phẩm",
     culture: "Văn hóa",
     contact: "Liên hệ",
     buyNow: "Mua Ngay",
