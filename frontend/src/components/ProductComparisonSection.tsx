@@ -58,10 +58,10 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             <span>Minh Bạch Chất Lượng</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
             {language === "en" ? "Purity Uncompromised: The Nguyệt Nhãn Standard" : "Khác Biệt Làm Nên Đẳng Cấp Nguyệt Nhãn"}
           </h2>
-          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed">
+          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed [text-wrap:pretty]">
             Chúng tôi kiên định với phương pháp làm nghề tử tế — không chạy theo số lượng, đặt sức khỏe người dùng và uy tín danh thơm Phố Hiến lên hàng đầu.
           </p>
         </motion.div>
@@ -232,7 +232,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>{row.criteria}</span>
                     </div>
-                    <p className="text-sm text-foreground/90 leading-relaxed pl-5 font-medium">
+                    <p className="text-sm text-foreground/90 leading-relaxed pl-5 font-medium [text-wrap:pretty]">
                       {row.nguyetNhan}
                     </p>
                   </div>
@@ -266,7 +266,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       <X className="w-4 h-4 text-red-500 shrink-0" />
                       <span>{row.criteria}</span>
                     </div>
-                    <p className="text-sm text-gray-600 leading-relaxed pl-5">
+                    <p className="text-sm text-gray-600 leading-relaxed pl-5 [text-wrap:pretty]">
                       {row.market}
                     </p>
                   </div>

@@ -103,14 +103,14 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [-5, 5, -5] }}
         transition={{ duration: 5, ease: "easeInOut", repeat: Infinity }}
-        className="absolute top-0 sm:-top-3 left-1 sm:-left-4 z-30 bg-white px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-2 sm:gap-2.5 pointer-events-none scale-90 sm:scale-100 origin-top-left"
+        className="absolute top-0 sm:-top-3 left-1 sm:-left-4 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none scale-85 sm:scale-100 origin-top-left"
       >
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-white shadow-sm shrink-0">
+        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-white shadow-sm shrink-0">
           <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-xs uppercase font-bold text-stone-600 leading-tight">Truyền thống</div>
-          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">Đặc Sản Tiến Vua</div>
+          <div className="text-[10px] sm:text-xs uppercase font-bold text-stone-600 leading-tight">Truyền thống</div>
+          <div className="text-[11px] sm:text-sm font-bold text-primary leading-tight">Đặc Sản Tiến Vua</div>
         </div>
       </motion.div>
 
@@ -118,22 +118,22 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [5, -5, 5] }}
         transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, delay: 0.8 }}
-        className="absolute bottom-1 sm:-bottom-4 left-1 sm:-left-2 z-30 bg-white px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-2 sm:gap-2.5 pointer-events-none scale-90 sm:scale-100 origin-bottom-left"
+        className="absolute bottom-1 sm:-bottom-4 left-1 sm:-left-2 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none scale-85 sm:scale-100 origin-bottom-left"
       >
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-sm shrink-0">
+        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-sm shrink-0">
           <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-xs uppercase font-bold text-stone-600 leading-tight">Cam kết</div>
-          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
+          <div className="text-[10px] sm:text-xs uppercase font-bold text-stone-600 leading-tight">Cam kết</div>
+          <div className="text-[11px] sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
         </div>
       </motion.div>
 
-      {/* Huy hiệu nổi 3: Sấy nhiệt nóng (sấy đối lưu) (Góc phải giữa) */}
+      {/* Huy hiệu nổi 3: Sấy nhiệt nóng (sấy đối lưu) (Góc phải giữa - chỉ hiện trên tablet/desktop tránh tràn mép mobile) */}
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [-4, 4, -4] }}
         transition={{ duration: 5.5, ease: "easeInOut", repeat: Infinity, delay: 1.4 }}
-        className="absolute right-1 sm:-right-4 top-1/3 z-30 bg-white px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-2 sm:gap-2.5 pointer-events-none scale-90 sm:scale-100 origin-right"
+        className="hidden sm:flex absolute right-1 sm:-right-4 top-1/3 z-30 bg-white px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] items-center gap-2 sm:gap-2.5 pointer-events-none scale-90 sm:scale-100 origin-right"
       >
         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-sm shrink-0">
           <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

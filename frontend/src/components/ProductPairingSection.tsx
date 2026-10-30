@@ -244,13 +244,13 @@ export function ProductPairingSection({
             </Reveal>
 
             <Reveal delay={0.08}>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-5 leading-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-5 leading-tight [text-wrap:balance]">
                 {language === "en" ? "Hometown Soul in Every Fiber" : "Hồn Quê Trong Từng Thớ Nhãn"}
               </h2>
             </Reveal>
 
             <Reveal delay={0.16}>
-              <p className="text-foreground/80 text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl">
+              <p className="text-foreground/80 text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl [text-wrap:pretty]">
                 {language === "en"
                   ? "Pho Hien culinary culture lies not only in flavor, but in the artful and mindful way of enjoyment. Longan is both a soothing, cooling treasure in summer lotus seed sweet soups, and a revered herbal elixir when infused with royal tea or steeped in traditional wine to welcome esteemed guests."
                   : "Văn hóa ẩm thực Phố Hiến không chỉ nằm ở hương vị, mà còn ở cách thưởng thức tao nhã lưu truyền trăm năm. Long nhãn vừa là thức quà ngọt mát giải nhiệt trong bát chè sen ngày hạ, vừa là vị thuốc quý bồi bổ khí huyết khi hãm trà hoa, ngâm rượu thơm thiết đãi khách quý."}
@@ -274,8 +274,8 @@ export function ProductPairingSection({
                   <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">
                     {pill.icon}
                   </div>
-                  <h3 className="font-bold text-primary text-sm mb-1">{pill.title}</h3>
-                  <p className="text-xs text-foreground/70 leading-snug">{pill.desc}</p>
+                  <h3 className="font-bold text-primary text-sm mb-1 [text-wrap:balance]">{pill.title}</h3>
+                  <p className="text-xs text-foreground/70 leading-snug [text-wrap:pretty]">{pill.desc}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -336,10 +336,10 @@ export function ProductPairingSection({
               <span>{language === "en" ? "Artisan Gastronomic Rituals" : "Cẩm Nang Pha Chế Chuẩn Vị"}</span>
             </div>
 
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight mb-3">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight mb-3 [text-wrap:balance]">
               {language === "en" ? "Gastronomic Harmony & Rituals" : "Thưởng Thức Đúng Điệu Cùng Nguyệt Nhãn"}
             </h3>
-            <p className="text-foreground/80 text-sm sm:text-base leading-relaxed">
+            <p className="text-foreground/80 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
               {language === "en"
                 ? "Select a traditional ritual below to discover step-by-step instructions, health virtues, and artisan secrets."
                 : "Chọn một phong vị dưới đây để xem chi tiết các bước chuẩn bị, định lượng nguyên liệu và bí quyết giữ trọn tinh chất."}

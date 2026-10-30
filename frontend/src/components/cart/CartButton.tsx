@@ -30,7 +30,7 @@ export function CartButton({ isChatOpen = false, isHidden = false, className = "
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.93 }}
           aria-label={`Giỏ hàng (${totalItems} sản phẩm)`}
-          className={`fixed bottom-36 right-3.5 sm:bottom-24 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#B45309] to-[#D97706] shadow-xl shadow-[#B45309]/40 flex items-center justify-center text-white transition-shadow hover:shadow-2xl hover:shadow-[#B45309]/50 ${className}`}
+          className={`hidden md:flex fixed bottom-24 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#B45309] to-[#D97706] shadow-xl shadow-[#B45309]/40 items-center justify-center text-white transition-shadow hover:shadow-2xl hover:shadow-[#B45309]/50 ${className}`}
         >
           {/* Ping effect when cart has items */}
           {totalItems > 0 && (

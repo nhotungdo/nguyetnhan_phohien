@@ -51,7 +51,7 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").rep
 // null-safe: key chưa có trong CMS (API lỗi, trang prerender) → chuỗi rỗng, caller tự fallback.
 // Ô nhập đang lỗi: viền + vòng focus chuyển đỏ để khách thấy ngay ô nào cần sửa.
 const inputClass = (error?: unknown) =>
-  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all ${error
+  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all text-base sm:text-sm ${error
     ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
     : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
   }`;
@@ -347,6 +347,9 @@ export default function LandingPage() {
   //
   // Chỉ có MỘT từ thì KHÔNG tách dòng: `slice(1)` của mảng 1 phần tử là mảng rỗng,
   // nên trước đây dòng 2 rỗng mà <br/> vẫn render → thừa một dòng trống giữa tiêu đề.
+  // Tiêu đề Hero lấy từ CMS (key HeroTitle), chia 2 dòng để giữ bố cục gradient.
+  // Tiếng Việt lấy từ CMS như HeroSubtitle; tiếng Anh vẫn dùng locale.
+  // Tách dòng thông minh, tôn trọng các từ ghép có nghĩa trong tiếng Việt (Long Nhãn, Phố Hiến, Tiến Vua...)
   const heroLines = (() => {
     if (language === "en") {
       const parts = t.hero.title.split(" ").filter(Boolean);
@@ -355,8 +358,26 @@ export default function LandingPage() {
     const words = (cmsContent.HeroTitle || "").trim().split(/\s+/).filter(Boolean);
     if (words.length === 0) return ["Hương Vị", "Truyền Thống"];
     if (words.length === 1) return [words[0]];
-    const split = Math.ceil(words.length / 2);
-    return [words.slice(0, split).join(" "), words.slice(split).join(" ")];
+
+    let split = Math.ceil(words.length / 2);
+    // Tránh cắt đôi các cụm từ ghép quan trọng của thương hiệu
+    if (split > 0 && split < words.length) {
+      const prevWord = words[split - 1].toLowerCase();
+      const nextWord = words[split].toLowerCase();
+      if (prevWord === "long" && nextWord.startsWith("nhãn")) {
+        split += 1; // giữ "Long Nhãn" trọn vẹn ở dòng 1
+      } else if (prevWord === "phố" && nextWord.startsWith("hiến")) {
+        split -= 1; // giữ "Phố Hiến" trọn vẹn ở dòng 2
+      } else if (prevWord === "hưng" && nextWord.startsWith("yên")) {
+        split -= 1; // giữ "Hưng Yên" trọn vẹn ở dòng 2
+      } else if (prevWord === "tiến" && nextWord.startsWith("vua")) {
+        split -= 1; // giữ "Tiến Vua" trọn vẹn ở dòng 2
+      }
+    }
+
+    const line1 = words.slice(0, split).join(" ");
+    const line2 = words.slice(split).join(" ");
+    return [line1, line2].filter(Boolean);
   })();
   const heroLine1 = heroLines[0];
   const heroLine2 = heroLines[1] ?? "";
@@ -655,7 +676,7 @@ export default function LandingPage() {
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
-            <span style={{ fontFamily: 'var(--font-dancing)' }} className={`font-bold text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary truncate max-w-[150px] xs:max-w-[220px] sm:max-w-none`}>
+            <span style={{ fontFamily: 'var(--font-dancing)' }} className="font-bold text-lg min-[360px]:text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary whitespace-nowrap">
               Nguyệt Nhãn Phố Hiến
             </span>
           </div>
@@ -724,14 +745,30 @@ export default function LandingPage() {
           </div>
 
           {/* Mobile Right Controls */}
-          <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
-            <button
-              onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
-              className="text-xs font-bold text-foreground/85 border border-[#FDE68A] px-2.5 py-1 rounded-full bg-white/90 shadow-sm transition-colors"
-              aria-label="Chuyển ngôn ngữ"
-            >
-              {language === "vi" ? "🇻🇳" : "🇬🇧"}
-            </button>
+          <div className="flex md:hidden items-center gap-1">
+            {!isMobileMenuOpen && (
+              <>
+                <button
+                  onClick={() => handleOpenCart()}
+                  className="p-2 text-foreground/80 hover:text-accent rounded-xl hover:bg-black/5 active:scale-95 transition-all relative"
+                  aria-label="Giỏ hàng"
+                >
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  {totalCartItems > 0 && (
+                    <span className="absolute top-1 right-0.5 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border border-white shadow-xs">
+                      {totalCartItems > 99 ? "99+" : totalCartItems}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
+                  className="text-xs font-bold text-foreground/85 border border-[#FDE68A] px-2 py-1 rounded-full bg-white/90 shadow-xs transition-colors"
+                  aria-label="Chuyển ngôn ngữ"
+                >
+                  {language === "vi" ? "🇻🇳" : "🇬🇧"}
+                </button>
+              </>
+            )}
             <button
               className="p-2 text-foreground/80 rounded-xl hover:bg-black/5 active:scale-95 transition-all"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -752,7 +789,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
-            className="fixed inset-0 z-40 bg-white/98 backdrop-blur-xl pt-20 px-6 pb-8 flex flex-col justify-between md:hidden overflow-y-auto"
+            className="fixed inset-0 z-[60] bg-white/98 backdrop-blur-xl pt-20 px-6 pb-8 flex flex-col justify-between md:hidden overflow-y-auto"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
@@ -892,7 +929,7 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      <main className="w-full max-w-full overflow-x-clip">
+      <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
         {/* 2. Hero Banner */}
         <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full">
           {/* Background Elements */}
@@ -922,33 +959,35 @@ export default function LandingPage() {
                 <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
                 <span>Tinh túy đất Phố Hiến</span>
               </div>
-              <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-primary leading-[1.15] sm:leading-[1.1] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
                 <motion.span
-                  initial={{ opacity: 0, y: 26 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.9, delay: 0.32, ease: EASE_OUT_EXPO }}
-                  className="inline-block"
+                  initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.85, delay: 0.25, ease: EASE_OUT_EXPO }}
+                  className="block text-[#173522] drop-shadow-xs"
                 >
                   {heroLine1}
                 </motion.span>
                 {heroLine2 && (
-                  <>
-                    {" "}
-                    <motion.span
-                      initial={{ opacity: 0, y: 26 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.9, delay: 0.52, ease: EASE_OUT_EXPO }}
-                      className="inline-block text-[#92400E]"
-                    >
-                      {heroLine2}
-                    </motion.span>
-                  </>
+                  <motion.span
+                    initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    transition={{ duration: 0.85, delay: 0.45, ease: EASE_OUT_EXPO }}
+                    className="block mt-1 sm:mt-2 bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] bg-clip-text text-transparent"
+                  >
+                    {heroLine2}
+                  </motion.span>
                 )}
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-foreground/80 leading-relaxed">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.85, delay: 0.55, ease: EASE_OUT_EXPO }}
+                className="text-base sm:text-lg md:text-xl text-foreground/85 leading-relaxed [text-wrap:pretty] max-w-xl font-normal"
+              >
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
-              </p>
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 sm:pt-4">
+              </motion.p>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 pt-2 sm:pt-4">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -957,20 +996,22 @@ export default function LandingPage() {
                 >
                   {t.hero.discover} <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
-                <Link
-                  href="/tu-chon-hat"
-                  className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-sm sm:text-base font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95"
-                >
-                  <span>Tự Chọn Hạt Độc Bản</span>
-                </Link>
-                <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => scrollToSection("cau-chuyen")}
-                  className="w-full sm:w-auto bg-white text-accent border border-[#FDE68A] text-sm sm:text-base font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full flex items-center justify-center cursor-pointer"
-                >
-                  {t.nav.story}
-                </motion.button>
+                <div className="grid grid-cols-2 gap-2.5 w-full sm:flex sm:w-auto">
+                  <Link
+                    href="/tu-chon-hat"
+                    className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-base font-bold px-3 sm:px-7 py-3 sm:py-4 rounded-full flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
+                  >
+                    <span>Tự Chọn Hạt</span>
+                  </Link>
+                  <motion.button
+                    whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => scrollToSection("cau-chuyen")}
+                    className="w-full sm:w-auto bg-white text-accent border border-[#FDE68A] text-xs sm:text-base font-semibold px-3 sm:px-8 py-3 sm:py-4 rounded-full flex items-center justify-center cursor-pointer text-center"
+                  >
+                    {t.nav.story}
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
 
@@ -995,73 +1036,66 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2b. Dải cam kết thương hiệu — Tinh tế, tương tác sống động chuẩn hoàng gia */}
-        <div className="relative border-y border-amber-200/50 bg-gradient-to-r from-amber-50/40 via-[#FCFBF7] to-amber-50/40 py-3 sm:py-4 w-full max-w-full overflow-hidden shadow-[0_2px_12px_-4px_rgba(133,77,14,0.06)]">
-          {/* Đường viền ánh kim hoàng gia lướt nhẹ trên đỉnh & đáy */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+        {/* 2b. Dải cam kết thương hiệu dạng chữ chạy quảng cáo vô tận (Infinite Marquee Ticker) */}
+        <div className="relative border-y border-amber-200/60 bg-gradient-to-r from-amber-50/50 via-[#FCFBF7] to-amber-50/50 py-3 sm:py-3.5 w-full max-w-full overflow-hidden shadow-[0_2px_12px_-4px_rgba(133,77,14,0.06)] group">
+          {/* Đường viền ánh kim hoàng gia trên đỉnh & đáy */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent z-20 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent z-20 pointer-events-none" />
+
+          {/* Lớp phủ mờ dần (Fade Gradient Masks) ở hai mép viền để chữ trôi vào/ra mềm mại */}
+          <div className="absolute left-0 inset-y-0 w-16 sm:w-28 bg-gradient-to-r from-[#FCFBF7] via-[#FCFBF7]/90 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 inset-y-0 w-16 sm:w-28 bg-gradient-to-l from-[#FCFBF7] via-[#FCFBF7]/90 to-transparent z-10 pointer-events-none" />
 
           {/* Tia sáng hoàng kim lướt nhẹ qua ribbon định kỳ (Shimmer ray) */}
           <motion.div
             aria-hidden="true"
             initial={{ x: "-100%" }}
-            animate={prefersReducedMotion ? undefined : { x: "400%" }}
+            animate={prefersReducedMotion ? undefined : { x: "500%" }}
             transition={{
               repeat: Infinity,
-              duration: 6.5,
+              duration: 7,
               ease: "easeInOut",
-              repeatDelay: 3,
+              repeatDelay: 3.5,
             }}
-            className="absolute inset-y-0 w-48 bg-gradient-to-r from-transparent via-amber-300/20 to-transparent -skew-x-12 pointer-events-none z-[1]"
+            className="absolute inset-y-0 w-48 bg-gradient-to-r from-transparent via-amber-300/25 to-transparent -skew-x-12 pointer-events-none z-[1]"
           />
 
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, margin: "-50px" }}
-              className="flex flex-wrap items-center justify-center lg:justify-between gap-x-4 sm:gap-x-6 gap-y-2.5 max-w-6xl mx-auto"
-            >
-              {brandCommitments.map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <motion.div
-                    key={item.id}
-                    variants={fadeUp}
-                    whileHover={prefersReducedMotion ? undefined : { y: -3, scale: 1.03 }}
-                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                    transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
-                    className="group flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full hover:bg-amber-100/60 transition-colors duration-200 cursor-default"
-                  >
-                    {/* Huy hiệu đồng tiền vàng kim với hiệu ứng nhấp nhô êm ả và sáng viền khi hover */}
-                    <motion.div
-                      animate={
-                        prefersReducedMotion
-                          ? undefined
-                          : {
-                              y: [0, -2.5, 0],
-                            }
-                      }
-                      transition={{
-                        repeat: Infinity,
-                        duration: 3 + idx * 0.4,
-                        ease: "easeInOut",
-                      }}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/80 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-xs group-hover:ring-amber-500 group-hover:scale-110 group-hover:shadow-[0_4px_12px_rgba(217,119,6,0.25)] transition-all duration-300"
+          {/* Băng chuyền chữ chạy vô tận (Marquee Track) */}
+          <div className="animate-marquee-track items-center py-0.5">
+            {[0, 1].map((copyIndex) => (
+              <div
+                key={copyIndex}
+                className="flex items-center shrink-0"
+                aria-hidden={copyIndex === 1}
+              >
+                {[...brandCommitments, ...brandCommitments].map((item, idx) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <div
+                      key={`${item.id}-${idx}`}
+                      className="flex items-center gap-4 sm:gap-6 shrink-0 pr-4 sm:pr-6"
                     >
-                      <IconComponent
-                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E] transition-transform duration-300 group-hover:rotate-12"
-                        strokeWidth={2.2}
-                      />
-                    </motion.div>
-                    <span className="text-xs sm:text-[13px] md:text-sm font-semibold text-stone-800 tracking-tight whitespace-nowrap group-hover:text-[#92400E] transition-colors duration-200">
-                      {item.label}
-                    </span>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                      <div className="group/item flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full hover:bg-amber-100/70 transition-colors duration-200 cursor-default select-none">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/90 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-2xs group-hover/item:scale-110 group-hover/item:ring-amber-500 group-hover/item:shadow-[0_4px_12px_rgba(217,119,6,0.25)] transition-all duration-300">
+                          <IconComponent
+                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E] transition-transform duration-300 group-hover/item:rotate-12"
+                            strokeWidth={2.2}
+                          />
+                        </div>
+                        <span className="text-xs sm:text-[13px] md:text-sm font-bold text-stone-800 tracking-tight whitespace-nowrap group-hover/item:text-[#92400E] transition-colors duration-200">
+                          {item.label}
+                        </span>
+                      </div>
+
+                      {/* Biểu tượng phân cách hoàng gia giữa các mục */}
+                      <span className="text-amber-500/80 text-xs sm:text-sm font-black select-none pointer-events-none" aria-hidden="true">
+                        ✦
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -1168,7 +1202,7 @@ export default function LandingPage() {
               </div>
 
               {/* Tiêu đề chính thức */}
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173522] tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173522] tracking-tight leading-tight [text-wrap:balance]">
                 {language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}
               </h2>
 
@@ -1180,7 +1214,7 @@ export default function LandingPage() {
               </div>
 
               {/* Đoạn văn giới thiệu thương hiệu */}
-              <p className="text-base sm:text-lg md:text-xl text-stone-700 leading-relaxed max-w-2xl mx-auto font-normal">
+              <p className="text-base sm:text-lg md:text-xl text-stone-700 leading-relaxed max-w-2xl mx-auto font-normal [text-wrap:pretty]">
                 {language === "en" ? t.about.desc : cmsContent.AboutDescription || t.about.desc}
               </p>
 
@@ -1206,7 +1240,7 @@ export default function LandingPage() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: "-80px" }}
-              className="grid md:grid-cols-3 gap-8 mt-16 sm:mt-20"
+              className="grid md:grid-cols-3 gap-8 mt-16 sm:mt-20 items-stretch"
             >
               {[
                 { title: t.about.natural_title, desc: t.about.natural_desc, icon: Leaf },
@@ -1219,22 +1253,28 @@ export default function LandingPage() {
                     variants={fadeUp}
                     whileHover={prefersReducedMotion ? undefined : { y: -8 }}
                     key={i}
-                    className="relative overflow-hidden bg-white p-8 rounded-3xl border border-amber-200/60 hover:border-amber-400/80 hover:shadow-xl transition-all duration-300 group"
+                    className="relative overflow-hidden bg-white p-7 sm:p-8 rounded-3xl border border-amber-200/60 hover:border-amber-400/80 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between h-full"
                   >
                     {/* Hào quang nền dịu nhẹ khi hover */}
                     <div aria-hidden="true" className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-amber-100/40 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 pointer-events-none" />
 
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/70 text-[#92400E] flex items-center justify-center ring-1 ring-amber-300/60 shadow-xs group-hover:scale-110 group-hover:bg-amber-200 transition-all duration-300">
-                        <CardIcon className="w-6 h-6 text-[#92400E]" strokeWidth={2.2} />
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/70 text-[#92400E] flex items-center justify-center ring-1 ring-amber-300/60 shadow-xs group-hover:scale-110 group-hover:bg-amber-200 transition-all duration-300">
+                          <CardIcon className="w-6 h-6 text-[#92400E]" strokeWidth={2.2} />
+                        </div>
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100/90 text-[#854D0E] ring-1 ring-amber-300/60 shadow-2xs">
+                          {language === "en" ? `Value 0${i + 1}` : `Giá Trị 0${i + 1}`}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100/90 text-[#854D0E] ring-1 ring-amber-300/60 shadow-2xs">
-                        {language === "en" ? `Value 0${i + 1}` : `Giá Trị 0${i + 1}`}
-                      </span>
-                    </div>
 
-                    <h3 className="relative text-xl font-bold text-[#173522] mb-3 group-hover:text-[#92400E] transition-colors">{val.title}</h3>
-                    <p className="relative text-stone-600 leading-relaxed text-sm sm:text-base">{val.desc}</p>
+                      <h3 className="relative text-xl font-bold text-[#173522] mb-3 group-hover:text-[#92400E] transition-colors [text-wrap:balance] min-h-[3.25rem] flex items-center">
+                        {val.title}
+                      </h3>
+                      <p className="relative text-stone-600 leading-relaxed text-sm sm:text-base [text-wrap:pretty]">
+                        {val.desc}
+                      </p>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -1267,12 +1307,14 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex-1 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}</h2>
-                <p className="text-lg text-foreground/80 leading-relaxed max-w-2xl">
+                <h2 className="text-3xl md:text-5xl font-bold text-primary [text-wrap:balance] leading-tight">
+                  {language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}
+                </h2>
+                <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-2xl [text-wrap:pretty]">
                   {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : cmsContent.StoryDescription || "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
-                <div className="pl-6 border-l-4 border-[#B45309] space-y-4">
-                  <p className="text-foreground/80 italic max-w-xl">
+                <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-50/80 via-amber-50/40 to-transparent border-l-4 border-[#B45309] shadow-2xs">
+                  <p className="text-foreground/85 italic max-w-xl text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
                     {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For generations, the people here preserve the craft of making longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
@@ -1291,7 +1333,7 @@ export default function LandingPage() {
         <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl w-full max-w-full">
             <Reveal>
-              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8">{t.history.title}</h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8 [text-wrap:balance]">{t.history.title}</h2>
             </Reveal>
             <div ref={timelineRef} className="relative border-l-2 border-accent pl-6 sm:pl-8 ml-3 sm:ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-8 sm:space-y-12">
               {/* Trục thời gian được "vẽ" dần theo nhịp cuộn (chỉ hiện ở desktop, nơi các mốc nằm giữa) */}
@@ -1300,8 +1342,8 @@ export default function LandingPage() {
               </div>
               <div className="relative md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
-                  <h3 className="text-xl sm:text-2xl font-bold text-accent">{t.history.c16_title}</h3>
-                  <p className="text-foreground/80">{t.history.c16_desc.split(". ")[0]}.</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-accent [text-wrap:balance]">{t.history.c16_title}</h3>
+                  <p className="text-foreground/80 [text-wrap:pretty]">{t.history.c16_desc.split(". ")[0]}.</p>
                 </div>
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
@@ -1311,15 +1353,15 @@ export default function LandingPage() {
                   className="absolute z-10 -left-[33px] sm:-left-[41px] top-1.5 md:top-1/2 md:-translate-y-1/2 md:left-1/2 md:-ml-[8px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
                 />
                 <div className="md:w-1/2 md:text-left">
-                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.c16_title}</h3>
-                  <p className="text-sm text-foreground/80 md:hidden mb-2">{t.history.c16_desc.split(". ")[0]}.</p>
-                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.c16_desc.split(". ")[1]}</div>
+                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.c16_title}</h3>
+                  <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{t.history.c16_desc.split(". ")[0]}.</p>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.c16_desc.split(". ")[1]}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8 flex-row-reverse">
                 <div className="md:w-1/2 text-left hidden md:block">
-                  <h3 className="text-xl sm:text-2xl font-bold text-accent">{t.history.tree_title}</h3>
-                  <p className="text-foreground/80">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-accent [text-wrap:balance]">{t.history.tree_title}</h3>
+                  <p className="text-foreground/80 [text-wrap:pretty]">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
                 </div>
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
@@ -1329,15 +1371,15 @@ export default function LandingPage() {
                   className="absolute z-10 -left-[33px] sm:-left-[41px] top-1.5 md:top-1/2 md:-translate-y-1/2 md:left-1/2 md:-ml-[8px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
                 />
                 <div className="md:w-1/2 md:text-right">
-                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.tree_title}</h3>
-                  <p className="text-sm text-foreground/80 md:hidden mb-2">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
-                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.tree_desc}</div>
+                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.tree_title}</h3>
+                  <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.tree_desc}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
-                  <h3 className="text-xl sm:text-2xl font-bold text-accent">{t.history.year2010_title}</h3>
-                  <p className="text-foreground/80">{t.history.year2010_desc.split(". ")[0]}.</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-accent [text-wrap:balance]">{t.history.year2010_title}</h3>
+                  <p className="text-foreground/80 [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[0]}.</p>
                 </div>
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
@@ -1347,9 +1389,9 @@ export default function LandingPage() {
                   className="absolute z-10 -left-[33px] sm:-left-[41px] top-1.5 md:top-1/2 md:-translate-y-1/2 md:left-1/2 md:-ml-[8px] w-4 h-4 rounded-full bg-accent ring-4 ring-background"
                 />
                 <div className="md:w-1/2 md:text-left">
-                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden">{t.history.year2010_title}</h3>
-                  <p className="text-sm text-foreground/80 md:hidden mb-2">{t.history.year2010_desc.split(". ")[0]}.</p>
-                  <div className="bg-white/90 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/60 text-xs sm:text-sm text-foreground/85">{t.history.year2010_desc.split(". ")[1]}</div>
+                  <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.year2010_title}</h3>
+                  <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[0]}.</p>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[1]}</div>
                 </div>
               </div>
             </div>
@@ -1374,17 +1416,14 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
               <div>
                 <Reveal>
-                  <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-white">
-                    {(language === "en"
-                      ? "Enjoy the Essence\nof Flavor"
-                      : cmsContent.OrderTitle || "Thưởng Thức\nHương Vị Tinh Túy"
-                    ).split("\n").filter(Boolean).map((line, i) => (
-                      <span key={i}>{i > 0 && <br />}{line}</span>
-                    ))}
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 text-white leading-tight [text-wrap:balance]">
+                    {language === "en"
+                      ? "Enjoy the Essence of Royal Flavor"
+                      : (cmsContent.OrderTitle ? cmsContent.OrderTitle.replace(/\n/g, " ") : "Thưởng Thức Hương Vị Tinh Túy")}
                   </h2>
                 </Reveal>
                 <Reveal delay={0.08}>
-                  <p className="text-sm sm:text-lg text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90 max-w-xl">
+                  <p className="text-sm sm:text-lg text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90 max-w-xl [text-wrap:pretty]">
                     {language === "en" ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands." : cmsContent.OrderDescription || "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                   </p>
                 </Reveal>
@@ -1961,17 +2000,22 @@ export default function LandingPage() {
       </footer>
 
       {/* Floating Chat Widget — Kết nối SignalR thực */}
-      <div className="fixed bottom-20 right-3.5 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end">
-        <AnimatePresence>
-          {isChatOpen && !isCartDrawerOpen && (
-            <motion.div
-              key="chat-panel"
-              initial={{ opacity: 0, y: 28, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.94 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[calc(100vw-2rem)] sm:w-[350px] max-w-[360px] mb-3 sm:mb-4 overflow-hidden flex flex-col origin-bottom-right"
-            >
+      {!isMobileMenuOpen && (
+        <div className={`fixed z-50 flex flex-col items-end transition-all ${
+          isScrolled 
+            ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6" 
+            : "bottom-5 right-3.5 sm:bottom-6 sm:right-6"
+        } ${isScrolled && !isChatOpen ? "hidden md:flex" : "flex"}`}>
+          <AnimatePresence>
+            {isChatOpen && !isCartDrawerOpen && (
+              <motion.div
+                key="chat-panel"
+                initial={{ opacity: 0, y: 28, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[calc(100vw-1.5rem)] sm:w-[350px] max-w-[360px] mb-3 sm:mb-4 overflow-hidden flex flex-col origin-bottom-right max-h-[calc(100dvh-5.5rem)] sm:max-h-[560px]"
+              >
               {/* Header điều hướng giữa Chuyên gia AI và Tư vấn viên người thật */}
               <div className="bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] p-3 text-white">
                 <div className="flex justify-between items-center mb-2">
@@ -2190,6 +2234,7 @@ export default function LandingPage() {
           )}
         </motion.button>
       </div>
+      )}
 
       {/* 15. Thanh thao tác nhanh cố định trên Mobile (Sticky Bottom Bar) */}
       <AnimatePresence>
@@ -2199,7 +2244,7 @@ export default function LandingPage() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
-            className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#FDE68A]/70 px-4 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex items-center justify-between gap-3 safe-area-bottom"
+            className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#FDE68A]/70 px-4 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex items-center justify-between gap-3 safe-area-bottom pb-[max(0.625rem,env(safe-area-inset-bottom))]"
           >
             <a
               href={`tel:${cmsContent.Hotline || "0982072601"}`}

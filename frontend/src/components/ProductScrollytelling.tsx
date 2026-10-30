@@ -92,10 +92,10 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
             <span>{language === "en" ? "Artisan Craftsmanship Journey" : "Kỳ Công Nghệ Nhân Phố Hiến"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
             {language === "en" ? "From Ancient Orchards to Royal Banquets" : "Hành Trình Tinh Túy Từ Vườn Nhãn Đến Bàn Tiệc"}
           </h2>
-          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed">
+          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed [text-wrap:pretty]">
             {language === "en"
               ? "Every jar of Nguyệt Nhãn undergoes a meticulous 4-step traditional crafting procedure spanning over 36 hours of artisan labor."
               : "Mỗi mẻ Nguyệt Nhãn là kết tinh của 4 công đoạn thủ công tỉ mỉ suốt hơn 36 giờ giữ lửa, mang trọn vẹn tinh hoa đất trời Hưng Yên."}
@@ -159,11 +159,11 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                         </span>
                       </div>
 
-                      <h3 className="text-base sm:text-xl md:text-2xl font-bold text-primary mb-2 sm:mb-3">
+                      <h3 className="text-base sm:text-xl md:text-2xl font-bold text-primary mb-2 sm:mb-3 [text-wrap:balance]">
                         {language === "en" ? item.titleEn : item.title}
                       </h3>
 
-                      <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed mb-3 sm:mb-4">
+                      <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed mb-3 sm:mb-4 [text-wrap:pretty]">
                         {language === "en" ? item.descEn : item.desc}
                       </p>
 

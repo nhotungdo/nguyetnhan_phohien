@@ -141,12 +141,12 @@ export function ProductInteractiveShowcase({
             <span>{language === "en" ? "King's Tribute Longan Collection" : "Bộ Sưu Tập Long Nhãn Tiến Vua"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-2.5">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-2.5 [text-wrap:balance]">
             {language === "en" 
               ? (cmsContent.ProductsTitle_En || "Artisanal Specialty Products") 
               : (cmsContent.ProductsTitle || "Tinh Hoa Sản Phẩm Nguyệt Nhãn")}
           </h2>
-          <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+          <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto [text-wrap:pretty]">
             {language === "en"
               ? (cmsContent.ProductsSubtitle_En || "Hand-selected Hương Chi longan, dried using hot air convective drying to preserve its golden hue and honeyed fragrance.")
               : (cmsContent.ProductsSubtitle || "Từng cùi nhãn Hương Chi được chọn lọc kỹ lưỡng, sấy nhiệt nóng (sấy đối lưu) giữ trọn sắc vàng óng ánh và hương thơm ngọt ngào trứ danh.")}
@@ -326,7 +326,7 @@ export function ProductInteractiveShowcase({
               </div>
 
               {/* Băng ảnh nhỏ chọn sản phẩm: chia lưới 3 cột vừa vặn, không bị cắt xén tên */}
-              <div className="grid grid-cols-3 gap-2 mt-3 w-full">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 w-full">
                 {displayProducts.map((prod, idx) => {
                   const isCurrent = idx === selectedIndex;
                   return (
@@ -336,9 +336,9 @@ export function ProductInteractiveShowcase({
                         setSelectedIndex(idx);
                         setActiveHotspot(null);
                       }}
-                      className={`flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
+                      className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
                         isCurrent
-                          ? "bg-amber-100/90 ring-1 ring-amber-700/30"
+                          ? "bg-amber-100/90 ring-1 ring-amber-700/30 shadow-xs"
                           : "bg-stone-100/70 hover:bg-stone-100"
                       }`}
                     >
@@ -352,11 +352,11 @@ export function ProductInteractiveShowcase({
                           className="object-contain p-0.5"
                         />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-bold text-primary line-clamp-2 leading-tight" title={prod.name}>
+                      <div className="min-w-0 flex-1 w-full">
+                        <div className="text-[11px] sm:text-xs font-bold text-primary truncate sm:line-clamp-2 leading-tight" title={prod.name}>
                           {prod.name}
                         </div>
-                        <div className="text-xs font-bold text-[#854D0E] leading-tight">
+                        <div className="text-[10px] sm:text-xs font-bold text-[#854D0E] leading-tight mt-0.5">
                           {formatPrice(prod.price)}
                         </div>
                       </div>
@@ -380,11 +380,11 @@ export function ProductInteractiveShowcase({
                   </span>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-bold text-primary mb-1.5 break-words leading-snug">
+                <h3 className="text-xl sm:text-2xl font-bold text-primary mb-1.5 break-words leading-snug [text-wrap:balance]">
                   {activeProduct.name}
                 </h3>
 
-                <p className="text-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 break-words line-clamp-2">
+                <p className="text-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 break-words line-clamp-2 [text-wrap:pretty]">
                   {activeProduct.description}
                 </p>
 
@@ -412,7 +412,7 @@ export function ProductInteractiveShowcase({
                           <span className="text-foreground/85 truncate">
                             {language === "en" ? metric.labelEn : metric.label}
                           </span>
-                          <span className="font-bold text-primary ml-1 shrink-0">{metric.value}%</span>
+                          <span className="font-bold text-primary ml-1 shrink-0 tabular-nums">{metric.value}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-secondary/60 rounded-full overflow-hidden p-0.5">
                           <motion.div
