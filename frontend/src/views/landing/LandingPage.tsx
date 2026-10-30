@@ -1176,7 +1176,7 @@ export default function LandingPage() {
                 <div className="md:col-span-5 relative flex justify-center">
                   <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/30 group">
                     <FastImage
-                      src="/images/setqua.jpg"
+                      src="/images/setqua3.jpg"
                       alt="Tự Chọn Hạt Độc Bản"
                       fill
                       sizes="(max-width: 768px) 240px, 288px"
