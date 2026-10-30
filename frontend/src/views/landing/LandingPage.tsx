@@ -1021,20 +1021,57 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 3. Giới thiệu thương hiệu */}
-        <section id="gioi-thieu" className="py-24 bg-white relative overflow-hidden w-full max-w-full">
-          <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
+        {/* 3. Giới thiệu thương hiệu — Tinh hoa ẩm thực Phố Hiến */}
+        <section id="gioi-thieu" className="py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full">
+          {/* Hào quang nền dịu nhẹ tôn lên phong vị truyền thống */}
+          <div aria-hidden="true" className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+          <div aria-hidden="true" className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-amber-100/30 blur-3xl pointer-events-none" />
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
-              className="max-w-3xl mx-auto text-center space-y-6"
+              className="max-w-3xl mx-auto text-center space-y-5"
             >
-              <h2 className="text-3xl md:text-5xl font-bold text-primary">{language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}</h2>
-              <p className="text-lg text-foreground/80 leading-relaxed max-w-2xl mx-auto">
+              {/* Huy hiệu di sản */}
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-50/90 border border-amber-200/80 text-[#92400E] text-xs sm:text-sm font-semibold shadow-xs">
+                <span>{language === "en" ? "Hung Yen Royal Delicacy" : "Di Sản Phẩm Vật Tiến Vua"}</span>
+              </div>
+
+              {/* Tiêu đề chính thức */}
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173522] tracking-tight leading-tight">
+                {language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}
+              </h2>
+
+              {/* Vạch hoa văn phân cách hoàng gia đối xứng */}
+              <div className="flex items-center justify-center gap-3 py-1" aria-hidden="true">
+                <span className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent via-amber-400 to-amber-300" />
+                <span className="w-2 h-2 rotate-45 bg-[#854D0E] rounded-xs shadow-xs" />
+                <span className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent via-amber-400 to-amber-300" />
+              </div>
+
+              {/* Đoạn văn giới thiệu thương hiệu */}
+              <p className="text-base sm:text-lg md:text-xl text-stone-700 leading-relaxed max-w-2xl mx-auto font-normal">
                 {language === "en" ? t.about.desc : cmsContent.AboutDescription || t.about.desc}
               </p>
+
+              {/* 3 Thẻ bảo chứng chất lượng & nguồn gốc */}
+              <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-3 text-xs sm:text-sm font-medium text-stone-700">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                  <span>{language === "en" ? "100% Ancient Orchard" : "Nhãn Lồng Hương Chi Cổ Thụ"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                  <span>{language === "en" ? "Convection Heat Drying" : "Sấy Đối Lưu Khép Kín"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                  <span>{language === "en" ? "No Additives • Pure" : "Chuẩn Vị • Không Phụ Gia"}</span>
+                </div>
+              </div>
             </motion.div>
 
             <motion.div
@@ -1042,26 +1079,38 @@ export default function LandingPage() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: "-80px" }}
-              className="grid md:grid-cols-3 gap-8 mt-20"
+              className="grid md:grid-cols-3 gap-8 mt-16 sm:mt-20"
             >
               {[
-                { title: t.about.natural_title, desc: t.about.natural_desc },
-                { title: t.about.traditional_title, desc: t.about.traditional_desc },
-                { title: t.about.safe_title, desc: t.about.safe_desc }
-              ].map((val, i) => (
-                <motion.div
-                  variants={fadeUp}
-                  whileHover={prefersReducedMotion ? undefined : { y: -10 }}
-                  key={i}
-                  className="relative overflow-hidden bg-background p-8 rounded-3xl border border-[#FDE68A]/50 hover:shadow-xl hover:border-[#FDE68A] transition-colors group"
-                >
-                  {/* Vệt sáng màu kem loe ra khi hover thay cho hiệu ứng dịch chuyển bằng CSS */}
-                  <div aria-hidden className="absolute -right-12 -top-12 w-36 h-36 rounded-full bg-secondary opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500" />
-                  <div className="relative w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-accent text-2xl font-bold mb-6 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-500">0{i + 1}</div>
-                  <h3 className="relative text-xl font-bold text-primary mb-3">{val.title}</h3>
-                  <p className="relative text-foreground/80">{val.desc}</p>
-                </motion.div>
-              ))}
+                { title: t.about.natural_title, desc: t.about.natural_desc, icon: Leaf },
+                { title: t.about.traditional_title, desc: t.about.traditional_desc, icon: Flame },
+                { title: t.about.safe_title, desc: t.about.safe_desc, icon: ShieldCheck },
+              ].map((val, i) => {
+                const CardIcon = val.icon;
+                return (
+                  <motion.div
+                    variants={fadeUp}
+                    whileHover={prefersReducedMotion ? undefined : { y: -8 }}
+                    key={i}
+                    className="relative overflow-hidden bg-white p-8 rounded-3xl border border-amber-200/60 hover:border-amber-400/80 hover:shadow-xl transition-all duration-300 group"
+                  >
+                    {/* Hào quang nền dịu nhẹ khi hover */}
+                    <div aria-hidden="true" className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-amber-100/40 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 pointer-events-none" />
+
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/70 text-[#92400E] flex items-center justify-center ring-1 ring-amber-300/60 shadow-xs group-hover:scale-110 group-hover:bg-amber-200 transition-all duration-300">
+                        <CardIcon className="w-6 h-6 text-[#92400E]" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100/90 text-[#854D0E] ring-1 ring-amber-300/60 shadow-2xs">
+                        {language === "en" ? `Value 0${i + 1}` : `Giá Trị 0${i + 1}`}
+                      </span>
+                    </div>
+
+                    <h3 className="relative text-xl font-bold text-[#173522] mb-3 group-hover:text-[#92400E] transition-colors">{val.title}</h3>
+                    <p className="relative text-stone-600 leading-relaxed text-sm sm:text-base">{val.desc}</p>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </div>
         </section>
