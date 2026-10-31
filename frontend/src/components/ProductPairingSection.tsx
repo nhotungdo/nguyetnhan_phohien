@@ -224,8 +224,8 @@ export function ProductPairingSection({
     >
       {/* Nền trang trí hoa văn ánh sáng */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.3)_0%,transparent_70%)] rounded-full blur-2xl" />
-        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[radial-gradient(circle,rgba(217,119,6,0.15)_0%,transparent_70%)] rounded-full blur-2xl" />
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.3)_0%,rgba(253,230,138,0)_70%)] rounded-full blur-2xl" />
+        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[radial-gradient(circle,rgba(217,119,6,0.15)_0%,rgba(217,119,6,0)_70%)] rounded-full blur-2xl" />
       </div>
 
       <div className="container mx-auto px-4 md:px-6 w-full max-w-full">

@@ -74,8 +74,8 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
     <section id="quy-trinh" ref={containerRef} className="py-16 sm:py-24 bg-[#FFFDF8] relative overflow-hidden border-t border-b border-[#FDE68A]/40 w-full max-w-full scroll-mt-20 sm:scroll-mt-24">
       {/* Nền trang trí */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-0 right-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,transparent_70%)] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(237,243,233,0.7)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.25)_0%,rgba(253,230,138,0)_70%)] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 max-w-[100vw] h-96 bg-[radial-gradient(circle,rgba(237,243,233,0.7)_0%,rgba(237,243,233,0)_70%)] pointer-events-none" />
       </div>
 
       <div className="container mx-auto px-4 md:px-6 w-full max-w-full">

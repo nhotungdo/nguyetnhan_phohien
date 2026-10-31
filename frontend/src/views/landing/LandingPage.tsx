@@ -660,7 +660,7 @@ export default function LandingPage() {
         initial={{ y: -90, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 w-full max-w-full ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full transform-gpu ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
           }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
@@ -933,18 +933,18 @@ export default function LandingPage() {
         {/* 2. Hero Banner */}
         <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full">
           {/* Background Elements */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9] z-10"></div>
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [isolation:isolate]">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9]"></div>
             <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.5 }}
               transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,transparent_70%)] rounded-full pointer-events-none"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,rgba(247,238,221,0)_70%)] rounded-full pointer-events-none"
             />
             {/* Hai vệt sáng trôi lơ lửng, lệch pha nhau → nền "thở" nhẹ mà không gây phân tán */}
-            <div className="absolute -left-24 top-24 w-[420px] max-w-[100vw] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-float-slow will-change-transform pointer-events-none" />
-            <div className="absolute right-1/4 bottom-0 w-[320px] max-w-[100vw] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,transparent_70%)] animate-float-slower will-change-transform pointer-events-none" />
+            <div className="absolute -left-24 top-24 w-[420px] max-w-[100vw] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,rgba(253,230,138,0)_70%)] animate-float-slow pointer-events-none" />
+            <div className="absolute right-1/4 bottom-0 w-[320px] max-w-[100vw] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,rgba(217,148,145,0)_70%)] animate-float-slower pointer-events-none" />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
@@ -961,17 +961,17 @@ export default function LandingPage() {
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
                 <motion.span
-                  initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 28 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.85, delay: 0.25, ease: EASE_OUT_EXPO }}
-                  className="block text-[#173522] drop-shadow-xs"
+                  className="block text-[#173522]"
                 >
                   {heroLine1}
                 </motion.span>
                 {heroLine2 && (
                   <motion.span
-                    initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    initial={{ opacity: 0, y: 28 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.85, delay: 0.45, ease: EASE_OUT_EXPO }}
                     className="block mt-1 sm:mt-2 bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] bg-clip-text text-transparent"
                   >
@@ -1287,7 +1287,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               <div className="flex-1 relative">
-                <div className="aspect-square rounded-full bg-[radial-gradient(circle,rgba(247,238,221,0.9)_0%,transparent_70%)] absolute -top-10 -left-10 w-full h-full -z-10 opacity-70 pointer-events-none"></div>
+                <div className="aspect-square rounded-full bg-[radial-gradient(circle,rgba(247,238,221,0.9)_0%,rgba(247,238,221,0)_70%)] absolute -top-10 -left-10 w-full h-full -z-10 opacity-70 pointer-events-none"></div>
                 <div className="w-full aspect-[4/5] rounded-[3rem] bg-[#FDE68A]/30 overflow-hidden relative border-8 border-white shadow-2xl">
                   {/* Placeholder phía dưới — admin chưa đặt ảnh (hoặc ảnh lỗi) vẫn thấy khung gợi ý */}
                   <div className="absolute inset-0 flex items-center justify-center text-accent font-medium">

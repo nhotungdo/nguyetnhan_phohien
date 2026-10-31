@@ -47,12 +47,12 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       style={{ perspective: 1200 }}
     >
       {/* Vòng tròn hào quang xoay chậm phía sau */}
-      <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-[#FDE68A]/70 via-[#FEF3C7]/90 to-[#D5B477]/50 shadow-2xl blur-sm flex items-center justify-center overflow-hidden animate-[spin_90s_linear_infinite] -z-10 will-change-transform">
+      <div className="absolute inset-4 rounded-full bg-gradient-to-tr from-[#FDE68A]/70 via-[#FEF3C7]/90 to-[#D5B477]/50 shadow-2xl blur-sm flex items-center justify-center overflow-hidden animate-[spin_90s_linear_infinite] -z-10">
         <div className="absolute inset-4 border border-[#B45309]/20 rounded-full border-dashed" />
       </div>
 
       {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) dùng radial gradient thay vì blur-3xl */}
-      <div className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,transparent_70%)] animate-pulse -z-20 pointer-events-none" />
+      <div className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,rgba(253,230,138,0)_70%)] animate-pulse -z-20 pointer-events-none" />
 
       {/* Thẻ ảnh 3D Parallax chính */}
       <motion.div

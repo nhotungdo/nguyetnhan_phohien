@@ -23,10 +23,10 @@ export const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE_OUT_EXPO } },
 };
 
-/** Phần tử con cao cấp: trượt lên + chuyển từ mờ ảo sang sắc nét (blur-to-focus). */
+/** Phần tử con: trượt lên + chuyển từ mờ dần sang rõ nét. */
 export const fadeUpBlur: Variants = {
-  hidden: { opacity: 0, y: 22, filter: "blur(6px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.8, ease: EASE_OUT_EXPO } },
+  hidden: { opacity: 0, y: 22 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT_EXPO } },
 };
 
 /** Phần tử con: phóng nhẹ từ 0.95 → 1 (dùng cho thẻ, modal, ảnh). */
@@ -98,11 +98,10 @@ export function WordReveal({
           <motion.span
             key={`${word}-${i}`}
             variants={{
-              hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
+              hidden: { opacity: 0, y: 16 },
               show: {
                 opacity: 1,
                 y: 0,
-                filter: "blur(0px)",
                 transition: { duration: 0.65, ease: EASE_OUT_EXPO },
               },
             }}

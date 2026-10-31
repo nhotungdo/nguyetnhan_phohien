@@ -124,7 +124,7 @@ export function ProductInteractiveShowcase({
     <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-gradient-to-b from-white via-amber-50/20 to-white w-full max-w-full">
       {/* Nền trang trí hạt ánh sáng */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[800px] max-w-[150vw] h-[400px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.25)_0%,transparent_70%)] rounded-full pointer-events-none" />
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[800px] max-w-[150vw] h-[400px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.25)_0%,rgba(253,230,138,0)_70%)] rounded-full pointer-events-none" />
       </div>
       
       <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
@@ -237,7 +237,7 @@ export function ProductInteractiveShowcase({
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                   {/* Vòng hào quang nhẹ sau ảnh */}
-                  <div className="absolute -inset-4 bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,transparent_70%)] -z-10 pointer-events-none" />
+                  <div className="absolute -inset-4 bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,rgba(253,230,138,0)_70%)] -z-10 pointer-events-none" />
                 </motion.div>
 
                 {/* Các điểm neo Hotspots tương tác cắm trên ảnh */}
