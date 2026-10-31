@@ -222,10 +222,10 @@ export function ProductPairingSection({
       id="van-hoa"
       className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF4E6] to-[#FFFDF8] relative overflow-hidden border-t border-[#FDE68A]/40 w-full max-w-full scroll-mt-20 sm:scroll-mt-24"
     >
-      {/* Nền trang trí hoa văn ánh sáng */}
+      {/* Nền trang trí hoa văn ánh sáng dùng Radial Gradient thuần (không dùng filter blur để an toàn WebKit) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.3)_0%,rgba(253,230,138,0)_70%)] rounded-full blur-2xl" />
-        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[radial-gradient(circle,rgba(217,119,6,0.15)_0%,rgba(217,119,6,0)_70%)] rounded-full blur-2xl" />
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,rgba(253,230,138,0)_70%)] rounded-full" />
+        <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[radial-gradient(circle,rgba(217,119,6,0.18)_0%,rgba(217,119,6,0)_70%)] rounded-full" />
       </div>
 
       <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
@@ -284,8 +284,13 @@ export function ProductPairingSection({
           {/* Cột ảnh văn hóa tôn vinh với vòng trang trí quay */}
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
-              {/* Vòng hào quang phía sau */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#B45309]/20 to-[#FDE68A]/40 rounded-full blur-xl scale-95" />
+              {/* Vòng hào quang phía sau dùng Radial Gradient */}
+              <div
+                className="absolute inset-0 rounded-full scale-95 pointer-events-none"
+                style={{
+                  background: "radial-gradient(circle at center, rgba(253, 230, 138, 0.45) 0%, rgba(180, 83, 9, 0.15) 55%, transparent 72%)",
+                }}
+              />
 
               {/* Vòng xoay nét đứt trang trí */}
               <div className="absolute inset-2 border-2 border-accent/40 border-dashed rounded-full animate-[spin_35s_linear_infinite] pointer-events-none" />

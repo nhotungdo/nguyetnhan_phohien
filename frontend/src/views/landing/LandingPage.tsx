@@ -720,7 +720,7 @@ export default function LandingPage() {
         initial={{ y: -90, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full transform-gpu ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
           }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
@@ -997,10 +997,25 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 via-[#FFFDF8] to-[#FAFAF9]" />
             <div className="absolute inset-0 bg-[#FDE68A]/15" />
             
-            {/* Vầng sáng hoàng kim cao cấp không lỗi render WebKit */}
-            <div className="absolute -top-16 -left-16 w-[360px] max-w-[100vw] h-[360px] rounded-full bg-amber-200/35 blur-3xl pointer-events-none" />
-            <div className="absolute right-0 top-1/4 w-[450px] max-w-[120vw] h-[450px] rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
-            <div className="absolute right-1/4 bottom-4 w-[280px] max-w-[100vw] h-[280px] rounded-full bg-orange-100/30 blur-3xl pointer-events-none" />
+            {/* Vầng sáng hoàng kim cao cấp dùng CSS Radial Gradient thuần túy (loại bỏ hoàn toàn filter: blur để tương thích 100% WebKit/iOS Safari) */}
+            <div
+              className="absolute top-0 left-0 w-[420px] max-w-full h-[420px] pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at 15% 15%, rgba(253, 230, 138, 0.45) 0%, rgba(253, 230, 138, 0.18) 45%, transparent 70%)",
+              }}
+            />
+            <div
+              className="absolute top-1/4 right-0 w-[460px] max-w-[120vw] h-[460px] pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at center, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.2) 45%, transparent 70%)",
+              }}
+            />
+            <div
+              className="absolute bottom-4 right-1/4 w-[320px] max-w-[100vw] h-[320px] pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at center, rgba(255, 237, 213, 0.4) 0%, rgba(254, 215, 170, 0.15) 50%, transparent 70%)",
+              }}
+            />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
@@ -1240,9 +1255,21 @@ export default function LandingPage() {
 
         {/* 6. Giới thiệu thương hiệu — Tinh hoa ẩm thực Phố Hiến */}
         <section id="gioi-thieu" className="py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full">
-          {/* Hào quang nền dịu nhẹ tôn lên phong vị truyền thống */}
-          <div aria-hidden="true" className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
-          <div aria-hidden="true" className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-amber-100/30 blur-3xl pointer-events-none" />
+          {/* Hào quang nền dịu nhẹ tôn lên phong vị truyền thống dùng Radial Gradient thuần */}
+          <div
+            aria-hidden="true"
+            className="absolute top-0 left-0 w-[420px] max-w-full h-[420px] pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 10% 10%, rgba(254, 243, 199, 0.45) 0%, rgba(253, 230, 138, 0.15) 45%, transparent 70%)",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 right-0 w-[420px] max-w-full h-[420px] pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 90% 90%, rgba(254, 243, 199, 0.35) 0%, rgba(253, 230, 138, 0.12) 45%, transparent 70%)",
+            }}
+          />
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <motion.div
@@ -1312,7 +1339,13 @@ export default function LandingPage() {
                     className="relative overflow-hidden bg-white p-7 sm:p-8 rounded-3xl border border-amber-200/60 hover:border-amber-400/80 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between h-full"
                   >
                     {/* Hào quang nền dịu nhẹ khi hover */}
-                    <div aria-hidden="true" className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-amber-100/40 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500 pointer-events-none" />
+                    <div
+                      aria-hidden="true"
+                      className="absolute right-0 top-0 w-36 h-36 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                      style={{
+                        background: "radial-gradient(circle at 80% 20%, rgba(254, 243, 199, 0.7) 0%, transparent 70%)",
+                      }}
+                    />
 
                     <div>
                       <div className="flex items-center justify-between mb-6">

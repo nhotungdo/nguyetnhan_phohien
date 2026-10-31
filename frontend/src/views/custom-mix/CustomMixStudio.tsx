@@ -591,8 +591,13 @@ export default function CustomMixStudio() {
               Tự do lựa chọn tỉ lệ từ 5 loại hạt dinh dưỡng & đặc sản trứ danh. Đạt đúng khối lượng tịnh yêu cầu với mức giá cố định trọn gói, được in tem nhãn cá nhân hóa miễn phí.
             </p>
           </div>
-          {/* Decorative glowing circle */}
-          <div className="absolute -right-16 -bottom-16 w-64 h-64 rounded-full bg-[#E9B949]/10 blur-3xl pointer-events-none" />
+          {/* Decorative glowing circle dùng Radial Gradient thuần */}
+          <div
+            className="absolute right-0 bottom-0 w-64 h-64 pointer-events-none"
+            style={{
+              background: "radial-gradient(circle at 80% 80%, rgba(233, 185, 73, 0.25) 0%, transparent 70%)",
+            }}
+          />
         </div>
 
         {/* WORKSPACE LAYOUT (2 COLUMNS) */}

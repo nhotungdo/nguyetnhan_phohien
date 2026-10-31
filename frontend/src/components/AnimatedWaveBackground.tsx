@@ -77,34 +77,43 @@ export function AnimatedWaveBackground() {
         }}
       />
 
-      {/* 2. CÁC QUẦNG SÁNG AURORA VÀNG KIM CHUYỂN ĐỘNG CHẬM (Breathing Aura Orbs) */}
+      {/* 2. CÁC QUẦNG SÁNG AURORA VÀNG KIM CHUYỂN ĐỘNG CHẬM (Breathing Aura Orbs dùng Radial Gradient thuần) */}
       <motion.div
         animate={{
           scale: [1, 1.25, 1],
           x: [0, 40, 0],
           y: [0, -25, 0],
-          opacity: [0.25, 0.45, 0.25],
+          opacity: [0.35, 0.55, 0.35],
         }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-24 -right-16 w-96 h-96 rounded-full bg-gradient-to-br from-amber-500/35 via-orange-500/20 to-transparent blur-3xl"
+        className="absolute -top-24 -right-16 w-96 h-96 rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at center, rgba(245, 158, 11, 0.35) 0%, rgba(249, 115, 22, 0.15) 50%, transparent 70%)",
+        }}
       />
       <motion.div
         animate={{
           scale: [1, 1.3, 1],
           x: [0, -35, 0],
           y: [0, 30, 0],
-          opacity: [0.2, 0.38, 0.2],
+          opacity: [0.3, 0.5, 0.3],
         }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute -bottom-24 -left-16 w-96 h-96 rounded-full bg-gradient-to-tr from-orange-600/30 via-amber-600/20 to-emerald-950/20 blur-3xl"
+        className="absolute -bottom-24 -left-16 w-96 h-96 rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at center, rgba(234, 88, 12, 0.3) 0%, rgba(217, 119, 6, 0.15) 45%, transparent 70%)",
+        }}
       />
       <motion.div
         animate={{
           scale: [0.9, 1.2, 0.9],
-          opacity: [0.15, 0.3, 0.15],
+          opacity: [0.2, 0.4, 0.2],
         }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full bg-amber-400/20 blur-3xl"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at center, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%)",
+        }}
       />
 
       {/* 3. LƯỚI CHẤM NHẠT TINH TẾ (Subtle Dot Matrix Grid) */}
