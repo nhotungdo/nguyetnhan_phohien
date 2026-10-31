@@ -34,6 +34,7 @@ interface MessageItem {
 
 interface NutritionAiWidgetProps {
   language?: "vi" | "en";
+  isKeyboardOpen?: boolean;
   onSwitchToLiveChat?: () => void;
 }
 
@@ -153,7 +154,7 @@ function FormattedMessage({ content }: { content: string }) {
   );
 }
 
-export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: NutritionAiWidgetProps) {
+export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onSwitchToLiveChat }: NutritionAiWidgetProps) {
   const instanceId = useId();
   const seqRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -175,6 +176,8 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const isTypingMode = isKeyboardOpen || isInputFocused;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const addItemToCart = useCartStore((state) => state.addItem);
@@ -387,89 +390,93 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-stone-50/40 w-full overflow-hidden">
-      {/* 1. Bộ chọn thể trạng nhanh (Health Profile Chips) */}
-      <div className="px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-100/80 via-amber-50 to-orange-50/60 border-b border-amber-200/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
-        <span className="text-[11px] font-bold text-amber-950 shrink-0 flex items-center gap-1">
-          <ShieldAlert className="w-3.5 h-3.5 text-[#B45309]" />
-          {language === "en" ? "Profile:" : "Thể trạng:"}
-        </span>
+      {/* 1. Bộ chọn thể trạng nhanh (Health Profile Chips) - ẩn khi đang gõ chữ để nhường diện tích xem tin nhắn */}
+      {!isTypingMode && (
+        <div className="px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-100/80 via-amber-50 to-orange-50/60 border-b border-amber-200/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
+          <span className="text-[11px] font-bold text-amber-950 shrink-0 flex items-center gap-1">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#B45309]" />
+            {language === "en" ? "Profile:" : "Thể trạng:"}
+          </span>
 
-        <button
-          onClick={() => handleGoalSelect("diet")}
-          disabled={isLoading}
-          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-            selectedGoal === "diet"
-              ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
-              : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-          }`}
-          title="Tối ưu calo, thực đơn lành mạnh"
-        >
-          🌿 Ăn kiêng
-        </button>
-
-        <button
-          onClick={() => handleGoalSelect("insomnia")}
-          disabled={isLoading}
-          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-            selectedGoal === "insomnia"
-              ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
-              : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-          }`}
-          title="Dưỡng tâm an thần, giấc ngủ ngon"
-        >
-          🌙 Trị mất ngủ
-        </button>
-
-        <button
-          onClick={() => handleGoalSelect("pregnancy")}
-          disabled={isLoading}
-          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-            selectedGoal === "pregnancy"
-              ? "bg-pink-600 text-white border-pink-700 shadow-xs"
-              : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-          }`}
-          title="Bổ huyết, vi khoáng cho mẹ"
-        >
-          🤰 Mẹ bầu
-        </button>
-
-        <button
-          onClick={handleNutAllergyToggle}
-          disabled={isLoading}
-          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 active:scale-95 touch-manipulation ${
-            isNutAllergic
-              ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
-              : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
-          }`}
-          title="Bật/Tắt chế độ cảnh báo và loại trừ sản phẩm chứa hạt"
-        >
-          <span>⚠️</span>
-          <span>{isNutAllergic ? "Đã lọc: Dị ứng hạt" : "Dị ứng hạt"}</span>
-        </button>
-      </div>
-
-      {/* 2. Gợi ý câu hỏi nhanh (Prompt Suggestions) */}
-      <div className="px-3 sm:px-4 py-2 bg-stone-50/80 border-b border-amber-200/60 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
-        <span className="text-[11px] font-semibold text-amber-900 shrink-0 flex items-center gap-1">
-          <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
-          {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
-        </span>
-        {QUICK_PROMPTS.map((item, idx) => (
           <button
-            key={idx}
+            onClick={() => handleGoalSelect("diet")}
             disabled={isLoading}
-            onClick={() => {
-              const nextAllergy = item.autoAllergy ? true : isNutAllergic;
-              if (item.autoAllergy) setIsNutAllergic(true);
-              handleSendMessage(item.prompt, selectedGoal, nextAllergy);
-            }}
-            className="min-h-[30px] sm:min-h-[28px] text-xs bg-white hover:bg-amber-50/80 text-amber-950 border border-amber-200/90 px-3 py-1 rounded-full whitespace-nowrap shadow-2xs transition-all active:scale-95 shrink-0 flex items-center gap-1.5 disabled:opacity-50 touch-manipulation"
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
+              selectedGoal === "diet"
+                ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
+                : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
+            }`}
+            title="Tối ưu calo, thực đơn lành mạnh"
           >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
+            🌿 Ăn kiêng
           </button>
-        ))}
-      </div>
+
+          <button
+            onClick={() => handleGoalSelect("insomnia")}
+            disabled={isLoading}
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
+              selectedGoal === "insomnia"
+                ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
+                : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
+            }`}
+            title="Dưỡng tâm an thần, giấc ngủ ngon"
+          >
+            🌙 Trị mất ngủ
+          </button>
+
+          <button
+            onClick={() => handleGoalSelect("pregnancy")}
+            disabled={isLoading}
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
+              selectedGoal === "pregnancy"
+                ? "bg-pink-600 text-white border-pink-700 shadow-xs"
+                : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
+            }`}
+            title="Bổ huyết, vi khoáng cho mẹ"
+          >
+            🤰 Mẹ bầu
+          </button>
+
+          <button
+            onClick={handleNutAllergyToggle}
+            disabled={isLoading}
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 active:scale-95 touch-manipulation ${
+              isNutAllergic
+                ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
+                : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
+            }`}
+            title="Bật/Tắt chế độ cảnh báo và loại trừ sản phẩm chứa hạt"
+          >
+            <span>⚠️</span>
+            <span>{isNutAllergic ? "Đã lọc: Dị ứng hạt" : "Dị ứng hạt"}</span>
+          </button>
+        </div>
+      )}
+
+      {/* 2. Gợi ý câu hỏi nhanh (Prompt Suggestions) - ẩn khi đang gõ chữ */}
+      {!isTypingMode && (
+        <div className="px-3 sm:px-4 py-2 bg-stone-50/80 border-b border-amber-200/60 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
+          <span className="text-[11px] font-semibold text-amber-900 shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
+            {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
+          </span>
+          {QUICK_PROMPTS.map((item, idx) => (
+            <button
+              key={idx}
+              disabled={isLoading}
+              onClick={() => {
+                const nextAllergy = item.autoAllergy ? true : isNutAllergic;
+                if (item.autoAllergy) setIsNutAllergic(true);
+                handleSendMessage(item.prompt, selectedGoal, nextAllergy);
+              }}
+              className="min-h-[30px] sm:min-h-[28px] text-xs bg-white hover:bg-amber-50/80 text-amber-950 border border-amber-200/90 px-3 py-1 rounded-full whitespace-nowrap shadow-2xs transition-all active:scale-95 shrink-0 flex items-center gap-1.5 disabled:opacity-50 touch-manipulation"
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 3. Khung hội thoại tin nhắn */}
       <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-3.5 bg-gradient-to-b from-stone-50/30 via-transparent to-white/50 custom-chat-scrollbar overscroll-contain">
@@ -597,8 +604,8 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         </div>
       )}
 
-      {/* 5. Chuyển sang tư vấn viên người thật */}
-      {onSwitchToLiveChat && (
+      {/* 5. Chuyển sang tư vấn viên người thật - ẩn khi đang gõ chữ */}
+      {!isTypingMode && onSwitchToLiveChat && (
         <div className="px-3.5 py-2 bg-gradient-to-r from-amber-100/70 via-amber-50 to-orange-100/50 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-950 shrink-0 gap-2">
           <span className="text-[11px] sm:text-xs">Cần giá sỉ hoặc hỗ trợ đơn hàng?</span>
           <button
@@ -612,12 +619,25 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
       )}
 
       {/* 6. Ô nhập câu hỏi */}
-      <div className="p-3 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${
+        isTypingMode ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      }`}>
         <div className="relative flex items-center">
           <input
             type="text"
             value={input}
             disabled={isLoading}
+            onFocus={() => {
+              setIsInputFocused(true);
+              setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+              }, 200);
+            }}
+            onBlur={() => {
+              setTimeout(() => {
+                setIsInputFocused(false);
+              }, 150);
+            }}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.nativeEvent.isComposing) {

@@ -123,6 +123,9 @@ export default function LandingPage() {
   const [chatMode, setChatMode] = useState<"ai" | "human">("ai");
   const [chatInput, setChatInput] = useState("");
   const [chatSendError, setChatSendError] = useState(false);
+  const [visualHeight, setVisualHeight] = useState<number | null>(null);
+  const [visualTop, setVisualTop] = useState<number>(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [guestName, setGuestName] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -408,15 +411,71 @@ export default function LandingPage() {
   // Khóa cuộn trang khi menu mobile hoặc chat widget trên mobile đang mở để tránh giật lag layout
   useEffect(() => {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-    if (isMobileMenuOpen || (isChatOpen && isMobile)) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    const shouldLock = isMobileMenuOpen || (isChatOpen && isMobile);
+    if (!shouldLock) return;
+
+    const scrollY = window.scrollY;
+    const prevPosition = document.body.style.position;
+    const prevTop = document.body.style.top;
+    const prevWidth = document.body.style.width;
+    const prevOverflow = document.body.style.overflow;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.position = prevPosition;
+      document.body.style.top = prevTop;
+      document.body.style.width = prevWidth;
+      document.body.style.overflow = prevOverflow;
+      window.scrollTo(0, scrollY);
     };
   }, [isMobileMenuOpen, isChatOpen]);
+
+  // Theo dõi chính xác kích thước khung nhìn thực (Visual Viewport) khi bàn phím ảo bật/tắt trên mobile (iOS Safari / Android)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const vv = window.visualViewport;
+    const updateViewport = () => {
+      const isMobile = window.innerWidth < 640;
+      if (!isMobile || !isChatOpen) {
+        setVisualHeight(null);
+        setVisualTop(0);
+        setIsKeyboardOpen(false);
+        return;
+      }
+
+      if (vv) {
+        setVisualHeight(vv.height);
+        setVisualTop(vv.offsetTop);
+        const keyboardActive = vv.height < window.innerHeight * 0.85;
+        setIsKeyboardOpen(keyboardActive);
+      } else {
+        setVisualHeight(window.innerHeight);
+        setVisualTop(0);
+        setIsKeyboardOpen(false);
+      }
+    };
+
+    updateViewport();
+
+    if (vv) {
+      vv.addEventListener("resize", updateViewport);
+      vv.addEventListener("scroll", updateViewport);
+    }
+    window.addEventListener("resize", updateViewport);
+
+    return () => {
+      if (vv) {
+        vv.removeEventListener("resize", updateViewport);
+        vv.removeEventListener("scroll", updateViewport);
+      }
+      window.removeEventListener("resize", updateViewport);
+    };
+  }, [isChatOpen]);
 
   // Xác nhận đã xem tin của Admin (read receipt) khi widget đang mở —
   // backend sẽ broadcast "GuestReadMessages" để admin hiện "Đã xem" realtime.
@@ -2047,6 +2106,18 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 20, scale: typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 0.94 }}
               transition={{ type: "spring", stiffness: 340, damping: 28 }}
+              style={
+                visualHeight !== null
+                  ? {
+                      height: `${visualHeight}px`,
+                      top: `${visualTop}px`,
+                      bottom: "auto",
+                      position: "fixed",
+                      left: 0,
+                      right: 0,
+                    }
+                  : undefined
+              }
               className="fixed inset-0 z-[100] sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:h-[620px] sm:max-h-[calc(100dvh-2.5rem)] w-full h-[100dvh] bg-white sm:rounded-2xl sm:shadow-2xl sm:border sm:border-amber-200/70 overflow-hidden flex flex-col sm:origin-bottom-right"
             >
               {/* Header điều hướng giữa Chuyên gia AI và Tư vấn viên người thật */}
@@ -2130,6 +2201,7 @@ export default function LandingPage() {
               <div className={`flex-1 flex flex-col min-h-0 w-full ${chatMode === "ai" ? "flex" : "hidden"}`}>
                 <NutritionAiWidget
                   language={language as "vi" | "en"}
+                  isKeyboardOpen={isKeyboardOpen}
                   onSwitchToLiveChat={() => {
                     setChatMode("human");
                     if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
@@ -2238,11 +2310,24 @@ export default function LandingPage() {
                       )}
                       <div ref={messagesEndRef} />
                     </div>
-                    <div className="p-3 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                    <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${
+                      isKeyboardOpen ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                    }`}>
                       <div className="relative flex items-center">
                         <input
                           type="text"
                           value={chatInput}
+                          onFocus={() => {
+                            setIsKeyboardOpen(true);
+                            setTimeout(() => {
+                              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                            }, 200);
+                          }}
+                          onBlur={() => {
+                            setTimeout(() => {
+                              setIsKeyboardOpen(false);
+                            }, 150);
+                          }}
                           onChange={(e) => {
                             setChatInput(e.target.value);
                             if (chatSendError) setChatSendError(false);
