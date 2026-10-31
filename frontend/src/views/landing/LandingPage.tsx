@@ -933,18 +933,14 @@ export default function LandingPage() {
         {/* 2. Hero Banner */}
         <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full">
           {/* Background Elements */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [isolation:isolate]">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 to-[#FAFAF9]"></div>
-            <div className="absolute inset-0 bg-[#FDE68A]/20"></div>
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.5 }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/3 w-[800px] max-w-[150vw] h-[800px] bg-[radial-gradient(circle,rgba(247,238,221,0.85)_0%,rgba(247,238,221,0)_70%)] rounded-full pointer-events-none"
-            />
-            {/* Hai vệt sáng trôi lơ lửng, lệch pha nhau → nền "thở" nhẹ mà không gây phân tán */}
-            <div className="absolute -left-24 top-24 w-[420px] max-w-[100vw] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,rgba(253,230,138,0)_70%)] animate-float-slow pointer-events-none" />
-            <div className="absolute right-1/4 bottom-0 w-[320px] max-w-[100vw] h-[320px] rounded-full bg-[radial-gradient(circle,rgba(217,148,145,0.25)_0%,rgba(217,148,145,0)_70%)] animate-float-slower pointer-events-none" />
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 via-[#FFFDF8] to-[#FAFAF9]" />
+            <div className="absolute inset-0 bg-[#FDE68A]/15" />
+            
+            {/* Vầng sáng hoàng kim cao cấp không lỗi render WebKit */}
+            <div className="absolute -top-16 -left-16 w-[360px] max-w-[100vw] h-[360px] rounded-full bg-amber-200/35 blur-3xl pointer-events-none" />
+            <div className="absolute right-0 top-1/4 w-[450px] max-w-[120vw] h-[450px] rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+            <div className="absolute right-1/4 bottom-4 w-[280px] max-w-[100vw] h-[280px] rounded-full bg-orange-100/30 blur-3xl pointer-events-none" />
           </div>
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
