@@ -21,50 +21,26 @@ const resolveImageUrl = (path?: string) => {
   return `${API_URL}/${path.replace(/^\/+/, "")}`;
 };
 
-// Dữ liệu dự phòng mẫu chuẩn khi DB hoàn toàn chưa có đơn nào
-const FALLBACK_ORDERS: RecentOrderActivity[] = [
-  {
-    id: "ord-fb-1",
-    customerName: "Chị Thu H*",
-    location: "Cầu Giấy, Hà Nội",
-    productName: "Set Quà Hoàng Kim Nguyệt Nhãn",
-    productImage: "/images/setqua.jpg",
-    quantity: 1,
-    timeAgo: "2 phút trước",
-    createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "ord-fb-2",
-    customerName: "Anh Minh Đ*",
-    location: "Quận 1, TP. Hồ Chí Minh",
-    productName: "Tự Phối Hũ Quà Độc Bản 500g",
-    productImage: "/images/setqua3.jpg",
-    quantity: 2,
-    timeAgo: "5 phút trước",
-    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "ord-fb-3",
-    customerName: "Cô Mai T*",
-    location: "TP. Hưng Yên",
-    productName: "Long Nhãn Ôm Sen Tiến Vua",
-    productImage: "/images/hopnhua.jpg",
-    quantity: 3,
-    timeAgo: "12 phút trước",
-    createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-  },
-];
-
 interface LiveOrderToastProps {
   isChatOpen?: boolean;
 }
 
+/**
+ * Hạng mục 5: Bằng Chứng Xã Hội & Chốt Đơn Thời Gian Thực (Conversion Booster)
+ * DỮ LIỆU THẬT 100% TỪ CƠ SỞ DỮ LIỆU (Orders Table):
+ * - Không dùng bất kỳ mock data / fallback orders giả lập nào.
+ * - Danh sách đơn hàng được lấy trực tiếp từ database qua API `/api/orders/recent-activities`.
+ * - Tự động cập nhật tức thì qua SignalR event `PublicOrderPlaced` khi có khách chốt đơn.
+ * - Tuân thủ bảo mật thông tin cá nhân: Ẩn danh tên (Nguyễn V*, Đỗ T*), chỉ hiển thị Quận/Tỉnh thành.
+ * - Nếu database chưa có đơn hàng nào hoặc API chưa sẵn sàng -> Tự động ẩn hoàn toàn (return null).
+ */
 export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
-  // 1. Tải danh sách đơn hàng thực tế từ cơ sở dữ liệu
+  // 1. Tải danh sách đơn hàng thực tế từ cơ sở dữ liệu (Không dùng mock data)
   const { data: dbOrders } = useQuery<RecentOrderActivity[]>({
     queryKey: ["orders", "recent-activities"],
     queryFn: () => orderApi.getRecentActivities(12),
     staleTime: 60 * 1000,
+    refetchInterval: 120 * 1000, // Tự động refetch định kỳ để cập nhật đơn mới
     retry: 1,
   });
 
@@ -74,21 +50,20 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
   const [isDismissed, setIsDismissed] = useState(false);
   const isFirstMountRef = useRef(true);
 
-  // Tổng hợp danh sách đơn: ưu tiên đơn từ DB, nếu DB trống dùng fallback
+  // 2. Tổng hợp danh sách đơn: Chỉ lấy đơn thực tế từ database và realtime SignalR
   const activeOrders = useMemo(() => {
     const list: RecentOrderActivity[] = [];
     if (realtimeOrder) {
       list.push(realtimeOrder);
     }
-    if (dbOrders && dbOrders.length > 0) {
+    if (dbOrders && Array.isArray(dbOrders) && dbOrders.length > 0) {
+      // Loại trừ trùng lặp nếu đơn realtime đã nằm trong danh sách DB
       list.push(...dbOrders.filter((o) => o.id !== realtimeOrder?.id));
-    } else if (list.length === 0) {
-      list.push(...FALLBACK_ORDERS);
     }
     return list;
   }, [dbOrders, realtimeOrder]);
 
-  // 2. Lắng nghe đơn hàng mới đặt realtime (từ SignalR hoặc form đặt hàng)
+  // 3. Lắng nghe đơn hàng mới đặt realtime từ SignalR hub
   useEffect(() => {
     const handleNewOrder = (e: Event) => {
       const customEvt = e as CustomEvent<RecentOrderActivity>;
@@ -105,7 +80,7 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
     };
   }, []);
 
-  // 3. Chu kỳ luân phiên hiển thị: Hiện 6.5 giây, ẩn nghỉ 14 giây rồi đổi sang đơn kế tiếp
+  // 4. Chu kỳ luân phiên hiển thị đơn hàng thật từ database: Hiện 6.5 giây, ẩn nghỉ 14 giây
   useEffect(() => {
     if (isDismissed || isChatOpen || activeOrders.length === 0) {
       setIsVisible(false);
@@ -132,6 +107,7 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
     return () => clearTimeout(timer);
   }, [isVisible, isDismissed, isChatOpen, activeOrders.length]);
 
+  // KHÔNG DÙNG MOCK DATA: Nếu database không có đơn hàng nào, ẩn hoàn toàn component
   if (isDismissed || isChatOpen || activeOrders.length === 0) return null;
 
   const currentOrder = activeOrders[currentIndex % activeOrders.length];
