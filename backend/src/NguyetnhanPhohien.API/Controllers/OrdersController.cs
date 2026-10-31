@@ -155,6 +155,40 @@ public class OrdersController : ControllerBase
         {
             var order = await _orderService.CreateOrderAsync(request);
             await NotifyOrdersChangedAsync("created", order.Id);
+
+            // Broadcast sự kiện đơn hàng mới đã ẩn danh cho tất cả khách đang xem web (Social Proof Realtime)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var firstItem = order.Items.FirstOrDefault();
+                    var productName = firstItem?.ProductName ?? order.ProductName ?? "Long Nhãn Ôm Sen Hoàng Kim";
+                    var quantity = firstItem?.Quantity ?? (order.Quantity > 0 ? order.Quantity : 1);
+                    if (order.Items.Count > 1)
+                    {
+                        productName += $" (+{order.Items.Count - 1} món)";
+                    }
+
+                    var publicActivity = new RecentOrderActivityDto
+                    {
+                        Id = order.Id,
+                        CustomerName = RecentOrderActivityDto.MaskName(order.CustomerName),
+                        Location = RecentOrderActivityDto.ExtractLocation(order.CustomerAddress),
+                        ProductName = productName,
+                        ProductImage = firstItem?.IsCustomMix == true ? "/images/setqua3.jpg" : "/images/setqua.jpg",
+                        Quantity = quantity,
+                        TimeAgo = "Vừa xong",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _hub.Clients.All.SendAsync("PublicOrderPlaced", publicActivity);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi khi broadcast sự kiện PublicOrderPlaced cho đơn {OrderId}", order.Id);
+                }
+            });
+
             return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
         }
         catch (ArgumentException ex)
@@ -162,6 +196,17 @@ public class OrdersController : ControllerBase
             // Sản phẩm không hợp lệ / mã giảm giá hết hạn hoặc hết lượt...
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// [PUBLIC] Lấy danh sách các đơn hàng gần đây đã được ẩn danh bảo mật để hiển thị Social Proof trên Landing Page.
+    /// </summary>
+    [HttpGet("recent-activities")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetRecentActivities([FromQuery] int limit = 10)
+    {
+        var activities = await _orderService.GetRecentPublicOrdersAsync(limit);
+        return Ok(activities);
     }
 
     /// <summary>

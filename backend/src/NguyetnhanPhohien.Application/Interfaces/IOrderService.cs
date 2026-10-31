@@ -10,4 +10,5 @@ public interface IOrderService
     Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status, string? reason = null);
     Task ResendInvoiceAsync(Guid id);
     Task ResendCancellationEmailAsync(Guid id, string? reason = null);
+    Task<IEnumerable<RecentOrderActivityDto>> GetRecentPublicOrdersAsync(int limit = 10);
 }

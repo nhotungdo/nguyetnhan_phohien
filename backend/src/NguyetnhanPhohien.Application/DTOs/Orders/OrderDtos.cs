@@ -87,3 +87,37 @@ public class ResendCancellationRequest
 {
     public string? Reason { get; set; }
 }
+
+// DTO công khai hiển thị hoạt động đặt hàng gần đây (Social Proof) - Đã ẩn danh bảo mật
+public class RecentOrderActivityDto
+{
+    public Guid Id { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
+    public string ProductName { get; set; } = string.Empty;
+    public string? ProductImage { get; set; }
+    public int Quantity { get; set; } = 1;
+    public string TimeAgo { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+
+    public static string MaskName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return "Khách hàng";
+        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0];
+
+        var first = parts[0];
+        var last = parts[^1];
+        var maskedLast = last.Length > 1 ? last[..1] + "*" : last;
+        return $"{first} {maskedLast}";
+    }
+
+    public static string ExtractLocation(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address)) return "Việt Nam";
+        var parts = address.Trim().Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Trim();
+        if (parts.Length == 2) return $"{parts[0].Trim()}, {parts[1].Trim()}";
+        return $"{parts[^2].Trim()}, {parts[^1].Trim()}";
+    }
+}

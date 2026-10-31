@@ -118,6 +118,17 @@ export interface OrderResponse {
   createdAt: string;
 }
 
+export interface RecentOrderActivity {
+  id: string;
+  customerName: string;
+  location: string;
+  productName: string;
+  productImage?: string;
+  quantity: number;
+  timeAgo: string;
+  createdAt: string;
+}
+
 // ===== DISCOUNT TYPES =====
 export interface ApplyDiscountRequest {
   code: string;

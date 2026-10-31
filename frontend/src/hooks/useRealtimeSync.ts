@@ -92,6 +92,14 @@ export function useRealtimeSync() {
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
     });
 
+    // Đơn hàng mới realtime (đã ẩn danh) phát cho tất cả khách xem web (Social Proof)
+    connection.on("PublicOrderPlaced", (activity) => {
+      queryClient.invalidateQueries({ queryKey: ["orders", "recent-activities"] });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("nn_public_order_placed", { detail: activity }));
+      }
+    });
+
     // Phiên chat mới / có tin nhắn / đổi trạng thái → Tổng quan cập nhật số liệu
     connection.on("SessionsChanged", () => {
       queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });

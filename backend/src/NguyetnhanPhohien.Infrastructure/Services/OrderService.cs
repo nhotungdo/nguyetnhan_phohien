@@ -866,6 +866,84 @@ Hotline: 034 897 3285
         return orders.Select(MapToResponse);
     }
 
+    public async Task<IEnumerable<RecentOrderActivityDto>> GetRecentPublicOrdersAsync(int limit = 10)
+    {
+        var clampedLimit = Math.Clamp(limit, 3, 20);
+
+        var orders = await _db.Orders
+            .AsNoTracking()
+            .Include(o => o.Items)
+            .Where(o => o.Status != OrderStatus.Cancelled)
+            .OrderByDescending(o => o.CreatedAt)
+            .Take(clampedLimit)
+            .ToListAsync();
+
+        if (orders.Count == 0)
+        {
+            return Enumerable.Empty<RecentOrderActivityDto>();
+        }
+
+        var productIds = orders
+            .SelectMany(o => o.Items)
+            .Select(i => i.ProductId)
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        var productImages = await _db.Products
+            .AsNoTracking()
+            .Where(p => productIds.Contains(p.Id))
+            .Select(p => new { p.Id, p.ImageUrl, FirstImage = p.Images.OrderBy(img => img.DisplayOrder).Select(img => img.ImagePath).FirstOrDefault() })
+            .ToDictionaryAsync(p => p.Id, p => !string.IsNullOrEmpty(p.FirstImage) ? p.FirstImage : p.ImageUrl);
+
+        var now = DateTime.UtcNow;
+        var result = new List<RecentOrderActivityDto>();
+
+        foreach (var o in orders)
+        {
+            var firstItem = o.Items.FirstOrDefault();
+            var productName = firstItem?.ProductName ?? o.ProductName ?? "Long Nhãn Ôm Sen Hoàng Kim";
+            var quantity = firstItem?.Quantity ?? (o.Quantity > 0 ? o.Quantity : 1);
+            if (o.Items.Count > 1)
+            {
+                productName += $" (+{o.Items.Count - 1} món)";
+            }
+
+            string? image = null;
+            if (firstItem != null && productImages.TryGetValue(firstItem.ProductId, out var img) && !string.IsNullOrEmpty(img))
+            {
+                image = img;
+            }
+            if (string.IsNullOrEmpty(image))
+            {
+                image = firstItem?.IsCustomMix == true ? "/images/setqua3.jpg" : "/images/setqua.jpg";
+            }
+
+            result.Add(new RecentOrderActivityDto
+            {
+                Id = o.Id,
+                CustomerName = RecentOrderActivityDto.MaskName(o.CustomerName),
+                Location = RecentOrderActivityDto.ExtractLocation(o.CustomerAddress),
+                ProductName = productName,
+                ProductImage = image,
+                Quantity = quantity,
+                TimeAgo = FormatTimeAgo(now - o.CreatedAt),
+                CreatedAt = o.CreatedAt
+            });
+        }
+
+        return result;
+    }
+
+    private static string FormatTimeAgo(TimeSpan diff)
+    {
+        if (diff.TotalMinutes < 2) return "Vừa xong";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} phút trước";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} giờ trước";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} ngày trước";
+        return $"{(int)(diff.TotalDays / 7)} tuần trước";
+    }
+
     public async Task<OrderResponse?> GetOrderByIdAsync(Guid id)
     {
         var order = await _db.Orders

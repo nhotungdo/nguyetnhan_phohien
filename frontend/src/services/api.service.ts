@@ -1,6 +1,7 @@
 import type {
   CreateOrderRequest,
   OrderResponse,
+  RecentOrderActivity,
   ApplyDiscountRequest,
   DiscountResult,
   ChatMessageResponse,
@@ -129,6 +130,10 @@ export const orderApi = {
   /** [PUBLIC] Tạo đơn hàng mới */
   create: (data: CreateOrderRequest): Promise<OrderResponse> =>
     apiFetch("/api/orders", { method: "POST", body: JSON.stringify(data) }),
+
+  /** [PUBLIC] Lấy danh sách các đơn hàng gần đây từ database (đã ẩn danh) để hiển thị Social Proof */
+  getRecentActivities: (limit = 10): Promise<RecentOrderActivity[]> =>
+    apiFetch(`/api/orders/recent-activities?limit=${limit}`),
 
   /** [ADMIN] Lấy toàn bộ đơn hàng */
   getAll: (): Promise<OrderResponse[]> =>
