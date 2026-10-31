@@ -53,6 +53,10 @@
     --animate-marquee: marquee 38s linear infinite;
     --animate-pulse-ring: pulse-ring 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --animate-gradient-pan: gradient-pan 9s ease-in-out infinite;
+    --animate-golden-sheen: golden-sheen 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    --animate-amber-drift: amber-drift 10s ease-in-out infinite;
+    --animate-ember-pulse: ember-pulse 3s ease-in-out infinite;
+    --animate-badge-pop: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Keyframes khai báo ở cấp cao nhất (CSS thuần) để không bị tree-shake khi chưa dùng tới */
@@ -75,6 +79,27 @@
 @keyframes gradient-pan {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
+}
+
+@keyframes golden-sheen {
+    0%, 15% { background-position: -200% center; }
+    40%, 100% { background-position: 200% center; }
+}
+
+@keyframes amber-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.35; }
+    50% { transform: translate3d(12px, -24px, 0) scale(1.15); opacity: 0.75; }
+}
+
+@keyframes ember-pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(217, 119, 6, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.2); transform: scale(1); }
+    50% { box-shadow: 0 0 28px rgba(217, 119, 6, 0.55), inset 0 0 16px rgba(245, 158, 11, 0.4); transform: scale(1.03); }
+}
+
+@keyframes badge-pop {
+    0% { transform: scale(0.6); }
+    60% { transform: scale(1.25); }
+    100% { transform: scale(1); }
 }
 
 :root {
@@ -308,6 +333,49 @@
       black 92%,
       transparent
     );
+  }
+
+  /* Hiệu ứng ánh kim chạy qua chữ thương hiệu */
+  .gold-shimmer-text {
+    background: linear-gradient(
+      115deg,
+      #173522 0%,
+      #173522 35%,
+      #D97706 48%,
+      #FDE68A 52%,
+      #173522 65%,
+      #173522 100%
+    );
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: golden-sheen 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /* Huy hiệu dát vàng có vệt sáng kim hoàn lướt qua */
+  .gold-shimmer-badge {
+    position: relative;
+    overflow: hidden;
+  }
+  .gold-shimmer-badge::after {
+    content: "";
+    position: absolute;
+    inset: -100% 0;
+    width: 60%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(253, 230, 138, 0.65),
+      transparent
+    );
+    transform: skewX(-20deg) translateX(-200%);
+    animation: sheen-swipe 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    pointer-events: none;
+  }
+
+  @keyframes sheen-swipe {
+    0%, 25% { transform: skewX(-20deg) translateX(-200%); }
+    50%, 100% { transform: skewX(-20deg) translateX(380%); }
   }
 }
 

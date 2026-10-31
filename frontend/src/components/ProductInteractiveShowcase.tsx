@@ -78,8 +78,17 @@ export function ProductInteractiveShowcase({
   const displayProducts = products && products.length > 0 ? products : DEFAULT_FALLBACK_PRODUCTS;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [isAdded, setIsAdded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const activeProduct = displayProducts[selectedIndex] || displayProducts[0];
+
+  const handleAddToCartClick = () => {
+    if (onAddToCart && activeProduct) {
+      onAddToCart(activeProduct);
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 1800);
+    }
+  };
 
   // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
   const mouseX = useMotionValue(0);
@@ -188,7 +197,14 @@ export function ProductInteractiveShowcase({
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
-          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/70 shadow-md relative overflow-hidden">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/80 shadow-md hover:shadow-2xl hover:border-amber-400 transition-all duration-500 relative overflow-hidden group">
+            {/* Vệt hào quang góc trên mềm mại */}
+            <div
+              className="absolute top-0 right-0 w-80 h-80 pointer-events-none -z-0 opacity-60 group-hover:opacity-100 transition-opacity duration-700"
+              style={{
+                background: "radial-gradient(circle at 100% 0%, rgba(253, 230, 138, 0.4) 0%, transparent 70%)",
+              }}
+            />
             
             {/* Cột Trái (Ảnh 3D Parallax + Hotspot Pins) */}
             <div className="lg:col-span-5 flex flex-col items-center w-full min-w-0 max-w-full">
@@ -455,22 +471,35 @@ export function ProductInteractiveShowcase({
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => onAddToCart(activeProduct)}
-                    className="flex-1 border-2 border-accent text-accent hover:bg-[#FEF3C7] font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+                    onClick={handleAddToCartClick}
+                    className={`flex-1 border-2 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
+                      isAdded
+                        ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/30"
+                        : "border-accent text-accent hover:bg-[#FEF3C7] hover:border-amber-500"
+                    }`}
                   >
-                    <Plus className="w-4 h-4 shrink-0" />
-                    <span>{language === "en" ? "Add to Cart" : "Thêm vào giỏ"}</span>
+                    {isAdded ? (
+                      <>
+                        <Check className="w-4 h-4 shrink-0 animate-badge-pop" />
+                        <span>{language === "en" ? "Added to Cart!" : "Đã Thêm Vào Giỏ!"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 shrink-0" />
+                        <span>{language === "en" ? "Add to Cart" : "Thêm vào giỏ"}</span>
+                      </>
+                    )}
                   </motion.button>
                 )}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
-                  className="flex-[1.2] bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap"
+                  className="flex-[1.2] bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 hover:shadow-lg hover:shadow-[#92400E]/35 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap sheen group"
                 >
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>
-                  <ChevronRight className="w-4 h-4 shrink-0" />
+                  <ChevronRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
                 </motion.button>
               </div>
             </div>

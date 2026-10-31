@@ -127,9 +127,13 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                       whileInView={{ scale: 1, opacity: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: 0.1 }}
-                      className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white border-2 sm:border-4 border-[#FDE68A] shadow-xl flex items-center justify-center text-accent font-bold text-xs sm:text-sm"
+                      className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white border-2 sm:border-4 shadow-xl flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
+                        item.step === "03"
+                          ? "border-amber-500 text-amber-600 animate-ember-pulse"
+                          : "border-[#FDE68A] text-accent hover:border-amber-400"
+                      }`}
                     >
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${item.step === "03" ? "text-amber-600 animate-pulse" : "text-accent"}`} />
                     </motion.div>
                   </div>
 
@@ -144,7 +148,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/70 shadow-sm hover:shadow-md transition-all group overflow-hidden w-full"
+                      className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-[#FDE68A]/70 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all duration-300 group overflow-hidden w-full relative sheen"
                     >
                       <div
                         className={`flex items-center gap-2.5 sm:gap-3 mb-2 sm:mb-3 ${

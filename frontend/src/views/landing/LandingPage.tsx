@@ -43,6 +43,7 @@ import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
 import { FireworksCelebration } from "@/components/FireworksCelebration";
+import { LiveOrderToast } from "@/components/LiveOrderToast";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
@@ -1026,9 +1027,12 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-8 max-w-xl"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary text-accent text-xs sm:text-sm font-semibold border border-[#FDE68A] shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-secondary via-amber-50 to-secondary text-accent text-xs sm:text-sm font-bold border border-[#FDE68A] shadow-xs gold-shimmer-badge">
+                <span className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" />
                 <span>Tinh túy đất Phố Hiến</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-extrabold uppercase">
+                  Tiến Vua
+                </span>
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
                 <motion.span
@@ -1044,7 +1048,7 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 28 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.85, delay: 0.45, ease: EASE_OUT_EXPO }}
-                    className="block mt-1 sm:mt-2 bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] bg-clip-text text-transparent"
+                    className="block mt-1 sm:mt-2 bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] bg-clip-text text-transparent drop-shadow-xs"
                   >
                     {heroLine2}
                   </motion.span>
@@ -1058,15 +1062,21 @@ export default function LandingPage() {
               >
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
               </motion.p>
+
+
               <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 pt-2 sm:pt-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => scrollToSection("san-pham")}
-                  className="w-full sm:w-auto bg-accent text-white text-sm sm:text-base font-semibold px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-xl shadow-[#B45309]/30 transition-shadow flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {t.hero.discover} <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                </motion.button>
+                <div className="relative w-full sm:w-auto">
+                  <span className="absolute -inset-1 rounded-full bg-accent/25 animate-pulse-ring pointer-events-none" />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => scrollToSection("san-pham")}
+                    className="relative w-full sm:w-auto bg-gradient-to-r from-[#854D0E] via-[#A15C0E] to-[#B45309] text-white text-sm sm:text-base font-bold px-7 sm:px-9 py-3.5 sm:py-4 rounded-full shadow-xl shadow-[#854D0E]/25 hover:shadow-2xl hover:shadow-[#854D0E]/35 transition-all flex items-center justify-center gap-2 cursor-pointer sheen group"
+                  >
+                    <span>{t.hero.discover}</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                </div>
                 <div className="grid grid-cols-2 gap-2.5 w-full sm:flex sm:w-auto">
                   <Link
                     href="/tu-chon-hat"
@@ -1231,14 +1241,14 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="md:col-span-5 relative flex justify-center">
-                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/30 group">
+                <div className="md:col-span-5 relative flex justify-center py-4">
+                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/40 group shadow-2xl">
                     <FastImage
                       src="/images/setqua3.jpg"
                       alt="Tự Chọn Hạt Độc Bản"
                       fill
                       sizes="(max-width: 768px) 240px, 288px"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
                       <div>
@@ -1247,6 +1257,23 @@ export default function LandingPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Các huy hiệu hạt bay bồng bềnh xung quanh hũ quà */}
+                  <motion.div
+                    animate={prefersReducedMotion ? undefined : { y: [-6, 6, -6] }}
+                    transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-2 -right-3 sm:-right-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
+                  >
+                    <span>🌰</span> Macca Đắk Lắk
+                  </motion.div>
+
+                  <motion.div
+                    animate={prefersReducedMotion ? undefined : { y: [6, -6, 6] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+                    className="absolute -bottom-2 -left-3 sm:-left-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
+                  >
+                    <span>👑</span> Long Nhãn Phố Hiến
+                  </motion.div>
                 </div>
               </div>
             </div>
@@ -2482,6 +2509,9 @@ export default function LandingPage() {
         isActive={showFireworks}
         onClose={() => setShowFireworks(false)}
       />
+
+      {/* Thông báo khách hàng vừa đặt mua thời gian thực (Social Proof Live Order Toast) */}
+      <LiveOrderToast isChatOpen={isChatOpen} />
 
     </motion.div>
   );

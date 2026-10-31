@@ -54,6 +54,12 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) dùng radial gradient thay vì blur-3xl */}
       <div className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,rgba(253,230,138,0)_70%)] animate-pulse -z-20 pointer-events-none" />
 
+      {/* Các hạt đốm vàng hổ phách bay bồng bềnh nhẹ nhàng (Golden Embers) */}
+      <div className="absolute top-6 left-6 w-3 h-3 rounded-full bg-amber-400/70 shadow-[0_0_12px_#F59E0B] animate-amber-drift pointer-events-none -z-10" />
+      <div className="absolute bottom-12 right-6 w-2.5 h-2.5 rounded-full bg-orange-400/60 shadow-[0_0_10px_#FB923C] animate-amber-drift pointer-events-none -z-10 [animation-delay:3s]" />
+      <div className="absolute top-1/3 right-3 w-2 h-2 rounded-full bg-yellow-300/80 shadow-[0_0_8px_#FDE047] animate-amber-drift pointer-events-none -z-10 [animation-delay:1.5s]" />
+      <div className="absolute bottom-1/4 left-8 w-2 h-2 rounded-full bg-amber-300/70 shadow-[0_0_8px_#FCD34D] animate-amber-drift pointer-events-none -z-10 [animation-delay:4.5s]" />
+
       {/* Thẻ ảnh 3D Parallax chính */}
       <motion.div
         className="relative w-[85%] aspect-[4/5] rounded-[2.5rem] bg-white p-3 shadow-2xl border-4 border-white overflow-hidden cursor-pointer will-change-transform"
