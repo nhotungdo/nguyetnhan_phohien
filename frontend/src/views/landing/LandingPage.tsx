@@ -405,9 +405,10 @@ export default function LandingPage() {
     }
   }, [messages, isChatOpen]);
 
-  // Khóa cuộn trang khi menu mobile đang mở để tránh giật lag layout
+  // Khóa cuộn trang khi menu mobile hoặc chat widget trên mobile đang mở để tránh giật lag layout
   useEffect(() => {
-    if (isMobileMenuOpen) {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    if (isMobileMenuOpen || (isChatOpen && isMobile)) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -415,7 +416,7 @@ export default function LandingPage() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isChatOpen]);
 
   // Xác nhận đã xem tin của Admin (read receipt) khi widget đang mở —
   // backend sẽ broadcast "GuestReadMessages" để admin hiện "Đã xem" realtime.
@@ -1995,67 +1996,111 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Floating Chat Widget — Kết nối SignalR thực */}
-      {!isMobileMenuOpen && (
+      {/* 14. Nút Chat Trực Tuyến & Chuyên Gia AI Dinh Dưỡng */}
+      {/* Nút tròn nổi mở chat khi đang đóng */}
+      {!isMobileMenuOpen && !isChatOpen && (
         <div className={`fixed z-50 flex flex-col items-end transition-all ${
           isScrolled 
             ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6" 
             : "bottom-5 right-3.5 sm:bottom-6 sm:right-6"
-        } ${isScrolled && !isChatOpen ? "hidden md:flex" : "flex"}`}>
-          <AnimatePresence>
-            {isChatOpen && !isCartDrawerOpen && (
-              <motion.div
-                key="chat-panel"
-                initial={{ opacity: 0, y: 28, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.94 }}
-                transition={{ type: "spring", stiffness: 320, damping: 28 }}
-                className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-[calc(100vw-1.5rem)] sm:w-[350px] max-w-[360px] mb-3 sm:mb-4 overflow-hidden flex flex-col origin-bottom-right max-h-[calc(100dvh-5.5rem)] sm:max-h-[560px]"
-              >
+        } ${isScrolled ? "hidden md:flex" : "flex"}`}>
+          <motion.button
+            id="chat-floating-button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            onClick={handleToggleChat}
+            className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#B45309] to-[#D97706] text-white rounded-full shadow-2xl flex items-center justify-center hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
+            aria-label="Mở chat tư vấn AI & Chuyên viên"
+          >
+            {/* Badge Chuyên gia AI nhấp nháy nổi bật */}
+            <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
+            <span className="absolute -top-2 -left-2 bg-emerald-800 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
+              <Sparkles className="w-2.5 h-2.5" /> AI
+            </span>
+            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </motion.button>
+        </div>
+      )}
+
+      {/* Cửa sổ chat (Full-viewport trên Mobile, Widget nổi góc phải trên Desktop) */}
+      <AnimatePresence>
+        {isChatOpen && !isCartDrawerOpen && (
+          <>
+            {/* Backdrop làm mờ trang nền trên mobile */}
+            <motion.div
+              key="chat-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsChatOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs z-[99] sm:hidden"
+            />
+
+            <motion.div
+              key="chat-panel"
+              initial={{ opacity: 0, y: typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 24, scale: typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 20, scale: typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 0.94 }}
+              transition={{ type: "spring", stiffness: 340, damping: 28 }}
+              className="fixed inset-0 z-[100] sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:h-[620px] sm:max-h-[calc(100dvh-2.5rem)] w-full h-[100dvh] bg-white sm:rounded-2xl sm:shadow-2xl sm:border sm:border-amber-200/70 overflow-hidden flex flex-col sm:origin-bottom-right"
+            >
               {/* Header điều hướng giữa Chuyên gia AI và Tư vấn viên người thật */}
-              <div className="bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] p-3 text-white">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs shadow-inner">
-                      {chatMode === "ai" ? <Sparkles className="w-4 h-4 text-amber-200" /> : "NV"}
+              <div className="bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-white p-3.5 sm:p-4 pt-[max(0.875rem,env(safe-area-inset-top))] shrink-0 shadow-md">
+                <div className="flex justify-between items-center mb-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
+                      {chatMode === "ai" ? <Sparkles className="w-5 h-5 text-amber-200" /> : <Headphones className="w-5 h-5 text-emerald-200" />}
                     </div>
-                    <div>
-                      <p className="font-bold text-xs sm:text-sm">
-                        {chatMode === "ai" ? "Chuyên Gia AI Dinh Dưỡng" : "Tư vấn viên"}
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm sm:text-base leading-tight truncate">
+                        {chatMode === "ai" ? "Chuyên Gia AI Dinh Dưỡng" : "Tư Vấn Viên Trực Tuyến"}
                       </p>
-                      <p className="text-[10px] sm:text-[11px] opacity-85">
-                        {chatMode === "ai" ? "Trí tuệ nhân tạo Gemini 3.5" : (isConnected ? "Đang trực tuyến" : "Đang kết nối...")}
-                      </p>
+                      <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
+                        <span className={`w-2 h-2 rounded-full ${chatMode === "ai" ? "bg-amber-300 animate-pulse" : (isConnected ? "bg-emerald-400" : "bg-amber-400")}`} />
+                        <span className="truncate">
+                          {chatMode === "ai" ? "Trí tuệ nhân tạo Gemini 3.5" : (isConnected ? "Đang trực tuyến sẵn sàng" : "Đang kết nối...")}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     {totalCartItems > 0 && (
                       <button
                         onClick={() => {
                           setIsChatOpen(false);
                           openCart();
                         }}
-                        className="hover:bg-white/20 p-1.5 rounded-full transition-colors relative"
+                        className="hover:bg-white/20 p-2 rounded-full transition-colors relative active:scale-95 touch-manipulation"
                         aria-label={language === "en" ? "View Cart" : "Xem giỏ hàng"}
                         title={language === "en" ? "View Cart" : "Xem giỏ hàng"}
                       >
-                        <ShoppingBag className="w-4.5 h-4.5 text-white" />
-                        <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center border border-white">
+                        <ShoppingBag className="w-5 h-5 text-white" />
+                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white shadow-xs">
                           {totalCartItems > 99 ? "99+" : totalCartItems}
                         </span>
                       </button>
                     )}
-                    <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/20 p-1.5 rounded-full transition-colors" aria-label="Đóng chat">
-                      <X className="w-5 h-5" />
+                    <button
+                      id="chat-close-button"
+                      onClick={() => setIsChatOpen(false)}
+                      className="hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 touch-manipulation"
+                      aria-label="Đóng chat"
+                    >
+                      <X className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                   </div>
                 </div>
 
                 {/* 2 Tabs chuyển đổi chế độ */}
-                <div className="grid grid-cols-2 gap-1 p-0.5 bg-black/20 rounded-xl text-xs font-semibold">
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/25 backdrop-blur-xs rounded-xl text-xs font-semibold">
                   <button
                     onClick={() => setChatMode("ai")}
-                    className={`py-1 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${
                       chatMode === "ai"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
@@ -2069,20 +2114,20 @@ export default function LandingPage() {
                       setChatMode("human");
                       if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
                     }}
-                    className={`py-1 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${
                       chatMode === "human"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500" : "bg-amber-400"}`}></span>
+                    <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-amber-400"}`} />
                     <span>Tư Vấn Viên</span>
                   </button>
                 </div>
               </div>
 
-              {/* Tab 1: AI Dinh Dưỡng (giữ nguyên DOM để không mất lịch sử) */}
-              <div className={chatMode === "ai" ? "block" : "hidden"}>
+              {/* Tab 1: AI Dinh Dưỡng */}
+              <div className={`flex-1 flex flex-col min-h-0 w-full ${chatMode === "ai" ? "flex" : "hidden"}`}>
                 <NutritionAiWidget
                   language={language as "vi" | "en"}
                   onSwitchToLiveChat={() => {
@@ -2092,60 +2137,88 @@ export default function LandingPage() {
                 />
               </div>
 
-              {/* Tab 2: Tư Vấn Viên (giữ nguyên kết nối SignalR) */}
-              <div className={chatMode === "human" ? "block" : "hidden"}>
+              {/* Tab 2: Tư Vấn Viên (SignalR realtime) */}
+              <div className={`flex-1 flex flex-col min-h-0 w-full ${chatMode === "human" ? "flex" : "hidden"}`}>
                 {!chatStarted ? (
-                  /* Nhập tên trước khi chat */
-                  <div className="p-4 sm:p-5 space-y-3">
-                    <p className="text-xs sm:text-sm text-foreground/70">{language === "en" ? "To serve you better, please provide:" : "Để chúng tôi hỗ trợ tốt hơn, vui lòng cho biết:"}</p>
-                    <input
-                      type="text"
-                      placeholder={language === "en" ? "Your name *" : "Họ tên của bạn *"}
-                      value={guestName}
-                      onChange={(e) => setGuestName(e.target.value)}
-                      className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
-                    />
-                    <input
-                      type="tel"
-                      placeholder={language === "en" ? "Phone number (optional)" : "Số điện thoại (không bắt buộc)"}
-                      value={guestPhone}
-                      onChange={(e) => setGuestPhone(e.target.value)}
-                      className="w-full border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-lg px-3 py-2 text-xs sm:text-sm outline-none"
-                    />
-                    <button
-                      onClick={handleStartChat}
-                      disabled={!guestName.trim()}
-                      className="w-full bg-accent text-white font-bold py-2.5 rounded-lg hover:bg-accent/90 transition-colors disabled:opacity-50 text-xs sm:text-sm"
-                    >
-                      {t.chat.start}
-                    </button>
+                  /* Form nhập tên trước khi chat */
+                  <div className="flex-1 min-h-0 p-5 sm:p-6 overflow-y-auto flex flex-col justify-center max-w-sm mx-auto w-full space-y-4 custom-chat-scrollbar">
+                    <div className="text-center space-y-1 mb-1">
+                      <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 text-[#B45309] flex items-center justify-center mb-2 shadow-inner">
+                        <Headphones className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-bold text-stone-900 text-sm sm:text-base">
+                        {language === "en" ? "Live Customer Support" : "Tư Vấn Viên Trực Tuyến"}
+                      </h3>
+                      <p className="text-xs text-stone-600">
+                        {language === "en"
+                          ? "Please leave your contact info so our team can assist you best."
+                          : "Vui lòng cho biết thông tin để đội ngũ tư vấn hỗ trợ quý khách chu đáo nhất."}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          {language === "en" ? "Your name *" : "Họ tên của bạn *"}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={language === "en" ? "e.g. Nguyen Van A" : "Ví dụ: Nguyễn Văn A"}
+                          value={guestName}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          className="w-full border border-amber-200 bg-stone-50/80 focus:border-[#B45309] focus:ring-2 focus:ring-[#B45309]/20 rounded-xl px-3.5 py-2.5 text-base sm:text-sm outline-none transition-all placeholder:text-stone-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">
+                          {language === "en" ? "Phone number (optional)" : "Số điện thoại (để gửi báo giá)"}
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder={language === "en" ? "e.g. 0912345678" : "Ví dụ: 0912345678"}
+                          value={guestPhone}
+                          onChange={(e) => setGuestPhone(e.target.value)}
+                          className="w-full border border-amber-200 bg-stone-50/80 focus:border-[#B45309] focus:ring-2 focus:ring-[#B45309]/20 rounded-xl px-3.5 py-2.5 text-base sm:text-sm outline-none transition-all placeholder:text-stone-400"
+                        />
+                      </div>
+
+                      <button
+                        onClick={handleStartChat}
+                        disabled={!guestName.trim()}
+                        className="w-full bg-gradient-to-r from-[#B45309] to-[#D97706] text-white font-bold py-3 rounded-xl hover:opacity-95 transition-all disabled:opacity-50 text-sm shadow-md active:scale-98 min-h-[46px]"
+                      >
+                        {t.chat.start}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
-                    <div className="h-[250px] sm:h-[280px] bg-background p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-2.5 sm:gap-3">
+                    <div className="flex-1 min-h-0 bg-stone-50/40 p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-3 custom-chat-scrollbar overscroll-contain">
                       {isSessionTerminated && (
-                        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-2.5 rounded-xl text-xs text-center">
+                        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-xs text-center shadow-2xs">
                           Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại.
                         </div>
                       )}
                       {messages.length === 0 && !isSessionTerminated && (
-                        <div className="bg-white border p-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-primary max-w-[85%] self-start shadow-sm">
-                          Chào {guestName}! Bạn cần tư vấn về loại Long Nhãn nào ạ?
+                        <div className="bg-white border border-amber-100 p-3.5 rounded-2xl rounded-tl-xs text-xs sm:text-sm text-stone-900 max-w-[85%] self-start shadow-xs">
+                          Chào {guestName}! Chúng tôi có thể hỗ trợ quý khách về loại Long Nhãn hay món quà biếu nào hôm nay ạ?
                         </div>
                       )}
                       {messages.map((msg, idx) => (
                         <motion.div
                           key={msg.id}
-                          initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                          initial={{ opacity: 0, y: 10, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          className={`p-2.5 sm:p-3 rounded-2xl text-xs sm:text-sm max-w-[85%] shadow-sm ${msg.senderType === 'Guest'
-                            ? 'bg-accent text-white self-end rounded-br-sm'
-                            : 'bg-white border text-primary self-start rounded-tl-sm'
-                            }`}
+                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          className={`p-3 sm:p-3.5 rounded-2xl text-[13.5px] sm:text-sm max-w-[88%] sm:max-w-[82%] shadow-xs leading-relaxed ${
+                            msg.senderType === "Guest"
+                              ? "bg-gradient-to-br from-[#B45309] to-[#92400E] text-white self-end rounded-br-xs"
+                              : "bg-white border border-amber-100 text-stone-900 self-start rounded-tl-xs"
+                          }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                          <span className={`text-[9px] sm:text-[10px] block mt-1 opacity-70 ${msg.senderType === 'Guest' ? 'text-right' : ''}`}>
+                          <span className={`text-[10px] block mt-1.5 opacity-70 ${msg.senderType === "Guest" ? "text-right" : ""}`}>
                             {new Date(msg.sentAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
                             {idx === lastGuestMessageIndex && msg.isRead && (
                               <span className="ml-1">· {language === "en" ? "Seen" : "Đã xem"}</span>
@@ -2154,19 +2227,19 @@ export default function LandingPage() {
                         </motion.div>
                       ))}
                       {isAdminTyping && (
-                        <div className="bg-white border p-2.5 sm:p-3 rounded-2xl rounded-tl-sm shadow-sm self-start flex items-center gap-1.5" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
+                        <div className="bg-white border border-amber-100 p-2.5 sm:p-3 rounded-2xl rounded-tl-xs shadow-xs self-start flex items-center gap-1.5" aria-label={language === "en" ? "Advisor is typing" : "Tư vấn viên đang gõ"}>
                           <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:0ms]"></span>
                           <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:200ms]"></span>
                           <span className="w-1.5 h-1.5 rounded-full bg-[#B45309] animate-pulse [animation-delay:400ms]"></span>
-                          <span className="ml-2 text-xs text-foreground/75 font-medium">
+                          <span className="ml-2 text-xs text-stone-600 font-medium">
                             {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
                           </span>
                         </div>
                       )}
                       <div ref={messagesEndRef} />
                     </div>
-                    <div className="p-2.5 sm:p-3 bg-white border-t">
-                      <div className="relative">
+                    <div className="p-3 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                      <div className="relative flex items-center">
                         <input
                           type="text"
                           value={chatInput}
@@ -2182,15 +2255,15 @@ export default function LandingPage() {
                             }
                           }}
                           placeholder={t.chat.placeholder}
-                          className="w-full bg-background border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-3.5 pr-11 py-2 text-xs sm:text-sm outline-none transition-all"
+                          className="w-full bg-stone-50/80 border border-amber-200/90 focus:border-[#B45309] focus:ring-2 focus:ring-[#B45309]/20 rounded-full pl-4 pr-12 py-2.5 sm:py-2 text-base sm:text-sm outline-none transition-all placeholder:text-stone-400 leading-normal"
                         />
                         <button
                           onClick={handleSendChatMessage}
                           disabled={isSending || !chatInput.trim()}
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 bg-accent text-white rounded-full flex items-center justify-center hover:bg-accent/90 transition-colors disabled:opacity-50"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-8 sm:h-8 bg-gradient-to-r from-[#B45309] to-[#D97706] text-white rounded-full flex items-center justify-center hover:opacity-95 transition-all active:scale-90 disabled:opacity-40 shadow-xs shrink-0"
                           aria-label="Gửi tin nhắn"
                         >
-                          {isSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                          {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         </button>
                       </div>
                       {chatSendError && (
@@ -2202,39 +2275,14 @@ export default function LandingPage() {
                   </>
                 )}
               </div>
-        </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          onClick={handleToggleChat}
-          className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#B45309] to-[#D97706] text-white rounded-full shadow-2xl flex items-center justify-center hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
-          aria-label={isChatOpen ? "Đóng chat" : "Mở chat tư vấn AI & Chuyên viên"}
-        >
-          {/* Badge Chuyên gia AI nhấp nháy nổi bật */}
-          {!isChatOpen && (
-            <>
-              <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
-              <span className="absolute -top-2 -left-2 bg-emerald-800 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
-                <Sparkles className="w-2.5 h-2.5" /> AI
-              </span>
-            </>
-          )}
-          {isChatOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
-          {!isChatOpen && unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </motion.button>
-      </div>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* 15. Thanh thao tác nhanh cố định trên Mobile (Sticky Bottom Bar) */}
       <AnimatePresence>
-        {isScrolled && !isMobileMenuOpen && (
+        {isScrolled && !isMobileMenuOpen && !isChatOpen && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -2268,6 +2316,7 @@ export default function LandingPage() {
             </button>
 
             <button
+              id="mobile-sticky-chat-button"
               onClick={handleOpenChat}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0"
               aria-label="Tư vấn"

@@ -258,6 +258,27 @@
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
   }
 
+  /* Thanh cuộn tin nhắn mỏng, tinh tế theo phong cách hoàng gia */
+  .custom-chat-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(180, 83, 9, 0.3) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(180, 83, 9, 0.3);
+    border-radius: 9999px;
+  }
+  .custom-chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(180, 83, 9, 0.55);
+  }
+
   /* Vệt sáng chạy qua bề mặt thẻ khi hover (dùng bên trong phần tử cha có class .group) */
   .sheen::after {
     content: "";

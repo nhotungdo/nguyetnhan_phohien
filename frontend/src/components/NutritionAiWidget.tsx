@@ -386,18 +386,18 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
   };
 
   return (
-    <div className="flex flex-col h-[380px] sm:h-[420px] bg-amber-50/20">
+    <div className="flex flex-col flex-1 min-h-0 bg-stone-50/40 w-full overflow-hidden">
       {/* 1. Bộ chọn thể trạng nhanh (Health Profile Chips) */}
-      <div className="px-3 py-1.5 bg-amber-100/70 border-b border-amber-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-        <span className="text-[10px] font-bold text-amber-950 shrink-0 flex items-center gap-1">
-          <ShieldAlert className="w-3 h-3 text-[#B45309]" />
+      <div className="px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-100/80 via-amber-50 to-orange-50/60 border-b border-amber-200/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
+        <span className="text-[11px] font-bold text-amber-950 shrink-0 flex items-center gap-1">
+          <ShieldAlert className="w-3.5 h-3.5 text-[#B45309]" />
           {language === "en" ? "Profile:" : "Thể trạng:"}
         </span>
 
         <button
           onClick={() => handleGoalSelect("diet")}
           disabled={isLoading}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
+          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
             selectedGoal === "diet"
               ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -410,7 +410,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         <button
           onClick={() => handleGoalSelect("insomnia")}
           disabled={isLoading}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
+          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
             selectedGoal === "insomnia"
               ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -423,7 +423,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         <button
           onClick={() => handleGoalSelect("pregnancy")}
           disabled={isLoading}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 ${
+          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
             selectedGoal === "pregnancy"
               ? "bg-pink-600 text-white border-pink-700 shadow-xs"
               : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
@@ -436,7 +436,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
         <button
           onClick={handleNutAllergyToggle}
           disabled={isLoading}
-          className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 ${
+          className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 active:scale-95 touch-manipulation ${
             isNutAllergic
               ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
               : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
@@ -449,9 +449,9 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
       </div>
 
       {/* 2. Gợi ý câu hỏi nhanh (Prompt Suggestions) */}
-      <div className="px-3 py-1.5 bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-        <span className="text-[10px] font-semibold text-amber-900 shrink-0 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-[#B45309]" />
+      <div className="px-3 sm:px-4 py-2 bg-stone-50/80 border-b border-amber-200/60 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
+        <span className="text-[11px] font-semibold text-amber-900 shrink-0 flex items-center gap-1">
+          <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
           {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
         </span>
         {QUICK_PROMPTS.map((item, idx) => (
@@ -463,7 +463,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
               if (item.autoAllergy) setIsNutAllergic(true);
               handleSendMessage(item.prompt, selectedGoal, nextAllergy);
             }}
-            className="text-[11px] bg-white hover:bg-amber-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full whitespace-nowrap shadow-xs transition-all active:scale-95 shrink-0 flex items-center gap-1 disabled:opacity-50"
+            className="min-h-[30px] sm:min-h-[28px] text-xs bg-white hover:bg-amber-50/80 text-amber-950 border border-amber-200/90 px-3 py-1 rounded-full whitespace-nowrap shadow-2xs transition-all active:scale-95 shrink-0 flex items-center gap-1.5 disabled:opacity-50 touch-manipulation"
           >
             <span>{item.icon}</span>
             <span>{item.label}</span>
@@ -472,23 +472,23 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
       </div>
 
       {/* 3. Khung hội thoại tin nhắn */}
-      <div className="flex-1 p-3 overflow-y-auto space-y-3 bg-gradient-to-b from-transparent to-white/40">
+      <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-3.5 bg-gradient-to-b from-stone-50/30 via-transparent to-white/50 custom-chat-scrollbar overscroll-contain">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
           >
             <div
-              className={`max-w-[88%] p-3 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-xs ${
+              className={`p-3.5 sm:p-4 rounded-2xl leading-relaxed shadow-xs ${
                 msg.role === "user"
-                  ? "bg-gradient-to-br from-[#B45309] to-[#92400E] text-white rounded-br-xs"
-                  : "bg-white border border-amber-100 text-[#1C1917] rounded-tl-xs shadow-sm"
+                  ? "max-w-[88%] sm:max-w-[82%] bg-gradient-to-br from-[#B45309] to-[#92400E] text-white rounded-br-xs text-[13.5px] sm:text-sm"
+                  : "max-w-[92%] sm:max-w-[85%] bg-white border border-amber-100/90 text-stone-900 rounded-tl-xs text-[13.5px] sm:text-sm"
               }`}
             >
               {/* Role badge cho Chuyên Viên AI */}
               {msg.role === "assistant" && (
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#B45309] mb-1.5 pb-1 border-b border-amber-100">
-                  <Leaf className="w-3 h-3 text-emerald-600" />
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#B45309] mb-2 pb-1.5 border-b border-amber-100/80">
+                  <Leaf className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Chuyên Viên AI Dinh Dưỡng Phố Hiến</span>
                 </div>
               )}
@@ -510,24 +510,24 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
 
               {/* Banner khẩu phần khuyến nghị */}
               {msg.portionTip && (
-                <div className="mt-2.5 p-2 bg-emerald-50/90 border border-emerald-200/70 rounded-xl text-[11px] text-emerald-900 flex items-start gap-1.5 shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="mt-2.5 p-2.5 bg-emerald-50/90 border border-emerald-200/80 rounded-xl text-xs text-emerald-950 flex items-start gap-2 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span><strong>Khẩu phần khuyến nghị:</strong> {msg.portionTip}</span>
                 </div>
               )}
 
               {/* Banner cảnh báo an toàn dị ứng */}
               {msg.allergenNotice && (
-                <div className="mt-2.5 p-2 bg-rose-50/90 border border-rose-200/70 rounded-xl text-[11px] text-rose-900 flex items-start gap-1.5 shadow-xs">
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="mt-2.5 p-2.5 bg-rose-50/90 border border-rose-200/80 rounded-xl text-xs text-rose-950 flex items-start gap-2 shadow-2xs">
+                  <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <span><strong>Lưu ý an toàn:</strong> {msg.allergenNotice}</span>
                 </div>
               )}
 
               {/* Danh sách thẻ sản phẩm gợi ý */}
               {msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                <div className="mt-2.5 pt-2 border-t border-amber-100 space-y-2">
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-amber-800 block">
+                <div className="mt-3 pt-2.5 border-t border-amber-100/80 space-y-2">
+                  <span className="text-[11px] uppercase tracking-wider font-bold text-amber-800 block">
                     🌿 Sản phẩm phù hợp từ cửa hàng:
                   </span>
                   {msg.suggestedProducts.map((prod) => {
@@ -536,23 +536,23 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
                     return (
                       <div
                         key={prod.id}
-                        className="bg-amber-50/60 hover:bg-amber-100/50 border border-amber-200/80 rounded-xl p-2.5 flex items-center justify-between gap-2.5 transition-all shadow-xs"
+                        className="bg-amber-50/60 hover:bg-amber-100/50 border border-amber-200/80 rounded-xl p-2.5 sm:p-3 flex items-center justify-between gap-3 transition-all shadow-2xs"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-11 h-11 rounded-lg overflow-hidden relative bg-white shrink-0 border border-amber-200/60 shadow-xs">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden relative bg-white shrink-0 border border-amber-200/60 shadow-2xs">
                             <FastImage
                               src={mainThumb}
                               alt={prod.name || "Sản phẩm"}
                               fallbackSrc={fallbackThumb}
                               fill
-                              sizes="44px"
+                              sizes="48px"
                               className="object-cover"
                             />
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-bold text-xs text-stone-900 truncate">{prod.name || "Sản phẩm"}</h4>
-                            <p className="text-[10px] text-stone-500">{prod.size || ""}</p>
-                            <p className="text-[11px] font-extrabold text-[#B45309]">
+                            <h4 className="font-bold text-xs sm:text-sm text-stone-900 truncate">{prod.name || "Sản phẩm"}</h4>
+                            <p className="text-[11px] text-stone-500">{prod.size || ""}</p>
+                            <p className="text-xs sm:text-sm font-extrabold text-[#B45309]">
                               {(prod.price ?? 0).toLocaleString("vi-VN")}đ
                             </p>
                           </div>
@@ -560,7 +560,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
 
                         <button
                           onClick={() => handleAddToCart(prod)}
-                          className="bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 shrink-0 shadow-xs transition-transform active:scale-95"
+                          className="min-h-[36px] bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 shadow-xs transition-transform active:scale-95"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Thêm</span>
@@ -571,7 +571,7 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
                 </div>
               )}
 
-              <span className={`text-[9px] block mt-1.5 opacity-60 ${msg.role === "user" ? "text-right" : "text-left"}`}>
+              <span className={`text-[10px] block mt-2 opacity-65 ${msg.role === "user" ? "text-right" : "text-left"}`}>
                 {msg.time}
               </span>
             </div>
@@ -583,14 +583,14 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
 
       {/* 4. Banner lỗi & Rate Limit hiển thị chi tiết */}
       {errorMsg && (
-        <div className="px-3 py-1.5 bg-rose-50 border-t border-rose-200 text-rose-800 text-[11px] flex items-center justify-between">
-          <span className="flex items-center gap-1 line-clamp-2">
-            <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+        <div className="px-3.5 py-2 bg-rose-50 border-t border-rose-200 text-rose-800 text-xs flex items-center justify-between shrink-0">
+          <span className="flex items-center gap-1.5 line-clamp-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </span>
           <button
             onClick={() => handleSendMessage()}
-            className="font-bold underline text-rose-900 ml-2 shrink-0 hover:text-rose-700"
+            className="font-bold underline text-rose-900 ml-2 shrink-0 hover:text-rose-700 text-xs"
           >
             Thử lại
           </button>
@@ -599,21 +599,21 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
 
       {/* 5. Chuyển sang tư vấn viên người thật */}
       {onSwitchToLiveChat && (
-        <div className="px-3 py-1 bg-amber-100/40 border-t border-amber-200/50 flex items-center justify-between text-[11px] text-amber-900">
-          <span>Cần giá sỉ hoặc hỗ trợ đơn hàng đặc biệt?</span>
+        <div className="px-3.5 py-2 bg-gradient-to-r from-amber-100/70 via-amber-50 to-orange-100/50 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-950 shrink-0 gap-2">
+          <span className="text-[11px] sm:text-xs">Cần giá sỉ hoặc hỗ trợ đơn hàng?</span>
           <button
             onClick={onSwitchToLiveChat}
-            className="font-bold text-[#B45309] hover:underline flex items-center gap-1"
+            className="font-bold text-[#B45309] hover:text-[#92400E] flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-lg bg-white/80 border border-amber-200/50 shadow-2xs active:scale-95 min-h-[32px] text-[11px] sm:text-xs"
           >
-            <MessageSquareShare className="w-3 h-3" />
+            <MessageSquareShare className="w-3.5 h-3.5" />
             Gặp nhân viên tư vấn
           </button>
         </div>
       )}
 
       {/* 6. Ô nhập câu hỏi */}
-      <div className="p-2.5 bg-white border-t border-amber-200/70">
-        <div className="relative">
+      <div className="p-3 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="relative flex items-center">
           <input
             type="text"
             value={input}
@@ -630,15 +630,15 @@ export function NutritionAiWidget({ language = "vi", onSwitchToLiveChat }: Nutri
                 ? "Ask about nutrition, recipes, health..."
                 : "Hỏi về calo, hạt mix, cách hãm trà, thể trạng..."
             }
-            className="w-full bg-amber-50/30 border border-amber-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-full pl-3.5 pr-11 py-2 text-xs sm:text-sm outline-none transition-all placeholder:text-stone-400"
+            className="w-full bg-stone-50/80 border border-amber-200/90 focus:border-[#B45309] focus:ring-2 focus:ring-[#B45309]/20 rounded-full pl-4 pr-12 py-2.5 sm:py-2 text-base sm:text-sm outline-none transition-all placeholder:text-stone-400 leading-normal"
           />
           <button
             onClick={() => handleSendMessage()}
             disabled={isLoading || !input.trim()}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-[#B45309] to-[#D97706] text-white rounded-full flex items-center justify-center hover:opacity-95 transition-all disabled:opacity-40 shadow-xs"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-8 sm:h-8 bg-gradient-to-r from-[#B45309] to-[#D97706] text-white rounded-full flex items-center justify-center hover:opacity-95 transition-all active:scale-90 disabled:opacity-40 shadow-xs shrink-0"
             aria-label="Gửi câu hỏi"
           >
-            {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
       </div>
