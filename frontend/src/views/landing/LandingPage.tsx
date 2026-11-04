@@ -1002,7 +1002,7 @@ export default function LandingPage() {
 
       <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
         {/* 2. Hero Banner */}
-        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full">
+        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full [contain:paint]">
           {/* Background Elements */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 via-[#FFFDF8] to-[#FAFAF9]" />
@@ -1016,13 +1016,13 @@ export default function LandingPage() {
               }}
             />
             <div
-              className="absolute top-1/4 right-0 w-[460px] max-w-[120vw] h-[460px] pointer-events-none"
+              className="absolute top-1/4 right-0 w-[460px] max-w-full h-[460px] pointer-events-none"
               style={{
                 background: "radial-gradient(circle at center, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.2) 45%, transparent 70%)",
               }}
             />
             <div
-              className="absolute bottom-4 right-1/4 w-[320px] max-w-[100vw] h-[320px] pointer-events-none"
+              className="absolute bottom-4 right-1/4 w-[320px] max-w-full h-[320px] pointer-events-none"
               style={{
                 background: "radial-gradient(circle at center, rgba(255, 237, 213, 0.4) 0%, rgba(254, 215, 170, 0.15) 50%, transparent 70%)",
               }}
@@ -1221,7 +1221,7 @@ export default function LandingPage() {
         <ProductComparisonSection language={language as "vi" | "en"} />
 
         {/* 5. BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
-        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full">
+        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full max-w-full [contain:paint]">
           <div className="container mx-auto px-4 md:px-6 max-w-6xl">
             <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#12100E] via-[#221B17] to-[#12100E] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/30">
               {/* Nền sóng nước động hoàng kim & bụi vàng phát sáng lung linh */}
@@ -1308,7 +1308,7 @@ export default function LandingPage() {
         </section>
 
         {/* 6. Giới thiệu thương hiệu — Tinh hoa ẩm thực Phố Hiến */}
-        <section id="gioi-thieu" className="py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full">
+        <section id="gioi-thieu" className="py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full [contain:paint]">
           {/* Hào quang nền dịu nhẹ tôn lên phong vị truyền thống dùng Radial Gradient thuần */}
           <div
             aria-hidden="true"
@@ -1426,7 +1426,7 @@ export default function LandingPage() {
         </section>
 
         {/* 7. Khởi nguồn & Câu chuyện di sản */}
-        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full">
+        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full [contain:paint]">
           <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               <div className="flex-1 relative">
@@ -1488,7 +1488,7 @@ export default function LandingPage() {
         />
 
         {/* 8. Dòng chảy lịch sử Phố Hiến */}
-        <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full">
+        <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full [contain:paint]">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl w-full max-w-full">
             <Reveal>
               <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8 [text-wrap:balance]">{t.history.title}</h2>
@@ -1567,8 +1567,9 @@ export default function LandingPage() {
         />
 
         {/* 11. Khu vực đặt hàng */}
-        <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden w-full max-w-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/35 pointer-events-none -z-10" />
+        <section id="dat-hang" className="py-16 sm:py-24 bg-[#451A03] text-background relative overflow-hidden w-full max-w-full [contain:paint]">
+          {/* Lớp gradient nhẹ nhàng màu hổ phách, loại bỏ overlay đen */}
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-950/20 via-transparent to-amber-950/30 pointer-events-none -z-10" />
 
           <div className="container mx-auto px-4 md:px-6 relative z-10 w-full max-w-full">
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
@@ -2113,7 +2114,7 @@ export default function LandingPage() {
       </main>
 
       {/* 14. Footer */}
-      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary overflow-hidden w-full max-w-full">
+      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary overflow-hidden w-full max-w-full [contain:paint]">
         <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">

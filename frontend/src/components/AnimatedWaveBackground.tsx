@@ -63,7 +63,7 @@ export function AnimatedWaveBackground() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0"
+      className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0 w-full max-w-full [contain:paint]"
       aria-hidden="true"
     >
       {/* 1. LỚP ĐÈN RỌI HOÀNG KIM THEO CON TRỎ CHUỘT (Interactive Cursor Spotlight) */}
@@ -127,7 +127,7 @@ export function AnimatedWaveBackground() {
 
       {/* 4. SÓNG NƯỚC UỐN LƯỢN ĐA TẦNG (Fluid Animated Waves) */}
       {/* Sóng tầng 1: Sóng nền sâu uốn lượn chậm rãi */}
-      <div className="absolute inset-x-0 bottom-0 h-60 sm:h-72 w-full overflow-hidden">
+      <div className="absolute inset-x-0 bottom-0 h-60 sm:h-72 w-full max-w-full overflow-hidden [contain:paint]">
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
@@ -164,7 +164,7 @@ export function AnimatedWaveBackground() {
       </div>
 
       {/* Sóng tầng 2: Dải lụa sóng vàng óng ánh nhấp nhô ngược chiều */}
-      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-56 w-full overflow-hidden">
+      <div className="absolute inset-x-0 bottom-0 h-48 sm:h-56 w-full max-w-full overflow-hidden [contain:paint]">
         <motion.div
           animate={{ x: ["-50%", "0%"] }}
           transition={{ duration: 17, repeat: Infinity, ease: "linear" }}
@@ -202,7 +202,7 @@ export function AnimatedWaveBackground() {
       </div>
 
       {/* Sóng tầng 3: Sợi tơ vàng lấp lánh ở đỉnh sóng (Shimmering Crest Ribbon) */}
-      <div className="absolute inset-x-0 bottom-0 h-40 sm:h-48 w-full overflow-hidden">
+      <div className="absolute inset-x-0 bottom-0 h-40 sm:h-48 w-full max-w-full overflow-hidden [contain:paint]">
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{ duration: 13, repeat: Infinity, ease: "linear" }}

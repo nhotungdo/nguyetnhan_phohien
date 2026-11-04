@@ -51,8 +51,8 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
         <div className="absolute inset-4 border border-[#B45309]/20 rounded-full border-dashed" />
       </div>
 
-      {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) dùng radial gradient thay vì blur-3xl */}
-      <div className="absolute -inset-6 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.4)_0%,rgba(253,230,138,0)_70%)] animate-pulse -z-20 pointer-events-none" />
+      {/* Quầng sáng vàng hổ phách thở nhẹ (Pulsing Amber Glow) dùng radial gradient an toàn, không tràn màn hình */}
+      <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,rgba(253,230,138,0)_70%)] animate-pulse -z-20 pointer-events-none" />
 
       {/* Các hạt đốm vàng hổ phách bay bồng bềnh nhẹ nhàng (Golden Embers) */}
       <div className="absolute top-6 left-6 w-3 h-3 rounded-full bg-amber-400/70 shadow-[0_0_12px_#F59E0B] animate-amber-drift pointer-events-none -z-10" />
@@ -109,7 +109,7 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [5, -5, 5] }}
         transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, delay: 0.8 }}
-        className="absolute bottom-1 sm:-bottom-4 left-1 sm:-left-2 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none scale-85 sm:scale-100 origin-bottom-left"
+        className="absolute bottom-2 sm:-bottom-4 left-2 sm:-left-2 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none scale-85 sm:scale-100 origin-bottom-left"
       >
         <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-sm shrink-0">
           <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

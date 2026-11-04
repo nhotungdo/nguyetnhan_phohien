@@ -220,7 +220,7 @@ export function ProductPairingSection({
   return (
     <section
       id="van-hoa"
-      className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF4E6] to-[#FFFDF8] relative overflow-hidden border-t border-[#FDE68A]/40 w-full max-w-full scroll-mt-20 sm:scroll-mt-24"
+      className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF4E6] to-[#FFFDF8] relative overflow-hidden border-t border-[#FDE68A]/40 w-full max-w-full [contain:paint] scroll-mt-20 sm:scroll-mt-24"
     >
       {/* Nền trang trí hoa văn ánh sáng dùng Radial Gradient thuần (không dùng filter blur để an toàn WebKit) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">

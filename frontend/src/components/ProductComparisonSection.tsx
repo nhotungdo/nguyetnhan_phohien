@@ -44,7 +44,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
   const [activeMobileCard, setActiveMobileCard] = useState<"nguyetNhan" | "market">("nguyetNhan");
 
   return (
-    <section className="py-16 sm:py-24 bg-white relative overflow-hidden w-full max-w-full">
+    <section className="py-16 sm:py-24 bg-white relative overflow-hidden w-full max-w-full [contain:paint]">
       <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
