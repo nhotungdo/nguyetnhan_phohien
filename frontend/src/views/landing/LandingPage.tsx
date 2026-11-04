@@ -16,7 +16,7 @@ if (typeof window !== "undefined") {
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Sparkles, Leaf, Flame, ShieldCheck, Award, Headphones, Play } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Bot, Leaf, Flame, ShieldCheck, Award, Headphones, Play } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth, discountApi } from "@/services/api.service";
@@ -2162,7 +2162,7 @@ export default function LandingPage() {
             {/* Badge Chuyên gia AI nhấp nháy nổi bật */}
             <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
             <span className="absolute -top-2 -left-2 bg-emerald-800 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
-              <Sparkles className="w-2.5 h-2.5" /> AI
+              <Bot className="w-2.5 h-2.5" /> AI
             </span>
             <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             {unreadCount > 0 && (
@@ -2213,7 +2213,7 @@ export default function LandingPage() {
                 <div className="flex justify-between items-center mb-2.5">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
-                      {chatMode === "ai" ? <Sparkles className="w-5 h-5 text-amber-200" /> : <Headphones className="w-5 h-5 text-emerald-200" />}
+                      {chatMode === "ai" ? <Bot className="w-5 h-5 text-amber-200" /> : <Headphones className="w-5 h-5 text-emerald-200" />}
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-sm sm:text-base leading-tight truncate">
@@ -2265,7 +2265,7 @@ export default function LandingPage() {
                         : "text-white/80 hover:text-white"
                     }`}
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <Bot className="w-3.5 h-3.5 text-amber-500" />
                     <span>AI Dinh Dưỡng</span>
                   </button>
                   <button

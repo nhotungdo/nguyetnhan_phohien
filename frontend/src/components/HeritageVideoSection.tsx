@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Play, Sparkles, Film, ExternalLink, Clock, Landmark, Trees, Flame, ArrowRight } from "lucide-react";
+import { Play, Crown, Film, ExternalLink, Clock, Landmark, Trees, Flame, ArrowRight } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 
 interface HeritageVideoSectionProps {
@@ -168,7 +168,7 @@ export function HeritageVideoSection({
                     </div>
 
                     <span className="hidden sm:inline-flex items-center gap-1 text-xs text-amber-200/90 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 font-medium">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Nguyệt Nhãn Phố Hiến
+                      <Crown className="w-3.5 h-3.5 text-amber-400" /> Nguyệt Nhãn Phố Hiến
                     </span>
                   </div>
 
@@ -256,7 +256,7 @@ export function HeritageVideoSection({
         >
           <div className="space-y-1">
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-400 flex items-center justify-center sm:justify-start gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Landmark className="w-3.5 h-3.5" />
               {language === "en" ? "Timeless Folk Heritage" : "Ca Dao Cổ Phố Hiến"}
             </span>
             <p 

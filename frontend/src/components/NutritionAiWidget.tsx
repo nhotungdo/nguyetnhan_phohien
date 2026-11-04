@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useId } from "react";
 import {
-  Sparkles,
+  Lightbulb,
   Send,
   Loader2,
   Plus,
@@ -457,7 +457,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       {!isTypingMode && (
         <div className="px-3 sm:px-4 py-2 bg-stone-50/80 border-b border-amber-200/60 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar overscroll-x-contain shrink-0">
           <span className="text-[11px] font-semibold text-amber-900 shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
+            <Lightbulb className="w-3.5 h-3.5 text-[#B45309]" />
             {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
           </span>
           {QUICK_PROMPTS.map((item, idx) => (
