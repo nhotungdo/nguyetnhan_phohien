@@ -1617,10 +1617,7 @@ export default function LandingPage() {
                       transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
                       className="mb-6 bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 text-emerald-900 p-5 rounded-2xl relative overflow-hidden"
                     >
-                      {/* Biểu tượng ánh sao lễ hội */}
-                      <div className="absolute top-2 right-2 text-amber-500 opacity-70 pointer-events-none text-xl animate-pulse">
-                        ✨
-                      </div>
+
 
                       <div className="flex items-start sm:items-center gap-3.5 mb-2">
                         <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
