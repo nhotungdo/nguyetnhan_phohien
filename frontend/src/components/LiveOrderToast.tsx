@@ -83,7 +83,6 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
   // 4. Chu kỳ luân phiên hiển thị đơn hàng thật từ database: Hiện 6.5 giây, ẩn nghỉ 14 giây
   useEffect(() => {
     if (isDismissed || isChatOpen || activeOrders.length === 0) {
-      setIsVisible(false);
       return;
     }
 
