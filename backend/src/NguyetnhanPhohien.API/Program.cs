@@ -16,6 +16,16 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Tự động nhận cổng từ biến môi trường PORT (Render cấp mặc định 10000)
+// hoặc ASPNETCORE_HTTP_PORTS, bind 0.0.0.0 để container nhận được kết nối từ mạng ngoài
+if (!builder.Environment.IsDevelopment())
+{
+    var port = Environment.GetEnvironmentVariable("PORT")
+        ?? Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")
+        ?? "8080";
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
+
 // ===== DATABASE =====
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -372,10 +382,9 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+// Không bật UseHttpsRedirection khi deploy sau Reverse Proxy (Render/Cloud)
+// vì Edge Load Balancer đã tự động chuyển hướng HTTPS ở tầng ngoài.
+// Bật ở đây sẽ khiến Kestrel redirect các probe HTTP nội bộ (Health Check) dẫn tới Timed Out.
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -383,13 +392,11 @@ app.UseAuthorization();
 // Rate limiter phải nằm sau xác thực (để có HttpContext đầy đủ) và TRƯỚC khi vào endpoint.
 app.UseRateLimiter();
 
-// ===== ROUTES =====
-// Scalar UI chỉ được map ở môi trường Development → ở production route "/" trỏ vào
-// /scalar/v1 sẽ trả 404. Production trả JSON thông tin API thay vì redirect chết.
-if (app.Environment.IsDevelopment())
-    app.MapGet("/", (HttpContext context) => context.Response.Redirect("/scalar/v1"));
-else
-    app.MapGet("/", () => Results.Ok(new { service = "NguyetNhanPhoHien API", status = "ok" }));
+// ===== ROUTES & HEALTH CHECKS =====
+// Health check endpoints cho Render và load balancers (trả về 200 OK ngay lập tức)
+app.MapGet("/", () => Results.Ok(new { service = "NguyetNhanPhoHien API", status = "ok", time = DateTime.UtcNow }));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", time = DateTime.UtcNow }));
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", time = DateTime.UtcNow }));
 app.MapControllers();
 // Bắt buộc gắn RequireCors vào Hub endpoint để SignalR negotiation & WebSocket preflight qua Vercel thành công
 app.MapHub<ChatHub>("/hubs/chat").RequireCors("AllowFrontend");

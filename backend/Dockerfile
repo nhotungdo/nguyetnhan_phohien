@@ -20,8 +20,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /out ./
 
-# Render uses the EXPOSE instruction or PORT environment variable
-ENV ASPNETCORE_HTTP_PORTS=8080
-EXPOSE 8080
+# Render uses the EXPOSE instruction or PORT environment variable (default 10000)
+EXPOSE 8080 10000
 
 ENTRYPOINT ["dotnet", "NguyetnhanPhohien.API.dll"]
