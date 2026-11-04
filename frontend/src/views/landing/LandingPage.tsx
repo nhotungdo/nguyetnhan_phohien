@@ -744,7 +744,7 @@ export default function LandingPage() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+          <nav className="hidden md:flex items-center gap-2 lg:gap-3.5 xl:gap-5 2xl:gap-6 shrink-0">
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
@@ -757,7 +757,7 @@ export default function LandingPage() {
               <button
                 key={index}
                 onClick={() => scrollToSection(item.id)}
-                className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out relative group cursor-pointer"
+                className="text-xs lg:text-sm xl:text-[15px] font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out relative group cursor-pointer whitespace-nowrap shrink-0 py-1"
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 ease-in-out group-hover:w-full"></span>
@@ -765,25 +765,25 @@ export default function LandingPage() {
             ))}
             <Link
               href="/tu-chon-hat"
-              className="text-xs lg:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5"
+              className="text-xs xl:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
               <span>Tự Chọn Hạt</span>
-              <span className="bg-[#B45309] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-[#B45309] text-white text-[10px] xl:text-[11px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Mới
               </span>
             </Link>
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 shrink-0">
             <button
               onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
-              className="text-sm font-bold text-foreground/80 border px-3 py-1.5 rounded-full hover:bg-muted transition-colors flex items-center gap-2"
+              className="text-xs lg:text-sm font-bold text-foreground/80 border px-2.5 lg:px-3 py-1.5 rounded-full hover:bg-muted transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
               {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
             </button>
             <button
               onClick={() => handleOpenCart()}
-              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 relative p-1.5"
+              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 relative p-1.5 shrink-0"
               aria-label="Giỏ hàng"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -795,15 +795,16 @@ export default function LandingPage() {
             </button>
             <button
               onClick={handleOpenChat}
-              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2"
+              className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 p-1.5 shrink-0"
+              aria-label="Chat"
             >
               <MessageCircle className="w-5 h-5" />
             </button>
             <button
               onClick={() => scrollToSection("dat-hang")}
-              className="bg-accent hover:bg-accent/90 text-white text-base font-bold px-6 py-2.5 rounded-full shadow-lg shadow-[#B45309]/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="bg-accent hover:bg-accent/90 text-white text-xs lg:text-sm xl:text-base font-bold px-3.5 lg:px-5 xl:px-6 py-2 lg:py-2.5 rounded-full shadow-lg shadow-[#B45309]/30 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-1.5 lg:gap-2 whitespace-nowrap shrink-0"
             >
-              <ShoppingCart className="w-4 h-4" /> {t.nav.buyNow}
+              <ShoppingCart className="w-4 h-4" /> <span>{t.nav.buyNow}</span>
             </button>
           </div>
 
