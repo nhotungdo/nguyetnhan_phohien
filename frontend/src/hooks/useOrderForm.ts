@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { orderApi, discountApi, adminAuth } from "@/services/api.service";
+import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
 import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
 import {
   composeAddress,
@@ -216,6 +217,7 @@ export function useOrderForm(
       // Mã backdoor admin: lưu token và redirect sang dashboard
       if (result.adminToken) {
         adminAuth.login(result.adminToken);
+        triggerPageNavigation();
         router.push("/dashboard");
         return;
       }
