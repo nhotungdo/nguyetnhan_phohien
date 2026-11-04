@@ -115,6 +115,7 @@ export interface OrderResponse {
   quantity?: number;
   invoiceEmailSentAt?: string | null;
   invoiceEmailError?: string | null;
+  emailDeliveryStatus?: "Queued" | "NotConfigured" | "Sent" | "Failed";
   createdAt: string;
 }
 

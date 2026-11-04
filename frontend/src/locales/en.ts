@@ -7,6 +7,7 @@ export const en = {
     process: "Craft Process",
     culture: "Culture",
     film: "Documentary",
+    custom_mix: "Custom Mix",
     contact: "Contact",
     buyNow: "Buy Now",
     support: "24/7 Support"
@@ -96,7 +97,37 @@ export const en = {
     total_bill: "Total",
     add_note: "Additional Note",
     note_placeholder: "E.g., Deliver during office hours...",
-    send_order: "Submit Order"
+    send_order: "Submit Order",
+    all_products_selected: "All available products selected",
+    catalog_maintenance: "Online catalog is currently undergoing maintenance. Please call Hotline or message Zalo for immediate ordering.",
+    order_received_email_pending: "Your order has been received. A confirmation & digital invoice is being sent to:",
+    order_received_email_maintenance: "Order saved! Our automated email gateway is temporarily undergoing maintenance:",
+    email_check_spam: "(Please check your inbox or spam / junk folder shortly)",
+    email_staff_call: "(Our team will call your phone number to confirm and dispatch your invoice directly)",
+    fallback_guard_notice: "Online ordering is temporarily paused due to catalog maintenance. Please call our Hotline or contact via Zalo.",
+    call_hotline_to_order: "Call Hotline to Order"
+  },
+  // Custom Mix Banner
+  custom_mix_banner: {
+    badge: "Bespoke Experience",
+    title: "Craft Your Blend · Personalize Your Label",
+    desc: "Freely choose golden ratios from 5 specialty & nutritious ingredients (Pho Hien Longan, Highland Macadamia, Roasted Cashews, Baked Almonds, Pumpkin Seeds). Custom label printed with your name & elegant wishes.",
+    zip_150: "Zip Bag 150g · 69,000đ",
+    mica_300: "Mica Jar 300g · 153,000đ",
+    gift_900: "Luxury Gift Box 900g · 756,000đ",
+    cta: "Enter Custom Mix Studio",
+    free_label: "Complimentary custom label design",
+    food_safety: "Packed under food hygiene & safety standards",
+    macca: "Dak Lak Macadamia",
+    almond: "Roasted Almonds",
+    cashew: "Wood-fired Cashews",
+    pumpkin: "Pumpkin Seeds",
+    longan: "Pho Hien Longan"
+  },
+  // Contact Info
+  contact: {
+    hotline_label: "24/7 Consultation Hotline",
+    factory_address: "Production Facility Address",
   },
   // Chat
   chat: {

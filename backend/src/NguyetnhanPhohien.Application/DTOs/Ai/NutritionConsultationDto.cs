@@ -22,6 +22,7 @@ public class NutritionConsultationRequest
     public string Message { get; set; } = string.Empty;
     public List<ChatHistoryItem>? History { get; set; }
     public UserHealthProfile? HealthProfile { get; set; }
+    public string? Language { get; set; } = "vi";
 }
 
 public class SuggestedProductDto

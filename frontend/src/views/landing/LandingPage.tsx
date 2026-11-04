@@ -184,8 +184,12 @@ export default function LandingPage() {
     () => false
   );
 
-  const { products: apiProducts } = useProducts();
+  const { t, language, setLanguage } = useLanguageStore();
+  const { products: apiProducts, isLoading: isProductsLoading, error: productsError } = useProducts();
   const cartStoreItems = useCartStore((s) => s.items);
+
+  // Cờ báo hiệu máy chủ không phản hồi danh mục sản phẩm thật (chế độ bảo trì danh mục)
+  const isOfflineCatalog = isMounted && !isProductsLoading && (!!productsError || !apiProducts || apiProducts.length === 0);
 
   // Danh sách sản phẩm đầy đủ: gồm các sản phẩm từ API hoặc fallback, đồng thời
   // luôn chứa toàn bộ các sản phẩm hiện có trong giỏ hàng để form đặt hàng luôn
@@ -243,7 +247,7 @@ export default function LandingPage() {
 
   const {
     form, setField, errors, validateField, canAddItem, addItem, removeItem, updateItem, selectSingleProduct, setCartItems, discountResult, discountNotice, isSubmitting, isApplyingCode,
-    submitStatus, errorMessage, lastSubmittedEmail, applyDiscount, calculateTotal, handleSubmit
+    submitStatus, errorMessage, lastSubmittedEmail, emailDeliveryStatus, hasFallbackProduct, applyDiscount, calculateTotal, handleSubmit
   } = useOrderForm(
     effectiveProducts,
     (orderedItems) => {
@@ -270,7 +274,7 @@ export default function LandingPage() {
         }
       });
     },
-    { requireAdministrativeUnits: !isManualAddress }
+    { requireAdministrativeUnits: !isManualAddress, language: language as "vi" | "en" }
   );
 
   // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
@@ -305,7 +309,8 @@ export default function LandingPage() {
 
   const {
     messages,
-    isConnected,
+    connectionStatus,
+    retryConnect,
     isSending,
     isAdminTyping,
     unreadCount,
@@ -316,7 +321,6 @@ export default function LandingPage() {
     sendMessage,
   } = useLiveChat();
   const { content: cmsContent } = useWebsiteContent();
-  const { t, language, setLanguage } = useLanguageStore();
 
   // Dải cam kết thương hiệu danh giá — các bảo chứng nguồn gốc và chất lượng tiến vua
   const brandCommitments = [
@@ -767,9 +771,9 @@ export default function LandingPage() {
               href="/tu-chon-hat"
               className="text-xs xl:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
-              <span>Tự Chọn Hạt</span>
+              <span>{t.nav.custom_mix || "Tự Chọn Hạt"}</span>
               <span className="bg-[#B45309] text-white text-[10px] xl:text-[11px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Mới
+                {language === "en" ? "New" : "Mới"}
               </span>
             </Link>
           </nav>
@@ -900,12 +904,14 @@ export default function LandingPage() {
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold">Tự Chọn Hạt Độc Bản</span>
+                      <span className="font-bold">{language === "en" ? "Bespoke Custom Mix" : "Tự Chọn Hạt Độc Bản"}</span>
                       <span className="bg-[#B45309] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase">
-                        Mới
+                        {language === "en" ? "New" : "Mới"}
                       </span>
                     </div>
-                    <p className="text-xs text-amber-900 font-normal">Tự phối 5 loại hạt & in tên riêng</p>
+                    <p className="text-xs text-amber-900 font-normal">
+                      {language === "en" ? "Blend 5 nuts & print custom label" : "Tự phối 5 loại hạt & in tên riêng"}
+                    </p>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-amber-700" />
@@ -1086,7 +1092,7 @@ export default function LandingPage() {
                     href="/tu-chon-hat"
                     className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-base font-bold px-3 sm:px-7 py-3 sm:py-4 rounded-full flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
                   >
-                    <span>Tự Chọn Hạt</span>
+                    <span>{t.nav.custom_mix || "Tự Chọn Hạt"}</span>
                   </Link>
                   <motion.button
                     whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
@@ -1224,23 +1230,27 @@ export default function LandingPage() {
               <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
                 <div className="md:col-span-7 space-y-4 text-left">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                    <span>Trải Nghiệm Độc Bản</span>
+                    <span>{t.custom_mix_banner?.badge || "Trải Nghiệm Độc Bản"}</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                    Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span>
+                    {language === "en" ? (
+                      <>Craft Your Blend · <span className="text-amber-300">Personalize Label</span></>
+                    ) : (
+                      <>Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span></>
+                    )}
                   </h2>
                   <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                    Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.
+                    {t.custom_mix_banner?.desc || "Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng."}
                   </p>
                   <div className="flex flex-wrap gap-2 pt-1">
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Túi Zip 150g · <strong className="text-amber-300">69.000đ</strong>
+                      {t.custom_mix_banner?.zip_150 || "Túi Zip 150g · 69.000đ"}
                     </span>
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Hộp Mica 300g · <strong className="text-amber-300">153.000đ</strong>
+                      {t.custom_mix_banner?.mica_300 || "Hộp Mica 300g · 153.000đ"}
                     </span>
                     <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      Lễ Hộp 900g · <strong className="text-amber-300">756.000đ</strong>
+                      {t.custom_mix_banner?.gift_900 || "Lễ Hộp 900g · 756.000đ"}
                     </span>
                   </div>
                   <div className="pt-3">
@@ -1248,7 +1258,7 @@ export default function LandingPage() {
                       href="/tu-chon-hat"
                       className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg shadow-black/35 hover:scale-105 active:scale-95 transition-all"
                     >
-                      <span>Vào Xưởng Chế Tác Hạt Riêng</span>
+                      <span>{t.custom_mix_banner?.cta || "Vào Xưởng Chế Tác Hạt Riêng"}</span>
                       <ArrowRight className="w-4 h-4 text-stone-950" />
                     </Link>
                   </div>
@@ -1258,15 +1268,19 @@ export default function LandingPage() {
                   <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/40 group shadow-2xl">
                     <FastImage
                       src="/images/setqua3.jpg"
-                      alt="Tự Chọn Hạt Độc Bản"
+                      alt={language === "en" ? "Bespoke Custom Mix" : "Tự Chọn Hạt Độc Bản"}
                       fill
                       sizes="(max-width: 768px) 240px, 288px"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
                       <div>
-                        <span className="text-amber-300 font-bold text-xs block">Miễn phí thiết kế nhãn riêng</span>
-                        <span className="text-stone-300 text-xs">Đóng gói chuẩn quy trình ATVSTP</span>
+                        <span className="text-amber-300 font-bold text-xs block">
+                          {t.custom_mix_banner?.free_label || "Miễn phí thiết kế nhãn riêng"}
+                        </span>
+                        <span className="text-stone-300 text-xs">
+                          {t.custom_mix_banner?.food_safety || "Đóng gói chuẩn quy trình ATVSTP"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1277,7 +1291,7 @@ export default function LandingPage() {
                     transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute -top-2 -right-3 sm:-right-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
                   >
-                    <span>🌰</span> Macca Đắk Lắk
+                    <span>🌰</span> {t.custom_mix_banner?.macca || "Macca Đắk Lắk"}
                   </motion.div>
 
                   <motion.div
@@ -1285,7 +1299,7 @@ export default function LandingPage() {
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
                     className="absolute -bottom-2 -left-3 sm:-left-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
                   >
-                    <span>👑</span> Long Nhãn Phố Hiến
+                    <span>👑</span> {t.custom_mix_banner?.longan || "Long Nhãn Phố Hiến"}
                   </motion.div>
                 </div>
               </div>
@@ -1582,7 +1596,7 @@ export default function LandingPage() {
                       <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-[#FDE68A]">Hotline tư vấn (24/7)</p>
+                      <p className="text-xs sm:text-sm text-[#FDE68A]">{t.contact?.hotline_label || (language === "en" ? "24/7 Consultation Hotline" : "Hotline tư vấn (24/7)")}</p>
                       <p className="text-lg sm:text-xl font-bold text-white">{cmsContent.Hotline || "090 123 4567"}</p>
                     </div>
                   </motion.div>
@@ -1595,7 +1609,7 @@ export default function LandingPage() {
                       <MapPin className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-[#FDE68A]">Địa chỉ xưởng sản xuất</p>
+                      <p className="text-xs sm:text-sm text-[#FDE68A]">{t.contact?.factory_address || (language === "en" ? "Production Facility Address" : "Địa chỉ xưởng sản xuất")}</p>
                       <p className="text-base sm:text-lg font-bold text-white">{cmsContent.Address || "Phố Hiến, Tp. Hưng Yên"}</p>
                     </div>
                   </motion.div>
@@ -1605,6 +1619,25 @@ export default function LandingPage() {
               {/* Form Đặt Hàng */}
               <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 shadow-xl shadow-black/20 text-foreground">
                 <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4 sm:mb-6">{t.order.title}</h3>
+
+                {/* Banner cảnh báo khi danh mục trực tuyến đang bảo trì / mất kết nối API */}
+                {isOfflineCatalog && (
+                  <div className="mb-6 p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-start gap-2.5">
+                      <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                        {t.order.catalog_maintenance || "Hệ thống đang bảo trì dữ liệu trực tuyến. Quý khách vui lòng gọi Hotline hoặc nhắn tin Zalo để được phục vụ đặt hàng ngay."}
+                      </p>
+                    </div>
+                    <a
+                      href={`tel:${cmsContent.Hotline || "0348973285"}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shrink-0 transition-all shadow-xs"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{t.order.call_hotline_to_order || "Gọi Hotline"}</span>
+                    </a>
+                  </div>
+                )}
 
                 {/* Kết quả gửi đơn trượt vào/ra mượt thay vì bật hiện đột ngột */}
                 <AnimatePresence initial={false} mode="wait">
@@ -1617,8 +1650,6 @@ export default function LandingPage() {
                       transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
                       className="mb-6 bg-gradient-to-r from-emerald-50 via-amber-50/70 to-emerald-50 border-2 border-emerald-300 text-emerald-900 p-5 rounded-2xl relative overflow-hidden"
                     >
-
-
                       <div className="flex items-start sm:items-center gap-3.5 mb-2">
                         <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
                           <CheckCircle className="w-6 h-6" />
@@ -1640,18 +1671,18 @@ export default function LandingPage() {
                           <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
                             <span className="text-base">📧</span>
                             <span>
-                              {language === "en"
-                                ? "Order confirmation & invoice sent successfully to:"
-                                : "Đã gửi email xác nhận & hóa đơn thành công tới:"}
+                              {emailDeliveryStatus === "NotConfigured"
+                                ? (t.order.order_received_email_maintenance || "Đơn hàng đã tiếp nhận thành công! Cổng gửi email tự động đang tạm bảo trì:")
+                                : (t.order.order_received_email_pending || "Hệ thống đã tiếp nhận đơn hàng và đang tiến hành gửi hóa đơn & thông tin xác nhận đến:")}
                             </span>
                           </div>
                           <p className="text-sm font-bold text-emerald-950 pl-6 break-all">
                             {lastSubmittedEmail}
                           </p>
                           <p className="text-xs text-neutral-600 pl-6 italic">
-                            {language === "en"
-                              ? "(Please check your inbox or spam / junk folder)"
-                              : "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam)"}
+                            {emailDeliveryStatus === "NotConfigured"
+                              ? (t.order.email_staff_call || "(Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và gửi hóa đơn cho bạn)")
+                              : (t.order.email_check_spam || "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam trong ít phút tới)")}
                           </p>
                         </div>
                       ) : (
@@ -1866,7 +1897,7 @@ export default function LandingPage() {
                         type="button"
                         onClick={addItem}
                         disabled={!canAddItem}
-                        title={canAddItem ? undefined : "Đã chọn hết sản phẩm đang bán"}
+                        title={canAddItem ? undefined : (t.order.all_products_selected || "Đã chọn hết sản phẩm đang bán")}
                         className="text-xs font-semibold text-accent hover:text-accent/80 flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg border border-accent/20 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -2047,17 +2078,32 @@ export default function LandingPage() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !form.items.some((i) => i.productId)}
-                    className="w-full bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-black/25 transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                  >
-                    {isSubmitting ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> {t.order.submitting}</>
-                    ) : (
-                      <>{t.order.send_order} <ChevronRight className="w-5 h-5" /></>
-                    )}
-                  </button>
+                  {hasFallbackProduct ? (
+                    <div className="space-y-2 pt-1">
+                      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-xl font-medium text-center">
+                        {t.order.fallback_guard_notice || "Hệ thống đang bảo trì dữ liệu sản phẩm. Quý khách vui lòng gọi Hotline hoặc Zalo để đặt hàng nhanh nhất!"}
+                      </p>
+                      <a
+                        href={`tel:${cmsContent.Hotline || "0348973285"}`}
+                        className="w-full bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold text-base py-3.5 rounded-xl shadow-lg shadow-black/25 transition-all flex justify-center items-center gap-2"
+                      >
+                        <Phone className="w-5 h-5" />
+                        <span>{t.order.call_hotline_to_order || "Gọi Hotline Đặt Hàng"}: {cmsContent.Hotline || "034 897 3285"}</span>
+                      </a>
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !form.items.some((i) => i.productId)}
+                      className="w-full bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-black/25 transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    >
+                      {isSubmitting ? (
+                        <><Loader2 className="w-5 h-5 animate-spin" /> {t.order.submitting}</>
+                      ) : (
+                        <>{t.order.send_order} <ChevronRight className="w-5 h-5" /></>
+                      )}
+                    </button>
+                  )}
                 </form>
               </div>
             </div>
@@ -2217,9 +2263,25 @@ export default function LandingPage() {
                         {chatMode === "ai" ? "Chuyên Gia AI Dinh Dưỡng" : "Tư Vấn Viên Trực Tuyến"}
                       </p>
                       <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
-                        <span className={`w-2 h-2 rounded-full ${chatMode === "ai" ? "bg-amber-300 animate-pulse" : (isConnected ? "bg-emerald-400" : "bg-amber-400")}`} />
+                        <span className={`w-2 h-2 rounded-full ${
+                          chatMode === "ai" 
+                            ? "bg-amber-300 animate-pulse" 
+                            : connectionStatus === "connected"
+                              ? "bg-emerald-400"
+                              : connectionStatus === "failed"
+                                ? "bg-rose-400"
+                                : "bg-amber-400 animate-pulse"
+                        }`} />
                         <span className="truncate">
-                          {chatMode === "ai" ? "Trí tuệ nhân tạo Gemini 3.5" : (isConnected ? "Đang trực tuyến sẵn sàng" : "Đang kết nối...")}
+                          {chatMode === "ai" 
+                            ? "Trí tuệ nhân tạo Gemini 3.5" 
+                            : connectionStatus === "connected"
+                              ? (language === "en" ? "Online & Ready" : "Đang trực tuyến sẵn sàng")
+                              : connectionStatus === "failed"
+                                ? (language === "en" ? "Connection Offline" : "Mất kết nối máy chủ")
+                                : connectionStatus === "reconnecting"
+                                  ? (language === "en" ? "Reconnecting..." : "Đang kết nối lại...")
+                                  : (language === "en" ? "Connecting..." : "Đang kết nối...")}
                         </span>
                       </div>
                     </div>
@@ -2276,8 +2338,10 @@ export default function LandingPage() {
                         : "text-white/80 hover:text-white"
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-amber-400"}`} />
-                    <span>Tư Vấn Viên</span>
+                    <span className={`w-2 h-2 rounded-full ${
+                      connectionStatus === "connected" ? "bg-emerald-400" : connectionStatus === "failed" ? "bg-rose-400" : "bg-amber-400 animate-pulse"
+                    }`} />
+                    <span>{language === "en" ? "Live Advisor" : "Tư Vấn Viên"}</span>
                   </button>
                 </div>
               </div>
@@ -2391,6 +2455,25 @@ export default function LandingPage() {
                           <span className="ml-2 text-xs text-stone-600 font-medium">
                             {language === "en" ? "Advisor is typing..." : "Tư vấn viên đang gõ..."}
                           </span>
+                        </div>
+                      )}
+                      {connectionStatus === "failed" && (
+                        <div className="mx-1 my-2 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-center justify-between gap-2 shadow-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span className="text-[11.5px] leading-tight">
+                              {language === "en"
+                                ? "Live chat server is temporarily offline."
+                                : "Máy chủ tư vấn gián đoạn kết nối."}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => retryConnect()}
+                            className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg font-bold text-[11px] shrink-0 active:scale-95 transition-all shadow-xs"
+                          >
+                            {language === "en" ? "Retry" : "Thử lại"}
+                          </button>
                         </div>
                       )}
                       <div ref={messagesEndRef} />

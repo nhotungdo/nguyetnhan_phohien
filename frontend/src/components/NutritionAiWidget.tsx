@@ -10,7 +10,8 @@ import {
   ShieldAlert,
   Leaf,
   CheckCircle2,
-  MessageSquareShare
+  MessageSquareShare,
+  RotateCcw
 } from "lucide-react";
 import {
   nutritionAiApi,
@@ -163,16 +164,49 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [isNutAllergic, setIsNutAllergic] = useState<boolean>(false);
 
-  const [messages, setMessages] = useState<MessageItem[]>([
-    {
-      id: "welcome-init",
-      role: "assistant",
-      content: language === "en"
-        ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
-        : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
-      time: "Vừa xong"
+  const AI_HISTORY_STORAGE_KEY = "phohien_nutrition_ai_history";
+
+  const getInitialWelcomeMessage = (): MessageItem => ({
+    id: "welcome-init",
+    role: "assistant",
+    content: language === "en"
+      ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
+      : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
+    time: "Vừa xong"
+  });
+
+  const [messages, setMessages] = useState<MessageItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem(AI_HISTORY_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
     }
-  ]);
+    return [getInitialWelcomeMessage()];
+  });
+
+  // Lưu lịch sử vào sessionStorage để không bao giờ mất khi đóng panel / unmount
+  useEffect(() => {
+    if (typeof window !== "undefined" && messages.length > 0) {
+      try {
+        sessionStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(messages));
+      } catch {}
+    }
+  }, [messages]);
+
+  const handleResetChat = () => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem(AI_HISTORY_STORAGE_KEY);
+      } catch {}
+    }
+    setMessages([getInitialWelcomeMessage()]);
+    setErrorMsg(null);
+  };
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -475,6 +509,17 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               <span>{item.label}</span>
             </button>
           ))}
+
+          {/* Nút làm mới lịch sử trò chuyện */}
+          <button
+            onClick={handleResetChat}
+            disabled={isLoading || messages.length <= 1}
+            className="ml-auto min-h-[30px] sm:min-h-[28px] text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 border border-stone-300/70 px-2.5 py-1 rounded-full whitespace-nowrap shadow-2xs transition-all active:scale-95 shrink-0 flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none touch-manipulation"
+            title={language === "en" ? "Clear conversation history" : "Làm mới cuộc trò chuyện"}
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>{language === "en" ? "Reset" : "Làm mới"}</span>
+          </button>
         </div>
       )}
 

@@ -190,7 +190,18 @@ public class NutritionAiService : INutritionAiService
         var apiKey = GetApiKey();
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            yield return JsonSerializer.Serialize(new { @event = "error", message = "Chưa cấu hình API Key cho Gemini (Gemini:ApiKey)." }, CamelCaseOptions);
+            _logger.LogWarning("Gemini API key is not configured in Gemini:ApiKey. Yielding heritage knowledge fallback response.");
+            var fallbackText = GenerateHeritageFallbackText(request);
+            yield return JsonSerializer.Serialize(new { @event = "chunk", text = fallbackText }, CamelCaseOptions);
+            yield return JsonSerializer.Serialize(new 
+            { 
+                @event = "meta", 
+                portionTip = request.Language == "en" 
+                    ? "Standard serving: 10 - 20g longan or 30g mixed nuts daily." 
+                    : "Khuyến nghị dưỡng sinh: Dùng 10 - 20g long nhãn hoặc 30g hạt dinh dưỡng mix mỗi ngày.",
+                products = new List<object>()
+            }, CamelCaseOptions);
+            yield return JsonSerializer.Serialize(new { @event = "done" }, CamelCaseOptions);
             yield break;
         }
 
@@ -794,5 +805,48 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         if (string.IsNullOrWhiteSpace(text)) return null;
         var clean = text.Replace("**", "").Replace("###", "").Trim();
         return string.IsNullOrWhiteSpace(clean) ? null : clean;
+    }
+
+    private static string GenerateHeritageFallbackText(NutritionConsultationRequest request)
+    {
+        var msg = (request.Message ?? "").ToLowerInvariant();
+        var isEn = (request.Language ?? "").Equals("en", StringComparison.OrdinalIgnoreCase);
+
+        if (isEn)
+        {
+            if (msg.Contains("sleep") || msg.Contains("insomnia") || msg.Contains("relax"))
+            {
+                return "Longan is traditionally renowned in Vietnamese folk medicine for calming the mind, nourishing heart blood, and enhancing deep sleep. Pairing dried longan with lotus seed tea about 1 hour before bedtime provides a natural soothing effect. Recommended intake: 10 - 15g daily.";
+            }
+            if (msg.Contains("diabetes") || msg.Contains("sugar"))
+            {
+                return "Dried longan has natural concentrated sweetness (fructose/glucose). For individuals managing blood sugar, enjoy in strict moderation (under 5 - 10g per serving) accompanied by high-fiber, low-carb nuts like macadamia, almonds, and pumpkin seeds to stabilize glycemic impact.";
+            }
+            if (msg.Contains("pregnant") || msg.Contains("pregnancy"))
+            {
+                return "Pregnant mothers in their first trimester should consult their healthcare provider before consuming warm-natured dried fruits. Tree nuts (macadamia, almonds, walnuts) are rich in folate and omega-3s, ideal for maternal wellness.";
+            }
+            return "Welcome to Nguyet Nhan Pho Hien! Our artisan dried longan is crafted using hot-air convection drying to retain authentic honey-sweetness and nutrients. A standard portion of 15 - 20g longan combined with nutrient-rich nuts supports energy and vitality throughout your day.";
+        }
+        else
+        {
+            if (msg.Contains("ngủ") || msg.Contains("mất ngủ") || msg.Contains("an thần") || msg.Contains("mệt mỏi"))
+            {
+                return "Theo y học cổ truyền, Long Nhãn Phố Hiến có tính bình, vị ngọt, quy kinh Tâm và Tỳ, giúp dưỡng huyết an thần và cải thiện giấc ngủ tự nhiên rất tốt. Bạn có thể dùng 10 - 15g long nhãn hãm với trà hoa cúc hoặc nấu cùng hạt sen ăn vào buổi tối để có giấc ngủ sâu và êm dịu.";
+            }
+            if (msg.Contains("tiểu đường") || msg.Contains("đường huyết") || msg.Contains("ngọt"))
+            {
+                return "Long nhãn sấy khô tự nhiên có vị ngọt đậm đặc trưng từ đường hoa quả tự nhiên. Người có chỉ số đường huyết cao hoặc tiền tiểu đường nên sử dụng có chừng mực (dưới 5 - 10g mỗi ngày) và nên ưu tiên kết hợp cùng các loại hạt ít carb, giàu chất béo tốt như Macca, Hạnh nhân nướng mộc, Hạt bí xanh để làm chậm quá trình hấp thu đường.";
+            }
+            if (msg.Contains("bầu") || msg.Contains("mang thai") || msg.Contains("thai kỳ"))
+            {
+                return "Phụ nữ mang thai (đặc biệt trong 3 tháng đầu) cơ địa thiên nhiệt nên tham khảo ý kiến bác sĩ hoặc dùng lượng vừa phải (dưới 10g/ngày). Thay vào đó, mẹ bầu có thể bổ sung các loại hạt dinh dưỡng lành tính như Macca Đắk Lắk, Hạnh nhân, Hạt điều giàu Folate và Omega-3 rất tốt cho sự phát triển của thai nhi.";
+            }
+            if (msg.Contains("ngâm rượu") || msg.Contains("rượu"))
+            {
+                return "Long Nhãn sấy đối lưu loại Đặc Biệt của Nguyệt Nhãn rất thích hợp để ngâm rượu. Tỉ lệ chuẩn: 300g - 500g long nhãn ngâm với 2 - 3 lít rượu gạo nếp ngon (38 - 40 độ), có thể thêm kỷ tử, đẳng sâm. Sau 1 - 2 tháng rượu sẽ có màu vàng hổ phách, vị ngọt thanh, bồi bổ khí huyết khi dùng 1 chén nhỏ mỗi bữa.";
+            }
+            return "Kính chào quý khách! Nguyệt Nhãn Phố Hiến là thức quả tiến vua nức tiếng Hưng Yên, sấy nhiệt nóng tuần hoàn khí đối lưu giúp lưu giữ trọn vẹn vị ngọt thanh mát, cùi dày dẻo thơm và dưỡng chất quý. Khẩu phần dưỡng sinh tiêu chuẩn mỗi ngày là 10 - 20g long nhãn kết hợp 25 - 30g hạt dinh dưỡng tuyển chọn để tăng cường năng lượng và đề kháng!";
+        }
     }
 }

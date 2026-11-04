@@ -71,6 +71,7 @@ public class OrderResponse
     // Trạng thái gửi email hóa đơn cho khách hàng
     public DateTime? InvoiceEmailSentAt { get; set; }
     public string? InvoiceEmailError { get; set; }
+    public string? EmailDeliveryStatus { get; set; } // "Queued" | "NotConfigured" | "Sent" | "Failed"
 
     public DateTime CreatedAt { get; set; }
 }

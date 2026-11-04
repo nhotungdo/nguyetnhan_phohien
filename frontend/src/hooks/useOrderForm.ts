@@ -34,6 +34,7 @@ export interface OrderFormOptions {
    * chỉ của khách không có trong danh sách) — lúc đó chỉ cần ô địa chỉ đầy đủ.
    */
   requireAdministrativeUnits?: boolean;
+  language?: "vi" | "en";
 }
 
 export function useOrderForm(
@@ -43,6 +44,7 @@ export function useOrderForm(
 ) {
   const router = useRouter();
   const requireAdministrativeUnits = options.requireAdministrativeUnits ?? true;
+  const language = options.language ?? "vi";
 
   const [form, setForm] = useState<OrderFormState>({
     customerName: "",
@@ -73,6 +75,9 @@ export function useOrderForm(
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [lastSubmittedEmail, setLastSubmittedEmail] = useState("");
+  const [emailDeliveryStatus, setEmailDeliveryStatus] = useState<"Queued" | "NotConfigured" | null>(null);
+
+  const hasFallbackProduct = form.items.some((it) => it.productId?.startsWith("default-"));
 
   const setField = <K extends keyof OrderFormState>(field: K, value: OrderFormState[K]) => {
     setForm((prev) => ({
@@ -285,7 +290,18 @@ export function useOrderForm(
       }));
 
     if (validItems.length === 0) {
-      setErrorMessage("Vui lòng chọn ít nhất 1 sản phẩm.");
+      setErrorMessage(language === "en" ? "Please select at least 1 product." : "Vui lòng chọn ít nhất 1 sản phẩm.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (hasFallbackProduct) {
+      setSubmitStatus("error");
+      setErrorMessage(
+        language === "en"
+          ? "Online ordering is temporarily paused due to catalog maintenance. Please call our Hotline or contact via Zalo."
+          : "Hệ thống đang bảo trì dữ liệu sản phẩm. Quý khách vui lòng gọi Hotline hoặc Zalo để đặt hàng nhanh nhất!"
+      );
       setIsSubmitting(false);
       return;
     }
@@ -302,8 +318,11 @@ export function useOrderForm(
     };
 
     try {
-      await orderApi.create(payload);
+      const res = await orderApi.create(payload);
       setLastSubmittedEmail(payload.customerEmail ?? "");
+      setEmailDeliveryStatus(
+        (res?.emailDeliveryStatus as "Queued" | "NotConfigured") ?? (payload.customerEmail ? "Queued" : null)
+      );
       setSubmitStatus("success");
       setForm({
         customerName: "",
@@ -321,7 +340,18 @@ export function useOrderForm(
       onSuccess?.(validItems);
     } catch (err: unknown) {
       setSubmitStatus("error");
-      const message = err instanceof Error ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.";
+      let message = err instanceof Error ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.";
+      if (language === "en") {
+        if (message.includes("không tồn tại") || message.includes("not found")) {
+          message = "The selected product or discount code is no longer available.";
+        } else if (message.includes("Số điện thoại không hợp lệ") || message.includes("SĐT")) {
+          message = "Invalid phone number format.";
+        } else if (message.includes("Mã giảm giá")) {
+          message = "Invalid or expired discount code.";
+        } else if (message.includes("Đã xảy ra lỗi") || message.includes("lỗi")) {
+          message = "An error occurred while creating your order. Please try again or call our hotline.";
+        }
+      }
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -346,6 +376,8 @@ export function useOrderForm(
     submitStatus,
     errorMessage,
     lastSubmittedEmail,
+    emailDeliveryStatus,
+    hasFallbackProduct,
     applyDiscount,
     calculateTotal,
     handleSubmit,

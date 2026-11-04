@@ -87,9 +87,12 @@ function clearStoredSession() {
   } catch {}
 }
 
+export type LiveChatConnectionStatus = "idle" | "connecting" | "connected" | "reconnecting" | "failed";
+
 export function useLiveChat() {
   const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<LiveChatConnectionStatus>("idle");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   /** Admin đang gõ — tự ẩn sau TYPING_HIDE_MS nếu không có tín hiệu mới. */
@@ -105,6 +108,7 @@ export function useLiveChat() {
   const lastTypingSentRef = useRef(0);
   /** Timer tự kết nối lại khi SignalR đóng hẳn (không còn auto-reconnect). */
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
   const guestInfoRef = useRef<{ name?: string; phone?: string }>({});
@@ -151,6 +155,14 @@ export function useLiveChat() {
   // Kết nối SignalR
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
     guestInfoRef.current = { name: guestName, phone: guestPhone };
+    setConnectionStatus("connecting");
+
+    if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current);
+    connectTimeoutRef.current = setTimeout(() => {
+      if (connectionRef.current?.state !== signalR.HubConnectionState.Connected) {
+        setConnectionStatus("failed");
+      }
+    }, 8000);
 
     let creds: ChatSessionCreds;
     try {
@@ -158,11 +170,15 @@ export function useLiveChat() {
     } catch (sessionErr) {
       console.error("[LiveChat] Không thể tạo phiên chat qua API (kiểm tra kết nối DB trên Render):", sessionErr);
       setIsLoading(false);
+      setConnectionStatus("failed");
       return;
     }
 
     // Đã kết nối rồi: chỉ cập nhật thông tin khách bằng cách join lại
     if (connectionRef.current?.state === signalR.HubConnectionState.Connected) {
+      if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null; }
+      setConnectionStatus("connected");
+      setIsConnected(true);
       if (guestName || guestPhone) {
         connectionRef.current
           .invoke("JoinAsGuest", creds.id, creds.token, guestName ?? null, guestPhone ?? null)
@@ -217,6 +233,7 @@ if (typeof window !== "undefined") {
         restartTimerRef.current = null;
         if (connectionRef.current) return;
         const current = sessionRef.current;
+        setConnectionStatus("reconnecting");
         try {
           await connection.start();
           if (current) {
@@ -230,8 +247,10 @@ if (typeof window !== "undefined") {
             } catch { /* tải bù thất bại — lần sau thử lại */ }
           }
           setIsConnected(true);
+          setConnectionStatus("connected");
           connectionRef.current = connection;
         } catch {
+          setConnectionStatus("failed");
           scheduleRestart();
         }
       }, RESTART_DELAY_MS);
@@ -287,14 +306,22 @@ if (typeof window !== "undefined") {
       }
     });
 
+    connection.onreconnecting(() => {
+      setIsConnected(false);
+      setConnectionStatus("reconnecting");
+    });
+
     connection.onclose(() => {
       setIsConnected(false);
+      setConnectionStatus("failed");
       if (connectionRef.current === connection) connectionRef.current = null;
       scheduleRestart();
     });
 
     connection.onreconnected(async () => {
+      if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null; }
       setIsConnected(true);
+      setConnectionStatus("connected");
       const current = sessionRef.current;
       if (!current) return;
 
@@ -320,6 +347,7 @@ if (typeof window !== "undefined") {
 
     try {
       await connection.start();
+      if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null; }
       if (restartTimerRef.current) { clearTimeout(restartTimerRef.current); restartTimerRef.current = null; }
       
       try {
@@ -333,8 +361,12 @@ if (typeof window !== "undefined") {
       }
 
       setIsConnected(true);
+      setConnectionStatus("connected");
       connectionRef.current = connection;
     } catch (err) {
+      if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null; }
+      setIsConnected(false);
+      setConnectionStatus("failed");
       if (
         err instanceof Error &&
         err.message !== "The connection was stopped during negotiation." &&
@@ -457,6 +489,7 @@ if (typeof window !== "undefined") {
     return () => {
       if (adminTypingTimeoutRef.current) clearTimeout(adminTypingTimeoutRef.current);
       if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
+      if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current);
       connectionRef.current?.stop().catch(() => {});
     };
   }, []);
@@ -464,12 +497,14 @@ if (typeof window !== "undefined") {
   return {
     messages,
     isConnected,
+    connectionStatus,
     isLoading,
     isSending,
     isAdminTyping,
     unreadCount,
     isSessionTerminated,
     connect,
+    retryConnect: () => connect(guestInfoRef.current.name, guestInfoRef.current.phone),
     notifyTyping,
     markMessagesRead,
     sendMessage,

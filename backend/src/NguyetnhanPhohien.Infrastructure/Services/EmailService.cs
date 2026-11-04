@@ -34,6 +34,23 @@ public class EmailService : IEmailService
         _httpClient.Timeout = HttpTimeout;
     }
 
+    public bool IsConfigured
+    {
+        get
+        {
+            var brevoApiKey = _config["Brevo:ApiKey"] ?? _config["BREVO_API_KEY"];
+            if (!string.IsNullOrWhiteSpace(brevoApiKey)) return true;
+
+            var resendApiKey = _config["Resend:ApiKey"] ?? _config["RESEND_API_KEY"];
+            if (!string.IsNullOrWhiteSpace(resendApiKey)) return true;
+
+            var host = _config["SmtpConfig:Host"];
+            var username = _config["SmtpConfig:Username"];
+            var password = _config["SmtpConfig:Password"];
+            return !string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password);
+        }
+    }
+
     /// <summary>
     /// Retry 3 lần với backoff 2s → 5s cho đường gửi qua HTTP API (Brevo/Resend).
     ///

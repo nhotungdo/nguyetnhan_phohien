@@ -7,6 +7,7 @@ export const vi = {
     process: "Quy trình",
     culture: "Văn hóa",
     film: "Thước phim",
+    custom_mix: "Tự Chọn Hạt",
     contact: "Liên hệ",
     buyNow: "Mua Ngay",
     support: "Hỗ trợ 24/7"
@@ -96,7 +97,37 @@ export const vi = {
     total_bill: "Tổng cộng",
     add_note: "Ghi chú thêm",
     note_placeholder: "Ví dụ: Giao hàng giờ hành chính...",
-    send_order: "Gửi Đơn Đặt Hàng"
+    send_order: "Gửi Đơn Đặt Hàng",
+    all_products_selected: "Đã chọn hết sản phẩm đang bán",
+    catalog_maintenance: "Hệ thống đang bảo trì dữ liệu trực tuyến. Quý khách vui lòng gọi Hotline hoặc nhắn tin Zalo để được phục vụ đặt hàng ngay.",
+    order_received_email_pending: "Hệ thống đã tiếp nhận đơn hàng và đang tiến hành gửi hóa đơn & thông tin xác nhận đến:",
+    order_received_email_maintenance: "Đơn hàng đã tiếp nhận thành công! Cổng gửi email tự động đang tạm bảo trì:",
+    email_check_spam: "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam trong ít phút tới)",
+    email_staff_call: "(Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và gửi hóa đơn cho bạn)",
+    fallback_guard_notice: "Hệ thống đang bảo trì dữ liệu sản phẩm. Quý khách vui lòng gọi Hotline hoặc Zalo để đặt hàng nhanh nhất!",
+    call_hotline_to_order: "Gọi Hotline Đặt Hàng"
+  },
+  // Custom Mix Banner
+  custom_mix_banner: {
+    badge: "Trải Nghiệm Độc Bản",
+    title: "Tự Tay Phối Hạt · Khắc Tên Riêng",
+    desc: "Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng.",
+    zip_150: "Túi Zip 150g · 69.000đ",
+    mica_300: "Hộp Mica 300g · 153.000đ",
+    gift_900: "Lễ Hộp 900g · 756.000đ",
+    cta: "Vào Xưởng Chế Tác Hạt Riêng",
+    free_label: "Miễn phí thiết kế nhãn riêng",
+    food_safety: "Đóng gói chuẩn quy trình ATVSTP",
+    macca: "Macca Đắk Lắk",
+    almond: "Hạnh Nhân Nướng Mộc",
+    cashew: "Hạt Điều Rang Củi",
+    pumpkin: "Hạt Bí Xanh Ấn Độ",
+    longan: "Long Nhãn Hưng Yên"
+  },
+  // Contact Info
+  contact: {
+    hotline_label: "Hotline tư vấn (24/7)",
+    factory_address: "Địa chỉ xưởng sản xuất",
   },
   // Chat
   chat: {

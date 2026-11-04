@@ -413,7 +413,13 @@ public class OrderService : IOrderService
         // Đánh thức BackgroundProcessor xử lý ngay lập tức
         _outboxChannel.NotifyNewEmail();
 
-        return MapToResponse(order);
+        var response = MapToResponse(order);
+        if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
+        {
+            response.EmailDeliveryStatus = _emailService.IsConfigured ? "Queued" : "NotConfigured";
+        }
+
+        return response;
     }
 
     /// <summary>Nội dung chuyển khoản in kèm QR — dùng chung cho hóa đơn tạo mới và gửi lại.</summary>
