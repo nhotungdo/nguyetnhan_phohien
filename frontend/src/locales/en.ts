@@ -6,6 +6,7 @@ export const en = {
     history: "History",
     process: "Craft Process",
     culture: "Culture",
+    film: "Documentary",
     contact: "Contact",
     buyNow: "Buy Now",
     support: "24/7 Support"

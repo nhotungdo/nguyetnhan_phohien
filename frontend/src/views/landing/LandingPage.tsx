@@ -16,7 +16,7 @@ if (typeof window !== "undefined") {
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Sparkles, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Lock, Sparkles, Leaf, Flame, ShieldCheck, Award, Headphones, Play } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth, discountApi } from "@/services/api.service";
@@ -44,6 +44,7 @@ import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
 import { FireworksCelebration } from "@/components/FireworksCelebration";
 import { LiveOrderToast } from "@/components/LiveOrderToast";
+import { HeritageVideoSection } from "@/components/HeritageVideoSection";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
@@ -747,6 +748,7 @@ export default function LandingPage() {
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
+              { label: (t.nav as unknown as { film?: string }).film || "Thước phim", id: "thuoc-phim" },
               { label: t.nav.history, id: "lich-su" },
               { label: t.nav.process, id: "quy-trinh" },
               { label: t.nav.culture, id: "van-hoa" },
@@ -866,6 +868,7 @@ export default function LandingPage() {
               {[
                 { label: t.nav.products, id: "san-pham" },
                 { label: t.nav.story, id: "cau-chuyen" },
+                { label: (t.nav as unknown as { film?: string }).film || "Thước phim", id: "thuoc-phim" },
                 { label: t.nav.history, id: "lich-su" },
                 { label: t.nav.process, id: "quy-trinh" },
                 { label: t.nav.culture, id: "van-hoa" },
@@ -1091,6 +1094,15 @@ export default function LandingPage() {
                     className="w-full sm:w-auto bg-white text-accent border border-[#FDE68A] text-xs sm:text-base font-semibold px-3 sm:px-8 py-3 sm:py-4 rounded-full flex items-center justify-center cursor-pointer text-center"
                   >
                     {t.nav.story}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => scrollToSection("thuoc-phim")}
+                    className="w-full sm:w-auto col-span-2 sm:col-span-1 bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 hover:from-amber-900 hover:to-stone-800 text-amber-200 border border-amber-400/50 text-xs sm:text-base font-bold px-4 sm:px-6 py-3 sm:py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-black/30 transition-all"
+                  >
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400" />
+                    <span>{language === "en" ? "Watch Film" : "Xem Thước Phim"}</span>
                   </motion.button>
                 </div>
               </div>
@@ -1434,16 +1446,31 @@ export default function LandingPage() {
                     {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For generations, the people here preserve the craft of making longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn, như một cách lưu giữ hồn quê hương.\""}
                   </p>
                 </div>
-                <button
-                  onClick={() => scrollToSection("lich-su")}
-                  className="inline-flex items-center gap-2 text-accent font-bold hover:gap-4 transition-all cursor-pointer"
-                >
-                  {language === "en" ? "Explore historical timeline" : "Khám phá dòng chảy lịch sử"} <ArrowRight className="w-5 h-5" />
-                </button>
+                <div className="flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={() => scrollToSection("thuoc-phim")}
+                    className="inline-flex items-center gap-2 text-accent font-bold hover:gap-3 transition-all cursor-pointer"
+                  >
+                    {language === "en" ? "Watch documentary film" : "Xem thước phim di sản Phố Hiến"} <ArrowRight className="w-5 h-5" />
+                  </button>
+                  <span className="text-foreground/30 hidden sm:inline">•</span>
+                  <button
+                    onClick={() => scrollToSection("lich-su")}
+                    className="inline-flex items-center gap-2 text-foreground/70 hover:text-accent font-medium text-sm transition-colors cursor-pointer"
+                  >
+                    {language === "en" ? "Explore historical timeline" : "Khám phá dòng chảy lịch sử"} <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* 7.5. Thước phim tài liệu di sản: Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến */}
+        <HeritageVideoSection
+          language={language as "vi" | "en"}
+          posterUrl={cmsContent.StoryImage ? resolveCmsImage(cmsContent.StoryImage) : "/images/setqua.jpg"}
+        />
 
         {/* 8. Dòng chảy lịch sử Phố Hiến */}
         <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full">

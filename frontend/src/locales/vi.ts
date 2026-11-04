@@ -6,6 +6,7 @@ export const vi = {
     history: "Lịch sử",
     process: "Quy trình",
     culture: "Văn hóa",
+    film: "Thước phim",
     contact: "Liên hệ",
     buyNow: "Mua Ngay",
     support: "Hỗ trợ 24/7"
