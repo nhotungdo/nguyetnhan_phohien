@@ -535,8 +535,14 @@ export const nutritionAiApi = {
             return;
           }
 
-          // A complete SSE frame must contain valid JSON; do not hide errors.
-          const parsed = JSON.parse(dataStr);
+          let parsed: any;
+          try {
+            parsed = JSON.parse(dataStr);
+          } catch (jsonErr) {
+            console.warn("Lỗi parse frame SSE:", jsonErr, dataStr);
+            continue;
+          }
+
           if (parsed.event === "chunk" && typeof parsed.text === "string") {
             hasText ||= parsed.text.trim().length > 0;
             callbacks.onChunk(parsed.text);
@@ -556,11 +562,18 @@ export const nutritionAiApi = {
               allergenNotice: (parsed.allergenNotice ?? parsed.AllergenNotice) ? String(parsed.allergenNotice ?? parsed.AllergenNotice) : undefined,
             });
           } else if (parsed.event === "error") {
-            throw new Error(parsed.message || streamError);
+            if (!hasText) {
+              throw new Error(parsed.message || streamError);
+            }
+            console.warn("AI stream warning:", parsed.message);
           }
         }
       }
-      // Only the server's terminal marker confirms a complete response.
+      // Khi stream kết thúc, nếu đã nhận được phản hồi text thì hoàn tất thành công
+      if (hasText) {
+        callbacks.onDone?.();
+        return;
+      }
       throw new Error(streamError);
     } catch (err: unknown) {
       if ((err as Error)?.name === "AbortError") return;

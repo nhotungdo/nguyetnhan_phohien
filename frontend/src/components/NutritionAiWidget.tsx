@@ -396,7 +396,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
           m.id === aiMessageId
             ? {
                 ...m,
-                content: m.content || (language === "en" ? "There was a temporary interruption connecting to the AI Nutrition Advisor. Please try again shortly!" : "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!"),
+                content: m.content
+                  ? `${m.content}\n\n*(Lưu ý: Phản hồi bị ngắt quãng do kết nối mạng. Quý khách có thể thử lại hoặc chọn các câu hỏi gợi ý bên dưới để được tư vấn tiếp nhé.)*`
+                  : (language === "en" ? "There was a temporary interruption connecting to the AI Nutrition Advisor. Please try again shortly!" : "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!"),
                 isStreaming: false
               }
             : m

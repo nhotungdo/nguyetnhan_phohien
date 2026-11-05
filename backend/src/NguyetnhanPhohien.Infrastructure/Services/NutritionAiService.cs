@@ -83,7 +83,14 @@ public class NutritionAiService : INutritionAiService
         _configuration["Gemini:ApiKey"] ?? string.Empty;
 
     private string GetModelName() =>
-        _configuration["Gemini:Model"] ?? "gemini-3.5-flash-lite";
+        _configuration["Gemini:Model"] ?? "gemini-3.1-flash-lite";
+
+    private List<string> GetCandidateModels()
+    {
+        var preferred = GetModelName();
+        var fallbacks = new[] { preferred, "gemini-3.5-flash", "gemini-3.1-flash-lite-preview" };
+        return fallbacks.Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().ToList();
+    }
 
     private string GetBaseUrl() =>
         _configuration["Gemini:BaseUrl"] ?? "https://generativelanguage.googleapis.com";
@@ -116,20 +123,40 @@ public class NutritionAiService : INutritionAiService
             var systemInstruction = BuildSystemPrompt(products, isStreamingMode: false, request);
             var payload = BuildGeminiPayload(request, systemInstruction, useJsonSchema: true);
 
-            var model = GetModelName();
-            var url = $"{GetBaseUrl()}/v1beta/models/{model}:generateContent?key={apiKey}";
+            HttpResponseMessage? response = null;
+            string? responseString = null;
+            var models = GetCandidateModels();
 
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await _httpClient.PostAsync(url, jsonContent, cancellationToken);
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
+            foreach (var model in models)
             {
-                _logger.LogError("Lỗi gọi Gemini API ({StatusCode}): {Body}", response.StatusCode, responseString);
+                var url = $"{GetBaseUrl()}/v1beta/models/{model}:generateContent?key={apiKey}";
+                var jsonContent = new StringContent(
+                    JsonSerializer.Serialize(payload),
+                    Encoding.UTF8,
+                    "application/json");
+
+                try
+                {
+                    var resp = await _httpClient.PostAsync(url, jsonContent, cancellationToken);
+                    var body = await resp.Content.ReadAsStringAsync(cancellationToken);
+                    if (resp.IsSuccessStatusCode)
+                    {
+                        response = resp;
+                        responseString = body;
+                        break;
+                    }
+                    _logger.LogWarning("Gọi Gemini API ({Model}) không thành công ({StatusCode}): {Body}. Thử model dự phòng...", model, resp.StatusCode, body);
+                    resp.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Lỗi kết nối Gemini API ({Model}). Thử model dự phòng...", model);
+                }
+            }
+
+            if (response == null || string.IsNullOrWhiteSpace(responseString))
+            {
+                _logger.LogError("Tất cả candidate models của Gemini đều không khả dụng.");
                 return UnavailableResponse(request);
             }
 
@@ -207,38 +234,39 @@ public class NutritionAiService : INutritionAiService
         var systemInstruction = BuildSystemPrompt(products, isStreamingMode: true, request);
         var payload = BuildGeminiPayload(request, systemInstruction, useJsonSchema: false);
 
-        var model = GetModelName();
-        var url = $"{GetBaseUrl()}/v1beta/models/{model}:streamGenerateContent?alt=sse&key={apiKey}";
+        HttpResponseMessage? response = null;
+        var models = GetCandidateModels();
 
-        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        foreach (var model in models)
         {
-            Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
-        };
+            var url = $"{GetBaseUrl()}/v1beta/models/{model}:streamGenerateContent?alt=sse&key={apiKey}";
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+            };
 
-        HttpResponseMessage response;
-        string? initError = null;
-        try
-        {
-            response = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            try
+            {
+                var resp = await _httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                if (resp.IsSuccessStatusCode)
+                {
+                    response = resp;
+                    break;
+                }
+                var err = await resp.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Stream Gemini API ({Model}) thất bại ({StatusCode}): {Err}. Đang chuyển model dự phòng...", model, resp.StatusCode, err);
+                resp.Dispose();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Lỗi kết nối Stream Gemini ({Model}). Đang chuyển model dự phòng...", model);
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Lỗi khởi tạo Stream SSE tới Gemini API.");
-            initError = JsonSerializer.Serialize(new { @event = "error", message = IsEnglish(request) ? "Unable to connect to the AI service." : "Không thể kết nối tới dịch vụ AI vào lúc này." }, CamelCaseOptions);
-            response = null!;
-        }
 
-        if (initError != null)
+        if (response == null)
         {
-            yield return initError;
-            yield break;
-        }
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var err = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Lỗi Stream Gemini API ({StatusCode}): {Err}", response.StatusCode, err);
-            yield return JsonSerializer.Serialize(new { @event = "error", message = IsEnglish(request) ? "Unable to receive a response from the AI service." : "Đã có lỗi xảy ra trong quá trình nhận phản hồi từ AI." }, CamelCaseOptions);
+            _logger.LogError("Không thể kết nối tới bất kỳ model Gemini nào.");
+            yield return JsonSerializer.Serialize(new { @event = "error", message = IsEnglish(request) ? "Unable to receive a response from the AI service. Please try again shortly." : "Dịch vụ AI đang nhận nhiều yêu cầu. Quý khách vui lòng thử lại sau ít giây nhé." }, CamelCaseOptions);
             yield break;
         }
 
@@ -248,7 +276,10 @@ public class NutritionAiService : INutritionAiService
         var accumulatedFullText = new StringBuilder();
         var pendingBuffer = new StringBuilder();
         var isBufferingMeta = false;
-        var metaTagKeywords = new[] { "[GỢI_Ý", "[GỢI Ý", "[KHẨU_PHẦN", "[KHẨU PHẦN", "[DỊ_ỨNG", "[DỊ ỨNG" };
+        var metaTagsBuffer = new StringBuilder();
+
+        const string metaDelimiter = "---NNPH_METADATA---";
+        var metaLinePrefixes = new[] { "\n[GỢI_Ý:", "\n[GỢI Ý:", "\n[KHẨU_PHẦN:", "\n[KHẨU PHẦN:", "\n[DỊ_ỨNG:", "\n[DỊ ỨNG:" };
 
         string? line;
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
@@ -258,78 +289,110 @@ public class NutritionAiService : INutritionAiService
                 var jsonData = line.Substring(6).Trim();
                 if (string.IsNullOrEmpty(jsonData) || jsonData == "[DONE]") continue;
 
-                string? chunkText = null;
+                JsonNode? node = null;
                 try
                 {
-                    var node = JsonNode.Parse(jsonData);
-                    chunkText = node?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
+                    node = JsonNode.Parse(jsonData);
                 }
                 catch
                 {
-                    // Bỏ qua lỗi parse chunk trung gian
+                    continue;
                 }
 
-                if (!string.IsNullOrEmpty(chunkText))
+                if (node == null) continue;
+
+                // Kiểm tra lỗi in-stream từ Gemini API (như lỗi quá tải 503 tạm thời)
+                if (node["error"] != null)
                 {
-                    accumulatedFullText.Append(chunkText);
+                    var errorMsg = node["error"]?["message"]?.GetValue<string>() ?? "Gemini streaming error";
+                    _logger.LogError("Lỗi in-stream từ Gemini API: {Error}", errorMsg);
 
-                    if (isBufferingMeta)
+                    if (accumulatedFullText.Length < 150)
                     {
-                        // Đang trong khối metadata ở cuối câu, không stream ra text thường
-                        continue;
+                        yield return JsonSerializer.Serialize(new 
+                        { 
+                            @event = "error", 
+                            message = IsEnglish(request) 
+                                ? "AI service is currently experiencing high demand. Please try again in a moment." 
+                                : "Hệ thống AI đang nhận nhiều lượt tư vấn cùng lúc. Quý khách vui lòng thử lại sau ít giây nhé." 
+                        }, CamelCaseOptions);
+                        yield break;
                     }
+                    // Nếu đã stream được lượng lớn nội dung hữu ích, kết thúc êm đẹp để hoàn tất câu trả lời
+                    break;
+                }
 
-                    pendingBuffer.Append(chunkText);
-                    var buf = pendingBuffer.ToString();
+                var chunkText = node["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
+                if (string.IsNullOrEmpty(chunkText)) continue;
 
-                    // Tìm vị trí xuất hiện sớm nhất của các tag metadata
-                    int firstTagIdx = -1;
-                    foreach (var tag in metaTagKeywords)
+                accumulatedFullText.Append(chunkText);
+
+                if (isBufferingMeta)
+                {
+                    metaTagsBuffer.Append(chunkText);
+                    continue;
+                }
+
+                pendingBuffer.Append(chunkText);
+                var current = pendingBuffer.ToString();
+
+                int metaStartIdx = current.IndexOf(metaDelimiter, StringComparison.OrdinalIgnoreCase);
+                if (metaStartIdx == -1)
+                {
+                    foreach (var prefix in metaLinePrefixes)
                     {
-                        var idx = buf.IndexOf(tag, StringComparison.OrdinalIgnoreCase);
-                        if (idx != -1 && (firstTagIdx == -1 || idx < firstTagIdx))
+                        var idx = current.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+                        if (idx != -1 && (metaStartIdx == -1 || idx < metaStartIdx))
                         {
-                            firstTagIdx = idx;
+                            metaStartIdx = idx;
                         }
                     }
+                }
 
-                    if (firstTagIdx != -1)
+                if (metaStartIdx != -1)
+                {
+                    isBufferingMeta = true;
+                    var textToFlush = current.Substring(0, metaStartIdx);
+                    if (!string.IsNullOrEmpty(textToFlush))
                     {
-                        isBufferingMeta = true;
-                        // Trích xuất toàn bộ câu chữ nằm trước tag metadata để phát ngay cho khách (không bị cụt câu)
-                        var textBeforeTag = buf.Substring(0, firstTagIdx);
-                        if (!string.IsNullOrEmpty(textBeforeTag))
+                        yield return JsonSerializer.Serialize(new { @event = "chunk", text = textToFlush }, CamelCaseOptions);
+                    }
+                    metaTagsBuffer.Append(current.Substring(metaStartIdx));
+                    pendingBuffer.Clear();
+                }
+                else
+                {
+                    // Giữ lại tối đa 25 ký tự ở đuôi nếu đuôi có dấu hiệu mở đầu của delimiter hoặc tag
+                    var checkLen = Math.Min(current.Length, 25);
+                    var tail = current.Substring(current.Length - checkLen);
+                    var dashIdx = tail.LastIndexOf("---", StringComparison.Ordinal);
+                    var bracketIdx = tail.LastIndexOf("\n[", StringComparison.Ordinal);
+
+                    int candidateTailIdx = -1;
+                    if (dashIdx != -1) candidateTailIdx = dashIdx;
+                    if (bracketIdx != -1 && (candidateTailIdx == -1 || bracketIdx < candidateTailIdx)) candidateTailIdx = bracketIdx;
+
+                    if (candidateTailIdx != -1)
+                    {
+                        var actualHoldIdx = current.Length - checkLen + candidateTailIdx;
+                        var safeText = current.Substring(0, actualHoldIdx);
+                        if (!string.IsNullOrEmpty(safeText))
                         {
-                            yield return JsonSerializer.Serialize(new { @event = "chunk", text = textBeforeTag }, CamelCaseOptions);
+                            yield return JsonSerializer.Serialize(new { @event = "chunk", text = safeText }, CamelCaseOptions);
+                            pendingBuffer.Clear();
+                            pendingBuffer.Append(current.Substring(actualHoldIdx));
                         }
-                        pendingBuffer.Clear();
                     }
                     else
                     {
-                        // Kiểm tra nếu buffer có chứa ký tự mở ngoặc vuông '[' ở sát cuối (dưới 15 ký tự)
-                        // Giữ lại 15 ký tự cuối để kiểm tra xem chunk tiếp theo có ghép thành [GỢI_Ý không
-                        var lastBracketIdx = buf.LastIndexOf('[');
-                        if (lastBracketIdx != -1 && (buf.Length - lastBracketIdx < 15))
-                        {
-                            var safeToFlush = buf.Substring(0, lastBracketIdx);
-                            if (!string.IsNullOrEmpty(safeToFlush))
-                            {
-                                yield return JsonSerializer.Serialize(new { @event = "chunk", text = safeToFlush }, CamelCaseOptions);
-                                pendingBuffer.Clear();
-                                pendingBuffer.Append(buf.Substring(lastBracketIdx));
-                            }
-                        }
-                        else
-                        {
-                            yield return JsonSerializer.Serialize(new { @event = "chunk", text = buf }, CamelCaseOptions);
-                            pendingBuffer.Clear();
-                        }
+                        yield return JsonSerializer.Serialize(new { @event = "chunk", text = current }, CamelCaseOptions);
+                        pendingBuffer.Clear();
                     }
                 }
             }
         }
 
-        // Nếu stream kết thúc mà không có tag metadata nào, xả nốt buffer còn lại
+        // Nếu stream kết thúc mà còn buffer chữ chưa phát, xả nốt
         if (!isBufferingMeta && pendingBuffer.Length > 0)
         {
             yield return JsonSerializer.Serialize(new { @event = "chunk", text = pendingBuffer.ToString() }, CamelCaseOptions);
@@ -338,9 +401,19 @@ public class NutritionAiService : INutritionAiService
 
         // Khi stream chữ hoàn tất, phân giải metadata từ buffer và chuỗi tích lũy
         var allText = accumulatedFullText.ToString();
-        var productIds = ExtractTagValues(allText, "GỢI_Ý");
-        var portionTip = ExtractTagValue(allText, "KHẨU_PHẦN");
-        var allergenNotice = ExtractTagValue(allText, "DỊ_ỨNG");
+        var metaSource = metaTagsBuffer.Length > 0 ? metaTagsBuffer.ToString() : allText;
+        var productIds = ExtractTagValues(metaSource, "GỢI_Ý");
+        var portionTip = ExtractTagValue(metaSource, "KHẨU_PHẦN");
+        var allergenNotice = ExtractTagValue(metaSource, "DỊ_ỨNG");
+
+        if (productIds.Count == 0)
+        {
+            productIds = InferDefaultProductIds(request, products);
+        }
+        if (string.IsNullOrWhiteSpace(portionTip))
+        {
+            portionTip = InferDefaultPortionTip(request);
+        }
 
         // Lọc sản phẩm an toàn server-side
         var matchedProducts = ResolveSuggestedProducts(productIds, products, isNutAllergic, IsEnglish(request));
@@ -379,13 +452,13 @@ public class NutritionAiService : INutritionAiService
         var formatInstruction = isStreamingMode
             ? @"
 HƯỚNG DẪN TRẢ LỜI CHO STREAMING:
-- Trả lời bằng ngôn ngữ được chỉ định bên dưới, ân cần, chia đoạn rõ ràng.
+- Trả lời bằng ngôn ngữ được chỉ định bên dưới, lời văn ân cần, chia đoạn rõ ràng bằng định dạng Markdown tiêu chuẩn (dùng ### hoặc **).
+- Trong phần nội dung tư vấn, KHÔNG dùng thẻ ngoặc vuông [ ] cho tiêu đề mục.
 - TUYỆT ĐỐI KHÔNG trả lời bằng khối JSON.
-- Ở cuối câu trả lời, nếu có sản phẩm phù hợp trong danh mục, đặt trên một dòng riêng biệt theo cú pháp:
+- Ở CUỐI CÙNG CỦA CÂU TRẢ LỜI, đặt phần metadata sau một dòng phân cách đặc biệt:
+---NNPH_METADATA---
 [GỢI_Ý: id_san_pham_1, id_san_pham_2]
-- Nếu có khẩu phần khuyến nghị ngắn gọn:
 [KHẨU_PHẦN: 3 - 5 múi nhãn (15 - 20g)/ngày]
-- Nếu có cảnh báo dị ứng thực sự:
 [DỊ_ỨNG: ...]"
             : @"
 QUY TẮC ĐỊNH DẠNG JSON ĐẦU RA BẮT BUỘC:
@@ -496,7 +569,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
             generationConfig = new
             {
                 temperature = 0.5,
-                maxOutputTokens = 3500,
+                maxOutputTokens = 4000,
                 response_mime_type = "application/json",
                 response_schema = new
                 {
@@ -517,7 +590,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
             generationConfig = new
             {
                 temperature = 0.6,
-                maxOutputTokens = 3500
+                maxOutputTokens = 4000
             };
         }
 
@@ -778,7 +851,8 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
     private List<string> ExtractTagValues(string text, string tagName)
     {
         var result = new List<string>();
-        var pattern = $@"\[{tagName}:\s*([^\]]+)\]";
+        var normalizedTag = Regex.Escape(tagName).Replace("_", "[_ ]");
+        var pattern = $@"\[{normalizedTag}:\s*([^\]]+)\]";
         var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
         if (match.Success)
         {
@@ -794,7 +868,8 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
 
     private string? ExtractTagValue(string text, string tagName)
     {
-        var pattern = $@"\[{tagName}:\s*([^\]]+)\]";
+        var normalizedTag = Regex.Escape(tagName).Replace("_", "[_ ]");
+        var pattern = $@"\[{normalizedTag}:\s*([^\]]+)\]";
         var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
         return match.Success ? CleanMetadataString(match.Groups[1].Value) : null;
     }
@@ -804,6 +879,67 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         if (string.IsNullOrWhiteSpace(text)) return null;
         var clean = text.Replace("**", "").Replace("###", "").Trim();
         return string.IsNullOrWhiteSpace(clean) ? null : clean;
+    }
+
+    private List<string> InferDefaultProductIds(NutritionConsultationRequest request, List<ProductResponse> products)
+    {
+        var result = new List<string>();
+        var isNutAllergic = DetectNutAllergy(request);
+        var msg = (request.Message + " " + request.HealthProfile?.Goal + " " + request.HealthProfile?.HealthCondition).ToLowerInvariant();
+
+        var tienVua = products.FirstOrDefault(p => p.Name.Contains("Tiến Vua", StringComparison.OrdinalIgnoreCase))?.Id.ToString() ?? "default-tien-vua";
+        var tuDa = products.FirstOrDefault(p => p.Name.Contains("Tứ Dã", StringComparison.OrdinalIgnoreCase))?.Id.ToString() ?? "default-tu-da";
+        var vongNguyet = products.FirstOrDefault(p => p.Name.Contains("Vọng Nguyệt", StringComparison.OrdinalIgnoreCase))?.Id.ToString() ?? "default-vong-nguyet";
+
+        if (isNutAllergic)
+        {
+            result.Add(tienVua);
+            return result;
+        }
+
+        if (msg.Contains("mang thai") || msg.Contains("bầu") || msg.Contains("sau sinh"))
+        {
+            result.Add(tienVua);
+            result.Add(vongNguyet);
+        }
+        else if (msg.Contains("mất ngủ") || msg.Contains("khó ngủ") || msg.Contains("ngủ sâu"))
+        {
+            result.Add(tienVua);
+        }
+        else if (msg.Contains("ăn kiêng") || msg.Contains("giảm cân") || msg.Contains("vóc dáng"))
+        {
+            result.Add(tienVua);
+            result.Add(tuDa);
+        }
+        else
+        {
+            result.Add(tienVua);
+            result.Add(tuDa);
+        }
+
+        return result;
+    }
+
+    private string InferDefaultPortionTip(NutritionConsultationRequest request)
+    {
+        var isEn = IsEnglish(request);
+        var msg = (request.Message + " " + request.HealthProfile?.Goal + " " + request.HealthProfile?.HealthCondition).ToLowerInvariant();
+
+        if (msg.Contains("mang thai") || msg.Contains("bầu"))
+        {
+            return isEn 
+                ? "First trimester: 5 - 10g/day. Second trimester onward: 15 - 20g (3 - 5 longan pieces)/day." 
+                : "3 tháng đầu thai kỳ: 5 - 10g/ngày. Từ tam cá nguyệt thứ hai: 15 - 20g (khoảng 3 - 5 múi nhãn)/ngày.";
+        }
+        if (msg.Contains("ăn kiêng") || msg.Contains("giảm cân"))
+        {
+            return isEn
+                ? "10 - 15g (approx. 3 - 5 longan pieces)/day before 8:00 PM."
+                : "10 - 15g (khoảng 3 - 5 múi nhãn)/ngày vào bữa phụ sáng hoặc xế chiều, tránh dùng sau 20h tối.";
+        }
+        return isEn
+            ? "15 - 20g (approx. 3 - 5 longan pieces)/day."
+            : "15 - 20g (khoảng 3 - 5 múi nhãn)/ngày, dùng trực tiếp hoặc hãm trà ấm.";
     }
 
 }

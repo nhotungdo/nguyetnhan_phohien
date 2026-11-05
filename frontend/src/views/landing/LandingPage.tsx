@@ -2274,7 +2274,7 @@ export default function LandingPage() {
                         }`} />
                         <span className="truncate">
                           {chatMode === "ai" 
-                            ? (language === "en" ? "Gemini 3.5 Intelligence" : "Trí tuệ nhân tạo Gemini 3.5") 
+                            ? (language === "en" ? "Gemini AI Nutrition" : "Trí tuệ nhân tạo Gemini AI") 
                             : connectionStatus === "connected"
                               ? (language === "en" ? "Online & Ready" : "Đang trực tuyến sẵn sàng")
                               : connectionStatus === "failed"
