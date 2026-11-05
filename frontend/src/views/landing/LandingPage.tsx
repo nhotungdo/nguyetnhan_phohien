@@ -943,9 +943,9 @@ export default function LandingPage() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-secondary via-amber-50 to-secondary text-accent text-xs sm:text-sm font-bold border border-[#FDE68A] shadow-xs gold-shimmer-badge">
                 <span className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" />
-                <span>Tinh túy đất Phố Hiến</span>
+                <span>{language === "en" ? "Essence of Pho Hien" : "Tinh túy đất Phố Hiến"}</span>
                 <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-extrabold uppercase">
-                  Tiến Vua
+                  {language === "en" ? "Royal Tribute" : "Tiến Vua"}
                 </span>
               </div>
               <h1 className="text-4xl sm:text-[40px] md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
@@ -1125,7 +1125,9 @@ export default function LandingPage() {
         </SectionErrorBoundary>
 
         {/* 4. So sánh minh bạch chất lượng */}
-        <ProductComparisonSection language={language as "vi" | "en"} />
+        <SectionErrorBoundary sectionName="So sánh chất lượng">
+          <ProductComparisonSection language={language as "vi" | "en"} />
+        </SectionErrorBoundary>
 
         {/* 5. BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
         <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full max-w-full [contain:paint]">

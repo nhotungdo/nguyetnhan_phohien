@@ -11,37 +11,71 @@ interface ComparisonRow {
   market: string;
 }
 
-const COMPARISONS: ComparisonRow[] = [
-  {
-    criteria: "Nguồn gốc nhãn tươi",
-    nguyetNhan: "100% Nhãn lồng Hương Chi cổ thụ tuyển chọn từ bãi bồi sông Hồng (Hưng Yên).",
-    market: "Nhãn lai, nhãn trôi nổi nhập lẫn lộn, cùi mỏng và nước nhiều dễ chua.",
-  },
-  {
-    criteria: "Phương pháp làm khô",
-    nguyetNhan: "Sấy nhiệt nóng (sấy đối lưu) tuần hoàn khí nóng đa chiều, kiểm soát nhiệt độ nghiêm ngặt.",
-    market: "Xông lưu huỳnh (diêm sinh), sấy than tổ ong độc hại hoặc phơi bụi bẩn.",
-  },
-  {
-    criteria: "Màu sắc & Hương thơm",
-    nguyetNhan: "Vàng cánh gián hổ phách trong vắt, thơm nức mùi nhãn lồng tự nhiên đặc trưng.",
-    market: "Xỉn đen do sấy vụng, hoặc vàng chói mắt bất thường do tẩy hóa chất lưu huỳnh.",
-  },
-  {
-    criteria: "Chất vị & Độ dẻo",
-    nguyetNhan: "Cùi dày ráo mặt, cắn sần sật, dẻo thơm ngọt thanh tao không khé cổ.",
-    market: "Nhũn ướt, tẩm ướp đường hóa học ngọt gắt lợ cổ họng, hạt bị dính bết.",
-  },
-  {
-    criteria: "Bảo quản & An toàn",
-    nguyetNhan: "Đóng gói vô trùng, hút chân không, hạn dùng 12 tháng tự nhiên không chất bảo quản.",
-    market: "Đóng túi nilon sơ sài, nhanh chảy nước, dễ nấm mốc hoặc chứa dư lượng SO2 độc hại.",
-  },
-];
+function getComparisons(language: "vi" | "en"): ComparisonRow[] {
+  if (language === "en") {
+    return [
+      {
+        criteria: "Fresh Longan Source",
+        nguyetNhan: "100% Selected Huong Chi heirloom longans from the Red River alluvial soil (Hung Yen).",
+        market: "Hybrid or unverified mixed longans with thin pulp and excessive water prone to souring.",
+      },
+      {
+        criteria: "Drying Method",
+        nguyetNhan: "Convection hot-air circulation with multi-dimensional airflow and strict temperature control.",
+        market: "Sulfur fumigation, toxic honeycomb coal drying, or unhygienic open-air drying.",
+      },
+      {
+        criteria: "Color & Aroma",
+        nguyetNhan: "Clear amber golden-brown, rich with the signature fragrance of natural ripe longan.",
+        market: "Dull dark from poor drying, or unnaturally bright yellow from sulfur chemical bleaching.",
+      },
+      {
+        criteria: "Texture & Taste",
+        nguyetNhan: "Thick and dry-surfaced pulp, pleasantly chewy, delicately sweet with no harsh aftertaste.",
+        market: "Mushy and soggy, soaked in artificial sugar with harsh sweetness, clumped and sticky.",
+      },
+      {
+        criteria: "Storage & Safety",
+        nguyetNhan: "Aseptic vacuum-sealed packaging, 12-month shelf life naturally preserved without chemicals.",
+        market: "Crude plastic bags, quickly weeping liquid, prone to mold or containing toxic SO2 residue.",
+      },
+    ];
+  }
+
+  return [
+    {
+      criteria: "Nguồn gốc nhãn tươi",
+      nguyetNhan: "100% Nhãn lồng Hương Chi cổ thụ tuyển chọn từ bãi bồi sông Hồng (Hưng Yên).",
+      market: "Nhãn lai, nhãn trôi nổi nhập lẫn lộn, cùi mỏng và nước nhiều dễ chua.",
+    },
+    {
+      criteria: "Phương pháp làm khô",
+      nguyetNhan: "Sấy nhiệt nóng (sấy đối lưu) tuần hoàn khí nóng đa chiều, kiểm soát nhiệt độ nghiêm ngặt.",
+      market: "Xông lưu huỳnh (diêm sinh), sấy than tổ ong độc hại hoặc phơi bụi bẩn.",
+    },
+    {
+      criteria: "Màu sắc & Hương thơm",
+      nguyetNhan: "Vàng cánh gián hổ phách trong vắt, thơm nức mùi nhãn lồng tự nhiên đặc trưng.",
+      market: "Xỉn đen do sấy vụng, hoặc vàng chói mắt bất thường do tẩy hóa chất lưu huỳnh.",
+    },
+    {
+      criteria: "Chất vị & Độ dẻo",
+      nguyetNhan: "Cùi dày ráo mặt, cắn sần sật, dẻo thơm ngọt thanh tao không khé cổ.",
+      market: "Nhũn ướt, tẩm ướp đường hóa học ngọt gắt lợ cổ họng, hạt bị dính bết.",
+    },
+    {
+      criteria: "Bảo quản & An toàn",
+      nguyetNhan: "Đóng gói vô trùng, hút chân không, hạn dùng 12 tháng tự nhiên không chất bảo quản.",
+      market: "Đóng túi nilon sơ sài, nhanh chảy nước, dễ nấm mốc hoặc chứa dư lượng SO2 độc hại.",
+    },
+  ];
+}
 
 export function ProductComparisonSection({ language = "vi" }: { language?: "vi" | "en" }) {
   const [mobileView, setMobileView] = useState<"headToHead" | "cards">("headToHead");
   const [activeMobileCard, setActiveMobileCard] = useState<"nguyetNhan" | "market">("nguyetNhan");
+
+  const comparisons = getComparisons(language);
 
   return (
     <section className="py-16 sm:py-24 bg-white relative overflow-hidden w-full max-w-full [contain:paint]">
@@ -55,14 +89,16 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-sm mb-4">
             <ShieldCheck className="w-4 h-4 text-accent" />
-            <span>Minh Bạch Chất Lượng</span>
+            <span>{language === "en" ? "Quality Transparency" : "Minh Bạch Chất Lượng"}</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
             {language === "en" ? "Purity Uncompromised: The Nguyệt Nhãn Standard" : "Khác Biệt Làm Nên Đẳng Cấp Nguyệt Nhãn"}
           </h2>
           <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed [text-wrap:pretty]">
-            Chúng tôi kiên định với phương pháp làm nghề tử tế — không chạy theo số lượng, đặt sức khỏe người dùng và uy tín danh thơm Phố Hiến lên hàng đầu.
+            {language === "en"
+              ? "We steadfastly uphold an honest artisanal approach — prioritizing purity and user well-being over volume, honoring the prestigious Pho Hien heritage."
+              : "Chúng tôi kiên định với phương pháp làm nghề tử tế — không chạy theo số lượng, đặt sức khỏe người dùng và uy tín danh thơm Phố Hiến lên hàng đầu."}
           </p>
         </motion.div>
 
@@ -78,7 +114,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                     : "text-foreground/75 hover:text-primary"
                 }`}
               >
-                So Sánh Đối Đầu
+                {language === "en" ? "Head-to-Head" : "So Sánh Đối Đầu"}
               </button>
               <button
                 onClick={() => setMobileView("cards")}
@@ -88,14 +124,14 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                     : "text-foreground/75 hover:text-primary"
                 }`}
               >
-                Xem Từng Thẻ
+                {language === "en" ? "View by Card" : "Xem Từng Thẻ"}
               </button>
             </div>
           </div>
 
           {mobileView === "headToHead" ? (
             <div className="space-y-4">
-              {COMPARISONS.map((row, idx) => (
+              {comparisons.map((row, idx) => (
                 <div
                   key={idx}
                   className="bg-[#FFFDF8] rounded-2xl border border-[#FDE68A]/80 p-4 shadow-sm space-y-3"
@@ -109,7 +145,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                   <div className="space-y-1 pl-1">
                     <div className="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>Nguyệt Nhãn Phố Hiến:</span>
+                      <span>{language === "en" ? "Nguyet Nhan Pho Hien:" : "Nguyệt Nhãn Phố Hiến:"}</span>
                     </div>
                     <p className="text-emerald-950 font-medium pl-5 text-xs leading-relaxed">{row.nguyetNhan}</p>
                   </div>
@@ -118,7 +154,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                   <div className="space-y-1 pl-1 pt-1 border-t border-[#FDE68A]/30">
                     <div className="font-bold text-stone-700 text-xs flex items-center gap-1.5">
                       <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                      <span>Hàng đại trà thị trường:</span>
+                      <span>{language === "en" ? "Generic Market Longan:" : "Hàng đại trà thị trường:"}</span>
                     </div>
                     <p className="text-stone-600 pl-5 text-xs leading-relaxed">{row.market}</p>
                   </div>
@@ -127,10 +163,14 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
               <div className="mt-6 space-y-3">
                 <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold text-center">
-                  ✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại
+                  {language === "en"
+                    ? "✓ 200% refund if sugar-coating or harmful preservatives are detected"
+                    : "✓ Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại"}
                 </div>
                 <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium text-center">
-                  ⚠ Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp từ hàng trôi nổi
+                  {language === "en"
+                    ? "⚠ Risk of sulfur residue causing respiratory irritation from unverified longans"
+                    : "⚠ Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp từ hàng trôi nổi"}
                 </div>
               </div>
             </div>
@@ -146,7 +186,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       : "text-foreground/75"
                   }`}
                 >
-                  👑 Nguyệt Nhãn Phố Hiến
+                  {language === "en" ? "👑 Nguyet Nhan Pho Hien" : "👑 Nguyệt Nhãn Phố Hiến"}
                 </button>
                 <button
                   onClick={() => setActiveMobileCard("market")}
@@ -156,15 +196,17 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                       : "text-foreground/75"
                   }`}
                 >
-                  ❌ Hàng Đại Trà
+                  {language === "en" ? "❌ Generic Market Longan" : "❌ Hàng Đại Trà"}
                 </button>
               </div>
 
               {activeMobileCard === "nguyetNhan" ? (
                 <div className="rounded-2xl bg-gradient-to-b from-[#FFFDF8] to-amber-50/20 p-5 border-2 border-accent shadow-xl relative overflow-hidden">
-                  <h3 className="text-xl font-extrabold text-primary mb-4">Nguyệt Nhãn Phố Hiến</h3>
+                  <h3 className="text-xl font-extrabold text-primary mb-4">
+                    {language === "en" ? "Nguyet Nhan Pho Hien" : "Nguyệt Nhãn Phố Hiến"}
+                  </h3>
                   <div className="space-y-4">
-                    {COMPARISONS.map((row, idx) => (
+                    {comparisons.map((row, idx) => (
                       <div key={idx} className="space-y-1 pb-3 border-b border-[#FDE68A]/60 last:border-none">
                         <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                           <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -176,14 +218,20 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                   </div>
                   <div className="mt-5 pt-3.5 border-t border-[#FDE68A]/70 flex items-center justify-center gap-1.5 text-xs text-emerald-800 font-semibold text-center">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản</span>
+                    <span>
+                      {language === "en"
+                        ? "200% refund if sugar-coating or preservatives are detected"
+                        : "Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản"}
+                    </span>
                   </div>
                 </div>
               ) : (
                 <div className="rounded-2xl bg-gray-50 p-5 border border-gray-200 shadow-md">
-                  <h3 className="text-xl font-bold text-gray-700 mb-4">Long Nhãn Đại Trà</h3>
+                  <h3 className="text-xl font-bold text-gray-700 mb-4">
+                    {language === "en" ? "Generic Market Longan" : "Long Nhãn Đại Trà"}
+                  </h3>
                   <div className="space-y-4">
-                    {COMPARISONS.map((row, idx) => (
+                    {comparisons.map((row, idx) => (
                       <div key={idx} className="space-y-1 pb-3 border-b border-gray-200 last:border-none">
                         <div className="text-xs font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
                           <X className="w-3.5 h-3.5 text-red-500 shrink-0" />
@@ -195,7 +243,11 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
                   </div>
                   <div className="mt-5 pt-3.5 border-t border-gray-200 flex items-center justify-center gap-1.5 text-xs text-red-700 font-medium text-center">
                     <X className="w-4 h-4 text-red-500 shrink-0" />
-                    <span>Nguy cơ tồn dư lưu huỳnh và tẩm đường hóa học</span>
+                    <span>
+                      {language === "en"
+                        ? "Risk of toxic sulfur residue and chemical sugar-coating"
+                        : "Nguy cơ tồn dư lưu huỳnh và tẩm đường hóa học"}
+                    </span>
                   </div>
                 </div>
               )}
@@ -217,16 +269,16 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             {/* Nhãn nổi "Tiêu chuẩn hoàng gia" */}
             <div className="absolute top-0 right-0 bg-accent text-white text-[11px] font-bold uppercase tracking-wider px-6 py-2 rounded-bl-2xl shadow-md flex items-center gap-1.5">
               <Crown className="w-3.5 h-3.5" />
-              Chuẩn Tiến Vua
+              {language === "en" ? "Royal Tribute Standard" : "Chuẩn Tiến Vua"}
             </div>
 
             <div>
               <h3 className="text-2xl md:text-3xl font-extrabold text-primary mb-6">
-                Nguyệt Nhãn Phố Hiến
+                {language === "en" ? "Nguyet Nhan Pho Hien" : "Nguyệt Nhãn Phố Hiến"}
               </h3>
 
               <div className="space-y-6">
-                {COMPARISONS.map((row, idx) => (
+                {comparisons.map((row, idx) => (
                   <div key={idx} className="space-y-1.5 pb-4 border-b border-[#FDE68A]/60 last:border-none">
                     <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                       <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -242,7 +294,11 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
             <div className="mt-8 pt-5 border-t border-[#FDE68A]/70 flex items-center justify-center gap-2 text-xs text-emerald-800 font-semibold text-center">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại</span>
+              <span>
+                {language === "en"
+                  ? "200% refund if sugar-coating or harmful preservatives are detected"
+                  : "Hoàn tiền 200% nếu phát hiện tẩm ướp đường hoặc chất bảo quản độc hại"}
+              </span>
             </div>
           </motion.div>
 
@@ -256,11 +312,11 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
           >
             <div>
               <h3 className="text-2xl md:text-3xl font-bold text-gray-700 mb-6">
-                Long Nhãn Trôi Nổi
+                {language === "en" ? "Generic Market Longan" : "Long Nhãn Trôi Nổi"}
               </h3>
 
               <div className="space-y-6">
-                {COMPARISONS.map((row, idx) => (
+                {comparisons.map((row, idx) => (
                   <div key={idx} className="space-y-1.5 pb-4 border-b border-gray-200 last:border-none">
                     <div className="text-xs font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
                       <X className="w-4 h-4 text-red-500 shrink-0" />
@@ -276,7 +332,11 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
             <div className="mt-8 pt-5 border-t border-gray-200 flex items-center justify-center gap-2 text-xs text-red-700 font-medium text-center">
               <X className="w-4 h-4 text-red-500 shrink-0" />
-              <span>Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp, tẩm đường làm tăng đường huyết</span>
+              <span>
+                {language === "en"
+                  ? "Risk of sulfur residue causing respiratory irritation and chemical sweeteners"
+                  : "Nguy cơ tồn dư lưu huỳnh gây kích ứng hô hấp, tẩm đường làm tăng đường huyết"}
+              </span>
             </div>
           </motion.div>
 

@@ -358,8 +358,12 @@ export function ProductInteractiveShowcase({
                 {/* Gợi ý tương tác góc dưới trái */}
                 <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 z-20 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground/80 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium border border-border/50 shadow-xs pointer-events-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                  <span className="hidden sm:inline">Chạm điểm tròn để khám phá</span>
-                  <span className="sm:hidden">Chạm điểm tròn</span>
+                  <span className="hidden sm:inline">
+                    {language === "en" ? "Tap hotspots to explore" : "Chạm điểm tròn để khám phá"}
+                  </span>
+                  <span className="sm:hidden">
+                    {language === "en" ? "Tap hotspots" : "Chạm điểm tròn"}
+                  </span>
                 </div>
               </div>
 
