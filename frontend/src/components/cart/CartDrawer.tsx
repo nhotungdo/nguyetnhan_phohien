@@ -92,7 +92,7 @@ export function CartDrawer({ language, onCheckout, onBrowseProducts }: CartDrawe
               <button
                 onClick={closeCart}
                 className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#FDE68A]/30 text-primary transition-colors"
-                aria-label="Đóng giỏ hàng"
+                aria-label={language === "en" ? "Close Cart" : "Đóng giỏ hàng"}
               >
                 <X className="w-5 h-5" />
               </button>

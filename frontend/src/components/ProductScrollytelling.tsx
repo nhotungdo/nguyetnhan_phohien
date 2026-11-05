@@ -13,7 +13,9 @@ interface StepItem {
   descEn: string;
   icon: typeof Trees;
   badge: string;
+  badgeEn: string;
   highlight: string;
+  highlightEn: string;
 }
 
 const STEPS: StepItem[] = [
@@ -25,7 +27,9 @@ const STEPS: StepItem[] = [
     descEn: "Harvested from ancient orchards along the fertile Red River silt, handpicked at dawn when dew clears to retain optimal juiciness.",
     icon: Trees,
     badge: "Nguyên liệu chọn lọc",
+    badgeEn: "Selected Ingredients",
     highlight: "100% Cùi nhãn loại 1",
+    highlightEn: "100% Grade 1 Pulp",
   },
   {
     step: "02",
@@ -35,7 +39,9 @@ const STEPS: StepItem[] = [
     descEn: "Skilled artisans utilize traditional brass carving pens to remove seeds seamlessly, preserving the crescent-moon shape.",
     icon: Scissors,
     badge: "Bí quyết làng nghề",
+    badgeEn: "Artisan Secret",
     highlight: "Cùi ráo nguyên múi",
+    highlightEn: "Intact Whole Pulp",
   },
   {
     step: "03",
@@ -45,7 +51,9 @@ const STEPS: StepItem[] = [
     descEn: "Standardized hot air convective drying with multi-directional airflow and strictly controlled temperature, preserving vibrant amber color, chewy texture, and royal nutrients.",
     icon: Flame,
     badge: "Công nghệ sấy đối lưu",
+    badgeEn: "Convection Drying",
     highlight: "Khô đều - Dẻo thơm",
+    highlightEn: "Evenly Dried & Chewy",
   },
   {
     step: "04",
@@ -55,7 +63,9 @@ const STEPS: StepItem[] = [
     descEn: "Translucent amber golden gems with chewy texture and refined honeyed flavor, vacuum sealed to royal standards.",
     icon: Crown,
     badge: "Tiến vua trọn vị",
+    badgeEn: "Royal Tribute Standard",
     highlight: "Sắc vàng hổ phách",
+    highlightEn: "Amber Gold Luster",
   },
 ];
 
@@ -159,7 +169,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                           {item.step}
                         </span>
                         <span className="text-xs font-bold uppercase tracking-wider text-accent bg-secondary px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
-                          {item.badge}
+                          {language === "en" ? item.badgeEn : item.badge}
                         </span>
                       </div>
 
@@ -177,7 +187,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
                         }`}
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>{item.highlight}</span>
+                        <span>{language === "en" ? item.highlightEn : item.highlight}</span>
                       </div>
                     </motion.div>
                   </div>

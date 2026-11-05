@@ -124,7 +124,7 @@ export function HeritageVideoSection({
                 /* Trình phát YouTube chuẩn 1080p tự động kích hoạt */
                 <iframe
                   src={embedUrl}
-                  title="Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến - Nguyệt Nhãn Phố Hiến"
+                  title={language === "en" ? "Pho Hien Heritage Documentary - Nguyet Nhan Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến - Nguyệt Nhãn Phố Hiến"}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   className="w-full h-full border-0"
@@ -139,7 +139,7 @@ export function HeritageVideoSection({
                   <div className="absolute inset-0 -z-10 transition-transform duration-700 ease-out group-hover:scale-105">
                     <FastImage
                       src={activeThumb}
-                      alt="Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"
+                      alt={language === "en" ? "First was the Imperial Capital, second was Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"}
                       fill
                       sizes="(max-width: 768px) 100vw, 1100px"
                       className="object-cover"
@@ -260,7 +260,7 @@ export function HeritageVideoSection({
               style={{ fontFamily: "var(--font-dancing)" }}
               className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-wide"
             >
-              &ldquo;Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến&rdquo;
+              &ldquo;{language === "en" ? "First was the Imperial Capital, second was Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"}&rdquo;
             </p>
             <p className="text-xs text-stone-600 italic">
               {language === "en" 

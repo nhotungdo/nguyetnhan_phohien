@@ -177,22 +177,22 @@ export function ProductGalleryModal({
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-1 rounded-full text-xs shadow-xs">
                 <Package className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                <span>Quy cách: {product.size}</span>
+                <span>{language === "en" ? `Packaging: ${product.size}` : `Quy cách: ${product.size}`}</span>
               </span>
 
               <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-900 border border-emerald-200 font-semibold px-2.5 py-1 rounded-full text-xs">
                 <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>100% Tự nhiên</span>
+                <span>{language === "en" ? "100% Natural" : "100% Tự nhiên"}</span>
               </span>
 
               <span className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-900 border border-orange-200 font-semibold px-2.5 py-1 rounded-full text-xs">
                 <Flame className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-                <span>Sấy nhiệt nóng (sấy đối lưu)</span>
+                <span>{language === "en" ? "Convection Dried" : "Sấy nhiệt nóng (sấy đối lưu)"}</span>
               </span>
 
               <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-900 border border-blue-200 font-semibold px-2.5 py-1 rounded-full text-xs">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>Không chất bảo quản</span>
+                <span>{language === "en" ? "No Preservatives" : "Không chất bảo quản"}</span>
               </span>
             </div>
 

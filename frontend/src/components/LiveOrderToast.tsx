@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, ShoppingBag } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useLanguageStore } from "@/store/useLanguageStore";
 import { FastImage } from "@/components/FastImage";
 import { orderApi } from "@/services/api.service";
 import type { RecentOrderActivity } from "@/types/api.types";
@@ -35,6 +36,7 @@ interface LiveOrderToastProps {
  * - Nếu database chưa có đơn hàng nào hoặc API chưa sẵn sàng -> Tự động ẩn hoàn toàn (return null).
  */
 export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
+  const language = useLanguageStore((s) => s.language);
   // 1. Tải danh sách đơn hàng thực tế từ cơ sở dữ liệu (Không dùng mock data)
   const { data: dbOrders } = useQuery<RecentOrderActivity[]>({
     queryKey: ["orders", "recent-activities"],
@@ -150,7 +152,19 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
               </div>
               <div className="flex items-center gap-1 text-[10px] text-amber-700 font-medium mt-0.5">
                 <ShoppingBag className="w-3 h-3 text-amber-600 shrink-0" />
-                <span className="truncate">Vừa đặt mua · {currentOrder.timeAgo || "Gần đây"}</span>
+                <span className="truncate">
+                  {language === "en"
+                    ? `Just ordered · ${
+                        currentOrder.timeAgo
+                          ? currentOrder.timeAgo
+                              .replace("phút trước", "mins ago")
+                              .replace("giờ trước", "hours ago")
+                              .replace("ngày trước", "days ago")
+                              .replace("Vừa xong", "Just now")
+                          : "Recently"
+                      }`
+                    : `Vừa đặt mua · ${currentOrder.timeAgo || "Gần đây"}`}
+                </span>
               </div>
             </div>
 
@@ -158,7 +172,7 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
             <button
               onClick={() => setIsDismissed(true)}
               className="absolute top-2 right-2 text-stone-400 hover:text-stone-700 p-1 rounded-full transition-colors"
-              aria-label="Đóng thông báo"
+              aria-label={language === "en" ? "Close notification" : "Đóng thông báo"}
             >
               <X className="w-3.5 h-3.5" />
             </button>

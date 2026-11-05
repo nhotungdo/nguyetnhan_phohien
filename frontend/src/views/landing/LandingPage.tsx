@@ -185,7 +185,7 @@ export default function LandingPage() {
         if (!baseList.some((p) => p.id === item.productId)) {
           baseList.push({
             id: item.productId,
-            name: item.productName || "Sản phẩm",
+            name: item.productName || (language === "en" ? "Product" : "Sản phẩm"),
             price: item.price || 0,
             size: item.size || "",
             description: "",
@@ -196,8 +196,40 @@ export default function LandingPage() {
         }
       }
     }
+    if (language === "en") {
+      return baseList.map((prod) => {
+        let name = prod.name;
+        let size = prod.size;
+        let description = prod.description;
+
+        if (prod.id === "default-dac-biet" || prod.name.includes("Đặc Biệt")) {
+          name = "Special Reserve Dried Longan";
+          description = "Thick-fleshed Huong Chi longan, hot-air convection dried, uniform golden amber fruit, delightfully chewy and delicately sweet.";
+        } else if (prod.id === "default-tui-zip" || prod.name.includes("Túi Zip")) {
+          name = "Airtight Zipper Pouch Dried Longan";
+          description = "Convenient resealable zipper pouch for daily storage, airtight seal keeping natural chewiness and fragrance, perfect for tea, sweet soup, or restorative infusions.";
+        } else if (prod.id === "default-set-qua" || prod.name.includes("Set Quà") || prod.name.includes("Hoàng Gia")) {
+          name = "Royal Heritage Gift Set";
+          description = "Elegantly designed gift box honoring centuries of Pho Hien cultural heritage, paired with a luxury tote bag, the perfect wellness gift for loved ones and partners.";
+        }
+
+        if (size) {
+          size = size
+            .replace(/Hộp\s*(\d+[a-zA-Z]+)/gi, "$1 Box")
+            .replace(/Túi\s*(\d+[a-zA-Z]+)/gi, "$1 Pouch")
+            .replace(/Set\s*(\d+[a-zA-Z]+)\s*\((.*?)\)/gi, (_, weight, note) => {
+              const translatedNote = String(note).replace(/Hộp/gi, "Boxes").replace(/Túi/gi, "Pouches");
+              return `${weight} Set (${translatedNote})`;
+            })
+            .replace(/Hộp/gi, "Box")
+            .replace(/Túi/gi, "Pouch");
+        }
+
+        return { ...prod, name, size, description };
+      });
+    }
     return baseList;
-  }, [apiProducts, cartStoreItems, isMounted]);
+  }, [apiProducts, cartStoreItems, isMounted, language]);
 
   const [galleryProduct, setGalleryProduct] = useState<ProductResponse | null>(null);
 
@@ -688,7 +720,7 @@ export default function LandingPage() {
             <button
               onClick={() => handleOpenCart()}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 relative p-1.5 shrink-0"
-              aria-label="Giỏ hàng"
+              aria-label={language === "en" ? "Shopping Cart" : "Giỏ hàng"}
             >
               <ShoppingCart className="w-5 h-5" />
               {totalCartItems > 0 && (
@@ -700,7 +732,7 @@ export default function LandingPage() {
             <button
               onClick={handleOpenChat}
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 p-1.5 shrink-0"
-              aria-label="Chat"
+              aria-label={language === "en" ? "Live Chat" : "Trò chuyện trực tuyến"}
             >
               <MessageCircle className="w-5 h-5" />
             </button>
@@ -719,7 +751,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => handleOpenCart()}
                   className="p-2 text-foreground/80 hover:text-accent rounded-xl hover:bg-black/5 active:scale-95 transition-all relative"
-                  aria-label="Giỏ hàng"
+                  aria-label={language === "en" ? "Shopping Cart" : "Giỏ hàng"}
                 >
                   <ShoppingCart className="w-5 h-5 text-primary" />
                   {totalCartItems > 0 && (
@@ -731,7 +763,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
                   className="text-xs font-bold text-foreground/85 border border-[#FDE68A] px-2 py-1 rounded-full bg-white/90 shadow-xs transition-colors"
-                  aria-label="Chuyển ngôn ngữ"
+                  aria-label={language === "en" ? "Switch language" : "Chuyển ngôn ngữ"}
                 >
                   {language === "vi" ? "🇻🇳" : "🇬🇧"}
                 </button>
@@ -1837,9 +1869,33 @@ export default function LandingPage() {
                                 {custom.customProductName}
                               </p>
                               <p className="text-xs text-foreground/60 truncate">
-                                {custom.packagingName} ({custom.targetWeightGrams}g)
+                                {language === "en"
+                                  ? custom.packagingName
+                                      .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
+                                      .replace("Túi Zip", "Zip Bag")
+                                      .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
+                                      .replace("Hộp Mica", "Mica Jar")
+                                      .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
+                                      .replace("Lễ Hộp", "Luxury Gift Box")
+                                  : custom.packagingName} ({custom.targetWeightGrams}g)
                                 {custom.ingredients?.length
-                                  ? ` · ${custom.ingredients.map((ing) => `${ing.name} ${ing.weightGrams}g`).join(", ")}`
+                                  ? ` · ${custom.ingredients.map((ing) => {
+                                      const rawName = ing.name || "";
+                                      const ingName = language === "en"
+                                        ? rawName
+                                            .replace("Long Nhãn Phố Hiến", "Pho Hien Longan")
+                                            .replace("Long nhãn Phố Hiến", "Pho Hien Longan")
+                                            .replace("Hạt Macca Đắk Lắk", "Dak Lak Macadamia")
+                                            .replace("Macca Tây Nguyên", "Highland Macadamia")
+                                            .replace("Hạt Điều Bình Phước Rang Mộc", "Roasted Cashews")
+                                            .replace("Hạt điều rang mộc", "Roasted Cashews")
+                                            .replace("Hạnh Nhân Mỹ Nướng Giòn", "Baked Almonds")
+                                            .replace("Hạnh nhân nướng", "Baked Almonds")
+                                            .replace("Hạt Bí Xanh Ấn Độ", "Pumpkin Seeds")
+                                            .replace("Hạt bí xanh", "Pumpkin Seeds")
+                                        : rawName;
+                                      return `${ingName} ${ing.weightGrams}g`;
+                                    }).join(", ")}`
                                   : ""}
                               </p>
                             </div>
@@ -1947,9 +2003,18 @@ export default function LandingPage() {
                           if (!custom && !prod) return null;
                           const unitPrice = custom?.fixedPrice ?? prod!.price;
                           const name = custom?.customProductName ?? prod!.name;
-                          const size = custom
+                          let size = custom
                             ? `${custom.packagingName} (${custom.targetWeightGrams}g)`
                             : prod!.size;
+                          if (language === "en" && custom) {
+                            size = size
+                              .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
+                              .replace("Túi Zip", "Zip Bag")
+                              .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
+                              .replace("Hộp Mica", "Mica Jar")
+                              .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
+                              .replace("Lễ Hộp", "Luxury Gift Box");
+                          }
                           const itemTotal = unitPrice * (item.quantity || 1);
                           return (
                             <div key={idx} className="flex justify-between items-start gap-2">

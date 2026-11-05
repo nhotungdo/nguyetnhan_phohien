@@ -312,16 +312,24 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
     const activeNutAllergic = overrideNutAllergic !== undefined ? overrideNutAllergic : isNutAllergic;
 
     let goalDescription: string | undefined = undefined;
-    if (activeGoal === "diet") goalDescription = "Ăn kiêng, giảm calo, duy trì vóc dáng";
-    else if (activeGoal === "insomnia") goalDescription = "Mất ngủ, khó ngủ, dưỡng tâm an thần";
-    else if (activeGoal === "pregnancy") goalDescription = "Phụ nữ mang thai / sau sinh cần bồi bổ";
+    if (activeGoal === "diet") {
+      goalDescription = language === "en" ? "Weight management, calorie control, staying fit" : "Ăn kiêng, giảm calo, duy trì vóc dáng";
+    } else if (activeGoal === "insomnia") {
+      goalDescription = language === "en" ? "Insomnia, sleep disorders, calming the mind" : "Mất ngủ, khó ngủ, dưỡng tâm an thần";
+    } else if (activeGoal === "pregnancy") {
+      goalDescription = language === "en" ? "Prenatal & postnatal nourishment for mothers" : "Phụ nữ mang thai / sau sinh cần bồi bổ";
+    }
 
     const hasAnyProfile = !!goalDescription || activeGoal === "pregnancy" || activeNutAllergic;
     const healthProfile = hasAnyProfile
       ? {
           goal: goalDescription,
-          healthCondition: activeGoal === "pregnancy" ? "Phụ nữ mang thai / đang cho con bú" : undefined,
-          allergens: activeNutAllergic ? ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Macca"] : undefined
+          healthCondition: activeGoal === "pregnancy" 
+            ? (language === "en" ? "Pregnant / breastfeeding woman" : "Phụ nữ mang thai / đang cho con bú") 
+            : undefined,
+          allergens: activeNutAllergic 
+            ? (language === "en" ? ["Tree nuts", "Cashews", "Almonds", "Macadamia"] : ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Macca"]) 
+            : undefined
         }
       : undefined;
 
@@ -363,7 +371,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
           },
           onError: (err: Error) => {
             console.error("Lỗi stream SSE AI:", err);
-            setErrorMsg(err.message || "Không thể kết nối đến Trợ lý AI.");
+            setErrorMsg(err.message || (language === "en" ? "Unable to connect to AI Advisor." : "Không thể kết nối đến Trợ lý AI."));
           },
           onDone: () => {
             setMessages((prev) =>
@@ -380,7 +388,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       );
     } catch (err: unknown) {
       console.error("AI consultation request error:", err);
-      const msg = err instanceof Error ? err.message : "Không thể kết nối đến Trợ lý AI. Vui lòng thử lại sau ít giây.";
+      const msg = err instanceof Error ? err.message : (language === "en" ? "Unable to connect to AI Advisor. Please try again shortly." : "Không thể kết nối đến Trợ lý AI. Vui lòng thử lại sau ít giây.");
       setErrorMsg(msg);
 
       setMessages((prev) =>
@@ -388,7 +396,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
           m.id === aiMessageId
             ? {
                 ...m,
-                content: m.content || "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!",
+                content: m.content || (language === "en" ? "There was a temporary interruption connecting to the AI Nutrition Advisor. Please try again shortly!" : "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!"),
                 isStreaming: false
               }
             : m
@@ -403,7 +411,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
     const fallbackThumb = getProductPackagingFallback(product.name);
     const cartProduct: ProductResponse = {
       id: product.id,
-      name: product.name || "Sản phẩm",
+      name: product.name || (language === "en" ? "Product" : "Sản phẩm"),
       price: product.price ?? 0,
       size: product.size || "",
       description: product.reason || "",
@@ -433,9 +441,15 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
 
     // Kích hoạt ngay tư vấn chuyên sâu theo thể trạng vừa chọn
     const goalPrompts: Record<string, string> = {
-      diet: "Tôi đang theo chế độ ăn kiêng, giảm calo và giữ vóc dáng. Với thể trạng này, tôi nên sử dụng long nhãn và các sản phẩm của cửa hàng như thế nào để vừa đủ chất vừa không lo tăng cân?",
-      insomnia: "Tôi thường xuyên bị khó ngủ, mất ngủ, ngủ không sâu giấc. Hãy tư vấn giúp tôi liệu trình dưỡng tâm an thần và sản phẩm phù hợp từ Nguyệt Nhãn Phố Hiến.",
-      pregnancy: "Tôi là phụ nữ mang thai / sau sinh cần bồi bổ sức khỏe. Hãy tư vấn giúp tôi chế độ dinh dưỡng an toàn và các dòng sản phẩm phù hợp cho mẹ và bé."
+      diet: language === "en"
+        ? "I am on a diet focusing on weight control and calorie reduction. How can I enjoy dried longan and your store's products to stay energized without gaining weight?"
+        : "Tôi đang theo chế độ ăn kiêng, giảm calo và giữ vóc dáng. Với thể trạng này, tôi nên sử dụng long nhãn và các sản phẩm của cửa hàng như thế nào để vừa đủ chất vừa không lo tăng cân?",
+      insomnia: language === "en"
+        ? "I often struggle with falling asleep and staying asleep. Please advise me on a mindful sleep wellness routine and suitable products from Nguyệt Nhãn Phố Hiến."
+        : "Tôi thường xuyên bị khó ngủ, mất ngủ, ngủ không sâu giấc. Hãy tư vấn giúp tôi liệu trình dưỡng tâm an thần và sản phẩm phù hợp từ Nguyệt Nhãn Phố Hiến.",
+      pregnancy: language === "en"
+        ? "I am pregnant / postpartum and need safe, wholesome nourishment. Please advise me on a safe nutrition regimen and suitable products for mother and baby."
+        : "Tôi là phụ nữ mang thai / sau sinh cần bồi bổ sức khỏe. Hãy tư vấn giúp tôi chế độ dinh dưỡng an toàn và các dòng sản phẩm phù hợp cho mẹ và bé."
     };
 
     handleSendMessage(goalPrompts[goal], goal, isNutAllergic);
@@ -448,7 +462,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
 
     if (nextVal) {
       handleSendMessage(
-        "Tôi có cơ địa dị ứng hạt vỏ cứng (Tree nuts). Cửa hàng có dòng sản phẩm nào an toàn tuyệt đối không chứa hạt cây để tôi sử dụng an tâm không?",
+        language === "en"
+          ? "I have a tree nut allergy (cashews, almonds, macadamia). Does your store have any 100% nut-free dried longan products that are safe for me?"
+          : "Tôi có cơ địa dị ứng hạt vỏ cứng (Tree nuts). Cửa hàng có dòng sản phẩm nào an toàn tuyệt đối không chứa hạt cây để tôi sử dụng an tâm không?",
         selectedGoal,
         true
       );
@@ -631,7 +647,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                           <div className="w-12 h-12 rounded-lg overflow-hidden relative bg-white shrink-0 border border-amber-200/60 shadow-2xs">
                             <FastImage
                               src={mainThumb}
-                              alt={prod.name || "Sản phẩm"}
+                              alt={prod.name || (language === "en" ? "Product" : "Sản phẩm")}
                               fallbackSrc={fallbackThumb}
                               fill
                               sizes="48px"
@@ -639,7 +655,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                             />
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-bold text-xs sm:text-sm text-stone-900 truncate">{prod.name || "Sản phẩm"}</h4>
+                            <h4 className="font-bold text-xs sm:text-sm text-stone-900 truncate">
+                              {prod.name || (language === "en" ? "Product" : "Sản phẩm")}
+                            </h4>
                             <p className="text-[11px] text-stone-500">{prod.size || ""}</p>
                             <p className="text-xs sm:text-sm font-extrabold text-[#B45309]">
                               {(prod.price ?? 0).toLocaleString(language === "en" ? "en-US" : "vi-VN")}
