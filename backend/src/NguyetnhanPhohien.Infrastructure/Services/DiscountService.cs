@@ -1,51 +1,23 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using NguyetnhanPhohien.Application.DTOs.Discount;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Domain;
 using NguyetnhanPhohien.Infrastructure.Persistence;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace NguyetnhanPhohien.Infrastructure.Services;
 
 public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
-    private readonly IConfiguration _config;
 
-    public DiscountService(AppDbContext db, IConfiguration config)
+    public DiscountService(AppDbContext db)
     {
         _db = db;
-        _config = config;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code, string? customerPhone = null)
     {
         var normalized = code.Trim().ToUpperInvariant();
-
-        // ===== CỬA ĐĂNG NHẬP ADMIN QUA MÃ =====
-        // Website không có tài khoản khách nên admin có thể đăng nhập bằng một mã riêng,
-        // nhập ở ô mã giảm giá trên trang chủ (modal "Đăng nhập quản trị").
-        // Mã đọc từ cấu hình Admin:LoginCode (qua user-secrets hoặc biến môi trường Admin__LoginCode).
-        // Mặc định là NGUYETNHANPHOHIENADMIN nếu chưa cấu hình.
-        // Ngoài ra chấp nhận cả mã được đánh dấu IsAdminBackdoor trong database.
-        var adminLoginCode = ResolveAdminLoginCode();
-        var isDbBackdoor = await _db.DiscountCodes.AnyAsync(d =>
-            d.Code.ToUpper() == normalized && d.IsActive && d.IsAdminBackdoor);
-
-        if (normalized == adminLoginCode || normalized == "NGUYETNHANPHOHIENADMIN" || isDbBackdoor)
-        {
-            var adminToken = GenerateAdminJwt();
-            return new DiscountResult
-            {
-                IsValid = true,
-                Message = "Xác thực thành công.",
-                AdminToken = adminToken
-            };
-        }
 
         // So khớp KHÔNG phân biệt hoa/thường và loại trừ mã backdoor
         var discountCode = await _db.DiscountCodes
@@ -102,50 +74,6 @@ public class DiscountService : IDiscountService
                 ? $"Giảm {discountCode.PercentOff}% cho đơn hàng!"
                 : $"Giảm {discountCode.AmountOff?.ToString("N0")}d cho đơn hàng!"
         };
-    }
-
-    /// <summary>
-    /// Mã đăng nhập admin, chuẩn hoá giống mã giảm giá (trim + IN HOA).
-    /// Giá trị lấy từ Admin:LoginCode; nếu không cấu hình thì dùng mã mặc định "NGUYETNHANPHOHIENADMIN".
-    /// </summary>
-    private string ResolveAdminLoginCode()
-    {
-        var configured = _config["Admin:LoginCode"];
-        if (string.IsNullOrWhiteSpace(configured))
-            return "NGUYETNHANPHOHIENADMIN";
-
-        return configured.Trim().ToUpperInvariant();
-    }
-
-    /// <summary>Sinh JWT role Admin dùng cùng key/issuer/audience của AuthService.</summary>
-    private string GenerateAdminJwt()
-    {
-        var jwtKey = _config["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(jwtKey))
-            throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
-
-        var issuer   = _config["Jwt:Issuer"]   ?? "NguyetNhanPhoHien";
-        var audience = _config["Jwt:Audience"] ?? "NguyetNhanPhoHienAdmin";
-
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Role, "Admin"),
-            new Claim(ClaimTypes.Name, "admin"),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<List<DiscountDto>> GetAllAsync()

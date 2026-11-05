@@ -62,6 +62,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         // Cho phép SignalR gửi token qua query string
         options.Events = new JwtBearerEvents
         {
+            OnTokenValidated = context =>
+            {
+                if (context.Principal?.HasClaim(AuthService.PasswordLoginClaim, "true") != true)
+                    context.Fail("Admin sign-in is required.");
+                return Task.CompletedTask;
+            },
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];

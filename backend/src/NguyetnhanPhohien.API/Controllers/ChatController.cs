@@ -171,11 +171,12 @@ public class ChatController : ControllerBase
         }
 
         // Admin trả lời => phiên này đã đọc hết tin của khách
-        await _chatService.MarkSessionReadAsync(request.ChatSessionId);
+        var readThrough = await _chatService.MarkSessionReadAsync(request.ChatSessionId);
 
         var sessionGroup = ChatHub.GroupFor(request.ChatSessionId.ToString());
         await _hub.Clients.Group(sessionGroup).SendAsync("ReceiveAdminMessage", message);
-        await _hub.Clients.Group(sessionGroup).SendAsync("MessagesRead", new { sessionId = request.ChatSessionId });
+        if (readThrough.HasValue)
+            await _hub.Clients.Group(sessionGroup).SendAsync("MessagesRead", new { sessionId = request.ChatSessionId, readThrough });
         await _hub.Clients.Group(ChatHub.AdminGroup).SendAsync("AdminReplied", new
         {
             sessionId = request.ChatSessionId,
@@ -252,12 +253,14 @@ public class ChatController : ControllerBase
     /// </summary>
     [HttpPut("sessions/{sessionId:guid}/read")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> MarkRead(Guid sessionId)
+    public async Task<IActionResult> MarkRead(Guid sessionId, [FromQuery] Guid? throughMessageId)
     {
-        await _chatService.MarkSessionReadAsync(sessionId);
-
-        await _hub.Clients.Group(ChatHub.GroupFor(sessionId.ToString()))
-            .SendAsync("MessagesRead", new { sessionId });
+        var readThrough = await _chatService.MarkSessionReadAsync(sessionId, throughMessageId);
+        if (readThrough.HasValue)
+        {
+            await _hub.Clients.Group(ChatHub.GroupFor(sessionId.ToString()))
+                .SendAsync("MessagesRead", new { sessionId, readThrough });
+        }
 
         return NoContent();
     }

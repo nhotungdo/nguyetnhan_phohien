@@ -139,7 +139,7 @@ export default function Orders() {
         return;
       }
       console.error("Update failed", err);
-      addToast("error", "Cập nhật trạng thái thất bại!");
+      addToast("error", err instanceof ApiError ? err.message : "Cập nhật trạng thái thất bại!");
     } finally {
       setUpdatingId(null);
     }

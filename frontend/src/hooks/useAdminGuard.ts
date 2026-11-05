@@ -7,9 +7,7 @@ import { adminAuth } from "@/services/api.service";
 /**
  * Trạng thái xác thực khu quản trị.
  *
- * Khu quản trị KHÔNG còn hiện màn hình đăng nhập: token hết hạn/thiếu thì chuyển
- * về trang chủ ("/") — đăng nhập admin bằng mã quản trị trên trang chủ
- * Đây chỉ là lớp UX — mọi API quản trị vẫn yêu cầu JWT role Admin phía server.
+ * Chuyển về trang đăng nhập khi thiếu phiên quản trị hợp lệ.
  */
 export function useAdminGuard() {
   const router = useRouter();
@@ -22,7 +20,7 @@ export function useAdminGuard() {
       if (!adminAuth.isLoggedIn()) {
         // replace (không phải push) để nút Back không quay lại vô hạn vào
         // khu quản trị rồi lại bị đá ra trang chủ.
-        router.replace("/");
+        router.replace("/admin-login");
       } else {
         setIsAuthorized(true);
       }

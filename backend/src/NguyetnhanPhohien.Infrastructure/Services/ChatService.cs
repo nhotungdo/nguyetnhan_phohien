@@ -158,9 +158,13 @@ public class ChatService : IChatService
         _db.ChatMessages.Add(message);
 
         // Cập nhật session
-        session.LastMessageAt = DateTime.UtcNow;
+        session.LastMessageAt = message.SentAt;
         if (senderType == "Guest")
+        {
             session.HasUnreadMessages = true;
+            // A concurrent read may have cleared the flag since we loaded the session.
+            _db.Entry(session).Property(cs => cs.HasUnreadMessages).IsModified = true;
+        }
 
         // Tin nhắn mới = phiên đang hoạt động lại → tự mở phiên đã phân giải
         // (khách quay lại hỏi sau khi admin đã đóng, hoặc admin gửi thêm sau khi đóng)
@@ -246,17 +250,30 @@ public class ChatService : IChatService
         });
     }
 
-    public async Task MarkSessionReadAsync(Guid sessionId)
+    public async Task<DateTime?> MarkSessionReadAsync(Guid sessionId, Guid? throughMessageId = null)
     {
-        // Cập nhật trạng thái HasUnreadMessages và IsRead trực tiếp trong DB bằng ExecuteUpdateAsync
-        // Siêu nhanh (1ms) mà không cần nạp toàn bộ danh sách tin nhắn vào RAM
-        await _db.ChatSessions
-            .Where(cs => cs.Id == sessionId)
-            .ExecuteUpdateAsync(s => s.SetProperty(cs => cs.HasUnreadMessages, false));
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM \"ChatSessions\" WHERE \"Id\" = {sessionId} FOR NO KEY UPDATE");
 
-        await _db.ChatMessages
-            .Where(m => m.ChatSessionId == sessionId && m.SenderType == "Guest" && !m.IsRead)
-            .ExecuteUpdateAsync(m => m.SetProperty(msg => msg.IsRead, true));
+        var guestMessages = _db.ChatMessages
+            .Where(m => m.ChatSessionId == sessionId && m.SenderType == "Guest");
+        var boundary = throughMessageId.HasValue
+            ? guestMessages.Where(m => m.Id == throughMessageId.Value)
+            : guestMessages;
+        var readThrough = await boundary.MaxAsync(m => (DateTime?)m.SentAt);
+        if (readThrough is DateTime sentAt)
+        {
+            await guestMessages.Where(m => !m.IsRead && m.SentAt <= sentAt)
+                .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true));
+
+            var hasUnread = await guestMessages.AnyAsync(m => !m.IsRead);
+            await _db.ChatSessions.Where(cs => cs.Id == sessionId)
+                .ExecuteUpdateAsync(s => s.SetProperty(cs => cs.HasUnreadMessages, hasUnread));
+        }
+
+        await transaction.CommitAsync();
+        return readThrough;
     }
 
     public async Task<Guid?> MarkMessagesReadByGuestAsync(string sessionId)

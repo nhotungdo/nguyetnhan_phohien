@@ -153,6 +153,8 @@ function summarizeTopProducts(orders: OrderResponse[]) {
 }
 
 export default function Dashboard() {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
   // Khôi phục ngay từ localStorage (0ms độ trễ, không chớp màn hình)
@@ -246,13 +248,13 @@ export default function Dashboard() {
   }, [chartData, rangeDays]);
 
   /** Xuất báo cáo CSV mở được bằng Excel */
-  const buildReportCsv = () => {
+  const buildReportCsv = (chartData: DayPointDto[], rawOrders: OrderResponse[]) => {
     const totalRevenue = chartData.reduce((s, p) => s + p.revenue, 0);
     const totalOrders = chartData.reduce((s, p) => s + p.orders, 0);
 
     const reportDays = new Set(chartData.map((day) => day.key));
     const vietnamDate = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" });
-    const reportOrders = (rawOrders ?? []).filter((order) =>
+    const reportOrders = rawOrders.filter((order) =>
       reportDays.has(vietnamDate.format(new Date(order.createdAt)))
     );
     const reportCancelledCount = reportOrders.filter((order) => order.status === "Cancelled").length;
@@ -301,16 +303,30 @@ export default function Dashboard() {
     return L.join("\r\n");
   };
 
-  const handleExportCsv = () => {
-    const blob = new Blob(["\uFEFF" + buildReportCsv()], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const [stats, orders] = await Promise.all([dashboardApi.getStats(), orderApi.getAll()]);
+      const reportDays = stats.dailyStats.slice(-rangeDays);
+      if (reportDays.length !== rangeDays) {
+        throw new Error("Thiếu dữ liệu theo ngày.");
+      }
+
+      const blob = new Blob(["\uFEFF" + buildReportCsv(reportDays, orders)], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bao-cao-doanh-thu-${rangeDays}-ngay-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError("Chưa tải đủ dữ liệu báo cáo. Vui lòng thử xuất CSV lại.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Chỉ hiện skeleton khi không có bất kỳ bộ nhớ đệm nào và đang đợi request đầu tiên
@@ -442,15 +458,17 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={handleExportCsv}
-              disabled={!hasData}
+              disabled={isExporting}
               title="Tải báo cáo doanh thu & top sản phẩm (CSV)"
               className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 cursor-pointer"
             >
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>CSV</span>
+              <span>{isExporting ? "Đang tải…" : "CSV"}</span>
             </button>
           </div>
         </div>
+
+        {exportError && <p role="alert" className="px-4 pt-2 text-sm text-destructive">{exportError}</p>}
 
         <div className="flex-1 z-10 p-4 pt-5 min-h-0">
           {!hasData ? (

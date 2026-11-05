@@ -1106,30 +1106,25 @@ Hotline: 034 897 3285
     /// </summary>
     private async Task ReconsumeDiscountUsageAsync(Order order)
     {
-        // Khá giống SĐT dùng làm khoá chống reuse khi tạo đơn — phải chuẩn hoá đúng
-        // cách đó để dòng được bắt lại trùng khớp với dòng hoàn trước kia.
         var phone = PhoneNumber.Normalize(order.CustomerPhone);
-        if (phone.Length == 0) return;
+        if (phone.Length == 0)
+            throw new ArgumentException("Không thể mở lại đơn vì thiếu số điện thoại để khôi phục lượt mã giảm giá.");
 
         var code = await _db.DiscountCodes
             .FirstOrDefaultAsync(d => d.Code == order.DiscountCodeApplied);
-        if (code == null) return; // mã đã bị admin xoá — không còn gì để khôi phục
+        if (code == null)
+            throw new ArgumentException("Không thể mở lại đơn vì mã giảm giá đã bị xóa.");
 
-        // SĐT đã dùng lại mã này với một đơn khác trong lúc đơn cũ nằm trong "Đã huỷ"?
-        // Dòng redemption DA TON TAI nghia la lượt đó thuộc về đơn khác — đơn mở lại
-        // KHÔNG chiếm thêm lượt, giữ nguyên lượt của đơn kia.
         if (await _db.DiscountRedemptions.AnyAsync(r =>
                 r.DiscountCodeId == code.Id && r.CustomerPhone == phone))
-            return;
+            throw new ArgumentException("Không thể mở lại đơn vì số điện thoại đã dùng mã cho đơn khác.");
 
-        // Đếm lượt TRƯỚC, giữ nguyên điều kiện khi tạo đơn (không vượt MaxUsageCount):
-        // mã đã dùng hết lượt trong lúc đơn nằm "Đã huỷ" thì đơn mở lại xem như
-        // không chiếm được lượt — dòng redemption cũng không ghi, khớp bất biến.
         var consumed = await _db.DiscountCodes
             .Where(d => d.Id == code.Id
                 && (!d.MaxUsageCount.HasValue || d.UsageCount < d.MaxUsageCount.Value))
             .ExecuteUpdateAsync(s => s.SetProperty(d => d.UsageCount, d => d.UsageCount + 1));
-        if (consumed == 0) return;
+        if (consumed == 0)
+            throw new ArgumentException("Không thể mở lại đơn vì mã giảm giá đã hết lượt.");
 
         _db.DiscountRedemptions.Add(new DiscountRedemption
         {

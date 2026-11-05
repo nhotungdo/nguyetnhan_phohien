@@ -277,9 +277,14 @@ if (typeof window !== "undefined") {
     });
 
     // Admin đã mở phiên => tin của khách được xem → hiện "Đã xem"
-    connection.on("MessagesRead", () => {
+    connection.on("MessagesRead", (data?: { readThrough?: string }) => {
+      const through = data?.readThrough;
       setMessages((prev) =>
-        prev.map((m) => (m.senderType === "Guest" ? { ...m, isRead: true } : m))
+        prev.map((m) => (
+          m.senderType === "Guest" && (!through || Date.parse(m.sentAt) <= Date.parse(through))
+            ? { ...m, isRead: true }
+            : m
+        ))
       );
     });
 

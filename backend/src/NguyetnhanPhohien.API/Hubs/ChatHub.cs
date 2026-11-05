@@ -173,7 +173,7 @@ public class ChatHub : Hub
         }
 
         // Admin trả lời => phiên này đã được Admin đọc hết tin của khách
-        await _chatService.MarkSessionReadAsync(request.ChatSessionId);
+        var readThrough = await _chatService.MarkSessionReadAsync(request.ChatSessionId);
 
         var sessionGroup = GroupFor(request.ChatSessionId.ToString());
 
@@ -181,7 +181,8 @@ public class ChatHub : Hub
         await Clients.Group(sessionGroup).SendAsync("ReceiveAdminMessage", message);
 
         // Khách xác nhận “Đã xem” tin họ đã gửi
-        await Clients.Group(sessionGroup).SendAsync("MessagesRead", new { sessionId = request.ChatSessionId });
+        if (readThrough.HasValue)
+            await Clients.Group(sessionGroup).SendAsync("MessagesRead", new { sessionId = request.ChatSessionId, readThrough });
 
         // Cũng thông báo đến Admin group (các tab Admin khác update UI)
         await Clients.Group(AdminGroup).SendAsync("AdminReplied", new

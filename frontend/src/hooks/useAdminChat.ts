@@ -82,42 +82,32 @@ export function useAdminChat() {
     }
   }, []);
 
+  const selectedSessionIdRef = useRef(selectedSessionId);
+  const sessionLoad = useRef(0);
+
   // 2. Lấy tin nhắn của một session
   const selectSession = useCallback(async (sessionId: string | null) => {
-    if (!sessionId) {
-      setSelectedSessionId(null);
-      setTypingSessionId(null);
-      setMessages([]);
-      return;
-    }
-
+    const request = ++sessionLoad.current;
+    selectedSessionIdRef.current = sessionId;
     setSelectedSessionId(sessionId);
     setTypingSessionId(null);
-
-    // markRead lỗi (mạng/401) KHÔNG được chặn việc tải tin nhắn
-    try {
-      // Đánh dấu đã đọc (backend broadcast "MessagesRead" để khách thấy "Đã xem")
-      await chatApi.markRead(sessionId);
-      setSessions((prev) =>
-        prev.map((s) => (areIdsEqual(s.id, sessionId) ? { ...s, hasUnreadMessages: false } : s))
-      );
-    } catch (err) {
-      console.warn("Mark session read failed:", err);
-    }
+    setMessages([]);
+    if (!sessionId) return;
 
     try {
       const msgs = await chatApi.getSessionMessages(sessionId);
-      setMessages(msgs);
-    } catch (err) {
-      console.warn("Failed to load messages:", err);
-    }
-  }, []);
+      if (sessionLoad.current !== request) return;
 
-  // Dùng ref để tránh stale closure trong SignalR listeners mà không cần re-connect
-  const selectedSessionIdRef = useRef(selectedSessionId);
-  useEffect(() => {
-    selectedSessionIdRef.current = selectedSessionId;
-  }, [selectedSessionId]);
+      const loadedIds = new Set(msgs.map((message) => message.id));
+      setMessages((current) => [...msgs, ...current.filter((message) => !loadedIds.has(message.id))]);
+      const latestGuest = [...msgs].reverse().find((message) => message.senderType === "Guest");
+      if (!latestGuest) return;
+      await chatApi.markRead(sessionId, latestGuest.id);
+      if (sessionLoad.current === request) await fetchSessions();
+    } catch (err) {
+      if (sessionLoad.current === request) console.warn("Failed to load or mark messages read:", err);
+    }
+  }, [fetchSessions]);
 
   const sessionsRef = useRef(sessions);
   useEffect(() => {
@@ -194,6 +184,8 @@ export function useAdminChat() {
   const dropSession = useCallback((sessionId: string) => {
     setSessions((prev) => prev.filter((s) => !areIdsEqual(s.id, sessionId)));
     if (areIdsEqual(selectedSessionIdRef.current, sessionId)) {
+      sessionLoad.current++;
+      selectedSessionIdRef.current = null;
       setSelectedSessionId(null);
       setMessages([]);
     }
@@ -275,7 +267,7 @@ export function useAdminChat() {
             prev.some((m) => m.id === data.message.id) ? prev : [...prev, data.message]
           );
           // Đang mở phiên này => coi như admin đã đọc (direct DB update)
-          chatApi.markRead(data.sessionId).catch(console.error);
+          chatApi.markRead(data.sessionId, data.message.id).catch(console.error);
         }
 
         // Cập nhật danh sách sessions ngay lập tức trong local state (0ms - không cần fetch HTTP)

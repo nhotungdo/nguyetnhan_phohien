@@ -11,6 +11,8 @@ namespace NguyetnhanPhohien.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
+    public const string PasswordLoginClaim = "admin_password_login";
+
     private readonly IConfiguration _config;
 
     public AuthService(IConfiguration config)
@@ -64,6 +66,7 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.Role, "Admin"),
             new Claim("role", "Admin"),
+            new Claim(PasswordLoginClaim, "true"),
             new Claim(ClaimTypes.Name, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };

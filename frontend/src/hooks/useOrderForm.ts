@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { orderApi, discountApi, adminAuth } from "@/services/api.service";
-import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
+import { orderApi, discountApi } from "@/services/api.service";
 import type { CreateOrderRequest, OrderResponse, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
 import {
   composeAddress,
@@ -69,7 +68,17 @@ export function useOrderForm(
     if (showAllErrors || touched[field]) errors[field] = allErrors[field];
   }
 
-  const [discountResult, setDiscountResult] = useState<DiscountResult | null>(null);
+  const [verifiedDiscount, setVerifiedDiscount] = useState<{
+    code: string;
+    phone: string;
+    result: DiscountResult;
+  } | null>(null);
+  const discountRequest = useRef(0);
+  const discountResult =
+    verifiedDiscount?.code === form.discountCode.trim() &&
+    verifiedDiscount.phone === normalizePhone(form.customerPhone)
+      ? verifiedDiscount.result
+      : null;
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
   const orderAttempt = useRef<{ payload: string; key: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +87,12 @@ export function useOrderForm(
   const [errorMessage, setErrorMessage] = useState("");
   const [lastSubmittedEmail, setLastSubmittedEmail] = useState("");
   const [emailDeliveryStatus, setEmailDeliveryStatus] = useState<OrderResponse["emailDeliveryStatus"] | null>(null);
+
+  const invalidateDiscount = useCallback(() => {
+    discountRequest.current++;
+    setVerifiedDiscount(null);
+    setIsApplyingCode(false);
+  }, []);
 
   const hasFallbackProduct = form.items.some((it) => it.productId?.startsWith("default-"));
 
@@ -94,13 +109,13 @@ export function useOrderForm(
     // nếu giữ lại, UI vẫn hiện "Giảm 10%" trong khi đơn gửi mã khác → khách
     // thấy sai tiền, thậm chí bị 400 và không đặt được đơn.
     if (field === "customerPhone") {
+      invalidateDiscount();
       if (discountResult?.isValid) {
-        setDiscountResult(null);
         setDiscountNotice("Số điện thoại đã thay đổi. Vui lòng bấm 'Áp dụng' lại để kiểm tra mã giảm giá cho số mới.");
       }
     }
     if (field === "discountCode") {
-      setDiscountResult(null);
+      invalidateDiscount();
       setDiscountNotice(null);
     }
   };
@@ -134,7 +149,7 @@ export function useOrderForm(
         items: [...prev.items, { productId: nextProduct.id, quantity: 1 }],
       };
     });
-    setDiscountResult(null);
+    invalidateDiscount();
   };
 
   const removeItem = (index: number) => {
@@ -143,7 +158,7 @@ export function useOrderForm(
       ...prev,
       items: prev.items.filter((_, i) => i !== index),
     }));
-    setDiscountResult(null);
+    invalidateDiscount();
   };
 
   const updateItem = (index: number, field: keyof OrderItemFormState, value: string | number) => {
@@ -155,7 +170,7 @@ export function useOrderForm(
       };
       return { ...prev, items: newItems };
     });
-    setDiscountResult(null);
+    invalidateDiscount();
   };
 
   const selectSingleProduct = (productId: string) => {
@@ -163,7 +178,7 @@ export function useOrderForm(
       ...prev,
       items: [{ productId, quantity: 1 }],
     }));
-    setDiscountResult(null);
+    invalidateDiscount();
   };
 
   const setCartItems = useCallback((
@@ -190,46 +205,42 @@ export function useOrderForm(
         })),
         ...(discountCode !== undefined ? { discountCode } : {}),
       }));
-      setDiscountResult(null);
+      invalidateDiscount();
     }
-  }, []);
+  }, [invalidateDiscount]);
 
   const applyDiscount = async (codeOverride?: string | unknown) => {
     const code = (typeof codeOverride === "string" ? codeOverride : form.discountCode).trim();
     if (!code) return;
 
+    if (code.toLowerCase() === "nguyetnhanphohienadmin") {
+      setField("discountCode", "");
+      router.push("/admin-login");
+      return;
+    }
+
     if (typeof codeOverride === "string") {
       setForm((prev) => ({ ...prev, discountCode: codeOverride }));
     }
 
+    const request = ++discountRequest.current;
+    const phone = normalizePhone(form.customerPhone);
+    setVerifiedDiscount(null);
     setDiscountNotice(null);
     setErrorMessage("");
     setIsApplyingCode(true);
 
     try {
-      const normalizedPhone = normalizePhone(form.customerPhone);
-      const result = await discountApi.apply({
-        code,
-        // Gửi SĐT đã chuẩn hoá nếu có (backend bắt buộc SĐT với mã giảm giá thông thường,
-        // nhưng cho phép mã backdoor admin đi qua để đăng nhập quản trị không cần SĐT)
-        customerPhone: normalizedPhone || undefined,
-      });
-
-      // Mã backdoor admin: lưu token và redirect sang dashboard
-      if (result.adminToken) {
-        adminAuth.login(result.adminToken);
-        triggerPageNavigation();
-        router.push("/dashboard");
-        return;
+      const result = await discountApi.apply({ code, customerPhone: phone || undefined });
+      if (discountRequest.current === request) {
+        setVerifiedDiscount({ code, phone, result });
       }
-
-      setDiscountResult(result);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Mã không hợp lệ.";
-      setErrorMessage(message);
-      setDiscountResult(null);
+      if (discountRequest.current === request) {
+        setErrorMessage(err instanceof Error ? err.message : "Mã không hợp lệ.");
+      }
     } finally {
-      setIsApplyingCode(false);
+      if (discountRequest.current === request) setIsApplyingCode(false);
     }
   };
 
@@ -344,7 +355,7 @@ export function useOrderForm(
       });
       setTouched({});
       setShowAllErrors(false);
-      setDiscountResult(null);
+      invalidateDiscount();
       setDiscountNotice(null);
       onSuccess?.(validItems);
     } catch (err: unknown) {

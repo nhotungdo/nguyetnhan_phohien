@@ -30,7 +30,7 @@ public interface IChatService
     /// <summary>
     /// [ADMIN đọc] Đánh dấu tin của khách đã đọc + bỏ cờ chưa đọc trên phiên.
     /// </summary>
-    Task MarkSessionReadAsync(Guid sessionId);
+    Task<DateTime?> MarkSessionReadAsync(Guid sessionId, Guid? throughMessageId = null);
 
     /// <summary>
     /// [KHÁCH đọc] Đánh dấu tin của Admin đã khách xem (read receipt).
