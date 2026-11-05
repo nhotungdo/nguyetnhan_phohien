@@ -43,7 +43,7 @@ interface Recipe {
 const RECIPES: Recipe[] = [
   {
     id: "tra-cuc",
-    youtubeId: "X8e-QWaVGQk",
+    youtubeId: "62Da133k_aw",
     name: "Trà Dưỡng Nhan Hoa Cúc Long Nhãn",
     nameEn: "Imperial Longan Chrysanthemum Tea",
     category: "Thức Uống Dưỡng Tâm",
@@ -93,7 +93,7 @@ const RECIPES: Recipe[] = [
   },
   {
     id: "che-sen",
-    youtubeId: "X8e-QWaVGQk",
+    youtubeId: "62Da133k_aw",
     name: "Chè Long Nhãn Lồng Hạt Sen",
     nameEn: "Royal Lotus Seed in Longan Sweet Soup",
     category: "Món Tráng Miệng Thượng Phẩm",
@@ -143,7 +143,7 @@ const RECIPES: Recipe[] = [
   },
   {
     id: "ruou-quy",
-    youtubeId: "X8e-QWaVGQk",
+    youtubeId: "62Da133k_aw",
     name: "Rượu Long Nhãn Khí Huyết Đại Bổ",
     nameEn: "Rejuvenating Longan Herbal Liquor",
     category: "Rượu Thuốc Quý Gia Truyền",
@@ -557,6 +557,41 @@ export function ProductPairingSection({
                     </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
+
+                  {/* Video Hướng Dẫn Thực Hành Nằm Ở Phần Trống Dưới Nút Đặt Mua */}
+                  {activeRecipe.youtubeId && (
+                    <div className="pt-3.5 sm:pt-4 border-t border-[#FDE68A]/60 w-full space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                          <Play className="w-3.5 h-3.5 text-accent fill-accent shrink-0" />
+                          <span>
+                            {language === "en" ? "Artisan Video Demonstration" : "Video Hướng Dẫn Thực Hành"}
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-200">
+                          <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span>{language === "en" ? "Artisan Guide" : "Thực tế"}</span>
+                        </span>
+                      </div>
+
+                      <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-md border-2 border-white bg-black group">
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${activeRecipe.youtubeId}?rel=0&modestbranding=1`}
+                          title={language === "en" ? `${activeRecipe.nameEn} Video Guide` : `Video cách pha chế ${activeRecipe.name}`}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+
+                      <p className="text-[11px] text-foreground/75 text-center italic leading-tight">
+                        {language === "en"
+                          ? `Watch artisan steps for brewing ${activeRecipe.nameEn}`
+                          : `Xem cận cảnh các bước pha chế ${activeRecipe.name} chuẩn vị`}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -609,7 +644,7 @@ export function ProductPairingSection({
               {/* Khung phát video 16:9 */}
               <div className="relative aspect-video w-full bg-black">
                 <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${selectedVideoRecipe.youtubeId || "X8e-QWaVGQk"}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  src={`https://www.youtube-nocookie.com/embed/${selectedVideoRecipe.youtubeId || "62Da133k_aw"}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
                   title={language === "en" ? selectedVideoRecipe.nameEn : selectedVideoRecipe.name}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
