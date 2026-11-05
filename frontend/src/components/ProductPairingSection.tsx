@@ -93,7 +93,7 @@ const RECIPES: Recipe[] = [
   },
   {
     id: "che-sen",
-    youtubeId: "62Da133k_aw",
+    youtubeId: "6XLEmHUX8Rs",
     name: "Chè Long Nhãn Lồng Hạt Sen",
     nameEn: "Royal Lotus Seed in Longan Sweet Soup",
     category: "Món Tráng Miệng Thượng Phẩm",
