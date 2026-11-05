@@ -143,7 +143,7 @@ const RECIPES: Recipe[] = [
   },
   {
     id: "ruou-quy",
-    youtubeId: "62Da133k_aw",
+    youtubeId: "xYEddncbdlk",
     name: "Rượu Long Nhãn Khí Huyết Đại Bổ",
     nameEn: "Rejuvenating Longan Herbal Liquor",
     category: "Rượu Thuốc Quý Gia Truyền",
