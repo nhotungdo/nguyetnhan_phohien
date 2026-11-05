@@ -14,8 +14,6 @@ import {
   Flame,
   Award,
   Play,
-  X,
-  Sparkles,
 } from "lucide-react";
 import { EASE_OUT_EXPO, fadeUp, Reveal, staggerContainer } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
@@ -204,7 +202,6 @@ export function ProductPairingSection({
   onOrderClick,
 }: ProductPairingSectionProps) {
   const [activeId, setActiveId] = useState("tra-cuc");
-  const [selectedVideoRecipe, setSelectedVideoRecipe] = useState<Recipe | null>(null);
   const activeRecipe = RECIPES.find((r) => r.id === activeId) || RECIPES[0];
 
   const culturalPills = [
@@ -437,7 +434,7 @@ export function ProductPairingSection({
                     {language === "en" ? activeRecipe.descEn : activeRecipe.desc}
                   </p>
 
-                  {/* Huy hiệu thông số: Thời gian, Công dụng & Video hướng dẫn */}
+                  {/* Huy hiệu thông số: Thời gian & Công dụng */}
                   <div className="flex flex-wrap items-center gap-2.5">
                     <div className="inline-flex items-center gap-2 bg-[#FFFDF8] px-3.5 py-2 rounded-xl border border-[#FDE68A] text-xs font-semibold text-primary">
                       <Clock className="w-3.5 h-3.5 text-accent shrink-0" />
@@ -457,14 +454,6 @@ export function ProductPairingSection({
                         {language === "en" ? activeRecipe.healthBenefitEn : activeRecipe.healthBenefit}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedVideoRecipe(activeRecipe)}
-                      className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 hover:from-amber-800 hover:to-amber-900 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-                      <span>{language === "en" ? "Watch Video Guide (60s)" : "Xem Video Hướng Dẫn (60s)"}</span>
-                    </button>
                   </div>
 
                   {/* Các bước thực hiện chi tiết */}
@@ -561,16 +550,10 @@ export function ProductPairingSection({
                   {/* Video Hướng Dẫn Thực Hành Nằm Ở Phần Trống Dưới Nút Đặt Mua */}
                   {activeRecipe.youtubeId && (
                     <div className="pt-3.5 sm:pt-4 border-t border-[#FDE68A]/60 w-full space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
-                          <Play className="w-3.5 h-3.5 text-accent fill-accent shrink-0" />
-                          <span>
-                            {language === "en" ? "Artisan Video Demonstration" : "Video Hướng Dẫn Thực Hành"}
-                          </span>
-                        </div>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-200">
-                          <Sparkles className="w-3 h-3 text-amber-600 shrink-0" />
-                          <span>{language === "en" ? "Artisan Guide" : "Thực tế"}</span>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                        <Play className="w-3.5 h-3.5 text-accent fill-accent shrink-0" />
+                        <span>
+                          {language === "en" ? "Artisan Video Demonstration" : "Video Hướng Dẫn Thực Hành"}
                         </span>
                       </div>
 
@@ -598,100 +581,6 @@ export function ProductPairingSection({
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Modal Video Hướng Dẫn Nấu/Pha Chế 60s */}
-      <AnimatePresence>
-        {selectedVideoRecipe && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md"
-            onClick={() => setSelectedVideoRecipe(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl overflow-hidden max-w-2xl w-full shadow-2xl border border-amber-300/80 relative flex flex-col max-h-[90vh]"
-            >
-              {/* Header Modal */}
-              <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-amber-50 to-stone-50 border-b border-amber-200/60">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-accent text-white flex items-center justify-center shadow-xs shrink-0">
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-sm sm:text-base font-bold text-primary truncate">
-                      {language === "en" ? selectedVideoRecipe.nameEn : selectedVideoRecipe.name}
-                    </h4>
-                    <p className="text-[11px] text-stone-500 font-medium">
-                      {language === "en" ? "60s Artisan Recipe Demonstration" : "Video hướng dẫn nghệ nhân chuẩn vị 60 giây"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedVideoRecipe(null)}
-                  className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition-colors cursor-pointer shrink-0 ml-3"
-                  aria-label="Đóng"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Khung phát video 16:9 */}
-              <div className="relative aspect-video w-full bg-black">
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${selectedVideoRecipe.youtubeId || "62Da133k_aw"}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                  title={language === "en" ? selectedVideoRecipe.nameEn : selectedVideoRecipe.name}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="w-full h-full border-0"
-                />
-              </div>
-
-              {/* Các mốc thời gian & Mẹo của nghệ nhân */}
-              <div className="p-4 sm:p-5 overflow-y-auto space-y-3 bg-[#FFFDF8]">
-                <div className="flex items-center gap-2 text-xs font-bold text-primary">
-                  <Sparkles className="w-3.5 h-3.5 text-accent" />
-                  <span>{language === "en" ? "Step Timeline Breakdown:" : "Trình tự thực hành chuẩn vị:"}</span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {selectedVideoRecipe.steps.map((st, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="bg-white p-2.5 rounded-xl border border-amber-200/60 shadow-xs flex flex-col justify-between"
-                    >
-                      <div className="flex items-center justify-between text-[11px] font-bold text-accent mb-1">
-                        <span>{`0:${(sIdx * 15).toString().padStart(2, "0")}`}</span>
-                        <span className="text-[10px] bg-amber-50 px-1.5 py-0.5 rounded text-stone-600">{`B${sIdx + 1}`}</span>
-                      </div>
-                      <p className="text-[11px] font-medium text-stone-700 leading-snug line-clamp-2">
-                        {language === "en" && st.titleEn ? st.titleEn : st.title}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-amber-50/80 p-3 rounded-2xl border border-amber-200/80 flex items-start gap-2 text-xs">
-                  <ChefHat className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                  <div className="text-stone-700 leading-relaxed">
-                    <span className="font-bold text-primary">
-                      {language === "en" ? "Artisan Secret: " : "Bí quyết nghệ nhân: "}
-                    </span>
-                    <span>
-                      {language === "en" ? selectedVideoRecipe.chefTipEn : selectedVideoRecipe.chefTip}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
