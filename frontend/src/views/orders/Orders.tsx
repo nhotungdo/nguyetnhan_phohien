@@ -4,8 +4,29 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, orderApi } from "@/services/api.service";
 import type { OrderResponse } from "@/types/api.types";
-import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck, Mail, MailCheck, AlertTriangle, Send, Eye } from "lucide-react";
+import {
+  Search,
+  Package,
+  MapPin,
+  Phone,
+  Loader2,
+  Clock,
+  Truck,
+  XCircle,
+  BadgeCheck,
+  PackageCheck,
+  Mail,
+  MailCheck,
+  AlertTriangle,
+  Send,
+  Eye,
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { exportOrdersExcel, exportOrdersCsv } from "@/services/exportReportService";
 import OrderDetailModal from "./OrderDetailModal";
 import EmailStatusBadge from "./EmailStatusBadge";
 
@@ -67,6 +88,8 @@ let toastSeq = 0;
 
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => {
@@ -242,15 +265,86 @@ export default function Orders() {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Tìm theo Tên, SĐT hoặc Email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm"
-          />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Tìm theo Tên, SĐT hoặc Email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-sm"
+            />
+          </div>
+
+          {/* Menu Xuất Đơn Hàng Thông Minh */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowExportMenu((prev) => !prev)}
+              disabled={isExporting || filteredOrders.length === 0}
+              title="Xuất danh sách đơn hàng dạng bảng thông minh"
+              className="px-3 py-2 rounded-lg text-xs font-semibold border border-amber-300/80 bg-gradient-to-r from-amber-50 to-amber-100/60 text-amber-950 hover:bg-amber-100 shadow-2xs transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-amber-800" />
+              <span className="hidden sm:inline">{isExporting ? "Đang xuất…" : "Xuất Đơn"}</span>
+              <ChevronDown className={`w-3 h-3 text-amber-800 transition-transform ${showExportMenu ? "rotate-180" : ""}`} />
+            </button>
+
+            {showExportMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
+                <div className="absolute right-0 mt-1.5 w-60 rounded-xl bg-card border border-border shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setIsExporting(true);
+                      setShowExportMenu(false);
+                      try {
+                        await exportOrdersExcel(filteredOrders, STATUS_LABELS[statusFilter] || "Tất cả");
+                      } finally {
+                        setIsExporting(false);
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium hover:bg-muted flex items-start gap-2.5 transition-colors group cursor-pointer"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="font-semibold text-foreground flex items-center gap-1">
+                        Bảng Excel (.xlsx)
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded-full">Khuyên dùng</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        Bảng thông minh AutoFilter, tự canh cột, không lỗi font
+                      </div>
+                    </div>
+                  </button>
+                  <div className="h-px bg-border my-1" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsExporting(true);
+                      setShowExportMenu(false);
+                      try {
+                        exportOrdersCsv(filteredOrders);
+                      } finally {
+                        setIsExporting(false);
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium hover:bg-muted flex items-start gap-2.5 transition-colors group cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="font-semibold text-foreground">File CSV (.csv)</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        Chuẩn UTF-8 BOM, nhập Google Sheets & Kế toán
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
