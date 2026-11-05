@@ -14,6 +14,13 @@ import {
   Flame,
   Award,
   Play,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  X,
+  Eye,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { EASE_OUT_EXPO, fadeUp, Reveal, staggerContainer } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
@@ -204,21 +211,33 @@ export function ProductPairingSection({
   const [activeId, setActiveId] = useState("tra-cuc");
   const activeRecipe = RECIPES.find((r) => r.id === activeId) || RECIPES[0];
 
-  const culturalPills = [
+  const heritagePillars = [
     {
-      icon: "🍵",
-      title: language === "en" ? "Imperial Tea Ritual" : "Pha Trà Tiếp Khách",
-      desc: language === "en" ? "Serenity & mindful harmony" : "Khơi mở đàm đạo, an thần dưỡng sắc",
+      badge: language === "en" ? "Royal Origin" : "Gốc Tích Trứ Danh",
+      icon: "🧺",
+      title: language === "en" ? "The Royal Bamboo Cage" : "Chiếc Lồng Tre Dâng Vua",
+      desc:
+        language === "en"
+          ? "Centuries ago, to protect prime honeyed clusters for King's tribute from birds, artisans wove bamboo cages enveloping each bunch on high branches. Hence the name 'Longan in Cages'."
+          : "Xưa kia để dâng quả ngọt tiến Vua tránh chim muông rỉa hỏng, tiền nhân đan lồng tre chụp kín từng chùm nhãn đầu cành. Danh xưng 'Nhãn Lồng' bất hủ sinh ra từ sự trân quý ấy.",
     },
     {
-      icon: "🥣",
-      title: language === "en" ? "Summer Lotus Soup" : "Chè Sen Tiến Vua",
-      desc: language === "en" ? "Royal summer refreshment" : "Bở bùi thanh mát nức tiếng kinh kỳ",
+      badge: language === "en" ? "Sacred Wellness" : "Đạo Nghĩa Trao Gửi",
+      icon: "🎁",
+      title: language === "en" ? "Gift of Honor & Health" : "Thức Quà Hiếu Kính & Tri Ân",
+      desc:
+        language === "en"
+          ? "A soothing elixir to nourish blood and deep restful sleep for parents, as well as an exquisite diplomatic present carrying the pure soul of Vietnamese terroir to partners worldwide."
+          : "Thức quà thơm thảo dâng bậc sinh thành an giấc ngủ sâu, dưỡng huyết an thần; đồng thời là tặng phẩm ngoại giao tinh tế đượm tình quê gửi đối tác, kiều bào muôn phương.",
     },
     {
-      icon: "🍶",
-      title: language === "en" ? "Restorative Elixir" : "Rượu Ngâm Đại Bổ",
-      desc: language === "en" ? "Heartfelt gift of vitality" : "Ấm tỳ bổ huyết, trao trọn ân tình",
+      badge: language === "en" ? "Living Artisan Soul" : "Tâm Hồn Làng Nghề",
+      icon: "👨‍🌾",
+      title: language === "en" ? "Guarding Pho Hien's Honor" : "Nghề Canh Lửa Trắng Đêm",
+      desc:
+        language === "en"
+          ? "\"To achieve amber clarity without sugar, kiln masters stay awake all night adjusting air circulation. Keeping this craft is safeguarding the proud honor of Pho Hien.\""
+          : "\"Muốn nhãn lên màu hổ phách óng ánh tự nhiên, người thợ lò phải thức trắng thâu đêm canh củi, giữ nhiệt đối lưu. Giữ nghề làm nhãn là giữ lấy cái danh dự của đất Phố Hiến.\"",
     },
   ];
 
@@ -257,12 +276,12 @@ export function ProductPairingSection({
             <Reveal delay={0.16}>
               <p className="text-foreground/80 text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl [text-wrap:pretty]">
                 {language === "en"
-                  ? "Pho Hien culinary culture lies not only in flavor, but in the artful and mindful way of enjoyment. Longan is both a soothing, cooling treasure in summer lotus seed sweet soups, and a revered herbal elixir when infused with royal tea or steeped in traditional wine to welcome esteemed guests."
-                  : "Văn hóa ẩm thực Phố Hiến không chỉ nằm ở hương vị, mà còn ở cách thưởng thức tao nhã lưu truyền trăm năm. Long nhãn vừa là thức quà ngọt mát giải nhiệt trong bát chè sen ngày hạ, vừa là vị thuốc quý bồi bổ khí huyết khi hãm trà hoa, ngâm rượu thơm thiết đãi khách quý."}
+                  ? "Pho Hien longan is not merely a sweet specialty, but the living crystal of Red River alluvium, artisan devotion, and centuries of graceful culinary lifestyle. Each amber fiber carries the warmth and hospitality of the ancient trading port."
+                  : "Long nhãn Phố Hiến không chỉ là một thức quả ngọt ngào, mà là kết tinh của phù sa sông Hồng, của bàn tay nghệ nhân và nếp sống tao nhã trăm năm. Từng thớ cùi dẻo quánh chứa đựng cả tấm lòng thơm thảo của người xứ nhãn gửi trao muôn phương."}
               </p>
             </Reveal>
 
-            {/* 3 Thẻ nét đẹp văn hóa */}
+            {/* 3 Thẻ nét đẹp văn hóa sống */}
             <motion.div
               variants={staggerContainer}
               initial="hidden"
@@ -270,17 +289,24 @@ export function ProductPairingSection({
               viewport={{ once: true, margin: "-40px" }}
               className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-3.5"
             >
-              {culturalPills.map((pill, idx) => (
+              {heritagePillars.map((pill, idx) => (
                 <motion.div
                   key={idx}
                   variants={fadeUp}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-white/90 border border-[#FDE68A]/70 shadow-xs hover:shadow-md transition-all group"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-[#FDE68A]/80 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
                 >
-                  <div className="text-2xl sm:text-3xl mb-2 group-hover:scale-110 transition-transform duration-300">
-                    {pill.icon}
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                        {pill.icon}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 text-accent border border-amber-200/60">
+                        {pill.badge}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-primary text-sm mb-1.5 [text-wrap:balance]">{pill.title}</h3>
+                    <p className="text-xs text-foreground/75 leading-relaxed [text-wrap:pretty]">{pill.desc}</p>
                   </div>
-                  <h3 className="font-bold text-primary text-sm mb-1 [text-wrap:balance]">{pill.title}</h3>
-                  <p className="text-xs text-foreground/70 leading-snug [text-wrap:pretty]">{pill.desc}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -334,6 +360,200 @@ export function ProductPairingSection({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* PHẦN 1.5: GÓC NGƯỜI SÀNH — BÍ QUYẾT PHÂN BIỆT LONG NHÃN TIẾN VUA VỚI NHÃN TẨM ĐƯỜNG / HÓA CHẤT */}
+        <div className="mb-16 sm:mb-20 pt-8 sm:pt-10 border-t border-[#FDE68A]/60">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
+            className="text-center max-w-3xl mx-auto mb-8 sm:mb-12"
+          >
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-secondary text-accent text-xs font-semibold border border-[#FDE68A] shadow-xs mb-3">
+              <Eye className="w-3.5 h-3.5 text-accent" />
+              <span>{language === "en" ? "Connoisseur's Tasting Guide" : "Góc Người Sành Ẩm Thực"}</span>
+            </div>
+
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary tracking-tight mb-3 [text-wrap:balance]">
+              {language === "en"
+                ? "How to Identify Authentic Royal Tribute Longan"
+                : "Bí Quyết Nhận Biết Long Nhãn Chuẩn Vị Tiến Vua"}
+            </h3>
+            <p className="text-foreground/80 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
+              {language === "en"
+                ? "Never let your palate be deceived by sugar-soaked or sulfur-fumigated longan. Pho Hien gourmets share 4 golden sensory checkpoints to always choose genuine royal perfection."
+                : "Đừng để vị giác bị đánh lừa bởi những mẻ nhãn trôi nổi tẩm đường hay sấy lưu huỳnh. Người Phố Hiến đúc kết 4 tiêu chuẩn vàng giúp bạn an tâm chọn đúng thức quà thượng hạng:"}
+            </p>
+          </motion.div>
+
+          {/* Bảng so sánh 2 cột trực quan */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto items-stretch">
+            {/* Cột 1: Nguyệt Nhãn Phố Hiến (Chuẩn Cung Đình) */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
+              className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-amber-50/90 via-white to-amber-100/30 border-2 border-amber-300 shadow-lg relative overflow-hidden flex flex-col justify-between"
+            >
+              <div
+                aria-hidden
+                className="absolute top-0 right-0 w-44 h-44 bg-[radial-gradient(circle,rgba(245,158,11,0.15)_0%,transparent_70%)] pointer-events-none"
+              />
+
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-6">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/80 text-emerald-800 text-xs font-bold border border-emerald-300/80 shadow-xs">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>{language === "en" ? "Royal Heritage Standard" : "Nguyệt Nhãn Phố Hiến (Chuẩn Cung Đình)"}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-accent bg-amber-100/70 px-2.5 py-0.5 rounded-full">
+                    {language === "en" ? "100% Pure" : "100% Thuần Khiết"}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      label: language === "en" ? "Color & Clarity" : "Sắc Màu Hổ Phách",
+                      desc:
+                        language === "en"
+                          ? "Natural translucent amber gold. When held against sunlight, the longan pulp is clear and lustrous with zero dark soot."
+                          : "Vàng óng cánh gián, hổ phách tự nhiên. Soi dưới ánh sáng thấy cùi trong veo, múi dẻo đều, tuyệt đối không bị ám khói.",
+                    },
+                    {
+                      label: language === "en" ? "Texture & Touch" : "Độ Ráo & Cảm Giác Tay",
+                      desc:
+                        language === "en"
+                          ? "Thick pulp, completely dry to the touch with zero stickiness. Chewing reveals a firm, springy, satisfying chewiness."
+                          : "Cùi dày, khô ráo bấm ngón tay không hề dính nhớp. Khi nhai cảm nhận rõ độ dai dẻo sần sật đặc trưng không bị bở.",
+                    },
+                    {
+                      label: language === "en" ? "Palate & Aftertaste" : "Hương Vị Nguyên Bản",
+                      desc:
+                        language === "en"
+                          ? "Delicate mellow sweetness on the tip of the tongue, expanding into a rich honeyed aftertaste deep in the throat. Pure floral aroma."
+                          : "Ngọt thanh tao nơi đầu lưỡi, sau đó đượm sâu hậu vị thơm bùi nơi cuống họng. Đậm mùi thơm nắng gió miền phù sa, không ngọt gắt.",
+                    },
+                    {
+                      label: language === "en" ? "Brewing in Hot Water" : "Khi Pha Trà & Nấu Chè",
+                      desc:
+                        language === "en"
+                          ? "Water stays crystal clear with delicate fragrance. Rehydrated pulp expands round and intact, tasting like freshly peeled fruit."
+                          : "Nước hãm trong veo, thoảng hương hoa cúc sen. Múi nhãn ngậm nước nở tròn đều nguyên múi, dẻo ngọt như quả tươi vừa bóc vỏ.",
+                    },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-bold text-primary block mb-0.5">{item.label}</span>
+                        <span className="text-foreground/80 leading-relaxed">{item.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-amber-200/60 flex items-center gap-2 text-xs text-emerald-800 font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{language === "en" ? "Guaranteed additive-free, zero sugar added, zero sulfur smoke." : "Cam kết không tẩm đường, không xông lưu huỳnh, sấy nhiệt khép kín."}</span>
+              </div>
+            </motion.div>
+
+            {/* Cột 2: Nhãn trôi nổi tẩm đường / hóa chất */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
+              className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-stone-50 via-white to-rose-50/40 border border-stone-300 shadow-sm relative overflow-hidden flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-6">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100/90 text-rose-800 text-xs font-bold border border-rose-300 shadow-xs">
+                    <AlertTriangle className="w-4 h-4 text-rose-600" />
+                    <span>{language === "en" ? "Market Mass Imitation" : "Long Nhãn Trôi Nổi / Tẩm Ướp Trên Thị Trường"}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
+                    {language === "en" ? "Risks & Adulteration" : "Pha Tạp & Hóa Chất"}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      label: language === "en" ? "Color & Chemical Traces" : "Màu Sắc Bất Thường",
+                      desc:
+                        language === "en"
+                          ? "Artificial bright lemon yellow (sign of sulfur smoke to prevent mold) or dull, muddy black from discarded, bruised longan."
+                          : "Màu vàng chanh tươi sáng bất thường (do xông khí lưu huỳnh chống mốc) hoặc thâm xỉn, đen đục do dùng nhãn dạt, nhãn thối.",
+                    },
+                    {
+                      label: language === "en" ? "Texture & Stickiness" : "Bề Mặt Ướt Dính Đường",
+                      desc:
+                        language === "en"
+                          ? "Surface is slimy and sticks to fingers due to sugar syrup coating. Thin, limp pulp that turns mushy immediately."
+                          : "Bề mặt ướt dính tay do bao phủ nước đường cô đặc; cùi nhăn nheo, mỏng dính, khi bấm vào cảm giác nhão bở hoặc dai trơ.",
+                    },
+                    {
+                      label: language === "en" ? "Harsh Chemical Taste" : "Vị Ngọt Khé Cổ Họng",
+                      desc:
+                        language === "en"
+                          ? "Harsh, stinging sweetness right on first bite from artificial sugar. Devoid of natural aroma; often sour or burnt."
+                          : "Vị ngọt khé rát cổ họng ngay ngụm đầu do đường nhân tạo lấn át; mất sạch hương thơm hoa quả, đôi khi có mùi chua lợ hoặc khen khét.",
+                    },
+                    {
+                      label: language === "en" ? "Turbid Water & Residue" : "Nước Hãm Đục & Cặn Lắng",
+                      desc:
+                        language === "en"
+                          ? "Water turns quickly murky with dissolved sugar sediment at the bottom. Pulp breaks apart, lifeless and flavorless."
+                          : "Nước ngâm nhanh chóng bị đục ngầu, cặn đường hóa học lắng đáy ly; múi nhãn rách nát bở bung, ăn nhạt thếch không có độ giòn.",
+                    },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                        <X className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-bold text-stone-800 block mb-0.5">{item.label}</span>
+                        <span className="text-stone-600 leading-relaxed">{item.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-rose-200/60 flex items-center gap-2 text-xs text-rose-700 font-semibold">
+                <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <span>{language === "en" ? "Often weighted down with heavy syrups and artificial preservatives." : "Thường bị tẩm nặng cân bằng nước đường và chất bảo quản độc hại."}</span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Mẹo thử nhanh 30 giây tại nhà */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
+            className="max-w-5xl mx-auto mt-6 p-4 sm:p-5 rounded-2xl bg-amber-100/70 border border-amber-300/80 flex items-start sm:items-center gap-3.5 text-xs sm:text-sm text-foreground/90 shadow-xs"
+          >
+            <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <Sparkles className="w-4 h-4 text-accent" />
+            </div>
+            <p className="leading-relaxed">
+              <span className="font-bold text-primary">
+                {language === "en" ? "💡 30-Second At-Home Test: " : "💡 Mẹo kiểm tra nhanh 30 giây tại nhà: "}
+              </span>
+              {language === "en"
+                ? "Drop 2 longan pieces into warm water. Authentic Pho Hien longan slowly absorbs water, plumping into a round, juicy golden piece while water stays pure. Sugar-coated longan instantly clouds the water with sweet residue, leaving limp pulp."
+                : "Thả 2 múi nhãn vào cốc nước lọc ấm. Long nhãn chuẩn Phố Hiến sẽ từ từ ngậm nước nở căng mọng nguyên quả, nước vẫn giữ độ trong thanh mát. Nếu nhãn tẩm đường, nước lập tức đục ngầu do tan lớp đường áo ngoài, múi nhãn xẹp lép bở nhũn."}
+            </p>
+          </motion.div>
         </div>
 
         {/* PHẦN 2: THƯỞNG THỨC ĐÚNG ĐIỆU CÙNG NGUYỆT NHÃN (Bí quyết nghệ nhân & Công thức thực hành) */}
