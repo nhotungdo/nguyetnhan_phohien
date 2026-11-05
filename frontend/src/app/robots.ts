@@ -9,7 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: ["/", "/chinh-sach/"],
         disallow: [
-          "/admin-login",
           "/dashboard",
           "/dashboard/*",
           "/orders",

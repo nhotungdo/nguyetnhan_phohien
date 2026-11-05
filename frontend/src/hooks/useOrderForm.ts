@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { orderApi, discountApi } from "@/services/api.service";
+import { orderApi, discountApi, adminAuth } from "@/services/api.service";
 import type { CreateOrderRequest, OrderResponse, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
 import {
   composeAddress,
@@ -213,12 +213,6 @@ export function useOrderForm(
     const code = (typeof codeOverride === "string" ? codeOverride : form.discountCode).trim();
     if (!code) return;
 
-    if (code.toLowerCase() === "nguyetnhanphohienadmin") {
-      setField("discountCode", "");
-      router.push("/admin-login");
-      return;
-    }
-
     if (typeof codeOverride === "string") {
       setForm((prev) => ({ ...prev, discountCode: codeOverride }));
     }
@@ -233,6 +227,11 @@ export function useOrderForm(
     try {
       const result = await discountApi.apply({ code, customerPhone: phone || undefined });
       if (discountRequest.current === request) {
+        if (result.adminToken) {
+          adminAuth.login(result.adminToken);
+          router.replace("/dashboard");
+          return;
+        }
         setVerifiedDiscount({ code, phone, result });
       }
     } catch (err: unknown) {

@@ -845,7 +845,7 @@ export default function LandingPage() {
                   </div>
                 ) : (
                   <Link
-                    href="/admin-login"
+                    href="/#dat-hang"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-full text-left py-2.5 px-3 rounded-xl border border-border/80 bg-background/60 hover:bg-muted text-muted-foreground text-xs font-medium flex items-center justify-between transition-colors"
                   >

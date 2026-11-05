@@ -140,6 +140,7 @@ export interface ApplyDiscountRequest {
 }
 
 export interface DiscountResult {
+  adminToken?: string;
   isValid: boolean;
   message?: string;
   percentOff?: number;

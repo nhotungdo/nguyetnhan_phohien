@@ -7,7 +7,7 @@ import { adminAuth } from "@/services/api.service";
 /**
  * Trạng thái xác thực khu quản trị.
  *
- * Chuyển về trang đăng nhập khi thiếu phiên quản trị hợp lệ.
+ * Chuyển về khu vực đặt hàng để nhập mã khi thiếu phiên quản trị hợp lệ.
  */
 export function useAdminGuard() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export function useAdminGuard() {
       if (!adminAuth.isLoggedIn()) {
         // replace (không phải push) để nút Back không quay lại vô hạn vào
         // khu quản trị rồi lại bị đá ra trang chủ.
-        router.replace("/admin-login");
+        router.replace("/#dat-hang");
       } else {
         setIsAuthorized(true);
       }

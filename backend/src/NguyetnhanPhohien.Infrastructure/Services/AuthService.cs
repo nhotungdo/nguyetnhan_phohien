@@ -50,7 +50,19 @@ public class AuthService : IAuthService
         });
     }
 
-    private string GenerateAdminJwt(string username)
+    public string? TryLoginWithCode(string code)
+    {
+        var configured = _config["Admin:LoginCode"];
+        if (string.IsNullOrWhiteSpace(configured)) return null;
+
+        var suppliedHash = SHA256.HashData(Encoding.UTF8.GetBytes(code.Trim().ToUpperInvariant()));
+        var configuredHash = SHA256.HashData(Encoding.UTF8.GetBytes(configured.Trim().ToUpperInvariant()));
+        if (!CryptographicOperations.FixedTimeEquals(suppliedHash, configuredHash)) return null;
+
+        return GenerateAdminJwt(_config["Admin:Username"] ?? "admin", "admin_code_login");
+    }
+
+    private string GenerateAdminJwt(string username, string loginClaim = PasswordLoginClaim)
     {
         // Bắt cả chuỗi rỗng (?? throw chỉ chặn null)
         var jwtKey = _config["Jwt:Key"];
@@ -66,7 +78,7 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.Role, "Admin"),
             new Claim("role", "Admin"),
-            new Claim(PasswordLoginClaim, "true"),
+            new Claim(loginClaim, "true"),
             new Claim(ClaimTypes.Name, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };

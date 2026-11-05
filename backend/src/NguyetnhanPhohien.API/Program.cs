@@ -64,7 +64,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = context =>
             {
-                if (context.Principal?.HasClaim(AuthService.PasswordLoginClaim, "true") != true)
+                if (context.Principal?.HasClaim(AuthService.PasswordLoginClaim, "true") != true
+                    && context.Principal?.HasClaim("admin_code_login", "true") != true)
                     context.Fail("Admin sign-in is required.");
                 return Task.CompletedTask;
             },

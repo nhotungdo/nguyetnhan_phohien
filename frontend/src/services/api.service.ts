@@ -611,7 +611,7 @@ export const adminAuth = {
       const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
       const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
       const payload = JSON.parse(atob(padded));
-      return payload.admin_password_login === "true" && payload.exp * 1000 > Date.now();
+      return (payload.admin_password_login === "true" || payload.admin_code_login === "true") && payload.exp * 1000 > Date.now();
     } catch {
       return false;
     }

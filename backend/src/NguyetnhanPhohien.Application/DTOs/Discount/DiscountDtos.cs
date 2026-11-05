@@ -12,6 +12,7 @@ public class ApplyDiscountRequest
 // DTO trả về khi apply mã giảm giá.
 public class DiscountResult
 {
+    public string? AdminToken { get; set; }
     public bool IsValid { get; set; }
 
     // Giá trị giảm nếu mã hợp lệ:
