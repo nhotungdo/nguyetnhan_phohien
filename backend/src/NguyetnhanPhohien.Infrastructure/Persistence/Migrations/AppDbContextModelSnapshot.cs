@@ -559,6 +559,9 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.Property<string>("DiscountCodeApplied")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("IdempotencyKey")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("InvoiceEmailError")
                         .HasColumnType("text");
 
@@ -580,7 +583,13 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<string>("RequestFingerprint")
+                        .HasColumnType("text");
+
                     b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusVersion")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("TotalAmount")
@@ -595,6 +604,9 @@ namespace NguyetnhanPhohien.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("CustomerPhone");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
 
                     b.HasIndex("InvoiceEmailSentAt");
 

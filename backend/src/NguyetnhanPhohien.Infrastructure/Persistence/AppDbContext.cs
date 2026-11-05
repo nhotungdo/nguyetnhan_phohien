@@ -93,6 +93,7 @@ public class AppDbContext : DbContext
 
         // ===== ORDER & ORDER ITEM =====
         modelBuilder.Entity<Order>().HasKey(o => o.Id);
+        modelBuilder.Entity<Order>().HasIndex(o => o.IdempotencyKey).IsUnique();
         modelBuilder.Entity<Order>()
             .Property(o => o.BaseAmount)
             .HasPrecision(18, 2);

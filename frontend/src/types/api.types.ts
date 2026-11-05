@@ -84,6 +84,7 @@ export interface OrderItemResponse {
 
 // Backend tự tính tổng tiền từ giá sản phẩm trong DB — client KHÔNG gửi totalAmount.
 export interface CreateOrderRequest {
+  idempotencyKey?: string;
   customerName: string;
   customerPhone: string;
   customerAddress: string;
@@ -97,6 +98,7 @@ export interface CreateOrderRequest {
 }
 
 export interface OrderResponse {
+  statusVersion: number;
   id: string;
   customerName: string;
   customerPhone: string;

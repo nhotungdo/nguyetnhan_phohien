@@ -35,5 +35,8 @@ public class Order
     public string? InvoiceEmailError { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid? IdempotencyKey { get; set; }
+    public string? RequestFingerprint { get; set; }
+    public int StatusVersion { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

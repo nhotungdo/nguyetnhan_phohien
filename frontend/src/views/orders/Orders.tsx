@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { orderApi } from "@/services/api.service";
+import { ApiError, orderApi } from "@/services/api.service";
 import type { OrderResponse } from "@/types/api.types";
 import { Search, Package, MapPin, Phone, Loader2, Clock, Truck, XCircle, BadgeCheck, PackageCheck, Mail, MailCheck, AlertTriangle, Send, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -99,6 +99,9 @@ export default function Orders() {
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
+    const currentOrder = orders.find((order) => order.id === id);
+    if (!currentOrder || currentOrder.status === newStatus) return;
+
     if (newStatus === "Cancelled") {
       const confirmed = window.confirm(
         "Bạn có chắc chắn muốn hủy đơn hàng này? Hệ thống sẽ tự động gửi email xác nhận hủy đơn tới khách hàng (nếu đơn có email)."
@@ -110,7 +113,12 @@ export default function Orders() {
     try {
       // Dùng LUÔN bản server trả về làm dữ liệu cache: một lần gọi API vừa ghi vừa
       // trả về trạng thái thật.
-      const updated = await orderApi.updateStatus(id, newStatus);
+      if (currentOrder.statusVersion == null) {
+        await queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
+        addToast("info", "Danh sách đơn hàng đã được tải lại. Vui lòng thử lại.");
+        return;
+      }
+      const updated = await orderApi.updateStatus(id, newStatus, currentOrder.statusVersion);
       queryClient.setQueryData(["orders", "admin"], (old: OrderResponse[] | undefined) =>
         old ? old.map(order => (order.id === id ? updated : order)) : []
       );
@@ -125,6 +133,11 @@ export default function Orders() {
         addToast("success", "Cập nhật trạng thái đơn hàng thành công!");
       }
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        await queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
+        addToast("error", err.message);
+        return;
+      }
       console.error("Update failed", err);
       addToast("error", "Cập nhật trạng thái thất bại!");
     } finally {

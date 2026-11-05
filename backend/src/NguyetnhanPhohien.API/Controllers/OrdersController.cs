@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -153,7 +154,9 @@ public class OrdersController : ControllerBase
 
         try
         {
-            var order = await _orderService.CreateOrderAsync(request);
+            var (order, created) = await _orderService.CreateOrderAsync(request);
+            if (!created)
+                return Ok(order);
             await NotifyOrdersChangedAsync("created", order.Id);
 
             // Broadcast sự kiện đơn hàng mới đã ẩn danh cho tất cả khách đang xem web (Social Proof Realtime)
@@ -190,6 +193,10 @@ public class OrdersController : ControllerBase
             });
 
             return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
@@ -241,9 +248,13 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            var order = await _orderService.UpdateOrderStatusAsync(id, request.Status, request.Reason);
+            var order = await _orderService.UpdateOrderStatusAsync(id, request.Status, request.StatusVersion!.Value, request.Reason);
             await NotifyOrdersChangedAsync("status-changed", order.Id);
             return Ok(order);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
         catch (KeyNotFoundException ex)
         {

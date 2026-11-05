@@ -17,13 +17,15 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Tự động nhận cổng từ biến môi trường PORT (Render cấp mặc định 10000)
-// hoặc ASPNETCORE_HTTP_PORTS, bind 0.0.0.0 để container nhận được kết nối từ mạng ngoài
+// hoặc ASPNETCORE_HTTP_PORTS, bind đồng thời cả 10000 và 8080 để container
+// đảm bảo kết nối thành công với mọi cấu hình health check của Render/Docker.
 if (!builder.Environment.IsDevelopment())
 {
     var port = Environment.GetEnvironmentVariable("PORT")
         ?? Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")
-        ?? "8080";
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+        ?? "10000";
+    var urls = new HashSet<string> { $"http://0.0.0.0:{port}", "http://0.0.0.0:10000", "http://0.0.0.0:8080" };
+    builder.WebHost.UseUrls(string.Join(";", urls));
 }
 
 // ===== DATABASE =====

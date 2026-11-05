@@ -21,6 +21,7 @@ WORKDIR /app
 COPY --from=build /out ./
 
 # Render uses the EXPOSE instruction or PORT environment variable (default 10000)
-EXPOSE 8080 10000
+ENV PORT=10000
+EXPOSE 10000 8080
 
 ENTRYPOINT ["dotnet", "NguyetnhanPhohien.API.dll"]

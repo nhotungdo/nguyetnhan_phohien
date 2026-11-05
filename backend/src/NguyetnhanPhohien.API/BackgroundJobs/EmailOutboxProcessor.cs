@@ -9,7 +9,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.Interfaces;
-using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Domain.Enums;
 using NguyetnhanPhohien.Infrastructure.Persistence;
 
@@ -91,30 +90,27 @@ public class EmailOutboxProcessor : BackgroundService
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
         var hubContext = scope.ServiceProvider.GetService<IHubContext<ProductsHub>>();
 
-        var now = DateTime.UtcNow;
-
-        // Quét các email cần gửi (Pending hoặc Failed còn lượt retry và đã đến hạn NextRetryAt)
-        var pendingItems = await db.EmailOutbox
-            .Where(x => x.Status == EmailOutboxStatus.Pending
-                     || (x.Status == EmailOutboxStatus.Failed && x.RetryCount < x.MaxRetries && (x.NextRetryAt == null || x.NextRetryAt <= now)))
-            .OrderBy(x => x.CreatedAt)
-            .Take(10)
-            .ToListAsync(cancellationToken);
-
-        if (pendingItems.Count == 0) return;
-
-        // Đánh dấu ngay thành Processing để tránh xử lý trùng lặp
-        foreach (var item in pendingItems)
-        {
-            item.Status = EmailOutboxStatus.Processing;
-        }
-        await db.SaveChangesAsync(cancellationToken);
-
         bool ordersStatusChanged = false;
 
-        foreach (var item in pendingItems)
+        for (var i = 0; i < 10; i++)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            cancellationToken.ThrowIfCancellationRequested();
+            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            var now = DateTime.UtcNow;
+            // Keep the row locked until the SMTP outcome is saved. A stopped worker
+            // releases the lock, so another worker can pick up the same row.
+            var candidates = await db.EmailOutbox.FromSqlInterpolated($"""
+                SELECT * FROM "EmailOutbox"
+                WHERE "Status" IN ({(int)EmailOutboxStatus.Pending}, {(int)EmailOutboxStatus.Processing})
+                   OR ("Status" = {(int)EmailOutboxStatus.Failed}
+                       AND "RetryCount" < "MaxRetries"
+                       AND ("NextRetryAt" IS NULL OR "NextRetryAt" <= {now}))
+                ORDER BY "CreatedAt", "Id"
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+                """).ToListAsync(cancellationToken);
+            var item = candidates.SingleOrDefault();
+            if (item == null) break;
 
             try
             {
@@ -127,23 +123,11 @@ public class EmailOutboxProcessor : BackgroundService
                 item.Status = EmailOutboxStatus.Sent;
                 item.SentAt = DateTime.UtcNow;
                 item.LastError = null;
+                item.NextRetryAt = null;
 
                 _logger.LogInformation(
                     "EmailOutbox gửi thành công [Id: {OutboxId}, Type: {Type}, To: {Recipient}, OrderId: {OrderId}]",
                     item.Id, item.EmailType, item.RecipientEmail, item.OrderId);
-
-                // Nếu là email hóa đơn gửi khách -> cập nhật trạng thái vào Orders
-                if (item.OrderId.HasValue && item.EmailType == "OrderInvoice")
-                {
-                    var order = await db.Orders.FindAsync(new object[] { item.OrderId.Value }, cancellationToken);
-                    if (order != null)
-                    {
-                        order.InvoiceEmailSentAt = item.SentAt;
-                        order.InvoiceEmailError = null;
-                        order.UpdatedAt = DateTime.UtcNow;
-                        ordersStatusChanged = true;
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -171,21 +155,27 @@ public class EmailOutboxProcessor : BackgroundService
                         "EmailOutbox [Id: {OutboxId}, OrderId: {OrderId}] ĐÃ THẤT BẠI HOÀN TOÀN sau {MaxRetries} lần thử!",
                         item.Id, item.OrderId, item.MaxRetries);
 
-                    if (item.OrderId.HasValue && item.EmailType == "OrderInvoice")
-                    {
-                        var order = await db.Orders.FindAsync(new object[] { item.OrderId.Value }, cancellationToken);
-                        if (order != null)
-                        {
-                            order.InvoiceEmailError = ex.Message;
-                            order.UpdatedAt = DateTime.UtcNow;
-                            ordersStatusChanged = true;
-                        }
-                    }
                 }
             }
-        }
 
-        await db.SaveChangesAsync(cancellationToken);
+            var sent = item.Status == EmailOutboxStatus.Sent;
+            if ((sent || item.RetryCount >= item.MaxRetries)
+                && item.OrderId.HasValue && item.EmailType == "OrderInvoice")
+            {
+                var order = await db.Orders.FindAsync(new object[] { item.OrderId.Value }, cancellationToken);
+                if (order != null)
+                {
+                    if (sent) order.InvoiceEmailSentAt = item.SentAt;
+                    order.InvoiceEmailError = item.LastError;
+                    order.UpdatedAt = DateTime.UtcNow;
+                    ordersStatusChanged = true;
+                }
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            db.ChangeTracker.Clear();
+        }
 
         // Báo cho Admin Dashboard nếu có đơn hàng thay đổi trạng thái email
         if (ordersStatusChanged && hubContext != null)

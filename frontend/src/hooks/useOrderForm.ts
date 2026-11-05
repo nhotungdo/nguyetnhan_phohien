@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { orderApi, discountApi, adminAuth } from "@/services/api.service";
 import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
-import type { CreateOrderRequest, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
+import type { CreateOrderRequest, OrderResponse, DiscountResult, ProductResponse, OrderItemRequest, CustomMixItemDetailDto } from "@/types/api.types";
 import {
   composeAddress,
   hasErrors,
@@ -71,12 +71,13 @@ export function useOrderForm(
 
   const [discountResult, setDiscountResult] = useState<DiscountResult | null>(null);
   const [discountNotice, setDiscountNotice] = useState<string | null>(null);
+  const orderAttempt = useRef<{ payload: string; key: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApplyingCode, setIsApplyingCode] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [lastSubmittedEmail, setLastSubmittedEmail] = useState("");
-  const [emailDeliveryStatus, setEmailDeliveryStatus] = useState<"Queued" | "NotConfigured" | null>(null);
+  const [emailDeliveryStatus, setEmailDeliveryStatus] = useState<OrderResponse["emailDeliveryStatus"] | null>(null);
 
   const hasFallbackProduct = form.items.some((it) => it.productId?.startsWith("default-"));
 
@@ -320,10 +321,16 @@ export function useOrderForm(
     };
 
     try {
-      const res = await orderApi.create(payload);
+      const serializedPayload = JSON.stringify(payload);
+      if (orderAttempt.current?.payload !== serializedPayload) {
+        orderAttempt.current = { payload: serializedPayload, key: crypto.randomUUID() };
+      }
+      const attempt = orderAttempt.current;
+      const res = await orderApi.create({ ...payload, idempotencyKey: attempt.key });
+      if (orderAttempt.current === attempt) orderAttempt.current = null;
       setLastSubmittedEmail(payload.customerEmail ?? "");
       setEmailDeliveryStatus(
-        (res?.emailDeliveryStatus as "Queued" | "NotConfigured") ?? (payload.customerEmail ? "Queued" : null)
+        res.emailDeliveryStatus ?? (payload.customerEmail ? "Queued" : null)
       );
       setSubmitStatus("success");
       setForm({

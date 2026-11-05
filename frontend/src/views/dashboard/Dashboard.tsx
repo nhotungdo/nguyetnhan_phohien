@@ -108,6 +108,50 @@ function DashboardSkeleton() {
   );
 }
 
+function summarizeTopProducts(orders: OrderResponse[]) {
+  const valid = orders.filter((o) => o.status !== "Cancelled");
+  const map: Record<string, { key: string; name: string; size: string | null; quantity: number; revenue: number }> = {};
+
+  for (const o of valid) {
+    if (o.items && o.items.length > 0) {
+      for (const it of o.items) {
+        const k = `${it.productName}_${it.productSize ?? ""}`;
+        if (!map[k]) {
+          map[k] = {
+            key: k,
+            name: it.productName,
+            size: it.productSize ?? null,
+            quantity: 0,
+            revenue: 0,
+          };
+        }
+        map[k].quantity += it.quantity;
+        map[k].revenue += it.totalPrice;
+      }
+    } else if (o.productName) {
+      const k = `${o.productName}_${o.productSize ?? ""}`;
+      if (!map[k]) {
+        map[k] = {
+          key: k,
+          name: o.productName,
+          size: o.productSize ?? null,
+          quantity: 0,
+          revenue: 0,
+        };
+      }
+      map[k].quantity += o.quantity ?? 1;
+      map[k].revenue += o.totalAmount;
+    }
+  }
+
+  const list = Object.values(map).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+  const maxQty = list.length > 0 ? list[0].quantity : 0;
+  return list.map((item) => ({
+    ...item,
+    sharePct: maxQty > 0 ? Math.round((item.quantity / maxQty) * 1000) / 10 : 0,
+  }));
+}
+
 export default function Dashboard() {
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
@@ -184,47 +228,7 @@ export default function Dashboard() {
 
   const topProducts = useMemo(() => {
     if (rawOrders && rawOrders.length > 0) {
-      const valid = rawOrders.filter((o) => o.status !== "Cancelled");
-      const map: Record<string, { key: string; name: string; size: string | null; quantity: number; revenue: number }> = {};
-
-      for (const o of valid) {
-        if (o.items && o.items.length > 0) {
-          for (const it of o.items) {
-            const k = `${it.productName}_${it.productSize ?? ""}`;
-            if (!map[k]) {
-              map[k] = {
-                key: k,
-                name: it.productName,
-                size: it.productSize ?? null,
-                quantity: 0,
-                revenue: 0,
-              };
-            }
-            map[k].quantity += it.quantity;
-            map[k].revenue += it.totalPrice;
-          }
-        } else if (o.productName) {
-          const k = `${o.productName}_${o.productSize ?? ""}`;
-          if (!map[k]) {
-            map[k] = {
-              key: k,
-              name: o.productName,
-              size: o.productSize ?? null,
-              quantity: 0,
-              revenue: 0,
-            };
-          }
-          map[k].quantity += o.quantity ?? 1;
-          map[k].revenue += o.totalAmount;
-        }
-      }
-
-      const list = Object.values(map).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
-      const maxQty = list.length > 0 ? list[0].quantity : 0;
-      return list.map((item) => ({
-        ...item,
-        sharePct: maxQty > 0 ? Math.round((item.quantity / maxQty) * 1000) / 10 : 0,
-      }));
+      return summarizeTopProducts(rawOrders);
     }
 
     return dashboardStats?.topProducts ?? [];
@@ -246,9 +250,16 @@ export default function Dashboard() {
     const totalRevenue = chartData.reduce((s, p) => s + p.revenue, 0);
     const totalOrders = chartData.reduce((s, p) => s + p.orders, 0);
 
-    const esc = (v: string | number) => {
-      const s = String(v);
-      return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    const reportDays = new Set(chartData.map((day) => day.key));
+    const vietnamDate = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Ho_Chi_Minh" });
+    const reportOrders = (rawOrders ?? []).filter((order) =>
+      reportDays.has(vietnamDate.format(new Date(order.createdAt)))
+    );
+    const reportCancelledCount = reportOrders.filter((order) => order.status === "Cancelled").length;
+
+    const escapeTextCell = (value: string) => {
+      const text = /^(?:[\t\r\n]|\s*[=+@-])/.test(value) ? `'${value}` : value;
+      return /[";\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
     const fullDate = (key: string) => {
       const parts = key.split("-");
@@ -267,8 +278,8 @@ export default function Dashboard() {
     L.push("TỔNG QUAN");
     L.push(`Tổng doanh thu (đơn Đã giao);${totalRevenue}`);
     L.push(`Tổng số đơn hiệu lực;${totalOrders}`);
-    if (cancelledCount > 0) {
-      L.push(`Số đơn huỷ (đã loại trừ);${cancelledCount}`);
+    if (reportCancelledCount > 0) {
+      L.push(`Số đơn huỷ (đã loại trừ);${reportCancelledCount}`);
     }
     L.push(`Doanh thu TB/ngày;${Math.round(totalRevenue / rangeDays)}`);
     L.push(`Số đơn hiệu lực TB/ngày;${(totalOrders / rangeDays).toFixed(1).replace(".", ",")}`);
@@ -283,8 +294,8 @@ export default function Dashboard() {
 
     L.push("TOP SẢN PHẨM BÁN CHẠY (TỪ ĐƠN HIỆU LỰC)");
     L.push("#;Sản phẩm;Kích cỡ;Số lượng;Doanh thu");
-    topProducts.forEach((p, i) => {
-      L.push(`${i + 1};${esc(p.name)};${esc(p.size ?? "")};${p.quantity};${p.revenue}`);
+    summarizeTopProducts(reportOrders).forEach((p, i) => {
+      L.push(`${i + 1};${escapeTextCell(p.name)};${escapeTextCell(p.size ?? "")};${p.quantity};${p.revenue}`);
     });
 
     return L.join("\r\n");
@@ -408,7 +419,7 @@ export default function Dashboard() {
           <div>
             <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
             <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
-              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span> (đơn hoàn thành)
+              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span>
             </p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
@@ -419,7 +430,7 @@ export default function Dashboard() {
             </span>
             <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
               <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
-              Đơn hoàn thành
+              Đơn hiệu lực
             </span>
             <div className="w-px h-4 bg-border mx-0.5 sm:mx-1" />
             {RANGES.map((r) => (

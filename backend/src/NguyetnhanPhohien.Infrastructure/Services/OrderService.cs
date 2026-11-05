@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -48,10 +49,32 @@ public class OrderService : IOrderService
         // (appsettings Payment:* chỉ còn là giá trị mặc định — xem PaymentSettingsService).
     }
 
-    public async Task<OrderResponse> CreateOrderAsync(CreateOrderRequest request)
+    public async Task<(OrderResponse Order, bool Created)> CreateOrderAsync(CreateOrderRequest request)
     {
-        // ===== 1. CHUẨN HÓA VÀ VALIDATE DANH SÁCH SẢN PHẨM =====
-        var requestedItems = new List<(Guid ProductId, int Quantity)>();
+        await using var transaction = await _db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+
+        string? fingerprint = null;
+        if (request.IdempotencyKey is Guid key)
+        {
+            if (key == Guid.Empty)
+                throw new ArgumentException("Khóa đặt hàng không hợp lệ.");
+
+            fingerprint = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(request)));
+            // Serialize attempts for this key before checking prices or discount usage.
+            var lockKey = $"order-create:{key}";
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT pg_advisory_xact_lock(hashtextextended({lockKey}, 0))");
+
+            var existing = await _db.Orders.AsNoTracking().Include(o => o.Items)
+                .SingleOrDefaultAsync(o => o.IdempotencyKey == key);
+            if (existing != null)
+            {
+                if (existing.RequestFingerprint != fingerprint)
+                    throw new DbUpdateConcurrencyException("Khóa đặt hàng đã được dùng với nội dung khác.");
+
+                return (MapCreationResponse(existing), false);
+            }
+        }
 
         // ===== 1. TÍNH TIỀN HÀNG DỰA TRÊN SẢN PHẨM / CÔNG THỨC TRONG DB =====
         var orderItems = new List<OrderItem>();
@@ -293,6 +316,8 @@ public class OrderService : IOrderService
         var firstItem = orderItems.First();
         var order = new Order
         {
+            IdempotencyKey = request.IdempotencyKey,
+            RequestFingerprint = fingerprint,
             CustomerName = request.CustomerName,
             CustomerPhone = request.CustomerPhone,
             CustomerEmail = request.CustomerEmail,
@@ -314,71 +339,50 @@ public class OrderService : IOrderService
             CreatedAt = DateTime.UtcNow
         };
 
-        // ===== 4. TĂNG LƯỢT DÙNG MÃ + LƯU ĐƠN TRONG MỘT TRANSACTION =====
-        // ExecuteUpdateAsync ghi xuống DB ngay lập tức, tách khỏi transaction
-        // riêng của SaveChangesAsync. Nếu lưu đơn thất bại sau khi đã tăng
-        // UsageCount, lượt mã sẽ bị "đốt" oan cho một đơn không tồn tại.
-        // Bọc cả hai trong một transaction: lỗi ở bước nào cũng rollback toàn bộ.
-        await using var transaction = await _db.Database.BeginTransactionAsync();
-        try
+        if (appliedDiscount != null)
         {
-            if (appliedDiscount != null)
-            {
-                // UPDATE có điều kiện (UsageCount < MaxUsageCount) giữ nguyên tính
-                // nguyên tử chống race condition: nhiều request tranh chấp cùng lúc
-                // thì chỉ một request thắng, những request kia nhận affected == 0.
-                var affected = await _db.DiscountCodes
-                    .Where(d => d.Id == appliedDiscount.Id
-                        && (!d.MaxUsageCount.HasValue || d.UsageCount < d.MaxUsageCount.Value))
-                    .ExecuteUpdateAsync(s => s.SetProperty(d => d.UsageCount, d => d.UsageCount + 1));
+            // UPDATE có điều kiện (UsageCount < MaxUsageCount) giữ nguyên tính
+            // nguyên tử chống race condition: nhiều request tranh chấp cùng lúc
+            // thì chỉ một request thắng, những request kia nhận affected == 0.
+            var affected = await _db.DiscountCodes
+                .Where(d => d.Id == appliedDiscount.Id
+                    && (!d.MaxUsageCount.HasValue || d.UsageCount < d.MaxUsageCount.Value))
+                .ExecuteUpdateAsync(s => s.SetProperty(d => d.UsageCount, d => d.UsageCount + 1));
 
-                if (affected == 0)
-                    throw new ArgumentException("Mã giảm giá đã được sử dụng hết lượt.");
-            }
-
-            _db.Orders.Add(order);
-            await _db.SaveChangesAsync();
-
-            if (appliedDiscount != null)
-            {
-                // Ghi dấu đã dùng mã cho SĐT này NGAY TRONG transaction. Nếu hai
-                // request cùng SĐT + cùng mã chạy song song, một request sẽ vướng
-                // unique index và bị chặn ở đây thay vì giảm giá lần thứ hai.
-                _db.DiscountRedemptions.Add(new DiscountRedemption
-                {
-                    DiscountCodeId = appliedDiscount.Id,
-                    Code = appliedDiscount.Code,
-                    CustomerPhone = normalizedPhone,
-                    OrderId = order.Id
-                });
-
-                try
-                {
-                    await _db.SaveChangesAsync();
-                }
-                catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-                {
-                    throw new ArgumentException("Số điện thoại này đã sử dụng mã giảm giá rồi.", ex);
-                }
-            }
-
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+            if (affected == 0)
+                throw new ArgumentException("Mã giảm giá đã được sử dụng hết lượt.");
         }
 
-        // Dựng URL QR NGAY TẠI ĐÂY rồi truyền vào luồng gửi email chạy nền: SendOrderEmailsAsync
-        // được gọi qua Task.Run SAU khi request kết thúc, nên nó không được tự đụng vào
-        // service scoped/DbContext (đã dispose) — đọc cấu hình ở đây là an toàn nhất.
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        if (appliedDiscount != null)
+        {
+            // Ghi dấu đã dùng mã cho SĐT này NGAY TRONG transaction. Nếu hai
+            // request cùng SĐT + cùng mã chạy song song, một request sẽ vướng
+            // unique index và bị chặn ở đây thay vì giảm giá lần thứ hai.
+            _db.DiscountRedemptions.Add(new DiscountRedemption
+            {
+                DiscountCodeId = appliedDiscount.Id,
+                Code = appliedDiscount.Code,
+                CustomerPhone = normalizedPhone,
+                OrderId = order.Id
+            });
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                throw new ArgumentException("Số điện thoại này đã sử dụng mã giảm giá rồi.", ex);
+            }
+        }
+
         var qrUrl = PaymentQr.Build(
             await _paymentSettings.GetAsync(), order.TotalAmount, TransferNote(order));
 
-        // Enqueue email vào bảng EmailOutbox (Transactional Outbox Pattern):
-        // Email được lưu bền vững vào DB trước khi trả về kết quả cho khách,
-        // không phụ thuộc Task.Run in-memory nên không bao giờ mất khi restart/deploy/crash.
+        // Persist the outbox alongside the order and its discount redemption.
         if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
         {
             var (invoiceHtml, plainTextInvoice) = BuildInvoiceEmail(order, qrUrl);
@@ -409,16 +413,26 @@ public class OrderService : IOrderService
         });
 
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         // Đánh thức BackgroundProcessor xử lý ngay lập tức
         _outboxChannel.NotifyNewEmail();
 
+        return (MapCreationResponse(order), true);
+    }
+
+    private OrderResponse MapCreationResponse(Order order)
+    {
         var response = MapToResponse(order);
         if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
         {
-            response.EmailDeliveryStatus = _emailService.IsConfigured ? "Queued" : "NotConfigured";
+            response.EmailDeliveryStatus = order.InvoiceEmailSentAt.HasValue ? "Sent"
+                : order.InvoiceEmailError != null ? "Failed"
+                : _emailService.IsConfigured ? "Queued" : "NotConfigured";
         }
 
+        // The public endpoint only exposes the delivery state.
+        response.InvoiceEmailError = null;
         return response;
     }
 
@@ -960,7 +974,7 @@ Hotline: 034 897 3285
         return order == null ? null : MapToResponse(order);
     }
 
-    public async Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status, string? reason = null)
+    public async Task<OrderResponse> UpdateOrderStatusAsync(Guid id, string status, int statusVersion, string? reason = null)
     {
         var order = await _db.Orders
             .Include(o => o.Items)
@@ -975,48 +989,30 @@ Hotline: 034 897 3285
             throw new ArgumentException($"Trạng thái không hợp lệ: {status}");
 
         var oldStatus = order.Status;
+        const string conflictMessage = "Đơn hàng đã thay đổi. Vui lòng xem lại trạng thái mới nhất.";
+        if (order.StatusVersion != statusVersion)
+            throw new DbUpdateConcurrencyException(conflictMessage);
+        if (newStatus == oldStatus)
+            return MapToResponse(order);
 
-        // Đổi trạng thái và hoàn lượt mã giảm giá chạy trong MỘT transaction:
-        // một bên lỗi là rollback cả cụm — không để lại "đơn đã huỷ nhưng lượt mã
-        // vẫn bị tính, hay lượt được trả về nhưng đơn vẫn chờ xác nhận".
         await using var transaction = await _db.Database.BeginTransactionAsync();
         try
         {
-            // Điều kiện chốt ở cấp DB để chống cà cưỡi khi hai tab admin bấm gần như
-            // cùng lúc:
-            //   - Huỷ đơn (không hoàn lượt 2 lần): chỉ dòng đang != Cancelled mới được
-            //     chuyển — request sau nhận affected == 0, không hoàn lượt lần nữa.
-            //   - Mở lại đơn đã huỷ (không tính lượt 2 lần): chỉ dòng đang == Cancelled
-            //     mới được chuyển — chỉ lần "thoát khỏi huỷ" đầu tiên đếm lại lượt.
-            // Các chuyển trạng thái thông thường (không liên quan huỷ) update vô điều kiện.
-            var query = _db.Orders.Where(o => o.Id == id);
-            if (newStatus == OrderStatus.Cancelled)
-                query = query.Where(o => o.Status != OrderStatus.Cancelled);
-            else if (oldStatus == OrderStatus.Cancelled)
-                query = query.Where(o => o.Status == OrderStatus.Cancelled);
+            var updatedAt = DateTime.UtcNow;
+            var affected = await _db.Orders
+                .Where(o => o.Id == id && o.StatusVersion == statusVersion)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(o => o.Status, newStatus)
+                    .SetProperty(o => o.UpdatedAt, updatedAt)
+                    .SetProperty(o => o.StatusVersion, o => o.StatusVersion + 1));
+            if (affected == 0)
+                throw new DbUpdateConcurrencyException(conflictMessage);
 
-            var affected = await query.ExecuteUpdateAsync(s => s
-                .SetProperty(o => o.Status, newStatus)
-                .SetProperty(o => o.UpdatedAt, DateTime.UtcNow));
+            order.Status = newStatus;
+            order.UpdatedAt = updatedAt;
+            order.StatusVersion = statusVersion + 1;
 
-            if (affected > 0)
-            {
-                order.Status = newStatus;
-                order.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                // Khi affected == 0 (do điều kiện DB không khớp hoặc tab khác vừa đổi),
-                // tải lại trạng thái thực tế từ DB để response trả về không bị giả lập sai trạng thái mới.
-                var fresh = await _db.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == id);
-                if (fresh != null)
-                {
-                    order.Status = fresh.Status;
-                    order.UpdatedAt = fresh.UpdatedAt;
-                }
-            }
-
-            if (affected > 0 && !string.IsNullOrEmpty(order.DiscountCodeApplied))
+            if (!string.IsNullOrEmpty(order.DiscountCodeApplied))
             {
                 if (newStatus == OrderStatus.Cancelled)
                 {
@@ -1035,7 +1031,7 @@ Hotline: 034 897 3285
 
             // Khi admin hủy đơn hàng (chuyển sang Cancelled thành công),
             // lưu email xác nhận hủy đơn vào EmailOutbox trong cùng transaction
-            if (affected > 0 && newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
+            if (newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
             {
                 var (cancelHtml, cancelPlainText) = BuildCancellationEmail(order, reason);
                 _db.EmailOutbox.Add(new EmailOutbox
@@ -1054,7 +1050,7 @@ Hotline: 034 897 3285
 
             await transaction.CommitAsync();
 
-            if (affected > 0 && newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
+            if (newStatus == OrderStatus.Cancelled && !string.IsNullOrWhiteSpace(order.CustomerEmail))
             {
                 _outboxChannel.NotifyNewEmail();
             }
@@ -1492,6 +1488,7 @@ Nguyệt Nhãn Phố Hiến - Tinh hoa đặc sản Hưng Yên
             DiscountAmount = order.DiscountAmount,
             DiscountCodeApplied = order.DiscountCodeApplied,
             Status = order.Status.ToString(),
+            StatusVersion = order.StatusVersion,
             Items = items,
             // Fallback
             ProductName = firstItem?.ProductName ?? order.ProductName ?? string.Empty,

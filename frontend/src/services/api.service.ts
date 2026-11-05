@@ -55,10 +55,17 @@ function configHint(): string {
 
 // Backend có thể trả { message: "..." } hoặc một string trần (vd ProductsController
 // trả BadRequest("...")). Đọc cả hai dạng để không lộ "API Error 400" thô.
+export class ApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function readApiError(res: Response): Promise<Error> {
   const body = await res.json().catch(() => null);
   const message = typeof body === "string" ? body : body?.message;
-  return new Error(message || `API Error ${res.status}: ${res.statusText}`);
+  return new ApiError(message || `API Error ${res.status}: ${res.statusText}`, res.status);
 }
 
 // ===== BASE FETCH HELPER =====
@@ -144,10 +151,10 @@ export const orderApi = {
     apiFetch(`/api/orders/${id}`, { headers: getAdminHeaders() }),
 
   /** [ADMIN] Cập nhật trạng thái đơn hàng (tự động gửi email xác nhận hủy nếu chuyển sang Cancelled) */
-  updateStatus: (id: string, status: string, reason?: string): Promise<OrderResponse> =>
+  updateStatus: (id: string, status: string, statusVersion: number, reason?: string): Promise<OrderResponse> =>
     apiFetch(`/api/orders/${id}/status`, {
       method: "PUT",
-      body: JSON.stringify({ status, reason }),
+      body: JSON.stringify({ status, statusVersion, reason }),
       headers: getAdminHeaders(),
     }),
 
