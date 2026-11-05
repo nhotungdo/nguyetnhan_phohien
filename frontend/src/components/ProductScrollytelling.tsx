@@ -92,7 +92,7 @@ export function ProductScrollytelling({ language = "vi" }: { language?: "vi" | "
             <span>{language === "en" ? "Artisan Craftsmanship Journey" : "Kỳ Công Nghệ Nhân Phố Hiến"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
             {language === "en" ? "From Ancient Orchards to Royal Banquets" : "Hành Trình Tinh Túy Từ Vườn Nhãn Đến Bàn Tiệc"}
           </h2>
           <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed [text-wrap:pretty]">

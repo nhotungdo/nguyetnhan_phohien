@@ -92,7 +92,7 @@ export function HeritageVideoSection({
           </div>
 
           {/* Tiêu đề chính */}
-          <h2 className="text-2xl min-[400px]:text-3xl sm:text-4xl md:text-5xl lg:text-[50px] font-black tracking-tight leading-[1.18] text-primary [text-wrap:balance]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-primary [text-wrap:balance]">
             {language === "en" ? "First is Kinh Ky, Second is Pho Hien" : "Thứ Nhất Kinh Kỳ, Thứ Nhì Phố Hiến"}
           </h2>
 
@@ -229,7 +229,7 @@ export function HeritageVideoSection({
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-accent block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-accent block">
                       {item.tag}
                     </span>
                     <h3 className="text-base sm:text-lg font-bold text-primary group-hover:text-accent transition-colors">
@@ -253,7 +253,7 @@ export function HeritageVideoSection({
           className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-100/70 via-[#FFFDF8] to-amber-100/70 border border-amber-300/80 shadow-md flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left"
         >
           <div className="space-y-1">
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-accent block text-center sm:text-left">
+            <span className="text-xs font-bold uppercase tracking-widest text-accent block text-center sm:text-left">
               {language === "en" ? "Timeless Folk Heritage" : "Ca Dao Cổ Phố Hiến"}
             </span>
             <p 

@@ -929,7 +929,7 @@ export default function LandingPage() {
                   Tiến Vua
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
+              <h1 className="text-4xl sm:text-[40px] md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
                 <motion.span
                   initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -943,7 +943,7 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 28 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.85, delay: 0.45, ease: EASE_OUT_EXPO }}
-                    className="block mt-1 sm:mt-2 bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#D97706] bg-clip-text text-transparent drop-shadow-xs"
+                    className="block mt-1 sm:mt-2 text-accent"
                   >
                     {heroLine2}
                   </motion.span>
@@ -1193,7 +1193,7 @@ export default function LandingPage() {
         </section>
 
         {/* 6. Giới thiệu thương hiệu — Tinh hoa ẩm thực Phố Hiến */}
-        <section id="gioi-thieu" className="py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full [contain:paint]">
+        <section id="gioi-thieu" className="py-12 sm:py-16 lg:py-24 bg-gradient-to-b from-[#FCFBF7] via-white to-amber-50/20 relative overflow-hidden w-full max-w-full [contain:paint]">
           {/* Hào quang nền dịu nhẹ tôn lên phong vị truyền thống dùng Radial Gradient thuần */}
           <div
             aria-hidden="true"
@@ -1288,10 +1288,10 @@ export default function LandingPage() {
 
                     <div>
                       <div className="flex items-center justify-between mb-6">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/70 text-[#92400E] flex items-center justify-center ring-1 ring-amber-300/60 shadow-xs group-hover:scale-110 group-hover:bg-amber-200 transition-all duration-300">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-50 text-accent flex items-center justify-center">
                           <CardIcon className="w-6 h-6 text-[#92400E]" strokeWidth={2.2} />
                         </div>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100/90 text-[#854D0E] ring-1 ring-amber-300/60 shadow-2xs">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-accent">
                           {language === "en" ? `Value 0${i + 1}` : `Giá Trị 0${i + 1}`}
                         </span>
                       </div>
@@ -1299,7 +1299,7 @@ export default function LandingPage() {
                       <h3 className="relative text-xl font-bold text-[#173522] mb-3 group-hover:text-[#92400E] transition-colors [text-wrap:balance] min-h-[3.25rem] flex items-center">
                         {val.title}
                       </h3>
-                      <p className="relative text-stone-600 leading-relaxed text-sm sm:text-base [text-wrap:pretty]">
+                      <p className="relative text-stone-600 leading-relaxed text-base [text-wrap:pretty]">
                         {val.desc}
                       </p>
                     </div>
@@ -1311,7 +1311,7 @@ export default function LandingPage() {
         </section>
 
         {/* 7. Khởi nguồn & Câu chuyện di sản */}
-        <section id="cau-chuyen" className="py-24 bg-white overflow-hidden w-full max-w-full [contain:paint]">
+        <section id="cau-chuyen" className="py-12 sm:py-16 lg:py-24 bg-white overflow-hidden w-full max-w-full [contain:paint]">
           <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               <div className="flex-1 relative">
@@ -1335,7 +1335,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex-1 space-y-8">
-                <h2 className="text-3xl md:text-5xl font-bold text-primary [text-wrap:balance] leading-tight">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary [text-wrap:balance] leading-tight">
                   {language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}
                 </h2>
                 <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-2xl [text-wrap:pretty]">
@@ -1373,10 +1373,10 @@ export default function LandingPage() {
         />
 
         {/* 8. Dòng chảy lịch sử Phố Hiến */}
-        <section id="lich-su" className="py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full [contain:paint]">
+        <section id="lich-su" className="py-12 sm:py-16 lg:py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full [contain:paint]">
           <div className="container mx-auto px-4 md:px-6 text-center max-w-4xl w-full max-w-full">
             <Reveal>
-              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-8 [text-wrap:balance]">{t.history.title}</h2>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-8 [text-wrap:balance]">{t.history.title}</h2>
             </Reveal>
             <div ref={timelineRef} className="relative border-l-2 border-accent pl-6 sm:pl-8 ml-3 sm:ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-8 sm:space-y-12">
               {/* Trục thời gian được "vẽ" dần theo nhịp cuộn (chỉ hiện ở desktop, nơi các mốc nằm giữa) */}
@@ -1460,7 +1460,7 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
               <div>
                 <Reveal>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 text-white leading-tight [text-wrap:balance]">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-white leading-tight [text-wrap:balance]">
                     {language === "en"
                       ? "Enjoy the Essence of Royal Flavor"
                       : (cmsContent.OrderTitle ? cmsContent.OrderTitle.replace(/\n/g, " ") : "Thưởng Thức Hương Vị Tinh Túy")}
@@ -2435,7 +2435,7 @@ export default function LandingPage() {
               aria-label="Gọi hotline"
             >
               <Phone className="w-4 h-4 text-accent mb-0.5" />
-              <span className="text-[10px] font-bold">Hotline</span>
+              <span className="text-xs font-bold">Hotline</span>
             </a>
 
             <button
@@ -2451,7 +2451,7 @@ export default function LandingPage() {
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-bold">Giỏ Hàng</span>
+              <span className="text-xs font-bold">Giỏ Hàng</span>
             </button>
 
             <button
@@ -2461,7 +2461,7 @@ export default function LandingPage() {
               aria-label="Tư vấn"
             >
               <MessageCircle className="w-4 h-4 text-accent mb-0.5" />
-              <span className="text-[11px] font-bold">Tư Vấn</span>
+              <span className="text-xs font-bold">Tư Vấn</span>
             </button>
 
             <button

@@ -109,14 +109,14 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
       <motion.div
         animate={prefersReducedMotion ? {} : { y: [5, -5, 5] }}
         transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, delay: 0.8 }}
-        className="absolute bottom-2 sm:-bottom-4 left-2 sm:-left-2 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none scale-85 sm:scale-100 origin-bottom-left"
+        className="absolute bottom-2 sm:-bottom-4 left-2 sm:-left-2 z-30 bg-white px-2.5 py-1 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-[#FDE68A] flex items-center gap-1.5 sm:gap-2.5 pointer-events-none"
       >
         <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-sm shrink-0">
           <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-[10px] sm:text-xs uppercase font-bold text-stone-600 leading-tight">Cam kết</div>
-          <div className="text-[11px] sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
+          <div className="text-xs uppercase font-bold text-stone-600 leading-tight">Cam kết</div>
+          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
         </div>
       </motion.div>
     </div>
