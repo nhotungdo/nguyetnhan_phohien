@@ -151,12 +151,9 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("ai-nutrition", context =>
     {
-        // Ưu tiên đọc client IP từ header X-Forwarded-For (hữu ích khi sau reverse proxy / NAT / CDN)
-        var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0]?.Trim();
-        if (string.IsNullOrEmpty(clientIp))
-        {
-            clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        }
+        // ForwardedHeaders middleware resolves trusted proxies before rate limiting.
+        // Never use a client-supplied forwarding header as the partition key.
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: clientIp,

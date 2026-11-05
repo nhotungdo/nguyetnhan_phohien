@@ -76,7 +76,9 @@ public class NutritionAiController : ControllerBase
         {
             _logger.LogError(ex, "Lỗi xảy ra trong quá trình stream SSE tư vấn dinh dưỡng.");
             var errPayload = System.Text.Json.JsonSerializer.Serialize(
-                new { @event = "error", message = "Đã xảy ra lỗi khi tạo phản hồi." },
+                new { @event = "error", message = string.Equals(request.Language, "en", StringComparison.OrdinalIgnoreCase)
+                    ? "An error occurred while generating the response."
+                    : "Đã xảy ra lỗi khi tạo phản hồi." },
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
             await Response.WriteAsync($"data: {errPayload}\n\n", cancellationToken);
         }

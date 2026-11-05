@@ -96,11 +96,7 @@ public class NutritionAiService : INutritionAiService
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             _logger.LogWarning("Gemini API key is not configured in Gemini:ApiKey.");
-            return new NutritionConsultationResponse
-            {
-                Reply = "Chào bạn! Tính năng AI Dinh dưỡng hiện đang trong quá trình cấu hình khóa API. Bạn vui lòng liên hệ trực tiếp với nhân viên tư vấn của Nguyệt Nhãn Phố Hiến để được hỗ trợ chu đáo nhất nhé!",
-                PortionTip = "Khuyến nghị chung: Dùng 10 - 20g long nhãn hoặc 30g hạt dinh dưỡng mix mỗi ngày."
-            };
+            return UnavailableResponse(request);
         }
 
         try
@@ -117,7 +113,7 @@ public class NutritionAiService : INutritionAiService
             }
 
             var isNutAllergic = DetectNutAllergy(request);
-            var systemInstruction = BuildSystemPrompt(products, isStreamingMode: false);
+            var systemInstruction = BuildSystemPrompt(products, isStreamingMode: false, request);
             var payload = BuildGeminiPayload(request, systemInstruction, useJsonSchema: true);
 
             var model = GetModelName();
@@ -134,10 +130,7 @@ public class NutritionAiService : INutritionAiService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Lỗi gọi Gemini API ({StatusCode}): {Body}", response.StatusCode, responseString);
-                return new NutritionConsultationResponse
-                {
-                    Reply = "Chào bạn, chuyên gia dinh dưỡng Nguyệt Nhãn Phố Hiến hiện đang tiếp nhận nhiều lượt hỏi cùng lúc. Bạn vui lòng gửi lại câu hỏi sau giây lát hoặc kết nối trực tiếp với nhân viên hỗ trợ nhé!"
-                };
+                return UnavailableResponse(request);
             }
 
             var jsonNode = JsonNode.Parse(responseString);
@@ -152,12 +145,12 @@ public class NutritionAiService : INutritionAiService
                 out var allergenNotice);
 
             // Áp dụng bộ lọc dị ứng cưỡng chế phía server
-            var matchedProducts = ResolveSuggestedProducts(productIds, products, isNutAllergic);
+            var matchedProducts = ResolveSuggestedProducts(productIds, products, isNutAllergic, IsEnglish(request));
 
             // Nếu phát hiện khách dị ứng mà AI quên điền allergenNotice, server chủ động chèn cảnh báo an toàn
             if (isNutAllergic && string.IsNullOrWhiteSpace(allergenNotice))
             {
-                allergenNotice = "Lưu ý an toàn: Quý khách có cơ địa dị ứng hạt, cửa hàng khuyến nghị dùng 'Ngọc Nhãn Tiến Vua' (100% cùi nhãn sấy đối lưu thuần khiết, không chứa hạt cây).";
+                allergenNotice = AllergyNotice(request);
             }
 
             return new NutritionConsultationResponse
@@ -171,10 +164,7 @@ public class NutritionAiService : INutritionAiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi khi xử lý tư vấn dinh dưỡng AI.");
-            return new NutritionConsultationResponse
-            {
-                Reply = "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách có thể thử lại sau ít phút hoặc chọn tab Tư Vấn Viên để được hỗ trợ nhé!"
-            };
+            return UnavailableResponse(request);
         }
     }
 
@@ -190,18 +180,16 @@ public class NutritionAiService : INutritionAiService
         var apiKey = GetApiKey();
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            _logger.LogWarning("Gemini API key is not configured in Gemini:ApiKey. Yielding heritage knowledge fallback response.");
-            var fallbackText = GenerateHeritageFallbackText(request);
-            yield return JsonSerializer.Serialize(new { @event = "chunk", text = fallbackText }, CamelCaseOptions);
-            yield return JsonSerializer.Serialize(new 
-            { 
-                @event = "meta", 
-                portionTip = request.Language == "en" 
-                    ? "Standard serving: 10 - 20g longan or 30g mixed nuts daily." 
-                    : "Khuyến nghị dưỡng sinh: Dùng 10 - 20g long nhãn hoặc 30g hạt dinh dưỡng mix mỗi ngày.",
-                products = new List<object>()
+            _logger.LogWarning("Gemini API key is not configured in Gemini:ApiKey. Returning unavailable response.");
+            var fallback = UnavailableResponse(request);
+            yield return JsonSerializer.Serialize(new { @event = "chunk", text = fallback.Reply }, CamelCaseOptions);
+            yield return JsonSerializer.Serialize(new
+            {
+                @event = "meta",
+                suggestedProducts = fallback.SuggestedProducts,
+                portionTip = fallback.PortionTip,
+                allergenNotice = fallback.AllergenNotice
             }, CamelCaseOptions);
-            yield return JsonSerializer.Serialize(new { @event = "done" }, CamelCaseOptions);
             yield break;
         }
 
@@ -216,7 +204,7 @@ public class NutritionAiService : INutritionAiService
         }
 
         var isNutAllergic = DetectNutAllergy(request);
-        var systemInstruction = BuildSystemPrompt(products, isStreamingMode: true);
+        var systemInstruction = BuildSystemPrompt(products, isStreamingMode: true, request);
         var payload = BuildGeminiPayload(request, systemInstruction, useJsonSchema: false);
 
         var model = GetModelName();
@@ -236,7 +224,7 @@ public class NutritionAiService : INutritionAiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi khởi tạo Stream SSE tới Gemini API.");
-            initError = JsonSerializer.Serialize(new { @event = "error", message = "Không thể kết nối tới dịch vụ AI vào lúc này." }, CamelCaseOptions);
+            initError = JsonSerializer.Serialize(new { @event = "error", message = IsEnglish(request) ? "Unable to connect to the AI service." : "Không thể kết nối tới dịch vụ AI vào lúc này." }, CamelCaseOptions);
             response = null!;
         }
 
@@ -250,7 +238,7 @@ public class NutritionAiService : INutritionAiService
         {
             var err = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError("Lỗi Stream Gemini API ({StatusCode}): {Err}", response.StatusCode, err);
-            yield return JsonSerializer.Serialize(new { @event = "error", message = "Đã có lỗi xảy ra trong quá trình nhận phản hồi từ AI." }, CamelCaseOptions);
+            yield return JsonSerializer.Serialize(new { @event = "error", message = IsEnglish(request) ? "Unable to receive a response from the AI service." : "Đã có lỗi xảy ra trong quá trình nhận phản hồi từ AI." }, CamelCaseOptions);
             yield break;
         }
 
@@ -355,10 +343,10 @@ public class NutritionAiService : INutritionAiService
         var allergenNotice = ExtractTagValue(allText, "DỊ_ỨNG");
 
         // Lọc sản phẩm an toàn server-side
-        var matchedProducts = ResolveSuggestedProducts(productIds, products, isNutAllergic);
+        var matchedProducts = ResolveSuggestedProducts(productIds, products, isNutAllergic, IsEnglish(request));
         if (isNutAllergic && string.IsNullOrWhiteSpace(allergenNotice))
         {
-            allergenNotice = "Lưu ý an toàn: Quý khách có cơ địa dị ứng hạt, cửa hàng khuyến nghị dùng 'Ngọc Nhãn Tiến Vua' (100% cùi nhãn sấy đối lưu thuần khiết, không chứa hạt cây).";
+            allergenNotice = AllergyNotice(request);
         }
 
         // Bắn event meta với CamelCaseOptions chuẩn xác (đảm bảo suggestedProducts, price, id... không bị PascalCase)
@@ -371,7 +359,7 @@ public class NutritionAiService : INutritionAiService
         }, CamelCaseOptions);
     }
 
-    private string BuildSystemPrompt(List<ProductResponse> products, bool isStreamingMode)
+    private string BuildSystemPrompt(List<ProductResponse> products, bool isStreamingMode, NutritionConsultationRequest request)
     {
         var catalogSb = new StringBuilder();
         if (products.Count > 0)
@@ -391,7 +379,7 @@ public class NutritionAiService : INutritionAiService
         var formatInstruction = isStreamingMode
             ? @"
 HƯỚNG DẪN TRẢ LỜI CHO STREAMING:
-- Trả lời bằng văn bản tiếng Việt tự nhiên, ân cần, chia đoạn rõ ràng.
+- Trả lời bằng ngôn ngữ được chỉ định bên dưới, ân cần, chia đoạn rõ ràng.
 - TUYỆT ĐỐI KHÔNG trả lời bằng khối JSON.
 - Ở cuối câu trả lời, nếu có sản phẩm phù hợp trong danh mục, đặt trên một dòng riêng biệt theo cú pháp:
 [GỢI_Ý: id_san_pham_1, id_san_pham_2]
@@ -453,6 +441,8 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
 - TUYỆT ĐỐI KHÔNG tư vấn, không gợi ý và không nhắc đến 'hạt óc chó' trong các câu trả lời hay công thức (cửa hàng Nguyệt Nhãn Phố Hiến hoàn toàn KHÔNG kinh doanh và KHÔNG sử dụng hạt óc chó; nếu khách hỏi riêng về hạt óc chó, hãy thông báo lịch sự rằng cửa hàng không có sản phẩm hạt óc chó và gợi ý các loại hạt dinh dưỡng sẵn có như hạnh nhân, macca, hạt điều, hạt sen hoặc long nhãn tiến vua).
 
 {formatInstruction}
+{(IsEnglish(request) ? "LANGUAGE: Reply in English, including portion tips and allergy warnings. Keep product names, JSON keys and metadata tag names unchanged." : "NGÔN NGỮ: Trả lời bằng tiếng Việt, bao gồm khẩu phần và cảnh báo dị ứng.")}
+{(DetectNutAllergy(request) ? "SAFETY: The user has reported a nut allergy in their profile or conversation. Do not recommend nuts or nut-containing recipes. Include an allergy warning and ask them to verify ingredients and cross-contact with staff." : "")}
 ";
     }
 
@@ -513,7 +503,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
                     type = "OBJECT",
                     properties = new
                     {
-                        reply = new { type = "STRING", description = "Văn bản tư vấn tiếng Việt chi tiết, sâu sắc" },
+                        reply = new { type = "STRING", description = IsEnglish(request) ? "Detailed advice in English" : "Văn bản tư vấn tiếng Việt chi tiết, sâu sắc" },
                         suggested_product_ids = new { type = "ARRAY", items = new { type = "STRING" } },
                         portion_tip = new { type = "STRING", description = "Khẩu phần khuyến nghị mỗi ngày" },
                         allergen_warning = new { type = "STRING", description = "Cảnh báo dị ứng nếu có nguy cơ" }
@@ -670,35 +660,44 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         return trimmed.Trim();
     }
 
-    private bool DetectNutAllergy(NutritionConsultationRequest request)
+    private static bool DetectNutAllergy(NutritionConsultationRequest request)
     {
-        // 1. Kiểm tra trong HealthProfile
-        if (request.HealthProfile?.Allergens != null && request.HealthProfile.Allergens.Any())
-        {
-            var allergens = string.Join(" ", request.HealthProfile.Allergens).ToLowerInvariant();
-            if (allergens.Contains("hạt") || allergens.Contains("điều") || allergens.Contains("hạnh nhân") ||
-                allergens.Contains("macca") || allergens.Contains("nut"))
-            {
-                return true;
-            }
-        }
+        const string nuts = @"(?:hạt|điều|hạnh nhân|macca|mắc ca|đậu phộng|lạc|\bnuts?\b|\bpeanuts?\b|\bcashews?\b|\balmonds?\b|\bmacadamias?\b|\bwalnuts?\b|\bpistachios?\b|\bhazelnuts?\b|\bpecans?\b)";
+        static bool Contains(string? text, string pattern) =>
+            !string.IsNullOrWhiteSpace(text) && Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-        // 2. Kiểm tra trong tin nhắn hiện tại
-        var msg = request.Message.ToLowerInvariant();
-        if (msg.Contains("dị ứng hạt") || msg.Contains("dị ứng điều") || msg.Contains("dị ứng hạnh nhân") ||
-            msg.Contains("dị ứng đậu phộng") || msg.Contains("dị ứng macca") ||
-            msg.Contains("bị dị ứng"))
-        {
+        if (request.HealthProfile?.Allergens?.Any(a => Contains(a, nuts)) == true)
             return true;
-        }
 
-        return false;
+        // Only user statements count: an assistant warning is not an allergy disclosure.
+        var statements = (request.History ?? new List<ChatHistoryItem>())
+            .Where(h => string.Equals(h.Role, "user", StringComparison.OrdinalIgnoreCase))
+            .Select(h => h.Content)
+            .Append(request.HealthProfile?.HealthCondition ?? "")
+            .Append(request.Message);
+        return statements.Any(text =>
+            Contains(text, @"(?:dị ứng|allerg(?:y|ic|ies))") && Contains(text, nuts));
     }
+
+    private static bool IsEnglish(NutritionConsultationRequest request) =>
+        string.Equals(request.Language, "en", StringComparison.OrdinalIgnoreCase);
+
+    private static string AllergyNotice(NutritionConsultationRequest request) => IsEnglish(request)
+        ? "You have reported a nut allergy. Avoid nut-containing products and ask our staff to verify ingredients and possible cross-contact before purchasing."
+        : "Bạn đã cung cấp thông tin dị ứng hạt. Tránh sản phẩm chứa hạt và nhờ nhân viên xác nhận thành phần cùng nguy cơ nhiễm chéo trước khi mua.";
+
+    private static NutritionConsultationResponse UnavailableResponse(NutritionConsultationRequest request) => new()
+    {
+        Reply = IsEnglish(request)
+            ? "The AI advisor is currently unavailable. Please contact our staff for assistance."
+            : "Trợ lý AI hiện chưa sẵn sàng. Bạn vui lòng liên hệ nhân viên tư vấn để được hỗ trợ.",
+        AllergenNotice = DetectNutAllergy(request) ? AllergyNotice(request) : null
+    };
 
     private List<SuggestedProductDto> ResolveSuggestedProducts(
         List<string> productIds, 
         List<ProductResponse> allProducts, 
-        bool isNutAllergic)
+        bool isNutAllergic, bool isEnglish)
     {
         var result = new List<SuggestedProductDto>();
         if (allProducts.Count == 0) return result;
@@ -722,7 +721,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
                         Size = match.Size,
                         Price = match.Price,
                         ImageUrl = ResolveProductThumbnail(match.Name, match.Images),
-                        Reason = "Sản phẩm thượng phẩm phù hợp với nhu cầu chăm sóc sức khỏe của bạn"
+                        Reason = isEnglish ? "Product suggested for your preferences" : "Sản phẩm gợi ý theo nhu cầu của bạn"
                     });
                 }
             }
@@ -741,7 +740,7 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
                     Size = safeMatch.Size,
                     Price = safeMatch.Price,
                     ImageUrl = ResolveProductThumbnail(safeMatch.Name, safeMatch.Images),
-                    Reason = "100% Cùi long nhãn sấy đối lưu thuần túy, hoàn toàn an toàn cho người dị ứng hạt"
+                    Reason = isEnglish ? "Ask our staff to verify ingredients and possible cross-contact before purchasing" : "Nhờ nhân viên xác nhận thành phần và nguy cơ nhiễm chéo trước khi mua"
                 });
             }
         }
@@ -807,46 +806,4 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         return string.IsNullOrWhiteSpace(clean) ? null : clean;
     }
 
-    private static string GenerateHeritageFallbackText(NutritionConsultationRequest request)
-    {
-        var msg = (request.Message ?? "").ToLowerInvariant();
-        var isEn = (request.Language ?? "").Equals("en", StringComparison.OrdinalIgnoreCase);
-
-        if (isEn)
-        {
-            if (msg.Contains("sleep") || msg.Contains("insomnia") || msg.Contains("relax"))
-            {
-                return "Longan is traditionally renowned in Vietnamese folk medicine for calming the mind, nourishing heart blood, and enhancing deep sleep. Pairing dried longan with lotus seed tea about 1 hour before bedtime provides a natural soothing effect. Recommended intake: 10 - 15g daily.";
-            }
-            if (msg.Contains("diabetes") || msg.Contains("sugar"))
-            {
-                return "Dried longan has natural concentrated sweetness (fructose/glucose). For individuals managing blood sugar, enjoy in strict moderation (under 5 - 10g per serving) accompanied by high-fiber, low-carb nuts like macadamia, almonds, and pumpkin seeds to stabilize glycemic impact.";
-            }
-            if (msg.Contains("pregnant") || msg.Contains("pregnancy"))
-            {
-                return "Pregnant mothers in their first trimester should consult their healthcare provider before consuming warm-natured dried fruits. Tree nuts (macadamia, almonds, walnuts) are rich in folate and omega-3s, ideal for maternal wellness.";
-            }
-            return "Welcome to Nguyet Nhan Pho Hien! Our artisan dried longan is crafted using hot-air convection drying to retain authentic honey-sweetness and nutrients. A standard portion of 15 - 20g longan combined with nutrient-rich nuts supports energy and vitality throughout your day.";
-        }
-        else
-        {
-            if (msg.Contains("ngủ") || msg.Contains("mất ngủ") || msg.Contains("an thần") || msg.Contains("mệt mỏi"))
-            {
-                return "Theo y học cổ truyền, Long Nhãn Phố Hiến có tính bình, vị ngọt, quy kinh Tâm và Tỳ, giúp dưỡng huyết an thần và cải thiện giấc ngủ tự nhiên rất tốt. Bạn có thể dùng 10 - 15g long nhãn hãm với trà hoa cúc hoặc nấu cùng hạt sen ăn vào buổi tối để có giấc ngủ sâu và êm dịu.";
-            }
-            if (msg.Contains("tiểu đường") || msg.Contains("đường huyết") || msg.Contains("ngọt"))
-            {
-                return "Long nhãn sấy khô tự nhiên có vị ngọt đậm đặc trưng từ đường hoa quả tự nhiên. Người có chỉ số đường huyết cao hoặc tiền tiểu đường nên sử dụng có chừng mực (dưới 5 - 10g mỗi ngày) và nên ưu tiên kết hợp cùng các loại hạt ít carb, giàu chất béo tốt như Macca, Hạnh nhân nướng mộc, Hạt bí xanh để làm chậm quá trình hấp thu đường.";
-            }
-            if (msg.Contains("bầu") || msg.Contains("mang thai") || msg.Contains("thai kỳ"))
-            {
-                return "Phụ nữ mang thai (đặc biệt trong 3 tháng đầu) cơ địa thiên nhiệt nên tham khảo ý kiến bác sĩ hoặc dùng lượng vừa phải (dưới 10g/ngày). Thay vào đó, mẹ bầu có thể bổ sung các loại hạt dinh dưỡng lành tính như Macca Đắk Lắk, Hạnh nhân, Hạt điều giàu Folate và Omega-3 rất tốt cho sự phát triển của thai nhi.";
-            }
-            if (msg.Contains("ngâm rượu") || msg.Contains("rượu"))
-            {
-                return "Long Nhãn sấy đối lưu loại Đặc Biệt của Nguyệt Nhãn rất thích hợp để ngâm rượu. Tỉ lệ chuẩn: 300g - 500g long nhãn ngâm với 2 - 3 lít rượu gạo nếp ngon (38 - 40 độ), có thể thêm kỷ tử, đẳng sâm. Sau 1 - 2 tháng rượu sẽ có màu vàng hổ phách, vị ngọt thanh, bồi bổ khí huyết khi dùng 1 chén nhỏ mỗi bữa.";
-            }
-            return "Kính chào quý khách! Nguyệt Nhãn Phố Hiến là thức quả tiến vua nức tiếng Hưng Yên, sấy nhiệt nóng tuần hoàn khí đối lưu giúp lưu giữ trọn vẹn vị ngọt thanh mát, cùi dày dẻo thơm và dưỡng chất quý. Khẩu phần dưỡng sinh tiêu chuẩn mỗi ngày là 10 - 20g long nhãn kết hợp 25 - 30g hạt dinh dưỡng tuyển chọn để tăng cường năng lượng và đề kháng!";
-        }
-    }
 }

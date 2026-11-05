@@ -298,10 +298,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
     setIsLoading(true);
     setErrorMsg(null);
 
-    // Chuẩn bị lịch sử hội thoại gần nhất
+    // Preserve user disclosures for server-side allergy checks; the server limits model context.
     const history = messages
       .filter((m) => m.content.trim().length > 0)
-      .slice(-4)
       .map((m) => ({
         role: m.role,
         content: m.content
@@ -343,7 +342,8 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
         {
           message: text,
           history,
-          healthProfile
+          healthProfile,
+          language
         },
         {
           onChunk: (chunk: string) => {
@@ -403,6 +403,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
         )
       );
     } finally {
+      setMessages((prev) => prev.map((msg) =>
+        msg.id === aiMessageId ? { ...msg, isStreaming: false } : msg
+      ));
       setIsLoading(false);
     }
   };

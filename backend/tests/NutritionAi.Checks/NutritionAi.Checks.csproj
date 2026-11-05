@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../src/NguyetnhanPhohien.Infrastructure/Services/NutritionAiService.cs" Link="NutritionAiService.cs" />
+    <Compile Include="../../src/NguyetnhanPhohien.Application/DTOs/Ai/NutritionConsultationDto.cs" Link="NutritionConsultationDto.cs" />
+    <Compile Include="../../src/NguyetnhanPhohien.Application/DTOs/Products/ProductDTOs.cs" Link="ProductDTOs.cs" />
+    <Compile Include="../../src/NguyetnhanPhohien.Application/Interfaces/IProductService.cs" Link="IProductService.cs" />
+    <Compile Include="../../src/NguyetnhanPhohien.Application/Interfaces/INutritionAiService.cs" Link="INutritionAiService.cs" />
+  </ItemGroup>
+</Project>

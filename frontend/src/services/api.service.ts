@@ -443,6 +443,7 @@ export interface SuggestedProduct {
 
 export interface NutritionConsultationRequest {
   message: string;
+  language?: "vi" | "en";
   history?: { role: string; content: string }[];
   healthProfile?: {
     goal?: string;
@@ -510,6 +511,10 @@ export const nutritionAiApi = {
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
+    let hasText = false;
+    const streamError = req.language === "en"
+      ? "The AI response was interrupted or empty. Please try again."
+      : "Phản hồi AI bị gián đoạn hoặc trống. Vui lòng thử lại.";
 
     try {
       while (true) {
@@ -517,7 +522,7 @@ export const nutritionAiApi = {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
+        const lines = buffer.split(/\r?\n\r?\n/);
         buffer = lines.pop() || "";
 
         for (const line of lines) {
@@ -525,41 +530,44 @@ export const nutritionAiApi = {
           if (!trimmed.startsWith("data: ")) continue;
           const dataStr = trimmed.substring(6).trim();
           if (dataStr === "[DONE]") {
+            if (!hasText) throw new Error(streamError);
             callbacks.onDone?.();
             return;
           }
 
-          try {
-            const parsed = JSON.parse(dataStr);
-            if (parsed.event === "chunk" && parsed.text) {
-              callbacks.onChunk(parsed.text);
-            } else if (parsed.event === "meta") {
-              const rawProducts = Array.isArray(parsed.suggestedProducts) ? parsed.suggestedProducts : [];
-              const normalizedProducts: SuggestedProduct[] = rawProducts.map((p: Record<string, unknown>) => ({
-                id: String(p.id ?? p.Id ?? ""),
-                name: String(p.name ?? p.Name ?? ""),
-                size: String(p.size ?? p.Size ?? ""),
-                price: typeof p.price === "number" ? p.price : typeof p.Price === "number" ? p.Price : (Number(p.price || p.Price) || 0),
-                imageUrl: (p.imageUrl ?? p.ImageUrl) ? String(p.imageUrl ?? p.ImageUrl) : undefined,
-                reason: (p.reason ?? p.Reason) ? String(p.reason ?? p.Reason) : undefined,
-              }));
-              callbacks.onMeta?.({
-                suggestedProducts: normalizedProducts,
-                portionTip: (parsed.portionTip ?? parsed.PortionTip) ? String(parsed.portionTip ?? parsed.PortionTip) : undefined,
-                allergenNotice: (parsed.allergenNotice ?? parsed.AllergenNotice) ? String(parsed.allergenNotice ?? parsed.AllergenNotice) : undefined,
-              });
-            } else if (parsed.event === "error") {
-              callbacks.onError?.(new Error(parsed.message || "Lỗi phản hồi từ AI."));
-            }
-          } catch {
-            // bỏ qua parse error cho chunk chưa hoàn chỉnh
+          // A complete SSE frame must contain valid JSON; do not hide errors.
+          const parsed = JSON.parse(dataStr);
+          if (parsed.event === "chunk" && typeof parsed.text === "string") {
+            hasText ||= parsed.text.trim().length > 0;
+            callbacks.onChunk(parsed.text);
+          } else if (parsed.event === "meta") {
+            const rawProducts = Array.isArray(parsed.suggestedProducts) ? parsed.suggestedProducts : [];
+            const normalizedProducts: SuggestedProduct[] = rawProducts.map((p: Record<string, unknown>) => ({
+              id: String(p.id ?? p.Id ?? ""),
+              name: String(p.name ?? p.Name ?? ""),
+              size: String(p.size ?? p.Size ?? ""),
+              price: typeof p.price === "number" ? p.price : typeof p.Price === "number" ? p.Price : (Number(p.price || p.Price) || 0),
+              imageUrl: (p.imageUrl ?? p.ImageUrl) ? String(p.imageUrl ?? p.ImageUrl) : undefined,
+              reason: (p.reason ?? p.Reason) ? String(p.reason ?? p.Reason) : undefined,
+            }));
+            callbacks.onMeta?.({
+              suggestedProducts: normalizedProducts,
+              portionTip: (parsed.portionTip ?? parsed.PortionTip) ? String(parsed.portionTip ?? parsed.PortionTip) : undefined,
+              allergenNotice: (parsed.allergenNotice ?? parsed.AllergenNotice) ? String(parsed.allergenNotice ?? parsed.AllergenNotice) : undefined,
+            });
+          } else if (parsed.event === "error") {
+            throw new Error(parsed.message || streamError);
           }
         }
       }
-      callbacks.onDone?.();
+      // Only the server's terminal marker confirms a complete response.
+      throw new Error(streamError);
     } catch (err: unknown) {
       if ((err as Error)?.name === "AbortError") return;
       callbacks.onError?.(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
     }
   },
 };
