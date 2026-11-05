@@ -22,6 +22,8 @@ interface FastImageProps {
   sizes?: string;
   loading?: "lazy" | "eager";
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  /** Bỏ qua proxy tối ưu của Next.js (tải thẳng ảnh từ backend /uploads/ để tránh cache cũ) */
+  unoptimized?: boolean;
 }
 
 /**
@@ -35,7 +37,9 @@ export function resolveImageUrl(path?: string, fallback = "/images/setqua.jpg"):
   if (path.startsWith("/images/") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
     return path;
   }
-  return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+  const base = API_URL.replace(/\/+$/, "");
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${cleanPath}`;
 }
 
 /**
@@ -85,6 +89,7 @@ export function FastImage({
   sizes,
   loading,
   onError,
+  unoptimized,
 }: FastImageProps) {
   const [prevSrc, setPrevSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
@@ -129,6 +134,7 @@ export function FastImage({
         fill
         priority={priority}
         sizes={sizes}
+        unoptimized={unoptimized || currentSrc.includes("/uploads/")}
         loading={priority ? undefined : loading}
         onError={handleError}
       />
@@ -144,6 +150,7 @@ export function FastImage({
       height={height ?? 1}
       priority={priority}
       sizes={sizes}
+      unoptimized={unoptimized || currentSrc.includes("/uploads/")}
       loading={priority ? undefined : loading}
       onError={handleError}
     />

@@ -172,20 +172,26 @@ public class ProductService : IProductService
             .Where(pi => pi.ProductId == productId)
             .ToListAsync();
 
-        if (images.Count == 0) return false;
+        if (images.Count == 0) return true;
+        if (orderedImageIds == null || orderedImageIds.Count == 0) return true;
 
-        // Phải gửi ĐỦ id ảnh của sản phẩm, không trùng, không id lạ —
-        // tránh ghi đè DisplayOrder bằng danh sách thiếu/thừa làm thứ tự ảnh hỗn độn.
-        if (orderedImageIds.Count != images.Count
-            || orderedImageIds.Distinct().Count() != orderedImageIds.Count)
-            return false;
+        var existingMap = images.ToDictionary(i => i.Id);
+        var order = 0;
 
-        var imageSet = images.Select(i => i.Id).ToHashSet();
-        if (orderedImageIds.Any(id => !imageSet.Contains(id))) return false;
-
-        for (var i = 0; i < orderedImageIds.Count; i++)
+        // Ưu tiên xếp thứ tự các ảnh được truyền vào (ảnh đầu tiên có DisplayOrder = 0 làm ảnh chính)
+        foreach (var id in orderedImageIds)
         {
-            images.First(x => x.Id == orderedImageIds[i]).DisplayOrder = i;
+            if (existingMap.TryGetValue(id, out var img))
+            {
+                img.DisplayOrder = order++;
+                existingMap.Remove(id);
+            }
+        }
+
+        // Bổ sung các ảnh còn lại nếu có vào sau
+        foreach (var remaining in existingMap.Values.OrderBy(i => i.DisplayOrder))
+        {
+            remaining.DisplayOrder = order++;
         }
 
         await _db.SaveChangesAsync();

@@ -40,9 +40,9 @@ export function ProductGalleryModal({
 }: ProductGalleryProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  // Đảm bảo luôn có ít nhất 1 ảnh hiển thị, tránh lỗi tính toán modulo khi images rỗng
+  // Đảm bảo luôn có ít nhất 1 ảnh hiển thị, sắp xếp theo displayOrder để ảnh chính luôn ở đầu
   const rawImages = product.images && product.images.length > 0
-    ? product.images
+    ? [...product.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     : [{ id: "default-fallback", imagePath: "/images/hopnhua.jpg", displayOrder: 1 }];
 
   const images = rawImages;

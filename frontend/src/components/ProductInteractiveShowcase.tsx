@@ -135,12 +135,19 @@ export function ProductInteractiveShowcase({
     return `${price.toLocaleString("vi-VN").replace(/,/g, ".")}đ`;
   };
 
-  // Xác định ảnh hiển thị: ưu tiên ảnh từ API, fallback sang ảnh cục bộ theo index
+  // Xác định ảnh hiển thị: ưu tiên ảnh từ API theo displayOrder, fallback sang ảnh cục bộ theo index
   const getProductImage = (prod?: ProductResponse, idx = 0) => {
-    if (prod?.images?.[0]?.imagePath) {
-      const p = prod.images[0].imagePath;
-      if (p.startsWith("/images/") || p.startsWith("http")) return p;
-      return `${API_URL}${p}`;
+    if (prod?.images && prod.images.length > 0) {
+      const sorted = [...prod.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      const p = sorted[0]?.imagePath;
+      if (p) {
+        if (p.startsWith("/images/") || p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
+          return p;
+        }
+        const base = API_URL.replace(/\/+$/, "");
+        const path = p.startsWith("/") ? p : `/${p}`;
+        return `${base}${path}`;
+      }
     }
     const fallbacks = ["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"];
     return fallbacks[idx % fallbacks.length];
@@ -248,6 +255,7 @@ export function ProductInteractiveShowcase({
                 >
                   {/* Background mờ nhẹ tôn chiều sâu ảnh */}
                   <FastImage
+                    key={`bg-${activeProduct.id}-${getProductImage(activeProduct, selectedIndex)}`}
                     src={getProductImage(activeProduct, selectedIndex)}
                     fallbackSrc={["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"][selectedIndex % 3]}
                     alt=""
@@ -257,6 +265,7 @@ export function ProductInteractiveShowcase({
 
                   {/* Ảnh chính đầy đủ, không bị phóng to cắt xén */}
                   <FastImage
+                    key={`main-${activeProduct.id}-${getProductImage(activeProduct, selectedIndex)}`}
                     src={getProductImage(activeProduct, selectedIndex)}
                     fallbackSrc={["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"][selectedIndex % 3]}
                     alt={activeProduct.name}
@@ -386,6 +395,7 @@ export function ProductInteractiveShowcase({
                     >
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden relative border border-border/40 shrink-0 bg-white">
                         <FastImage
+                          key={`thumb-${prod.id}-${getProductImage(prod, idx)}`}
                           src={getProductImage(prod, idx)}
                           fallbackSrc={["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"][idx % 3]}
                           alt={prod.name}

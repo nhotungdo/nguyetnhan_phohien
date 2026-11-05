@@ -1063,8 +1063,12 @@ export default function LandingPage() {
                 bannerUrl={
                   cmsContent.HeroBannerUrl
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
-                    : effectiveProducts[0]?.images?.[0]
-                      ? resolveCmsImage(effectiveProducts[0].images[0].imagePath)
+                    : effectiveProducts[0]?.images && effectiveProducts[0].images.length > 0
+                      ? resolveCmsImage(
+                          [...effectiveProducts[0].images].sort(
+                            (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
+                          )[0]?.imagePath
+                        )
                       : "/images/setqua.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}

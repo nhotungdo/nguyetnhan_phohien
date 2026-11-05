@@ -219,12 +219,10 @@ export default function ContentCMS() {
     next.unshift(moved);
     setExistingImages(next);
     try {
-      // Ảnh đang chờ xóa (✕ đã bấm nhưng chưa lưu) vẫn tồn tại trên server, nên
-      // phải gửi kèm ở cuối danh sách — nếu không, server báo "danh sách ảnh không
-      // khớp" (400) và thao tác đặt ảnh chính luôn thất bại sau khi xóa ảnh.
-      await productApi.reorderImages(editingId, [...next.map(i => i.id), ...deletedImageIds]);
-      refetchProducts();
-      queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+      // Backend mới đã hỗ trợ reorder linh hoạt: đưa danh sách id ưu tiên lên đầu
+      await productApi.reorderImages(editingId, next.map(i => i.id));
+      await refetchProducts();
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (err) {
       setExistingImages(previous); // server từ chối → hoàn nguyên lại thứ tự cũ
       alert(`Lỗi khi đặt ảnh chính!\n${err instanceof Error ? err.message : ""}`.trim());
@@ -251,6 +249,7 @@ export default function ContentCMS() {
       touchedServer = true;
 
       // Upload ảnh MỚI trước, xóa ảnh CŨ sau — upload lỗi thì chưa mất ảnh nào.
+      const uploadedImageIds: string[] = [];
       if (pendingImages.length > 0) {
         setUploadingImages(true);
         for (const item of [...pendingImages]) {
@@ -272,7 +271,10 @@ export default function ContentCMS() {
             console.error("Lỗi nén ảnh sản phẩm:", error);
           }
 
-          await productApi.uploadImage(productId!, fileToUpload);
+          const uploaded = await productApi.uploadImage(productId!, fileToUpload);
+          if (uploaded && uploaded.id) {
+            uploadedImageIds.push(uploaded.id);
+          }
           URL.revokeObjectURL(item.url);
           // Bỏ dần khỏi danh sách chờ để retry không upload trùng lại ảnh đã lên
           setPendingImages(prev => prev.filter(p => p.url !== item.url));
@@ -284,8 +286,21 @@ export default function ContentCMS() {
         setExistingImages(prev => prev.filter(i => i.id !== imgId));
       }
 
-      refetchProducts();
-      queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+      // Đặt ảnh mới tải lên làm ảnh chính (DisplayOrder = 0) nếu có tải ảnh mới lên
+      const remainingExistingIds = existingImages
+        .filter(i => !deletedImageIds.includes(i.id))
+        .map(i => i.id);
+      const finalImageOrder = [...uploadedImageIds, ...remainingExistingIds];
+      if (uploadedImageIds.length > 0 && finalImageOrder.length > 0 && productId) {
+        try {
+          await productApi.reorderImages(productId, finalImageOrder);
+        } catch (reorderErr) {
+          console.warn("Không reorder được ảnh sau khi lưu:", reorderErr);
+        }
+      }
+
+      await refetchProducts();
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
       closeModal();
     } catch (err) {
       console.error(err);
@@ -293,7 +308,7 @@ export default function ContentCMS() {
       // Đã tạo/đã sửa được một phần → đồng bộ lại danh sách để không hiển thị dữ liệu cũ
       if (touchedServer) {
         refetchProducts();
-        queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       }
     } finally { setIsSavingProduct(false); setUploadingImages(false); }
   };
@@ -302,8 +317,8 @@ export default function ContentCMS() {
     if (!confirm("Bạn có chắc xóa sản phẩm này?")) return;
     try { 
       await productApi.delete(id); 
-      refetchProducts();
-      queryClient.invalidateQueries({ queryKey: ["products", "public"] });
+      await refetchProducts();
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
     }
     catch (err) { alert(`Lỗi khi xóa sản phẩm!\n${err instanceof Error ? err.message : ""}`.trim()); }
   };
