@@ -21,6 +21,17 @@ import {
   ZoomIn,
   X,
   Globe,
+  Share2,
+  Copy,
+  Lock,
+  Unlock,
+  Sparkles,
+  ShieldCheck,
+  Tag,
+  QrCode,
+  Layers,
+  Heart,
+  Sliders,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -33,6 +44,8 @@ import type {
   CustomIngredient,
   CustomMixItemDetailDto,
 } from "@/types/api.types";
+
+const DRAFT_STORAGE_KEY = "nguyetnhan_custom_mix_draft_v2";
 
 // Dữ liệu dự phòng mặc định (Fallback) nếu chưa kết nối API Backend
 const FALLBACK_PACKAGINGS: CustomPackaging[] = [
@@ -131,6 +144,49 @@ const FALLBACK_INGREDIENTS: CustomIngredient[] = [
   },
 ];
 
+// Bảng màu & gradient phong phú cho mô phỏng tầng hạt
+const NUT_VISUAL_THEMES: Record<string, { bg: string; border: string; text: string; glow: string }> = {
+  longnhan: {
+    bg: "from-amber-700 via-amber-600 to-amber-800",
+    border: "border-amber-400/80",
+    text: "text-amber-100",
+    glow: "rgba(217, 119, 6, 0.45)",
+  },
+  macca: {
+    bg: "from-amber-100 via-amber-50 to-yellow-100",
+    border: "border-amber-300",
+    text: "text-stone-800",
+    glow: "rgba(254, 243, 199, 0.6)",
+  },
+  dieu: {
+    bg: "from-amber-500 via-yellow-500 to-orange-500",
+    border: "border-amber-300",
+    text: "text-amber-950",
+    glow: "rgba(245, 158, 11, 0.4)",
+  },
+  hanhnhan: {
+    bg: "from-stone-800 via-amber-900 to-stone-900",
+    border: "border-amber-600/60",
+    text: "text-amber-200",
+    glow: "rgba(120, 53, 15, 0.4)",
+  },
+  bixanh: {
+    bg: "from-emerald-700 via-teal-600 to-emerald-800",
+    border: "border-emerald-300",
+    text: "text-emerald-100",
+    glow: "rgba(16, 185, 129, 0.4)",
+  },
+};
+
+function getNutKey(name: string): "longnhan" | "macca" | "dieu" | "hanhnhan" | "bixanh" {
+  const lower = (name || "").toLowerCase();
+  if (lower.includes("nhãn") || lower.includes("longan")) return "longnhan";
+  if (lower.includes("macca") || lower.includes("mắc ca")) return "macca";
+  if (lower.includes("điều") || lower.includes("dieu") || lower.includes("cashew")) return "dieu";
+  if (lower.includes("hạnh nhân") || lower.includes("hanh nhan") || lower.includes("almond")) return "hanhnhan";
+  return "bixanh";
+}
+
 function getPackagingTranslation(pkg: CustomPackaging, language: "vi" | "en") {
   if (language === "vi") return { name: pkg.name, description: pkg.description };
   const lower = (pkg.name || "").toLowerCase();
@@ -218,6 +274,12 @@ export default function CustomMixStudio() {
   // Khối lượng từng loại hạt { [ingredientId]: grams }
   const [weights, setWeights] = useState<Record<string, number>>({});
 
+  // Danh sách các hạt bị khóa khối lượng (không bị đổi khi bù đầy / chia đều)
+  const [lockedNutIds, setLockedNutIds] = useState<Set<string>>(new Set());
+
+  // Chế độ xem trước bên cột phải: "jar" (Mô phỏng hũ hạt) hoặc "label" (Tem nhãn hoàng gia)
+  const [previewTab, setPreviewTab] = useState<"jar" | "label">("jar");
+
   // Tên sản phẩm khách tự đặt và lời chúc
   const [customName, setCustomName] = useState<string>(
     language === "en" ? "Mom's Radiance Box" : "Hộp Dưỡng Nhan Cho Mẹ"
@@ -227,10 +289,53 @@ export default function CustomMixStudio() {
   );
   const [quantity, setQuantity] = useState<number>(1);
   const [showSuccessToast, setShowSuccessToast] = useState<boolean>(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [previewNut, setPreviewNut] = useState<CustomIngredient | null>(null);
+  const [isDraftRestored, setIsDraftRestored] = useState<boolean>(false);
+
+  // Khôi phục bản nháp từ LocalStorage khi khởi tạo
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setTimeout(() => {
+          if (parsed.selectedPackagingId) setSelectedPackagingId(parsed.selectedPackagingId);
+          if (parsed.weights && Object.keys(parsed.weights).length > 0) {
+            setWeights(parsed.weights);
+          }
+          if (parsed.customName) setCustomName(parsed.customName);
+          if (parsed.customMessage !== undefined) setCustomMessage(parsed.customMessage);
+          setIsDraftRestored(true);
+        }, 0);
+      }
+    } catch (e) {
+      console.warn("Could not load custom mix draft:", e);
+    }
+  }, []);
+
+  // Tự động lưu bản nháp vào LocalStorage khi có thay đổi
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_STORAGE_KEY,
+          JSON.stringify({
+            selectedPackagingId,
+            weights,
+            customName,
+            customMessage,
+          })
+        );
+      } catch (e) {
+        console.warn("Could not save custom mix draft:", e);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [selectedPackagingId, weights, customName, customMessage]);
 
   // Lắng nghe phím ESC để đóng modal xem ảnh phóng to
   useEffect(() => {
@@ -253,7 +358,10 @@ export default function CustomMixStudio() {
         if (!isMounted) return;
         if (data.packagings?.length > 0) {
           setPackagings(data.packagings);
-          setSelectedPackagingId(data.packagings[1]?.id || data.packagings[0].id);
+          setSelectedPackagingId((prev) => {
+            const exists = data.packagings.some((p) => p.id === prev);
+            return exists ? prev : data.packagings[1]?.id || data.packagings[0].id;
+          });
         }
         if (data.ingredients?.length > 0) {
           setIngredients(data.ingredients);
@@ -286,7 +394,7 @@ export default function CustomMixStudio() {
   const isOverweight = totalGrams > targetGrams;
   const progressPercent = Math.min(100, Math.round((totalGrams / targetGrams) * 100));
 
-  // Tự động phân bổ lại khi đổi bao bì (tự động co giãn theo tỉ lệ nếu bao bì mới nhỏ hơn số gram hiện tại)
+  // Tự động phân bổ lại khi đổi bao bì
   const handleSelectPackaging = (pkg: CustomPackaging) => {
     setSelectedPackagingId(pkg.id);
     setErrorMessage(null);
@@ -318,7 +426,7 @@ export default function CustomMixStudio() {
 
   // Cập nhật số gram của 1 hạt
   const handleUpdateGrams = (ingredientId: string, newGrams: number) => {
-    const clamped = Math.max(0, Math.min(targetGrams, newGrams));
+    const clamped = Math.max(0, Math.min(targetGrams, Math.round(newGrams / 10) * 10));
     setWeights((prev) => {
       const next = { ...prev };
       if (clamped <= 0) {
@@ -330,7 +438,20 @@ export default function CustomMixStudio() {
     });
   };
 
-  // Helper tra cứu hạt theo loại ngữ nghĩa (bảo đảm an toàn tuyệt đối khi DB đổi thứ tự DisplayOrder)
+  // Bật/tắt khóa hạt
+  const toggleLockNut = (ingredientId: string) => {
+    setLockedNutIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(ingredientId)) {
+        next.delete(ingredientId);
+      } else {
+        next.add(ingredientId);
+      }
+      return next;
+    });
+  };
+
+  // Helper tra cứu hạt theo loại ngữ nghĩa
   const findNut = useCallback(
     (key: "longnhan" | "macca" | "dieu" | "hanhnhan" | "bixanh") => {
       const SEED_IDS: Record<string, string> = {
@@ -370,29 +491,44 @@ export default function CustomMixStudio() {
     handleUpdateGrams(longNhan.id, currentLongNhan + remainingGrams);
   };
 
-  // Chia đều số gram cho các hạt đang chọn (hoặc tất cả hạt nếu chưa chọn gì)
+  // Chia đều số gram cho các hạt chưa bị khóa
   const handleDistributeEqually = () => {
-    const activeIds = Object.keys(weights).filter((id) => (weights[id] || 0) > 0);
-    const targetNutList = activeIds.length > 0 ? activeIds : ingredients.map((i) => i.id);
+    const unlockedIngredients = ingredients.filter((i) => !lockedNutIds.has(i.id));
+    if (unlockedIngredients.length === 0) return;
 
-    const count = targetNutList.length;
-    if (count === 0) return;
+    // Số gram đã bị chiếm bởi các hạt đã khóa
+    const lockedTotal = Array.from(lockedNutIds).reduce((sum, id) => sum + (weights[id] || 0), 0);
+    const availableGrams = Math.max(0, targetGrams - lockedTotal);
 
-    const basePerNut = Math.floor(targetGrams / count / 10) * 10;
+    const count = unlockedIngredients.length;
+    const basePerNut = Math.floor(availableGrams / count / 10) * 10;
     const allocatedTotal = basePerNut * count;
-    const remainder = targetGrams - allocatedTotal;
+    const remainder = availableGrams - allocatedTotal;
 
     const newWeights: Record<string, number> = {};
-    targetNutList.forEach((id, idx) => {
-      newWeights[id] = basePerNut + (idx === 0 ? remainder : 0);
+    // Giữ nguyên hạt đã khóa
+    lockedNutIds.forEach((id) => {
+      if (weights[id]) newWeights[id] = weights[id];
+    });
+
+    unlockedIngredients.forEach((ing, idx) => {
+      const g = basePerNut + (idx === 0 ? remainder : 0);
+      if (g > 0) newWeights[ing.id] = g;
     });
 
     setWeights(newWeights);
   };
 
-  // Đặt lại về 0
+  // Đặt lại về ban đầu (Xóa trắng hoặc Xóa bản nháp)
   const handleReset = () => {
     setWeights({});
+    setLockedNutIds(new Set());
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } catch (e) {
+      console.warn("Could not remove custom mix draft:", e);
+    }
+    setIsDraftRestored(false);
   };
 
   // Áp dụng công thức gợi ý
@@ -405,7 +541,6 @@ export default function CustomMixStudio() {
     const biXanhId = findNut("bixanh")?.id || ingredients[4]?.id;
 
     if (presetType === "duong-nhan") {
-      // 40% Long nhãn, 30% Hạt macca, 30% Hạnh nhân
       const w1 = Math.round((targetGrams * 0.4) / 10) * 10;
       const w2 = Math.round((targetGrams * 0.3) / 10) * 10;
       const w3 = targetGrams - w1 - w2;
@@ -420,7 +555,6 @@ export default function CustomMixStudio() {
       );
       setNameError(null);
     } else if (presetType === "nang-luong") {
-      // 30% Long nhãn, 25% Hạt điều, 25% Macca, 20% Hạt bí
       const w1 = Math.round((targetGrams * 0.3) / 10) * 10;
       const w2 = Math.round((targetGrams * 0.25) / 10) * 10;
       const w3 = Math.round((targetGrams * 0.25) / 10) * 10;
@@ -437,7 +571,6 @@ export default function CustomMixStudio() {
       );
       setNameError(null);
     } else {
-      // 40% Long nhãn Tiến Vua, 35% Macca, 25% Hạt điều
       const w1 = Math.round((targetGrams * 0.4) / 10) * 10;
       const w2 = Math.round((targetGrams * 0.35) / 10) * 10;
       const w3 = targetGrams - w1 - w2;
@@ -456,7 +589,7 @@ export default function CustomMixStudio() {
     setWeights(newWeights);
   };
 
-  // Danh sách các hạt đã chọn kèm % tỉ lệ
+  // Danh sách các hạt đã chọn kèm % tỉ lệ và key giao diện
   const selectedNutsList = useMemo(() => {
     return ingredients
       .filter((ing) => (weights[ing.id] || 0) > 0)
@@ -467,28 +600,96 @@ export default function CustomMixStudio() {
         return {
           ingredientId: ing.id,
           name: trans.name,
+          nutKey: getNutKey(ing.name),
           weightGrams: grams,
           percentage,
           imageUrl: ing.imageUrl,
+          caloriesPer100g: ing.caloriesPer100g,
         };
       });
   }, [ingredients, weights, targetGrams, language]);
 
-  // Xử lý Thêm vào giỏ hàng (kiểm tra qua API Backend /api/custom-mix/validate trước khi lưu)
+  // Bộ tính toán Calo & Dinh dưỡng thông minh
+  const totalCalories = useMemo(() => {
+    return Math.round(
+      selectedNutsList.reduce((sum, nut) => {
+        const cal = nut.caloriesPer100g || 500;
+        return sum + (nut.weightGrams * cal) / 100;
+      }, 0)
+    );
+  }, [selectedNutsList]);
+
+  const caloriesPer30gServing = useMemo(() => {
+    if (totalGrams <= 0) return 0;
+    return Math.round((totalCalories / totalGrams) * 30);
+  }, [totalCalories, totalGrams]);
+
+  // Nhận định dinh dưỡng nổi bật dựa trên thành phần cao nhất
+  const topNutrientHighlight = useMemo(() => {
+    if (selectedNutsList.length === 0) return null;
+    const sorted = [...selectedNutsList].sort((a, b) => b.weightGrams - a.weightGrams);
+    const top = sorted[0];
+    switch (top.nutKey) {
+      case "longnhan":
+        return language === "en"
+          ? "Rich in herbal nourishment, calming the mind and supporting deep sleep"
+          : "Đặc biệt giàu tinh chất bổ huyết, dưỡng tâm, an thần ngủ sâu giấc";
+      case "macca":
+        return language === "en"
+          ? "High in healthy monounsaturated fats & Omega-7 for cardiovascular wellness"
+          : "Dồi dào chất béo tốt không bão hòa & Omega-7 tốt cho tim mạch";
+      case "dieu":
+        return language === "en"
+          ? "Abundant in natural plant protein, boosting daily energy and vitality"
+          : "Dồi dào đạm thực vật nguyên chất, tăng cường năng lượng & sinh lực";
+      case "hanhnhan":
+        return language === "en"
+          ? "Loaded with Vitamin E & dietary fiber, promoting radiant skin & metabolism"
+          : "Giàu Vitamin E & chất xơ tự nhiên, hỗ trợ sáng da & giữ gìn vóc dáng";
+      case "bixanh":
+        return language === "en"
+          ? "High in natural zinc and magnesium, strengthening immunity & cell defense"
+          : "Giàu khoáng chất Kẽm & Magie, tăng cường hệ miễn dịch & sức đề kháng";
+      default:
+        return language === "en" ? "Nutrient-rich balanced blend" : "Sự kết hợp đa dưỡng chất cân bằng";
+    }
+  }, [selectedNutsList, language]);
+
+  // Chia sẻ công thức
+  const handleShareRecipe = () => {
+    const nutDetails = selectedNutsList.map((n) => `${n.name} (${n.weightGrams}g - ${n.percentage}%)`).join(", ");
+    const shareText = `[Nguyệt Nhãn Phố Hiến] Tuyệt tác hạt riêng "${customName}": ${nutDetails}. Tổng khối lượng: ${totalGrams}g.`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(`${shareText}\nKhám phá tại: ${window.location.href}`);
+      const msg = language === "en" ? "Recipe copied to clipboard!" : "Đã sao chép công thức phối hạt!";
+      setShareToast(msg);
+      setTimeout(() => setShareToast(null), 3000);
+    }
+  };
+
+  // Cuộn mượt tới các bước
+  const scrollToStep = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Xử lý Thêm vào giỏ hàng
   const handleAddToCart = async (autoOpenCart = false) => {
     if (!isPerfectMatch || isValidating) return;
     setErrorMessage(null);
 
-    // Bắt buộc nhập tên sản phẩm theo dấu * quy ước
+    // Bắt buộc nhập tên sản phẩm
     if (!customName.trim()) {
       const msg = language === "en"
         ? "Please name your custom mix product before adding to cart."
         : "Vui lòng đặt tên cho sản phẩm tự chọn hạt của bạn trước khi thêm vào giỏ.";
       setNameError(msg);
       setErrorMessage(msg);
+      scrollToStep("step3Section");
       const inputEl = document.getElementById("customProductNameInput");
       if (inputEl) {
-        inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
         inputEl.focus();
       }
       return;
@@ -511,7 +712,6 @@ export default function CustomMixStudio() {
           })),
         });
 
-        // Nếu backend phản hồi từ chối công thức (lỗi nghiệp vụ do server trả về)
         if (validateRes && !validateRes.isValid) {
           setErrorMessage(validateRes.message || (language === "en" ? "Nut recipe proportions are invalid." : "Công thức phối hạt chưa hợp lệ."));
           setIsValidating(false);
@@ -529,9 +729,11 @@ export default function CustomMixStudio() {
               return {
                 ingredientId: ing.ingredientId,
                 name: (language === "en" ? trans?.name : ing.name) || matched?.name || (language === "en" ? "Nutrient Seed" : "Hạt dinh dưỡng"),
+                nutKey: getNutKey(ing.name || matched?.name || ""),
                 weightGrams: ing.weightGrams,
                 percentage: ing.percentage ?? (targetGrams > 0 ? Math.round((ing.weightGrams * 100) / targetGrams) : 0),
                 imageUrl: matched?.imageUrl || "/images/setqua.jpg",
+                caloriesPer100g: matched?.caloriesPer100g || 500,
               };
             });
           }
@@ -569,7 +771,7 @@ export default function CustomMixStudio() {
     }
   };
 
-  // Mua ngay -> Validate qua API rồi mở drawer giỏ hàng
+  // Mua ngay
   const handleBuyNow = () => {
     if (!isPerfectMatch || isValidating) return;
     handleAddToCart(true);
@@ -601,6 +803,12 @@ export default function CustomMixStudio() {
                 <span className="text-[10px] sm:text-xs font-bold text-[#B45309] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Custom Mix Studio
                 </span>
+                {isDraftRestored && (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    {language === "en" ? "Draft loaded" : "Đã nạp bản nháp"}
+                  </span>
+                )}
               </div>
               <h1 className="text-base sm:text-xl font-bold text-primary leading-tight mt-0.5">
                 {language === "en" ? "Artisan Custom Nut Atelier" : "Xưởng Chế Tác Hạt Riêng"}
@@ -609,7 +817,19 @@ export default function CustomMixStudio() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Nút chuyển đổi ngôn ngữ đồng bộ toàn bộ app */}
+            {/* Nút chia sẻ công thức */}
+            <button
+              type="button"
+              onClick={handleShareRecipe}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-full border border-amber-200 bg-white hover:bg-amber-50 text-stone-700 hover:text-[#B45309] text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title={language === "en" ? "Share Recipe" : "Chia sẻ công thức"}
+              aria-label={language === "en" ? "Share Recipe" : "Chia sẻ công thức"}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{language === "en" ? "Share" : "Chia sẻ"}</span>
+            </button>
+
+            {/* Nút chuyển đổi ngôn ngữ */}
             <button
               type="button"
               onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
@@ -620,6 +840,7 @@ export default function CustomMixStudio() {
               <span>{language === "en" ? "EN" : "VI"}</span>
             </button>
 
+            {/* Nút Giỏ hàng */}
             <button
               type="button"
               onClick={openCart}
@@ -662,7 +883,22 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
-      {/* TOAST LỖI TỪ SERVER */}
+      {/* TOAST CHIA SẺ */}
+      <AnimatePresence>
+        {shareToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 right-4 sm:right-8 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 border border-amber-400/50"
+          >
+            <Copy className="w-4 h-4 text-amber-400 shrink-0" />
+            <p className="text-xs font-semibold text-amber-200">{shareToast}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* TOAST LỖI */}
       <AnimatePresence>
         {errorMessage && (
           <motion.div
@@ -690,10 +926,80 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
-      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-28 lg:pb-10 max-w-7xl">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
+        {/* THANH STEPPER 3 BƯỚC ĐIỀU HƯỚNG QUY TRÌNH THÔNG MINH */}
+        <nav
+          aria-label="Quy trình chế tác hạt"
+          className="mb-6 sm:mb-8 bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl p-2 sm:p-3 border border-[#FDE68A]/80 shadow-xs"
+        >
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+            {/* Bước 1 */}
+            <button
+              type="button"
+              onClick={() => scrollToStep("step1Section")}
+              className="flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer bg-amber-50/80 text-[#B45309] border border-amber-200/80 hover:bg-amber-100"
+            >
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#B45309] text-white flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
+                1
+              </span>
+              <span className="text-xs sm:text-sm font-bold truncate">
+                {language === "en" ? "1. Packaging" : "1. Chọn Bao Bì"}
+              </span>
+            </button>
+
+            {/* Bước 2 */}
+            <button
+              type="button"
+              onClick={() => scrollToStep("step2Section")}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${
+                isPerfectMatch
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                  : "bg-white text-stone-700 border-border/70 hover:bg-neutral-50"
+              }`}
+            >
+              <span
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${
+                  isPerfectMatch
+                    ? "bg-emerald-600 text-white"
+                    : "bg-amber-100 text-[#B45309]"
+                }`}
+              >
+                {isPerfectMatch ? "✓" : "2"}
+              </span>
+              <span className="text-xs sm:text-sm font-bold truncate">
+                {language === "en" ? "2. Custom Mix" : "2. Phối Hạt"}
+              </span>
+            </button>
+
+            {/* Bước 3 */}
+            <button
+              type="button"
+              onClick={() => scrollToStep("step3Section")}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${
+                customName.trim() && isPerfectMatch
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                  : "bg-white text-stone-700 border-border/70 hover:bg-neutral-50"
+              }`}
+            >
+              <span
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${
+                  customName.trim() && isPerfectMatch
+                    ? "bg-emerald-600 text-white"
+                    : "bg-neutral-100 text-neutral-600"
+                }`}
+              >
+                {customName.trim() && isPerfectMatch ? "✓" : "3"}
+              </span>
+              <span className="text-xs sm:text-sm font-bold truncate">
+                {language === "en" ? "3. Bespoke Label" : "3. Khắc Tem Nhãn"}
+              </span>
+            </button>
+          </div>
+        </nav>
+
         {/* INTRO HERO BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#23452F] via-[#2F5A3E] to-[#1C3625] text-white p-6 sm:p-10 mb-8 sm:mb-12 shadow-xl border border-emerald-900/40">
-          <div className="relative z-10 max-w-3xl space-y-3">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#23452F] via-[#2F5A3E] to-[#1C3625] text-white p-6 sm:p-8 mb-8 shadow-xl border border-emerald-900/40">
+          <div className="relative z-10 max-w-3xl space-y-2.5">
             <span className="inline-block text-xs uppercase tracking-widest text-[#E9B949] font-bold">
               {language === "en" ? "Exclusive Pho Hien Specialty" : "Đặc sản Phố Hiến độc bản"}
             </span>
@@ -708,7 +1014,6 @@ export default function CustomMixStudio() {
                 : "Tự do lựa chọn tỉ lệ từ 5 loại hạt dinh dưỡng & đặc sản trứ danh. Đạt đúng khối lượng tịnh yêu cầu với mức giá cố định trọn gói, được in tem nhãn cá nhân hóa miễn phí."}
             </p>
           </div>
-          {/* Decorative glowing circle dùng Radial Gradient thuần */}
           <div
             className="absolute right-0 bottom-0 w-64 h-64 pointer-events-none"
             style={{
@@ -722,7 +1027,10 @@ export default function CustomMixStudio() {
           {/* CỘT TRÁI: BỘ ĐIỀU KHIỂN & CHỌN HẠT (7 CỘT) */}
           <div className="lg:col-span-7 space-y-8">
             {/* STEP 1: CHỌN QUY CÁCH BAO BÌ */}
-            <section className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4">
+            <section
+              id="step1Section"
+              className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4 scroll-mt-24"
+            >
               <div className="flex items-center justify-between border-b border-[#FDE68A]/40 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-[#B45309] text-white font-bold text-xs flex items-center justify-center">
@@ -746,7 +1054,7 @@ export default function CustomMixStudio() {
                       key={pkg.id}
                       onClick={() => handleSelectPackaging(pkg)}
                       type="button"
-                      className={`group text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between ${
+                      className={`group text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                         isSelected
                           ? "border-[#B45309] bg-[#FFFBEB] shadow-md ring-2 ring-[#B45309]/20"
                           : "border-border/60 hover:border-[#FDE68A] hover:bg-[#FFFDF8]"
@@ -758,8 +1066,7 @@ export default function CustomMixStudio() {
                         </div>
                       )}
                       <div>
-                        {/* Khung ảnh trọn vẹn quy cách bao bì không bị cắt xén */}
-                        <div className="w-full h-52 sm:h-56 rounded-xl overflow-hidden mb-3 bg-[#FAF7F2] border border-amber-100/70 relative flex items-center justify-center p-2 shadow-2xs">
+                        <div className="w-full h-44 sm:h-48 rounded-xl overflow-hidden mb-3 bg-[#FAF7F2] border border-amber-100/70 relative flex items-center justify-center p-2 shadow-2xs">
                           <FastImage
                             src={pkg.imageUrl}
                             alt={pkgTrans.name}
@@ -793,7 +1100,10 @@ export default function CustomMixStudio() {
             </section>
 
             {/* STEP 2: CHỌN & CHỈNH LƯỢNG 5 LOẠI HẠT */}
-            <section className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-5">
+            <section
+              id="step2Section"
+              className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-5 scroll-mt-24"
+            >
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#FDE68A]/40 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-[#B45309] text-white font-bold text-xs flex items-center justify-center">
@@ -816,7 +1126,7 @@ export default function CustomMixStudio() {
                     disabled={remainingGrams <= 0}
                     type="button"
                     title={language === "en" ? "Automatically fill remaining grams with Longan" : "Tự động bù số gram còn thiếu bằng Long Nhãn"}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-2xs cursor-pointer"
                   >
                     <Wand2 className="w-3.5 h-3.5 text-amber-700" />
                     <span>{language === "en" ? "Fill Longan" : "Bù Long Nhãn"}</span>
@@ -825,8 +1135,8 @@ export default function CustomMixStudio() {
                   <button
                     onClick={handleDistributeEqually}
                     type="button"
-                    title={language === "en" ? "Distribute weight equally among nuts" : "Chia đều khối lượng cho các loại hạt"}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-800 text-xs font-semibold transition-all active:scale-95"
+                    title={language === "en" ? "Distribute weight equally among unlocked nuts" : "Chia đều khối lượng cho các loại hạt chưa khóa"}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-800 text-xs font-semibold transition-all active:scale-95 cursor-pointer"
                   >
                     <Scale className="w-3.5 h-3.5 text-neutral-700" />
                     <span>{language === "en" ? "Split Equally" : "Chia đều"}</span>
@@ -836,14 +1146,15 @@ export default function CustomMixStudio() {
                     onClick={handleReset}
                     type="button"
                     title={language === "en" ? "Reset to 0g" : "Đặt lại về 0g"}
-                    className="p-1.5 rounded-xl hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors"
+                    className="p-1.5 rounded-xl hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
+                    aria-label={language === "en" ? "Reset" : "Đặt lại"}
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* THANH ĐO TIẾN TRÌNH TRÊN MOBILE */}
+              {/* THANH TIẾN TRÌNH MOBILE TRONG BƯỚC 2 */}
               <div className="lg:hidden bg-gradient-to-br from-[#FFFDF8] via-[#FFFBEB] to-[#FEF3C7]/40 rounded-2xl p-4 border-2 border-[#FDE68A] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -884,7 +1195,6 @@ export default function CustomMixStudio() {
                     </span>
                   </div>
 
-                  {/* Progress bar */}
                   <div className="w-full h-3 bg-neutral-200/80 rounded-full overflow-hidden p-0.5 border border-border/60">
                     <motion.div
                       initial={false}
@@ -942,126 +1252,210 @@ export default function CustomMixStudio() {
               {/* Gợi ý công thức 1-click */}
               <div className="bg-[#FFFDF8] border border-[#FDE68A]/60 p-3.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                 <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                   {language === "en" ? "Suggested Recipes:" : "Công thức gợi ý:"}
                 </span>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => handleApplyPreset("duong-nhan")}
                     type="button"
-                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs cursor-pointer active:scale-95"
                   >
                     {language === "en" ? "🌸 Radiance Glow" : "🌸 Dưỡng Nhan"}
                   </button>
                   <button
                     onClick={() => handleApplyPreset("nang-luong")}
                     type="button"
-                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs cursor-pointer active:scale-95"
                   >
                     {language === "en" ? "⚡ Active Energy" : "⚡ Năng Lượng Gym"}
                   </button>
                   <button
                     onClick={() => handleApplyPreset("thuong-hang")}
                     type="button"
-                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#FDE68A] hover:bg-[#FEF3C7] text-xs font-semibold text-[#B45309] transition-all shadow-2xs cursor-pointer active:scale-95"
                   >
                     {language === "en" ? "👑 Royal Banquet" : "👑 Tiến Vua"}
                   </button>
                 </div>
               </div>
 
-              {/* GRID 5 LOẠI HẠT */}
+              {/* GRID 5 LOẠI HẠT VỚI BỘ ĐIỀU KHIỂN & SLIDER & NÚT KHÓA */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {ingredients.map((ing) => {
                   const currentWeight = weights[ing.id] || 0;
                   const isSelected = currentWeight > 0;
+                  const isLocked = lockedNutIds.has(ing.id);
                   const ingTrans = getIngredientTranslation(ing, language as "vi" | "en");
+                  const percentOfBox = targetGrams > 0 ? Math.round((currentWeight * 100) / targetGrams) : 0;
 
                   return (
                     <div
                       key={ing.id}
-                      className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
                         isSelected
                           ? "border-[#B45309]/60 bg-[#FFFDF8] shadow-sm ring-1 ring-[#B45309]/30"
                           : "border-border/60 bg-white hover:border-[#FDE68A]/80"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewNut(ing)}
-                          className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-neutral-100 relative group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#B45309]/50 transition-all hover:border-[#B45309]/60 text-left"
-                          title={language === "en" ? `Click to enlarge ${ingTrans.name}` : `Bấm để phóng to ảnh ${ing.name}`}
-                          aria-label={language === "en" ? `Enlarge image ${ingTrans.name}` : `Phóng to ảnh ${ing.name}`}
-                        >
-                          <FastImage
-                            src={ing.imageUrl}
-                            alt={ingTrans.name}
-                            fill
-                            sizes="72px"
-                            className="object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                            <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+                      <div>
+                        {/* Header của thẻ hạt */}
+                        <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewNut(ing)}
+                            className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 border border-border/60 bg-neutral-100 relative group cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#B45309]/50 transition-all hover:border-[#B45309]/60 text-left"
+                            title={language === "en" ? `Click to enlarge ${ingTrans.name}` : `Bấm để phóng to ảnh ${ing.name}`}
+                            aria-label={language === "en" ? `Enlarge image ${ingTrans.name}` : `Phóng to ảnh ${ing.name}`}
+                          >
+                            <FastImage
+                              src={ing.imageUrl}
+                              alt={ingTrans.name}
+                              fill
+                              sizes="72px"
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                              <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+                            </div>
+                            <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center shadow-2xs pointer-events-none">
+                              <ZoomIn className="w-2.5 h-2.5" />
+                            </div>
+                          </button>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-1">
+                              <h4 className="font-bold text-sm text-foreground leading-snug line-clamp-1">
+                                {ingTrans.name}
+                              </h4>
+                              {/* Nút khóa khối lượng hạt */}
+                              <button
+                                type="button"
+                                onClick={() => toggleLockNut(ing.id)}
+                                title={
+                                  isLocked
+                                    ? (language === "en" ? "Unlock weight" : "Mở khóa khối lượng")
+                                    : (language === "en" ? "Lock weight (keeps grams fixed)" : "Khóa khối lượng (giữ cố định số gram)")
+                                }
+                                className={`p-1 rounded-md transition-all cursor-pointer ${
+                                  isLocked
+                                    ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                    : "text-stone-400 hover:text-stone-600 hover:bg-stone-100"
+                                }`}
+                              >
+                                {isLocked ? <Lock className="w-3.5 h-3.5 text-[#B45309]" /> : <Unlock className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+
+                            <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                              {ingTrans.tagline}
+                            </p>
+
+                            <div className="flex items-center gap-2 mt-1.5 text-[10px] text-foreground/70">
+                              <span className="flex items-center gap-0.5 font-medium text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded">
+                                <Flame className="w-3 h-3 text-amber-600" /> {ing.caloriesPer100g} kcal/100g
+                              </span>
+                              {isSelected && (
+                                <span className="font-bold text-[#B45309] bg-[#FEF3C7] px-1.5 py-0.5 rounded">
+                                  {percentOfBox}%
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          {/* Huy hiệu kính lúp nhỏ ở góc ảnh */}
-                          <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center shadow-2xs pointer-events-none">
-                            <ZoomIn className="w-2.5 h-2.5" />
-                          </div>
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-sm text-foreground leading-snug line-clamp-1">
-                            {ingTrans.name}
-                          </h4>
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
-                            {ingTrans.tagline}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1.5 text-[10px] text-foreground/70">
-                            <span className="flex items-center gap-0.5 font-medium text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded">
-                              <Flame className="w-3 h-3 text-amber-600" /> {ing.caloriesPer100g} kcal/100g
+                        </div>
+
+                        {/* Thanh trượt Range Slider điều khiển gram trực tiếp */}
+                        <div className="mt-3 pt-2 border-t border-border/30">
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                            <span className="flex items-center gap-1 font-medium">
+                              <Sliders className="w-3 h-3 text-stone-500" />
+                              {language === "en" ? "Adjust Slider:" : "Thanh kéo gram:"}
                             </span>
+                            <span className="font-bold text-primary">{currentWeight}g / {targetGrams}g</span>
                           </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max={targetGrams}
+                            step="10"
+                            value={currentWeight}
+                            disabled={isLocked}
+                            onChange={(e) => handleUpdateGrams(ing.id, parseInt(e.target.value) || 0)}
+                            className="w-full accent-[#B45309] h-2 bg-neutral-200 rounded-lg cursor-pointer disabled:opacity-40"
+                          />
                         </div>
                       </div>
 
-                      {/* Bộ điều khiển gram */}
-                      <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1 bg-neutral-100 rounded-xl p-1 border border-border/60">
-                          <button
-                            onClick={() => handleUpdateGrams(ing.id, currentWeight - 10)}
-                            disabled={currentWeight <= 0}
-                            type="button"
-                            className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-primary hover:bg-[#FEF3C7] transition-colors disabled:opacity-30 disabled:hover:bg-white shadow-2xs"
-                            aria-label={language === "en" ? `Decrease ${ingTrans.name}` : `Giảm ${ing.name}`}
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
+                      {/* Phím bấm điều khiển gram & phím tắt tỷ lệ % nhanh */}
+                      <div className="mt-3 pt-2.5 border-t border-border/40 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1 bg-neutral-100 rounded-xl p-1 border border-border/60">
+                            <button
+                              onClick={() => handleUpdateGrams(ing.id, currentWeight - 10)}
+                              disabled={currentWeight <= 0 || isLocked}
+                              type="button"
+                              className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-primary hover:bg-[#FEF3C7] transition-colors disabled:opacity-30 disabled:hover:bg-white shadow-2xs cursor-pointer"
+                              aria-label={language === "en" ? `Decrease ${ingTrans.name}` : `Giảm ${ing.name}`}
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
 
-                          <div className="w-14 text-center">
-                            <span className="font-bold text-sm text-primary select-none">
-                              {currentWeight}g
-                            </span>
+                            <div className="w-14 text-center">
+                              <span className="font-bold text-sm text-primary select-none font-mono">
+                                {currentWeight}g
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => handleUpdateGrams(ing.id, currentWeight + 10)}
+                              disabled={totalGrams >= targetGrams || isLocked}
+                              type="button"
+                              className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-primary hover:bg-[#FEF3C7] transition-colors disabled:opacity-30 disabled:hover:bg-white shadow-2xs cursor-pointer"
+                              aria-label={language === "en" ? `Increase ${ingTrans.name}` : `Tăng ${ing.name}`}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
                           </div>
 
+                          {/* Phím tắt nhanh: +50g */}
                           <button
-                            onClick={() => handleUpdateGrams(ing.id, currentWeight + 10)}
-                            disabled={totalGrams >= targetGrams}
+                            onClick={() => handleUpdateGrams(ing.id, currentWeight + 50)}
+                            disabled={totalGrams + 50 > targetGrams || isLocked}
                             type="button"
-                            className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-primary hover:bg-[#FEF3C7] transition-colors disabled:opacity-30 disabled:hover:bg-white shadow-2xs"
-                            aria-label={language === "en" ? `Increase ${ingTrans.name}` : `Tăng ${ing.name}`}
+                            className="px-2.5 py-1.5 rounded-xl bg-neutral-50 hover:bg-[#FEF3C7] border border-border/80 text-[11px] font-semibold text-neutral-700 transition-colors disabled:opacity-30 cursor-pointer shadow-2xs"
                           >
-                            <Plus className="w-3.5 h-3.5" />
+                            +50g
                           </button>
                         </div>
 
-                        {/* Nút tắt nhanh: +50g (bội số của bước 10g để backend luôn chấp nhận) */}
-                        <button
-                          onClick={() => handleUpdateGrams(ing.id, currentWeight + 50)}
-                          disabled={totalGrams + 50 > targetGrams}
-                          type="button"
-                          className="px-2 py-1 rounded-lg bg-neutral-50 hover:bg-[#FEF3C7] border border-border/80 text-[11px] font-semibold text-neutral-700 transition-colors disabled:opacity-30"
-                        >
-                          +50g
-                        </button>
+                        {/* Phím tắt phân bổ nhanh theo tỷ lệ % */}
+                        <div className="flex items-center gap-1.5 text-[10px]">
+                          <span className="text-muted-foreground mr-1">{language === "en" ? "Quick:" : "Nhanh:"}</span>
+                          <button
+                            type="button"
+                            disabled={isLocked}
+                            onClick={() => handleUpdateGrams(ing.id, Math.round((targetGrams * 0.25) / 10) * 10)}
+                            className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-900 border border-stone-200 transition-all disabled:opacity-40 cursor-pointer"
+                          >
+                            25%
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLocked}
+                            onClick={() => handleUpdateGrams(ing.id, Math.round((targetGrams * 0.5) / 10) * 10)}
+                            className="px-2 py-0.5 rounded-md bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-900 border border-stone-200 transition-all disabled:opacity-40 cursor-pointer"
+                          >
+                            50%
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLocked}
+                            onClick={() => handleUpdateGrams(ing.id, currentWeight + Math.max(0, remainingGrams))}
+                            className="px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-200 text-amber-900 border border-amber-300 font-semibold transition-all disabled:opacity-40 cursor-pointer"
+                          >
+                            {language === "en" ? "Max" : "Tối đa"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1070,7 +1464,10 @@ export default function CustomMixStudio() {
             </section>
 
             {/* STEP 3: ĐẶT TÊN SẢN PHẨM & LỜI CHÚC */}
-            <section id="step3Section" className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4">
+            <section
+              id="step3Section"
+              className="bg-white rounded-3xl p-5 sm:p-7 border border-[#FDE68A]/60 shadow-sm space-y-4 scroll-mt-24"
+            >
               <div className="flex items-center gap-2.5 border-b border-[#FDE68A]/40 pb-3">
                 <span className="w-7 h-7 rounded-full bg-[#B45309] text-white font-bold text-xs flex items-center justify-center">
                   3
@@ -1151,14 +1548,24 @@ export default function CustomMixStudio() {
                       : "Dòng chữ trang trọng gửi gắm tình cảm đến người nhận quà."}
                   </p>
                 </div>
+
+                {/* Thông tin cảnh báo an toàn thực phẩm & dị ứng */}
+                <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900/90 flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed text-[11px]">
+                    {language === "en"
+                      ? "Allergen Notice: Packed in a dedicated facility handling natural tree nuts (Longan, Macadamia, Cashew, Almond, Pumpkin Seeds). Preserved naturally with vacuum or nitrogen-sealed tech."
+                      : "Cam kết ATVSTP: Chế tác vô trùng từ 100% hạt cây tuyển chọn (Long nhãn, Macca, Điều, Hạnh nhân, Bí xanh). Niêm phong màng nhôm khóa khí không dùng phụ gia bảo quản."}
+                  </p>
+                </div>
               </div>
             </section>
           </div>
 
-          {/* CỘT PHẢI: THANH TIẾN TRÌNH & BẢN XEM TRƯỚC TEM NHÃN 3D (5 CỘT) */}
+          {/* CỘT PHẢI: BỘ XEM TRƯỚC HŨ HẠT & TEM NHÃN + DINH DƯỠNG + THANH TOÁN (5 CỘT) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             {/* THANH ĐO TIẾN TRÌNH KHỐI LƯỢNG MỤC TIÊU (DESKTOP) */}
-            <div className="hidden lg:block bg-white rounded-3xl p-5 sm:p-6 border border-[#FDE68A]/60 shadow-sm space-y-4">
+            <div className="hidden lg:block bg-white rounded-3xl p-5 border border-[#FDE68A]/60 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   {language === "en" ? "Capacity Meter" : "Đo lường dung tích"}
@@ -1191,7 +1598,6 @@ export default function CustomMixStudio() {
                   </span>
                 </div>
 
-                {/* Progress bar */}
                 <div className="w-full h-3.5 bg-neutral-100 rounded-full overflow-hidden p-0.5 border border-border/60">
                   <motion.div
                     initial={{ width: 0 }}
@@ -1208,7 +1614,6 @@ export default function CustomMixStudio() {
                 </div>
               </div>
 
-              {/* Thông báo hướng dẫn */}
               <div className="text-xs">
                 {isPerfectMatch ? (
                   <p className="text-emerald-700 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 flex items-center gap-2">
@@ -1241,88 +1646,240 @@ export default function CustomMixStudio() {
               </div>
             </div>
 
-            {/* LIVE PRODUCT & LABEL PREVIEW (MÔ PHỎNG TEM NHÃN ẢO) */}
-            <div className="bg-[#23452F] rounded-3xl p-5 sm:p-7 text-white shadow-xl border border-emerald-900/60 relative overflow-hidden">
+            {/* BẢNG XEM TRƯỚC SẢN PHẨM: 2 TABS CHUYỂN ĐỔI GIỮA HŨ HẠT & TEM NHÃN */}
+            <div className="bg-[#23452F] rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-emerald-900/60 relative overflow-hidden">
+              {/* Header 2 Tabs */}
               <div className="flex items-center justify-between mb-4 border-b border-emerald-800/80 pb-3">
-                <span className="text-xs uppercase tracking-widest text-[#E9B949] font-bold flex items-center gap-1.5">
-                  <Package className="w-4 h-4" />{" "}
-                  {language === "en" ? "Live Label Preview" : "Bản xem trước nhãn dán"}
-                </span>
-                <span className="text-[11px] text-emerald-200/80">
-                  {language === "en" ? `Weight: ${targetGrams}g` : `Khối lượng: ${targetGrams}g`}
+                <div className="flex items-center gap-1.5 bg-emerald-950/80 p-1 rounded-xl border border-emerald-800">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("jar")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      previewTab === "jar"
+                        ? "bg-[#E9B949] text-stone-950 shadow-sm"
+                        : "text-emerald-200 hover:text-white"
+                    }`}
+                  >
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>{language === "en" ? "Virtual Jar" : "Mô Phỏng Hũ"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewTab("label")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      previewTab === "label"
+                        ? "bg-[#E9B949] text-stone-950 shadow-sm"
+                        : "text-emerald-200 hover:text-white"
+                    }`}
+                  >
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>{language === "en" ? "Royal Label" : "Tem Nhãn"}</span>
+                  </button>
+                </div>
+
+                <span className="text-[11px] text-emerald-200/80 font-mono">
+                  {totalGrams}g / {targetGrams}g
                 </span>
               </div>
 
-              {/* TEM NHÃN HOÀNG GIA DÁN TRÊN HỘP/TÚI */}
-              <div className="bg-[#FFF9ED] text-[#292524] rounded-2xl p-5 sm:p-6 shadow-2xl border-2 border-[#E9B949] relative">
-                {/* Viền hoa văn cổ */}
-                <div className="border border-[#B45309]/30 p-4 rounded-xl space-y-3.5 text-center relative bg-[radial-gradient(#FDE68A_1px,transparent_1px)] [background-size:16px_16px]">
-                  {/* Brand header: Giữ trọn tên thương hiệu "NGUYỆT NHÃN PHỐ HIẾN" theo yêu cầu */}
-                  <div>
-                    <h5 className="text-[11px] uppercase tracking-widest font-extrabold text-[#B45309]">
-                      NGUYỆT NHÃN PHỐ HIẾN
-                    </h5>
-                    <p className="text-[9px] text-[#78350F] italic">
-                      {language === "en" ? "Essence of Thousand-Year Pho Hien Heritage" : "Tinh Hoa Đất Phố Hiến Ngàn Năm"}
-                    </p>
-                  </div>
+              {/* TAB 1: MÔ PHỎNG HŨ HẠT ĐA TẦNG TRỰC QUAN (VIRTUAL LAYERED JAR PREVIEW) */}
+              {previewTab === "jar" && (
+                <div className="space-y-4">
+                  <div className="relative w-full max-w-[280px] mx-auto aspect-[3/4] bg-stone-950/50 rounded-[2rem] border-2 border-[#E9B949]/60 p-3 shadow-2xl flex flex-col justify-between overflow-hidden backdrop-blur-xs">
+                    {/* Nắp hũ nhôm xé ánh kim hoặc khóa miệng túi */}
+                    <div className="w-full h-7 rounded-xl bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 border border-amber-400 shadow-md flex items-center justify-center shrink-0">
+                      <span className="text-[10px] font-extrabold uppercase text-[#78350F] tracking-wider">
+                        {activePackaging.packagingType === "ZipBag"
+                          ? (language === "en" ? "Airtight Seal" : "Khóa Kín Khí")
+                          : (language === "en" ? "Aseptic Aluminum Lid" : "Nắp Nhôm Xé Vô Trùng")}
+                      </span>
+                    </div>
 
-                  {/* Tên do khách đặt */}
-                  <div className="py-2 border-y border-[#B45309]/20">
-                    <span
-                      style={{ fontFamily: "var(--font-dancing)" }}
-                      className="text-2xl sm:text-3xl font-bold text-[#B45309] block leading-tight tracking-wide"
-                    >
-                      {customName.trim() || (language === "en" ? "Custom Nut Blend" : "Sản Phẩm Tự Chọn Hạt")}
-                    </span>
-                    {customMessage.trim() && (
-                      <p className="text-xs text-[#78350F] italic mt-1 font-sans">
-                        &ldquo;{customMessage.trim()}&rdquo;
-                      </p>
-                    )}
-                  </div>
+                    {/* Thân hũ thủy tinh / mica trong suốt chứa các tầng hạt */}
+                    <div className="relative flex-1 w-full my-2 rounded-2xl overflow-hidden border border-white/20 bg-gradient-to-b from-white/10 via-transparent to-white/5 flex flex-col-reverse p-1 gap-1">
+                      {selectedNutsList.length > 0 ? (
+                        selectedNutsList.map((nut) => {
+                          const theme = NUT_VISUAL_THEMES[nut.nutKey] || NUT_VISUAL_THEMES.longnhan;
+                          return (
+                            <motion.div
+                              key={nut.ingredientId}
+                              initial={{ scaleY: 0 }}
+                              animate={{ scaleY: 1 }}
+                              style={{
+                                height: `${Math.max(12, nut.percentage)}%`,
+                              }}
+                              className={`w-full rounded-xl bg-gradient-to-r ${theme.bg} border ${theme.border} p-1.5 flex items-center justify-between shadow-inner origin-bottom transition-all duration-300 relative overflow-hidden group`}
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0 z-10">
+                                <span className="text-xs">
+                                  {nut.nutKey === "longnhan" ? "👑" : nut.nutKey === "macca" ? "⚪" : nut.nutKey === "dieu" ? "🟤" : nut.nutKey === "hanhnhan" ? "🌰" : "🟢"}
+                                </span>
+                                <span className={`text-[11px] font-bold ${theme.text} truncate drop-shadow`}>
+                                  {nut.name}
+                                </span>
+                              </div>
+                              <span className={`text-[10px] font-extrabold ${theme.text} z-10 shrink-0 font-mono drop-shadow`}>
+                                {nut.weightGrams}g ({nut.percentage}%)
+                              </span>
+                              {/* Vệt sáng lướt qua tầng hạt */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none opacity-40 group-hover:opacity-75 transition-opacity" />
+                            </motion.div>
+                          );
+                        })
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-center p-4 text-emerald-200/60">
+                          <Package className="w-8 h-8 mb-2 opacity-50" />
+                          <p className="text-xs">
+                            {language === "en" ? "Jar is empty. Adjust nut grams in Step 2 to fill." : "Hũ hạt đang trống. Hãy tinh chỉnh lượng hạt ở Bước 2 để lấp đầy."}
+                          </p>
+                        </div>
+                      )}
 
-                  {/* Bảng % thành phần hạt */}
-                  <div className="text-left space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-[#78350F] block">
-                      {language === "en" ? "Nutritional composition:" : "Thành phần định lượng:"}
-                    </span>
-                    {selectedNutsList.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedNutsList.map((nut) => (
-                          <span
-                            key={nut.ingredientId}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2 py-0.5 rounded-md"
-                          >
-                            <span>{nut.name}</span>
-                            <span className="text-amber-800">({nut.weightGrams}g - {nut.percentage}%)</span>
+                      {/* Khoảng trống còn lại trong hũ nếu chưa đủ 100% */}
+                      {remainingGrams > 0 && selectedNutsList.length > 0 && (
+                        <div className="flex-1 w-full border-2 border-dashed border-amber-300/40 rounded-xl flex items-center justify-center p-2 text-center bg-black/20">
+                          <span className="text-[10px] font-bold text-amber-200/80 animate-pulse">
+                            {language === "en" ? `Need ${remainingGrams}g more to fill` : `Còn trống ${remainingGrams}g`}
                           </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-muted-foreground italic">
-                        {language === "en" ? "No ingredients selected yet..." : "Chưa chọn hạt nào..."}
-                      </p>
-                    )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Đáy hũ */}
+                    <div className="w-full h-4 rounded-xl bg-gradient-to-r from-amber-900 via-stone-800 to-amber-950 border border-amber-700/60 flex items-center justify-center">
+                      <span className="text-[9px] text-amber-300/80 font-bold uppercase tracking-widest">
+                        {targetGrams}g
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Thông tin NSX & Quy cách */}
-                  <div className="pt-2 border-t border-[#B45309]/20 flex items-center justify-between text-[10px] text-neutral-600 font-medium">
-                    <span>
-                      {language === "en" ? `Net wt: ${activePackaging.capacityGrams}g` : `Quy cách: ${activePackaging.capacityGrams}g`}
+                  <p className="text-center text-xs text-emerald-200/90 italic">
+                    {language === "en"
+                      ? "💡 Realistic simulation of layered nuts inside transparent packaging."
+                      : "💡 Mô phỏng sinh động các tầng hạt xếp lớp sang trọng bên trong bao bì."}
+                  </p>
+                </div>
+              )}
+
+              {/* TAB 2: TEM NHÃN HOÀNG GIA DÁN TRÊN HỘP/TÚI (ROYAL LABEL PREVIEW) */}
+              {previewTab === "label" && (
+                <div className="bg-[#FFF9ED] text-[#292524] rounded-2xl p-5 shadow-2xl border-2 border-[#E9B949] relative">
+                  <div className="border border-[#B45309]/30 p-4 rounded-xl space-y-3.5 text-center relative bg-[radial-gradient(#FDE68A_1px,transparent_1px)] [background-size:16px_16px]">
+                    {/* Con dấu triện đỏ điện tử góc tem nhãn */}
+                    <div className="absolute top-2 right-2 w-12 h-12 border-2 border-red-700/80 text-red-700 rounded-sm flex flex-col items-center justify-center font-serif text-[7.5px] leading-tight rotate-[-4deg] shadow-2xs select-none pointer-events-none uppercase font-extrabold bg-red-50/20">
+                      <span>NGUYỆT NHÃN</span>
+                      <span className="text-[6px] tracking-wider text-red-800">THƯỢNG PHẨM</span>
+                      <span className="text-[5.5px] text-red-600">PHỐ HIẾN</span>
+                    </div>
+
+                    {/* Brand header: Giữ trọn tên thương hiệu "NGUYỆT NHÃN PHỐ HIẾN" */}
+                    <div>
+                      <h5 className="text-[11px] uppercase tracking-widest font-extrabold text-[#B45309]">
+                        NGUYỆT NHÃN PHỐ HIẾN
+                      </h5>
+                      <p className="text-[9px] text-[#78350F] italic">
+                        {language === "en" ? "Essence of Thousand-Year Pho Hien Heritage" : "Tinh Hoa Đất Phố Hiến Ngàn Năm"}
+                      </p>
+                    </div>
+
+                    {/* Tên do khách đặt */}
+                    <div className="py-2 border-y border-[#B45309]/20">
+                      <span
+                        style={{ fontFamily: "var(--font-dancing)" }}
+                        className="text-2xl sm:text-3xl font-bold text-[#B45309] block leading-tight tracking-wide"
+                      >
+                        {customName.trim() || (language === "en" ? "Custom Nut Blend" : "Sản Phẩm Tự Chọn Hạt")}
+                      </span>
+                      {customMessage.trim() && (
+                        <p className="text-xs text-[#78350F] italic mt-1 font-sans">
+                          &ldquo;{customMessage.trim()}&rdquo;
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bảng % thành phần hạt */}
+                    <div className="text-left space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-[#78350F] block">
+                        {language === "en" ? "Nutritional composition:" : "Thành phần định lượng:"}
+                      </span>
+                      {selectedNutsList.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedNutsList.map((nut) => (
+                            <span
+                              key={nut.ingredientId}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2 py-0.5 rounded-md"
+                            >
+                              <span>{nut.name}</span>
+                              <span className="text-amber-800">({nut.weightGrams}g - {nut.percentage}%)</span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground italic">
+                          {language === "en" ? "No ingredients selected yet..." : "Chưa chọn hạt nào..."}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Thông tin NSX & Quy cách & QR Code */}
+                    <div className="pt-2 border-t border-[#B45309]/20 flex items-center justify-between text-[10px] text-neutral-600 font-medium">
+                      <div className="text-left">
+                        <span>{language === "en" ? `Net wt: ${targetGrams}g` : `Quy cách: ${targetGrams}g`}</span>
+                        <span className="block">{language === "en" ? `Packed: ${todayStr}` : `Ngày đóng gói: ${todayStr}`}</span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded border border-amber-200 text-stone-700">
+                        <QrCode className="w-3.5 h-3.5 text-[#B45309]" />
+                        <span className="text-[9px] font-semibold">{language === "en" ? "Traceable" : "Truy xuất"}</span>
+                      </div>
+                      <div className="text-right">
+                        <span>{language === "en" ? "Best before: 6 months" : "HSD: 6 tháng"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* BẢNG TÍNH CALO & DINH DƯỠNG THÔNG MINH */}
+              <div className="mt-4 pt-3.5 border-t border-emerald-800/80 bg-emerald-950/60 rounded-2xl p-3.5 border border-emerald-800/60 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-[#E9B949] flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-amber-400" />
+                    {language === "en" ? "Smart Nutrition Profile" : "Hồ Sơ Dinh Dưỡng Hộp Hạt"}
+                  </span>
+                  <span className="text-[11px] text-emerald-200">
+                    {language === "en" ? "~30g per serving" : "~30g mỗi khẩu phần"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-emerald-900/50 rounded-xl p-2 border border-emerald-700/50">
+                    <span className="text-[10px] text-emerald-200 block uppercase font-medium">
+                      {language === "en" ? "Total Energy" : "Tổng Năng Lượng"}
                     </span>
-                    <span>
-                      {language === "en" ? `Packed: ${todayStr}` : `Ngày đóng gói: ${todayStr}`}
+                    <span className="text-lg font-black text-white font-mono">
+                      {totalCalories} <span className="text-xs font-sans text-emerald-300">kcal</span>
                     </span>
-                    <span>
-                      {language === "en" ? "Best before: 6 months" : "HSD: 6 tháng"}
+                  </div>
+                  <div className="bg-emerald-900/50 rounded-xl p-2 border border-emerald-700/50">
+                    <span className="text-[10px] text-emerald-200 block uppercase font-medium">
+                      {language === "en" ? "Per 30g Serving" : "Mỗi Khẩu Phần 30g"}
+                    </span>
+                    <span className="text-lg font-black text-amber-300 font-mono">
+                      ~{caloriesPer30gServing} <span className="text-xs font-sans text-emerald-300">kcal</span>
                     </span>
                   </div>
                 </div>
+
+                {topNutrientHighlight && (
+                  <div className="text-[11px] text-emerald-100 flex items-start gap-1.5 leading-snug pt-1">
+                    <Heart className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                    <span>{topNutrientHighlight}</span>
+                  </div>
+                )}
               </div>
 
-              {/* TÓM TẮT GIÁ & NÚT ĐẶT HÀNG */}
-              <div className="mt-6 pt-5 border-t border-emerald-800/80 space-y-4">
+              {/* TÓM TẮT GIÁ & NÚT ĐẶT HÀNG TRÊN DESKTOP */}
+              <div className="mt-4 pt-4 border-t border-emerald-800/80 space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs text-emerald-200 block">
@@ -1338,18 +1895,18 @@ export default function CustomMixStudio() {
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                       type="button"
-                      className="w-7 h-7 rounded-lg bg-emerald-900 flex items-center justify-center text-emerald-200 hover:text-white"
+                      className="w-7 h-7 rounded-lg bg-emerald-900 flex items-center justify-center text-emerald-200 hover:text-white cursor-pointer"
                       aria-label={language === "en" ? "Decrease quantity" : "Giảm số lượng hộp"}
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-8 text-center font-bold text-sm text-white">
+                    <span className="w-8 text-center font-bold text-sm text-white font-mono">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity((q) => q + 1)}
                       type="button"
-                      className="w-7 h-7 rounded-lg bg-emerald-900 flex items-center justify-center text-emerald-200 hover:text-white"
+                      className="w-7 h-7 rounded-lg bg-emerald-900 flex items-center justify-center text-emerald-200 hover:text-white cursor-pointer"
                       aria-label={language === "en" ? "Increase quantity" : "Tăng số lượng hộp"}
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -1399,84 +1956,113 @@ export default function CustomMixStudio() {
         </div>
       </main>
 
-      {/* THANH ĐO LƯỜNG DUNG TÍCH CỐ ĐỊNH DƯỚI ĐÁY MÀN HÌNH (STICKY BOTTOM BAR CHO MOBILE) */}
+      {/* THANH ĐO LƯỜNG DUNG TÍCH CỐ ĐỊNH DƯỚI ĐÁY MÀN HÌNH (STICKY BOTTOM BAR MOBILE NÂNG CẤP CHUYỂN ĐỔI CAO) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#FDE68A] shadow-[0_-6px_25px_rgba(0,0,0,0.12)] px-4 py-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <div className="max-w-md mx-auto flex items-center justify-between gap-3">
-          {/* Cụm đo lường khối lượng */}
+          {/* Cụm hiển thị thông tin khối lượng hoặc giá tiền */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-primary flex items-center gap-1">
-                <span>{language === "en" ? "Capacity:" : "Dung tích:"}</span>
-                <strong className="text-sm font-extrabold text-[#B45309] font-mono">
-                  {totalGrams}g
-                </strong>
-                <span className="text-[11px] text-muted-foreground font-normal">
-                  /{targetGrams}g
+            {isPerfectMatch && customName.trim() ? (
+              <div>
+                <span className="text-[10px] text-muted-foreground block font-medium">
+                  {language === "en" ? "Total all-inclusive:" : "Tổng thanh toán:"}
                 </span>
-              </span>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  isPerfectMatch
-                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                    : isOverweight
-                    ? "bg-rose-50 text-rose-800 border-rose-300"
-                    : "bg-amber-50 text-amber-800 border-amber-300"
-                }`}
-              >
-                {isPerfectMatch
-                  ? (language === "en" ? "🟢 100% Ready" : "🟢 Đã đủ 100%")
-                  : isOverweight
-                  ? (language === "en" ? `🔴 Over ${Math.abs(remainingGrams)}g (${progressPercent}%)` : `🔴 Thừa ${Math.abs(remainingGrams)}g (${progressPercent}%)`)
-                  : (language === "en" ? `🟡 Need ${remainingGrams}g (${progressPercent}%)` : `🟡 Thiếu ${remainingGrams}g (${progressPercent}%)`)}
-              </span>
-            </div>
+                <span className="text-base font-extrabold text-[#B45309] font-mono leading-tight">
+                  {formatPrice(activePackaging.fixedPrice * quantity, language as "vi" | "en")}
+                </span>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1">
+                    <span>{language === "en" ? "Capacity:" : "Dung tích:"}</span>
+                    <strong className="text-sm font-extrabold text-[#B45309] font-mono">
+                      {totalGrams}g
+                    </strong>
+                    <span className="text-[11px] text-muted-foreground font-normal">
+                      /{targetGrams}g
+                    </span>
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      isPerfectMatch
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                        : isOverweight
+                        ? "bg-rose-50 text-rose-800 border-rose-300"
+                        : "bg-amber-50 text-amber-800 border-amber-300"
+                    }`}
+                  >
+                    {isPerfectMatch
+                      ? (language === "en" ? "🟢 100% Ready" : "🟢 Đã đủ 100%")
+                      : isOverweight
+                      ? (language === "en" ? `🔴 Over ${Math.abs(remainingGrams)}g` : `🔴 Thừa ${Math.abs(remainingGrams)}g`)
+                      : (language === "en" ? `🟡 Need ${remainingGrams}g` : `🟡 Thiếu ${remainingGrams}g`)}
+                  </span>
+                </div>
 
-            {/* Thanh tiến trình mini */}
-            <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden border border-border/60">
-              <div
-                style={{ width: `${progressPercent}%` }}
-                className={`h-full rounded-full transition-all duration-300 ${
-                  isPerfectMatch
-                    ? "bg-emerald-500"
-                    : isOverweight
-                    ? "bg-rose-500"
-                    : "bg-gradient-to-r from-amber-400 to-[#B45309]"
-                }`}
-              />
-            </div>
+                <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden border border-border/60">
+                  <div
+                    style={{ width: `${progressPercent}%` }}
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      isPerfectMatch
+                        ? "bg-emerald-500"
+                        : isOverweight
+                        ? "bg-rose-500"
+                        : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Nút hành động nhanh */}
+          {/* Cụm nút hành động linh hoạt trên Mobile */}
           <div className="shrink-0 flex items-center gap-1.5">
             {remainingGrams > 0 ? (
               <button
                 type="button"
                 onClick={handleAutoFillLongNhan}
-                className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-[#78350F] text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-2xs"
+                className="px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-[#78350F] text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-2xs"
                 title={language === "en" ? "Automatically fill remaining grams with Longan" : "Tự động bù số gram còn thiếu bằng Long Nhãn"}
               >
                 <Wand2 className="w-3.5 h-3.5 text-amber-700" />
                 <span>{language === "en" ? "Auto-fill" : "Bù đầy"}</span>
               </button>
             ) : isPerfectMatch ? (
-              <button
-                type="button"
-                onClick={() => {
-                  const step3 = document.getElementById("step3Section");
-                  if (step3) {
-                    step3.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-emerald-950/20 cursor-pointer"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>{language === "en" ? "Name it" : "Đặt tên"}</span>
-              </button>
+              !customName.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => scrollToStep("step3Section")}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-emerald-950/20 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{language === "en" ? "Name it" : "Đặt tên"}</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAddToCart(false)}
+                    disabled={isValidating}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-neutral-100 border border-border text-primary text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-xs cursor-pointer"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-[#B45309]" />
+                    <span className="hidden xs:inline">{language === "en" ? "Cart" : "Giỏ"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBuyNow}
+                    disabled={isValidating}
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] text-white text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-md shadow-amber-950/30 cursor-pointer"
+                  >
+                    <span>{language === "en" ? "Order Now" : "Mua Ngay"}</span>
+                  </button>
+                </div>
+              )
             ) : (
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>{language === "en" ? "Reset" : "Đặt lại"}</span>
@@ -1508,7 +2094,6 @@ export default function CustomMixStudio() {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-sm sm:max-w-md bg-stone-900 rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30 flex flex-col"
             >
-              {/* Nút đóng */}
               <button
                 type="button"
                 onClick={() => setPreviewNut(null)}
@@ -1518,7 +2103,6 @@ export default function CustomMixStudio() {
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Khung ảnh phóng to sắc nét */}
               <div className="relative w-full aspect-square bg-stone-950 flex items-center justify-center overflow-hidden">
                 <FastImage
                   src={previewNut.imageUrl}
@@ -1530,7 +2114,6 @@ export default function CustomMixStudio() {
                 />
               </div>
 
-              {/* Thông tin chi tiết loại hạt */}
               {(() => {
                 const previewNutTrans = getIngredientTranslation(previewNut, language as "vi" | "en");
                 return (
