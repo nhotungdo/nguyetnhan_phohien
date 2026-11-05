@@ -109,6 +109,7 @@ export function useLiveChat() {
   /** Timer tự kết nối lại khi SignalR đóng hẳn (không còn auto-reconnect). */
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptsRef = useRef(0);
 
   // Dùng ref cho tên/SĐT khách để re-join đúng thông tin sau reconnect
   const guestInfoRef = useRef<{ name?: string; phone?: string }>({});
@@ -154,6 +155,7 @@ export function useLiveChat() {
 
   // Kết nối SignalR
   const connect = useCallback(async (guestName?: string, guestPhone?: string) => {
+    reconnectAttemptsRef.current = 0;
     guestInfoRef.current = { name: guestName, phone: guestPhone };
     setConnectionStatus("connecting");
 
@@ -185,6 +187,14 @@ export function useLiveChat() {
           .catch(() => {});
       }
       return;
+    }
+
+    // Dọn dẹp kết nối cũ nếu có trước khi khởi tạo kết nối mới
+    if (connectionRef.current) {
+      try {
+        await connectionRef.current.stop();
+      } catch {}
+      connectionRef.current = null;
     }
 
     // Load lịch sử trước khi kết nối
@@ -229,13 +239,19 @@ if (typeof window !== "undefined") {
 
     const scheduleRestart = () => {
       if (restartTimerRef.current) return;
+      if (reconnectAttemptsRef.current >= 5) {
+        setConnectionStatus("failed");
+        return;
+      }
       restartTimerRef.current = setTimeout(async () => {
         restartTimerRef.current = null;
         if (connectionRef.current) return;
+        reconnectAttemptsRef.current += 1;
         const current = sessionRef.current;
         setConnectionStatus("reconnecting");
         try {
           await connection.start();
+          reconnectAttemptsRef.current = 0;
           if (current) {
             await connection.invoke(
               "JoinAsGuest", current.id, current.token,
@@ -509,7 +525,14 @@ if (typeof window !== "undefined") {
     unreadCount,
     isSessionTerminated,
     connect,
-    retryConnect: () => connect(guestInfoRef.current.name, guestInfoRef.current.phone),
+    retryConnect: () => {
+      reconnectAttemptsRef.current = 0;
+      if (restartTimerRef.current) {
+        clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = null;
+      }
+      return connect(guestInfoRef.current.name, guestInfoRef.current.phone);
+    },
     notifyTyping,
     markMessagesRead,
     sendMessage,

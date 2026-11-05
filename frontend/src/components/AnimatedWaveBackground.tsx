@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useId } from "react";
 import { motion } from "framer-motion";
 
 interface Particle {
@@ -33,7 +33,14 @@ const PARTICLES: Particle[] = [
 
 export function AnimatedWaveBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
+  const rafIdRef = useRef<number | null>(null);
+
+  const baseId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const wave1Id = `customMixWave1-${baseId}`;
+  const wave2Id = `customMixWave2-${baseId}`;
+  const strokeId = `customMixWaveStroke-${baseId}`;
+  const fillId = `customMixWaveFill-${baseId}`;
 
   useEffect(() => {
     const parent = containerRef.current?.parentElement;
@@ -41,20 +48,29 @@ export function AnimatedWaveBackground() {
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = parent.getBoundingClientRect();
-      setMousePos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = requestAnimationFrame(() => {
+        if (spotlightRef.current) {
+          spotlightRef.current.style.background = `radial-gradient(420px circle at ${x}px ${y}px, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.06) 45%, transparent 70%)`;
+          spotlightRef.current.style.opacity = "1";
+        }
       });
     };
 
     const handleMouseLeave = () => {
-      setMousePos(null);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      if (spotlightRef.current) {
+        spotlightRef.current.style.opacity = "0";
+      }
     };
 
     parent.addEventListener("mousemove", handleMouseMove);
     parent.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
       parent.removeEventListener("mousemove", handleMouseMove);
       parent.removeEventListener("mouseleave", handleMouseLeave);
     };
@@ -66,15 +82,10 @@ export function AnimatedWaveBackground() {
       className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0 w-full max-w-full [contain:paint]"
       aria-hidden="true"
     >
-      {/* 1. LỚP ĐÈN RỌI HOÀNG KIM THEO CON TRỎ CHUỘT (Interactive Cursor Spotlight) */}
+      {/* 1. LỚP ĐÈN RỌI HOÀNG KIM THEO CON TRỎ CHUỘT (Interactive Cursor Spotlight - RAF trực tiếp không re-render React) */}
       <div
-        className="absolute inset-0 transition-opacity duration-500 pointer-events-none"
-        style={{
-          background: mousePos
-            ? `radial-gradient(420px circle at ${mousePos.x}px ${mousePos.y}px, rgba(245, 158, 11, 0.16), rgba(217, 119, 6, 0.06) 45%, transparent 70%)`
-            : "transparent",
-          opacity: mousePos ? 1 : 0,
-        }}
+        ref={spotlightRef}
+        className="absolute inset-0 transition-opacity duration-500 pointer-events-none opacity-0"
       />
 
       {/* 2. CÁC QUẦNG SÁNG AURORA VÀNG KIM CHUYỂN ĐỘNG CHẬM (Breathing Aura Orbs dùng Radial Gradient thuần) */}
@@ -139,7 +150,7 @@ export function AnimatedWaveBackground() {
             className="w-1/2 h-full shrink-0"
           >
             <defs>
-              <linearGradient id="customMixWave1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <linearGradient id={wave1Id} x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#D97706" stopOpacity="0.18" />
                 <stop offset="50%" stopColor="#B45309" stopOpacity="0.12" />
                 <stop offset="100%" stopColor="#78350F" stopOpacity="0.04" />
@@ -147,7 +158,7 @@ export function AnimatedWaveBackground() {
             </defs>
             <path
               d="M0,80 C150,140 350,20 500,80 C650,140 850,20 1000,80 C1100,120 1150,50 1200,80 L1200,240 L0,240 Z"
-              fill="url(#customMixWave1)"
+              fill={`url(#${wave1Id})`}
             />
           </svg>
           <svg
@@ -157,7 +168,7 @@ export function AnimatedWaveBackground() {
           >
             <path
               d="M0,80 C150,140 350,20 500,80 C650,140 850,20 1000,80 C1100,120 1150,50 1200,80 L1200,240 L0,240 Z"
-              fill="url(#customMixWave1)"
+              fill={`url(#${wave1Id})`}
             />
           </svg>
         </motion.div>
@@ -176,7 +187,7 @@ export function AnimatedWaveBackground() {
             className="w-1/2 h-full shrink-0"
           >
             <defs>
-              <linearGradient id="customMixWave2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id={wave2Id} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.22" />
                 <stop offset="45%" stopColor="#FBBF24" stopOpacity="0.28" />
                 <stop offset="75%" stopColor="#D97706" stopOpacity="0.18" />
@@ -185,7 +196,7 @@ export function AnimatedWaveBackground() {
             </defs>
             <path
               d="M0,100 C200,30 400,160 600,100 C800,40 1000,150 1200,100 L1200,200 L0,200 Z"
-              fill="url(#customMixWave2)"
+              fill={`url(#${wave2Id})`}
             />
           </svg>
           <svg
@@ -195,7 +206,7 @@ export function AnimatedWaveBackground() {
           >
             <path
               d="M0,100 C200,30 400,160 600,100 C800,40 1000,150 1200,100 L1200,200 L0,200 Z"
-              fill="url(#customMixWave2)"
+              fill={`url(#${wave2Id})`}
             />
           </svg>
         </motion.div>
@@ -214,12 +225,12 @@ export function AnimatedWaveBackground() {
             className="w-1/2 h-full shrink-0"
           >
             <defs>
-              <linearGradient id="customMixWaveStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id={strokeId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.5" />
                 <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.85" />
                 <stop offset="100%" stopColor="#FBBF24" stopOpacity="0.45" />
               </linearGradient>
-              <linearGradient id="customMixWaveFill" x1="0%" y1="0%" x2="0%" y2="100%">
+              <linearGradient id={fillId} x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.12" />
                 <stop offset="100%" stopColor="transparent" stopOpacity="0" />
               </linearGradient>
@@ -227,13 +238,13 @@ export function AnimatedWaveBackground() {
             <path
               d="M0,60 C250,110 450,10 700,70 C950,120 1100,20 1200,60"
               fill="none"
-              stroke="url(#customMixWaveStroke)"
+              stroke={`url(#${strokeId})`}
               strokeWidth="2.5"
               className="drop-shadow-[0_0_10px_rgba(245,158,11,0.65)]"
             />
             <path
               d="M0,60 C250,110 450,10 700,70 C950,120 1100,20 1200,60 L1200,160 L0,160 Z"
-              fill="url(#customMixWaveFill)"
+              fill={`url(#${fillId})`}
             />
           </svg>
           <svg
@@ -244,13 +255,13 @@ export function AnimatedWaveBackground() {
             <path
               d="M0,60 C250,110 450,10 700,70 C950,120 1100,20 1200,60"
               fill="none"
-              stroke="url(#customMixWaveStroke)"
+              stroke={`url(#${strokeId})`}
               strokeWidth="2.5"
               className="drop-shadow-[0_0_10px_rgba(245,158,11,0.65)]"
             />
             <path
               d="M0,60 C250,110 450,10 700,70 C950,120 1100,20 1200,60 L1200,160 L0,160 Z"
-              fill="url(#customMixWaveFill)"
+              fill={`url(#${fillId})`}
             />
           </svg>
         </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { 
   Crown,
@@ -18,7 +18,7 @@ import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
 interface ProductInteractiveShowcaseProps {
   products: ProductResponse[];
@@ -29,33 +29,41 @@ interface ProductInteractiveShowcaseProps {
   onAddToCart?: (product: ProductResponse) => void;
 }
 
-// Dữ liệu mở rộng điểm chạm (Hotspots) cho sản phẩm
-const PRODUCT_HOTSPOTS = [
-  {
-    id: "preservation",
-    x: 68,
-    y: 24,
-    title: "Bảo quản kín khí 12 tháng",
-    desc: "Đóng gói tiêu chuẩn vô trùng, giữ trọn độ dẻo và hương thơm nhãn lồng nguyên bản.",
-    badge: "Hạn dùng 12 Tháng",
-  },
-  {
-    id: "color",
-    x: 32,
-    y: 48,
-    title: "Sắc vàng cánh gián hổ phách",
-    desc: "Màu tự nhiên từ quy trình sấy nhiệt nóng đối lưu, tuyệt đối không dùng phẩm màu hay xông lưu huỳnh.",
-    badge: "Tự Nhiên 100%",
-  },
-  {
-    id: "texture",
-    x: 64,
-    y: 66,
-    title: "Cùi dày mọng ráo mặt",
-    desc: "Tuyển chọn từ nhãn Hương Chi loại 1 bãi bồi Phố Hiến, cắn dẻo sần sật, ngọt thanh tao.",
-    badge: "Hương Chi Loại 1",
-  },
-];
+// Dữ liệu mở rộng điểm chạm (Hotspots) cho sản phẩm theo ngôn ngữ
+function getProductHotspots(lang: "vi" | "en") {
+  return [
+    {
+      id: "preservation",
+      x: 68,
+      y: 24,
+      title: lang === "en" ? "12-Month Airtight Preservation" : "Bảo quản kín khí 12 tháng",
+      desc: lang === "en"
+        ? "Aseptic sealed packaging preserves full chewiness and natural longan aroma."
+        : "Đóng gói tiêu chuẩn vô trùng, giữ trọn độ dẻo và hương thơm nhãn lồng nguyên bản.",
+      badge: lang === "en" ? "12-Month Shelf Life" : "Hạn dùng 12 Tháng",
+    },
+    {
+      id: "color",
+      x: 32,
+      y: 48,
+      title: lang === "en" ? "Amber Golden Hue" : "Sắc vàng cánh gián hổ phách",
+      desc: lang === "en"
+        ? "Natural color from warm convection drying, strictly free of artificial colorings or sulfur fumes."
+        : "Màu tự nhiên từ quy trình sấy nhiệt nóng đối lưu, tuyệt đối không dùng phẩm màu hay xông lưu huỳnh.",
+      badge: lang === "en" ? "100% Natural" : "Tự Nhiên 100%",
+    },
+    {
+      id: "texture",
+      x: 64,
+      y: 66,
+      title: lang === "en" ? "Thick Tender Flesh" : "Cùi dày mọng ráo mặt",
+      desc: lang === "en"
+        ? "Handpicked grade-1 Huong Chi longan from alluvial plains, tender texture and delicate royal sweetness."
+        : "Tuyển chọn từ nhãn Hương Chi loại 1 bãi bồi Phố Hiến, cắn dẻo sần sật, ngọt thanh tao.",
+      badge: lang === "en" ? "Grade 1 Huong Chi" : "Hương Chi Loại 1",
+    },
+  ];
+}
 
 // Dữ liệu chỉ số cảm quan
 const PRODUCT_METRICS = [
@@ -80,13 +88,22 @@ export function ProductInteractiveShowcase({
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeProduct = displayProducts[selectedIndex] || displayProducts[0];
+  const hotspots = getProductHotspots(language);
+
+  useEffect(() => {
+    return () => {
+      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+    };
+  }, []);
 
   const handleAddToCartClick = () => {
     if (onAddToCart && activeProduct) {
       onAddToCart(activeProduct);
       setIsAdded(true);
-      setTimeout(() => setIsAdded(false), 1800);
+      if (addedTimeoutRef.current) clearTimeout(addedTimeoutRef.current);
+      addedTimeoutRef.current = setTimeout(() => setIsAdded(false), 1800);
     }
   };
 
@@ -257,10 +274,11 @@ export function ProductInteractiveShowcase({
                 </motion.div>
 
                 {/* Các điểm neo Hotspots tương tác cắm trên ảnh */}
-                {PRODUCT_HOTSPOTS.map((spot) => {
+                {hotspots.map((spot) => {
                   const isActive = activeHotspot === spot.id;
                   const isRightSide = spot.x > 50;
                   const isTopHalf = spot.y < 40;
+                  const tooltipId = `hotspot-${spot.id}-tooltip`;
                   return (
                     <div
                       key={spot.id}
@@ -276,6 +294,8 @@ export function ProductInteractiveShowcase({
                         onMouseEnter={() => setActiveHotspot(spot.id)}
                         className="relative group/pin p-2 outline-none touch-manipulation cursor-pointer"
                         aria-label={spot.title}
+                        aria-expanded={isActive}
+                        aria-controls={tooltipId}
                       >
                         <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
                         <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-accent text-white shadow-md border-2 border-white font-bold text-xs transition-transform transform group-hover/pin:scale-110">
@@ -287,6 +307,8 @@ export function ProductInteractiveShowcase({
                       <AnimatePresence>
                         {isActive && (
                           <motion.div
+                            id={tooltipId}
+                            role="tooltip"
                             initial={{ opacity: 0, y: isTopHalf ? -8 : 8, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: isTopHalf ? -8 : 8, scale: 0.9 }}
@@ -389,10 +411,10 @@ export function ProductInteractiveShowcase({
                 <div className="flex items-center justify-between gap-2 mb-1.5 w-full">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary text-accent text-[11px] sm:text-xs font-bold tracking-wide uppercase shrink-0">
                     <Award className="w-3 h-3" />
-                    Đặc Sản Tiến Vua
+                    {language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua"}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full shrink-0">
-                    Quy cách: {activeProduct.size}
+                    {language === "en" ? "Net wt: " : "Quy cách: "}{activeProduct.size}
                   </span>
                 </div>
 
@@ -410,7 +432,7 @@ export function ProductInteractiveShowcase({
                     {formatPrice(activeProduct.price)}
                   </div>
                   <span className="text-xs text-muted-foreground font-medium">
-                    (Đã bao gồm VAT & Cam kết 100% tự nhiên)
+                    {language === "en" ? "(VAT incl. & 100% all-natural pledge)" : "(Đã bao gồm VAT & Cam kết 100% tự nhiên)"}
                   </span>
                 </div>
 
@@ -418,7 +440,7 @@ export function ProductInteractiveShowcase({
                 <div className="space-y-2 mb-3.5 w-full">
                   <div className="text-xs font-bold uppercase tracking-wider text-primary/80 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-accent" />
-                    <span>Chỉ Số Tinh Túy Cảm Quan</span>
+                    <span>{language === "en" ? "Sensory Quality Profile" : "Chỉ Số Tinh Túy Cảm Quan"}</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
@@ -448,19 +470,19 @@ export function ProductInteractiveShowcase({
                 <div className="grid grid-cols-2 gap-2 py-2.5 border-t border-b border-border/50 mb-3.5 text-xs text-foreground/80 w-full">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Sấy nhiệt nóng (đối lưu)</span>
+                    <span className="truncate">{language === "en" ? "Convection dried" : "Sấy nhiệt nóng (đối lưu)"}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Không đường hóa học</span>
+                    <span className="truncate">{language === "en" ? "No added sugar" : "Không đường hóa học"}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Không xông lưu huỳnh</span>
+                    <span className="truncate">{language === "en" ? "Zero sulfur fumes" : "Không xông lưu huỳnh"}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="truncate">Giao hàng toàn quốc</span>
+                    <span className="truncate">{language === "en" ? "Nationwide delivery" : "Giao hàng toàn quốc"}</span>
                   </div>
                 </div>
               </div>

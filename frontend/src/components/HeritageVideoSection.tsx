@@ -276,7 +276,7 @@ export function HeritageVideoSection({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#78350F] hover:from-[#78350F] hover:to-[#92400E] px-5 py-2.5 rounded-full shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
             >
-              <span>Xem trên YouTube</span>
+              <span>{language === "en" ? "Watch on YouTube" : "Xem trên YouTube"}</span>
               <ExternalLink className="w-4 h-4 text-white" />
             </a>
           </div>

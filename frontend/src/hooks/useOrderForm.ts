@@ -111,7 +111,11 @@ export function useOrderForm(
     if (field === "customerPhone") {
       invalidateDiscount();
       if (discountResult?.isValid) {
-        setDiscountNotice("Số điện thoại đã thay đổi. Vui lòng bấm 'Áp dụng' lại để kiểm tra mã giảm giá cho số mới.");
+        setDiscountNotice(
+          language === "en"
+            ? "Phone number changed. Please click 'Apply' again to re-verify the discount code for the new number."
+            : "Số điện thoại đã thay đổi. Vui lòng bấm 'Áp dụng' lại để kiểm tra mã giảm giá cho số mới."
+        );
       }
     }
     if (field === "discountCode") {
@@ -209,7 +213,7 @@ export function useOrderForm(
     }
   }, [invalidateDiscount]);
 
-  const applyDiscount = async (codeOverride?: string | unknown) => {
+  const applyDiscount = async (codeOverride?: string) => {
     const code = (typeof codeOverride === "string" ? codeOverride : form.discountCode).trim();
     if (!code) return;
 
@@ -236,7 +240,11 @@ export function useOrderForm(
       }
     } catch (err: unknown) {
       if (discountRequest.current === request) {
-        setErrorMessage(err instanceof Error ? err.message : "Mã không hợp lệ.");
+        setErrorMessage(
+          err instanceof Error
+            ? err.message
+            : (language === "en" ? "Invalid discount code." : "Mã không hợp lệ.")
+        );
       }
     } finally {
       if (discountRequest.current === request) setIsApplyingCode(false);
@@ -286,7 +294,9 @@ export function useOrderForm(
     if (form.discountCode.trim() && !discountResult?.isValid) {
       setErrorMessage(
         discountNotice ||
-        `Mã giảm giá "${form.discountCode.trim()}" chưa được áp dụng thành công. Vui lòng bấm 'Áp dụng' hoặc xóa mã để tiếp tục đặt hàng.`
+        (language === "en"
+          ? `Discount code "${form.discountCode.trim()}" has not been applied successfully. Please click 'Apply' or clear the code to proceed.`
+          : `Mã giảm giá "${form.discountCode.trim()}" chưa được áp dụng thành công. Vui lòng bấm 'Áp dụng' hoặc xóa mã để tiếp tục đặt hàng.`)
       );
       return;
     }
@@ -359,7 +369,7 @@ export function useOrderForm(
       onSuccess?.(validItems);
     } catch (err: unknown) {
       setSubmitStatus("error");
-      let message = err instanceof Error ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.";
+      let message = err instanceof Error ? err.message : (language === "en" ? "An error occurred. Please try again." : "Đã xảy ra lỗi. Vui lòng thử lại.");
       if (language === "en") {
         if (message.includes("không tồn tại") || message.includes("not found")) {
           message = "The selected product or discount code is no longer available.";

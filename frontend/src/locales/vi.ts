@@ -105,7 +105,9 @@ export const vi = {
     email_check_spam: "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam trong ít phút tới)",
     email_staff_call: "(Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và gửi hóa đơn cho bạn)",
     fallback_guard_notice: "Hệ thống đang bảo trì dữ liệu sản phẩm. Quý khách vui lòng gọi Hotline hoặc Zalo để đặt hàng nhanh nhất!",
-    call_hotline_to_order: "Gọi Hotline Đặt Hàng"
+    call_hotline_to_order: "Gọi Hotline Đặt Hàng",
+    discount_percent_label: "Giảm",
+    remove_item: "Xóa sản phẩm"
   },
   // Custom Mix Banner
   custom_mix_banner: {

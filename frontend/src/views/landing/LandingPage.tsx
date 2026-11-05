@@ -1,18 +1,5 @@
 "use client";
 
-if (typeof window !== "undefined") {
-  const originalConsoleError = console.error;
-  console.error = (...args) => {
-    if (
-      args.length > 0 &&
-      typeof args[0] === "string" &&
-      args[0].includes("Failed to start the HttpConnection before stop() was called")
-    ) {
-      return; // Ignore this specific harmless SignalR unmount error
-    }
-    originalConsoleError.apply(console, args);
-  };
-}
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Bot, Leaf, Flame, ShieldCheck, Award, Headphones, Play } from "lucide-react";
@@ -44,6 +31,7 @@ import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
 import { FireworksCelebration } from "@/components/FireworksCelebration";
 import { LiveOrderToast } from "@/components/LiveOrderToast";
 import { HeritageVideoSection } from "@/components/HeritageVideoSection";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
@@ -89,6 +77,25 @@ const getAuthServerSnapshot = () => false;
 
 export default function LandingPage() {
   const isAdmin = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
+
+  // Bỏ qua lỗi ngắt kết nối unmount vô hại của SignalR trong quá trình chuyển trang
+  useEffect(() => {
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      if (
+        args.length > 0 &&
+        typeof args[0] === "string" &&
+        args[0].includes("Failed to start the HttpConnection before stop() was called")
+      ) {
+        return;
+      }
+      originalConsoleError.apply(console, args);
+    };
+    return () => {
+      console.error = originalConsoleError;
+    };
+  }, []);
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -240,16 +247,23 @@ export default function LandingPage() {
             cartStore.removeItem(match.id);
           }
         } else if (ordered.productId) {
-          cartStore.removeItem(ordered.productId);
+          const match = cartStore.items.find((ci) => ci.productId === ordered.productId);
+          if (match && match.id) {
+            cartStore.removeItem(match.id);
+          } else {
+            cartStore.removeItem(ordered.productId);
+          }
         }
       });
     },
     { requireAdministrativeUnits: !isManualAddress, language: language as "vi" | "en" }
   );
 
-  // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu
+  // Tự động đồng bộ các sản phẩm từ giỏ hàng vào form nếu form đang ở trạng thái rỗng ban đầu (chỉ đồng bộ 1 lần)
+  const hasSyncedCartToFormRef = useRef(false);
   useEffect(() => {
-    if (cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId && !form.items[0].isCustomMix) {
+    if (!hasSyncedCartToFormRef.current && cartStoreItems.length > 0 && form.items.length === 1 && !form.items[0].productId && !form.items[0].isCustomMix) {
+      hasSyncedCartToFormRef.current = true;
       setCartItems(
         cartStoreItems.map((i) => ({
           productId: i.productId,
@@ -482,7 +496,7 @@ export default function LandingPage() {
     if (element) {
       const headerOffset = 76;
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth"
@@ -638,7 +652,7 @@ export default function LandingPage() {
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
-              { label: (t.nav as unknown as { film?: string }).film || "Thước phim", id: "thuoc-phim" },
+              { label: t.nav.film || "Thước phim", id: "thuoc-phim" },
               { label: t.nav.history, id: "lich-su" },
               { label: t.nav.process, id: "quy-trinh" },
               { label: t.nav.culture, id: "van-hoa" },
@@ -739,6 +753,9 @@ export default function LandingPage() {
         {isMobileMenuOpen && (
           <motion.div
             key="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label={language === "en" ? "Navigation Menu" : "Menu Điều Hướng"}
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
@@ -747,7 +764,9 @@ export default function LandingPage() {
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Menu Điều Hướng</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {language === "en" ? "Navigation Menu" : "Menu Điều Hướng"}
+                </span>
                 <button
                   onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
                   className="text-xs font-bold text-primary border border-[#FDE68A] px-3 py-1 rounded-full bg-secondary flex items-center gap-1.5"
@@ -759,7 +778,7 @@ export default function LandingPage() {
               {[
                 { label: t.nav.products, id: "san-pham" },
                 { label: t.nav.story, id: "cau-chuyen" },
-                { label: (t.nav as unknown as { film?: string }).film || "Thước phim", id: "thuoc-phim" },
+                { label: t.nav.film || "Thước phim", id: "thuoc-phim" },
                 { label: t.nav.history, id: "lich-su" },
                 { label: t.nav.process, id: "quy-trinh" },
                 { label: t.nav.culture, id: "van-hoa" },
@@ -820,7 +839,7 @@ export default function LandingPage() {
                   <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-sm flex flex-col gap-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-1.5">
-                        <span className="text-sm">👑</span> Quản trị viên
+                        <span className="text-sm">👑</span> {language === "en" ? "Administrator" : "Quản trị viên"}
                       </span>
                       <button
                         onClick={() => {
@@ -828,7 +847,7 @@ export default function LandingPage() {
                         }}
                         className="text-[11px] font-semibold text-destructive hover:underline"
                       >
-                        Đăng xuất
+                        {language === "en" ? "Log out" : "Đăng xuất"}
                       </button>
                     </div>
                     <Link
@@ -840,7 +859,7 @@ export default function LandingPage() {
                       }}
                       className="w-full text-center py-2.5 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"
                     >
-                      <LayoutDashboard className="w-4 h-4" /> Vào trang Quản trị
+                      <LayoutDashboard className="w-4 h-4" /> {language === "en" ? "Admin Portal" : "Vào trang Quản trị"}
                     </Link>
                   </div>
                 ) : (
@@ -851,7 +870,7 @@ export default function LandingPage() {
                   >
                     <span className="flex items-center gap-2">
                       <KeyRound className="w-4 h-4 text-accent" />
-                      <span>Đăng nhập Quản trị</span>
+                      <span>{language === "en" ? "Admin Login" : "Đăng nhập Quản trị"}</span>
                     </span>
                     <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                   </Link>
@@ -1008,6 +1027,7 @@ export default function LandingPage() {
               className="relative flex items-center justify-center"
             >
               <ProductHeroShowcase
+                language={language as "vi" | "en"}
                 bannerUrl={
                   cmsContent.HeroBannerUrl
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
@@ -1085,22 +1105,24 @@ export default function LandingPage() {
         </div>
 
         {/* 3. Khu vực sản phẩm tương tác cao cấp */}
-        <ProductInteractiveShowcase
-          products={effectiveProducts}
-          language={language as "vi" | "en"}
-          cmsContent={cmsContent}
-          onOrderProduct={(productId) => {
-            const prod = effectiveProducts.find((p) => p.id === productId);
-            if (prod) {
-              handleQuickBuy(prod);
-            } else {
-              selectSingleProduct(productId);
-              scrollToSection("dat-hang");
-            }
-          }}
-          onOpenGallery={(prod) => setGalleryProduct(prod)}
-          onAddToCart={(prod) => addCartItem(prod)}
-        />
+        <SectionErrorBoundary sectionName="Sản phẩm tương tác">
+          <ProductInteractiveShowcase
+            products={effectiveProducts}
+            language={language as "vi" | "en"}
+            cmsContent={cmsContent}
+            onOrderProduct={(productId) => {
+              const prod = effectiveProducts.find((p) => p.id === productId);
+              if (prod) {
+                handleQuickBuy(prod);
+              } else {
+                selectSingleProduct(productId);
+                scrollToSection("dat-hang");
+              }
+            }}
+            onOpenGallery={(prod) => setGalleryProduct(prod)}
+            onAddToCart={(prod) => addCartItem(prod)}
+          />
+        </SectionErrorBoundary>
 
         {/* 4. So sánh minh bạch chất lượng */}
         <ProductComparisonSection language={language as "vi" | "en"} />
@@ -1317,21 +1339,15 @@ export default function LandingPage() {
               <div className="flex-1 relative">
                 <div className="aspect-square rounded-full bg-[radial-gradient(circle,rgba(247,238,221,0.9)_0%,rgba(247,238,221,0)_70%)] absolute -top-10 -left-10 w-full h-full -z-10 opacity-70 pointer-events-none"></div>
                 <div className="w-full aspect-[4/5] rounded-[3rem] bg-[#FDE68A]/30 overflow-hidden relative border-8 border-white shadow-2xl">
-                  {/* Placeholder phía dưới — admin chưa đặt ảnh (hoặc ảnh lỗi) vẫn thấy khung gợi ý */}
-                  <div className="absolute inset-0 flex items-center justify-center text-accent font-medium">
-                    [ Ảnh Người Nông Dân / Vườn Nhãn ]
-                  </div>
-                  {cmsContent.StoryImage && (
-                    <FastImage
-                      src={resolveCmsImage(cmsContent.StoryImage)}
-                      alt="Câu chuyện Nguyệt Nhãn"
-                      fill
-                      sizes="(max-width: 768px) 92vw, 45vw"
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                      onError={(e) => e.currentTarget.style.display = 'none'}
-                    />
-                  )}
+                  <FastImage
+                    src={cmsContent.StoryImage ? resolveCmsImage(cmsContent.StoryImage) : "/images/combo3sp.jpg"}
+                    fallbackSrc="/images/combo3sp.jpg"
+                    alt={language === "en" ? "Pho Hien Longan Heritage Story" : "Câu chuyện di sản Nguyệt Nhãn Phố Hiến"}
+                    fill
+                    sizes="(max-width: 768px) 92vw, 45vw"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
               <div className="flex-1 space-y-8">
@@ -1367,10 +1383,12 @@ export default function LandingPage() {
         </section>
 
         {/* 7.5. Thước phim tài liệu di sản: Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến */}
-        <HeritageVideoSection
-          language={language as "vi" | "en"}
-          posterUrl={cmsContent.StoryImage ? resolveCmsImage(cmsContent.StoryImage) : "/images/setqua.jpg"}
-        />
+        <SectionErrorBoundary sectionName="Thước phim di sản">
+          <HeritageVideoSection
+            language={language as "vi" | "en"}
+            posterUrl={cmsContent.StoryImage ? resolveCmsImage(cmsContent.StoryImage) : "/images/setqua.jpg"}
+          />
+        </SectionErrorBoundary>
 
         {/* 8. Dòng chảy lịch sử Phố Hiến */}
         <section id="lich-su" className="py-12 sm:py-16 lg:py-24 bg-background border-t border-border/30 overflow-hidden w-full max-w-full [contain:paint]">
@@ -1621,8 +1639,10 @@ export default function LandingPage() {
                 <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">{t.order.name} *</label>
+                      <label htmlFor="customerName" className="text-sm font-medium text-foreground/80">{t.order.name} *</label>
                       <input
+                        id="customerName"
+                        name="customerName"
                         type="text" required
                         maxLength={MAX_NAME_LENGTH}
                         autoComplete="name"
@@ -1635,8 +1655,10 @@ export default function LandingPage() {
                       {errors.customerName && <FieldError message={errorText(errors.customerName)} />}
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground/80">{t.order.phone} *</label>
+                      <label htmlFor="customerPhone" className="text-sm font-medium text-foreground/80">{t.order.phone} *</label>
                       <input
+                        id="customerPhone"
+                        name="customerPhone"
                         type="tel" required
                         inputMode="tel"
                         autoComplete="tel"
@@ -1658,8 +1680,10 @@ export default function LandingPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">{language === "en" ? "Email (For invoice)" : "Email (Để nhận hóa đơn)"}</label>
+                    <label htmlFor="customerEmail" className="text-sm font-medium text-foreground/80">{language === "en" ? "Email (For invoice)" : "Email (Để nhận hóa đơn)"}</label>
                     <input
+                      id="customerEmail"
+                      name="customerEmail"
                       type="email"
                       autoComplete="email"
                       maxLength={MAX_EMAIL_LENGTH}
@@ -1677,7 +1701,7 @@ export default function LandingPage() {
                       rồi điền số nhà. Danh sách nằm trong /data, chỉ tải khi khách
                       chạm vào ô chọn (xem useVnProvinces). */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
+                    <label htmlFor={isManualAddress ? "addressDetail" : "provinceSelect"} className="text-sm font-medium text-foreground/80">{t.order.address} *</label>
 
                     {isManualAddress ? (
                       <input
@@ -1697,6 +1721,8 @@ export default function LandingPage() {
                       <>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <select
+                            id="provinceSelect"
+                            name="province"
                             aria-label={t.order.province}
                             aria-invalid={!!errors.province}
                             value={form.province}
@@ -1716,6 +1742,8 @@ export default function LandingPage() {
                           </select>
 
                           <select
+                            id="wardSelect"
+                            name="ward"
                             aria-label={t.order.ward}
                             aria-invalid={!!errors.ward}
                             value={form.ward}
@@ -1737,6 +1765,8 @@ export default function LandingPage() {
                         )}
 
                         <input
+                          id="addressDetail"
+                          name="addressDetail"
                           type="text"
                           required
                           maxLength={MAX_ADDRESS_DETAIL_LENGTH}
@@ -1813,6 +1843,8 @@ export default function LandingPage() {
                             </div>
                           ) : (
                             <select
+                              id={`productSelect-${idx}`}
+                              name={`productSelect-${idx}`}
                               required
                               aria-label={`${t.order.select_product} ${idx + 1}`}
                               value={item.productId}
@@ -1831,10 +1863,13 @@ export default function LandingPage() {
                         <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
                           <div className="w-24 shrink-0">
                             <input
+                              id={`productQty-${idx}`}
+                              name={`productQty-${idx}`}
                               type="number"
                               min="1"
                               max="999"
                               required
+                              aria-label={`${language === "en" ? "Quantity for product" : "Số lượng sản phẩm"} ${idx + 1}`}
                               value={item.quantity}
                               onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)}
                               className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm text-center outline-none transition-all"
@@ -1845,7 +1880,8 @@ export default function LandingPage() {
                               type="button"
                               onClick={() => removeItem(idx)}
                               className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors shrink-0"
-                              title="Xóa sản phẩm"
+                              title={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
+                              aria-label={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1858,9 +1894,11 @@ export default function LandingPage() {
 
                   {/* Mã giảm giá */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">{t.order.discount}</label>
+                    <label htmlFor="discountCode" className="text-sm font-medium text-foreground/80">{t.order.discount}</label>
                     <div className="flex gap-2">
                       <input
+                        id="discountCode"
+                        name="discountCode"
                         type="text"
                         value={form.discountCode}
                         onChange={(e) => setField("discountCode", e.target.value)}
@@ -1869,7 +1907,7 @@ export default function LandingPage() {
                       />
                       <button
                         type="button"
-                        onClick={applyDiscount}
+                        onClick={() => applyDiscount()}
                         disabled={isApplyingCode || !form.discountCode.trim()}
                         className="bg-primary text-white px-5 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                       >
@@ -1881,8 +1919,8 @@ export default function LandingPage() {
                       <p className="text-green-600 text-sm flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" />
                         {discountResult.percentOff
-                          ? `Giảm ${discountResult.percentOff}%`
-                          : `Giảm ${discountResult.amountOff?.toLocaleString()}đ`
+                          ? `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${discountResult.percentOff}%`
+                          : `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${language === "en" ? `${((discountResult.amountOff || 0) / 25000).toFixed(2).replace(',', '.')}` : `${discountResult.amountOff?.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}`
                         }
                       </p>
                     )}
@@ -1954,8 +1992,10 @@ export default function LandingPage() {
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground/80">{t.order.add_note}</label>
+                    <label htmlFor="orderNote" className="text-sm font-medium text-foreground/80">{t.order.add_note}</label>
                     <textarea
+                      id="orderNote"
+                      name="orderNote"
                       rows={3}
                       value={form.note}
                       onChange={(e) => setField("note", e.target.value)}
@@ -2027,8 +2067,8 @@ export default function LandingPage() {
                 <ul className="space-y-2 text-stone-300 text-sm">
                   <li>Hotline/Zalo: {cmsContent.FooterHotline || "034 897 3285"}</li>
                   <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien@gmail.com"}</li>
-                  <li>Địa chỉ: {cmsContent.FooterAddress || "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên"}</li>
-                  <li>Giờ mở cửa: {cmsContent.ContactHours || "08:00 - 20:00 (T2-CN)"}</li>
+                  <li>{language === "en" ? "Address" : "Địa chỉ"}: {cmsContent.FooterAddress || (language === "en" ? "123 Pho Hien, Hong Chau Ward, Hung Yen City" : "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên")}</li>
+                  <li>{language === "en" ? "Opening hours" : "Giờ mở cửa"}: {cmsContent.ContactHours || (language === "en" ? "08:00 - 20:00 (Mon-Sun)" : "08:00 - 20:00 (T2-CN)")}</li>
                 </ul>
               </div>
               <div className="space-y-4">
@@ -2079,14 +2119,14 @@ export default function LandingPage() {
           isScrolled 
             ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6" 
             : "bottom-5 right-3.5 sm:bottom-6 sm:right-6"
-        } ${isScrolled ? "hidden md:flex" : "flex"}`}>
+        } flex`}>
           <motion.button
             id="chat-floating-button"
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             onClick={handleToggleChat}
             className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#B45309] to-[#D97706] text-white rounded-full shadow-2xl flex items-center justify-center hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30"
-            aria-label="Mở chat tư vấn AI & Chuyên viên"
+            aria-label={language === "en" ? "Open AI & Advisor live chat" : "Mở chat tư vấn AI & Chuyên viên"}
           >
             {/* Badge Chuyên gia AI nhấp nháy nổi bật */}
             <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
@@ -2119,6 +2159,9 @@ export default function LandingPage() {
 
             <motion.div
               key="chat-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="chat-panel-title"
               initial={{ opacity: 0, y: typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 24, scale: typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : 20, scale: typeof window !== "undefined" && window.innerWidth < 640 ? 1 : 0.94 }}
@@ -2145,8 +2188,8 @@ export default function LandingPage() {
                       {chatMode === "ai" ? <Bot className="w-5 h-5 text-amber-200" /> : <Headphones className="w-5 h-5 text-emerald-200" />}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm sm:text-base leading-tight truncate">
-                        {chatMode === "ai" ? "Chuyên Gia AI Dinh Dưỡng" : "Tư Vấn Viên Trực Tuyến"}
+                      <p id="chat-panel-title" className="font-bold text-sm sm:text-base leading-tight truncate">
+                        {chatMode === "ai" ? (language === "en" ? "AI Nutrition Advisor" : "Chuyên Gia AI Dinh Dưỡng") : (language === "en" ? "Live Customer Advisor" : "Tư Vấn Viên Trực Tuyến")}
                       </p>
                       <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
                         <span className={`w-2 h-2 rounded-full ${
@@ -2160,7 +2203,7 @@ export default function LandingPage() {
                         }`} />
                         <span className="truncate">
                           {chatMode === "ai" 
-                            ? "Trí tuệ nhân tạo Gemini 3.5" 
+                            ? (language === "en" ? "Gemini 3.5 Intelligence" : "Trí tuệ nhân tạo Gemini 3.5") 
                             : connectionStatus === "connected"
                               ? (language === "en" ? "Online & Ready" : "Đang trực tuyến sẵn sàng")
                               : connectionStatus === "failed"
@@ -2193,7 +2236,7 @@ export default function LandingPage() {
                       id="chat-close-button"
                       onClick={() => setIsChatOpen(false)}
                       className="hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 touch-manipulation"
-                      aria-label="Đóng chat"
+                      aria-label={language === "en" ? "Close chat" : "Đóng chat"}
                     >
                       <X className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
@@ -2211,7 +2254,7 @@ export default function LandingPage() {
                     }`}
                   >
                     <Bot className="w-3.5 h-3.5 text-amber-500" />
-                    <span>AI Dinh Dưỡng</span>
+                    <span>{language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -2234,14 +2277,16 @@ export default function LandingPage() {
 
               {/* Tab 1: AI Dinh Dưỡng */}
               <div className={`flex-1 flex flex-col min-h-0 w-full ${chatMode === "ai" ? "flex" : "hidden"}`}>
-                <NutritionAiWidget
-                  language={language as "vi" | "en"}
-                  isKeyboardOpen={isKeyboardOpen}
-                  onSwitchToLiveChat={() => {
-                    setChatMode("human");
-                    if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
-                  }}
-                />
+                <SectionErrorBoundary sectionName="Trợ lý AI Dinh dưỡng">
+                  <NutritionAiWidget
+                    language={language as "vi" | "en"}
+                    isKeyboardOpen={isKeyboardOpen}
+                    onSwitchToLiveChat={() => {
+                      setChatMode("human");
+                      if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
+                    }}
+                  />
+                </SectionErrorBoundary>
               </div>
 
               {/* Tab 2: Tư Vấn Viên (SignalR realtime) */}
@@ -2304,12 +2349,12 @@ export default function LandingPage() {
                     <div className="flex-1 min-h-0 bg-stone-50/40 p-3.5 sm:p-4 overflow-y-auto flex flex-col gap-3 custom-chat-scrollbar overscroll-contain">
                       {isSessionTerminated && (
                         <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-xs text-center shadow-2xs">
-                          Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại.
+                          {language === "en" ? "This conversation was ended by the advisor. You can send a new message to restart." : "Cuộc trò chuyện đã kết thúc bởi tư vấn viên. Bạn có thể gửi tin nhắn mới để bắt đầu lại."}
                         </div>
                       )}
                       {messages.length === 0 && !isSessionTerminated && (
                         <div className="bg-white border border-amber-100 p-3.5 rounded-2xl rounded-tl-xs text-xs sm:text-sm text-stone-900 max-w-[85%] self-start shadow-xs">
-                          Chào {guestName}! Chúng tôi có thể hỗ trợ quý khách về loại Long Nhãn hay món quà biếu nào hôm nay ạ?
+                          {language === "en" ? `Hello ${guestName}! How can we assist you with our Longan specialties today?` : `Chào ${guestName}! Chúng tôi có thể hỗ trợ quý khách về loại Long Nhãn hay món quà biếu nào hôm nay ạ?`}
                         </div>
                       )}
                       {messages.map((msg, idx) => (
@@ -2400,14 +2445,14 @@ export default function LandingPage() {
                           onClick={handleSendChatMessage}
                           disabled={isSending || !chatInput.trim()}
                           className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-8 sm:h-8 bg-gradient-to-r from-[#B45309] to-[#D97706] text-white rounded-full flex items-center justify-center hover:opacity-95 transition-all active:scale-90 disabled:opacity-40 shadow-xs shrink-0"
-                          aria-label="Gửi tin nhắn"
+                          aria-label={language === "en" ? "Send message" : "Gửi tin nhắn"}
                         >
                           {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         </button>
                       </div>
                       {chatSendError && (
                         <p className="text-xs text-red-500 mt-1.5 px-2">
-                          Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!
+                          {language === "en" ? "Failed to send message. Please check your connection and retry!" : "Không gửi được tin nhắn. Kiểm tra kết nối và thử lại!"}
                         </p>
                       )}
                     </div>
@@ -2432,7 +2477,7 @@ export default function LandingPage() {
             <a
               href={`tel:${cmsContent.Hotline || "0982072601"}`}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0"
-              aria-label="Gọi hotline"
+              aria-label={language === "en" ? "Call hotline" : "Gọi hotline"}
             >
               <Phone className="w-4 h-4 text-accent mb-0.5" />
               <span className="text-xs font-bold">Hotline</span>
@@ -2441,7 +2486,7 @@ export default function LandingPage() {
             <button
               onClick={() => handleOpenCart()}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0 relative"
-              aria-label="Giỏ hàng"
+              aria-label={language === "en" ? "Shopping cart" : "Giỏ hàng"}
             >
               <div className="relative">
                 <ShoppingCart className="w-4 h-4 text-accent mb-0.5" />
@@ -2451,17 +2496,17 @@ export default function LandingPage() {
                   </span>
                 )}
               </div>
-              <span className="text-xs font-bold">Giỏ Hàng</span>
+              <span className="text-xs font-bold">{language === "en" ? "Cart" : "Giỏ Hàng"}</span>
             </button>
 
             <button
               id="mobile-sticky-chat-button"
               onClick={handleOpenChat}
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0"
-              aria-label="Tư vấn"
+              aria-label={language === "en" ? "Customer advice" : "Tư vấn"}
             >
               <MessageCircle className="w-4 h-4 text-accent mb-0.5" />
-              <span className="text-xs font-bold">Tư Vấn</span>
+              <span className="text-xs font-bold">{language === "en" ? "Advisor" : "Tư Vấn"}</span>
             </button>
 
             <button

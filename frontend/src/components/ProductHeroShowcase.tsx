@@ -7,10 +7,11 @@ import { FastImage } from "@/components/FastImage";
 
 interface ProductHeroShowcaseProps {
   bannerUrl?: string;
+  language?: "vi" | "en";
   onExploreClick?: () => void;
 }
 
-export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroShowcaseProps) {
+export function ProductHeroShowcase({ bannerUrl, language = "vi", onExploreClick }: ProductHeroShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -94,9 +95,11 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-[#FDE68A] flex items-center gap-1">
                 <Crown className="w-3.5 h-3.5" />
-                Ngự Phẩm Hoàng Gia
+                {language === "en" ? "Royal Tribute Delicacy" : "Ngự Phẩm Hoàng Gia"}
               </div>
-              <div className="text-base font-bold">Nguyệt Nhãn Phố Hiến</div>
+              <div className="text-base font-bold">
+                {language === "en" ? "Nguyet Nhan Pho Hien" : "Nguyệt Nhãn Phố Hiến"}
+              </div>
             </div>
             <span className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/40">
               <ArrowRight className="w-4 h-4 text-white" />
@@ -115,8 +118,12 @@ export function ProductHeroShowcase({ bannerUrl, onExploreClick }: ProductHeroSh
           <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </div>
         <div>
-          <div className="text-xs uppercase font-bold text-stone-600 leading-tight">Cam kết</div>
-          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">100% Tự Nhiên</div>
+          <div className="text-xs uppercase font-bold text-stone-600 leading-tight">
+            {language === "en" ? "Pledge" : "Cam kết"}
+          </div>
+          <div className="text-xs sm:text-sm font-bold text-primary leading-tight">
+            {language === "en" ? "100% All-Natural" : "100% Tự Nhiên"}
+          </div>
         </div>
       </motion.div>
     </div>

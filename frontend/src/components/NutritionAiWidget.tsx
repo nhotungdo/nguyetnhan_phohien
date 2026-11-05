@@ -1,4 +1,4 @@
-"use client";
++"use client";
 
 import { useState, useRef, useEffect, useId } from "react";
 import {
@@ -39,32 +39,63 @@ interface NutritionAiWidgetProps {
   onSwitchToLiveChat?: () => void;
 }
 
-const QUICK_PROMPTS = [
-  {
-    icon: "🥑",
-    label: "Ăn hạt mix có sợ béo?",
-    prompt: "Tôi đang ăn kiêng sợ béo, ăn long nhãn mix cùng các loại hạt macca, hạnh nhân có an toàn và không bị tăng cân không?",
-    autoAllergy: false
-  },
-  {
-    icon: "🌙",
-    label: "Mất ngủ, khó ngủ",
-    prompt: "Tôi hay bị mất ngủ, trằn trọc thì dùng Long nhãn ôm hạt sen hay trà dưỡng nhan thế nào để ngủ sâu giấc?",
-    autoAllergy: false
-  },
-  {
-    icon: "🤰",
-    label: "Dinh dưỡng mẹ bầu",
-    prompt: "Mẹ bầu hoặc phụ nữ sau sinh thì nên chọn loại hạt dinh dưỡng mix nào và liều lượng bao nhiêu là tốt nhất?",
-    autoAllergy: false
-  },
-  {
-    icon: "⚠️",
-    label: "Kiểm tra dị ứng hạt",
-    prompt: "Tôi có cơ địa dị ứng hạt vỏ cứng (hạt điều, hạnh nhân, macca), cửa hàng có sản phẩm long nhãn nào an toàn tuyệt đối không chứa hạt không?",
-    autoAllergy: true
+// Hàm tạo prompt gợi ý nhanh theo ngôn ngữ
+function getQuickPrompts(lang: "vi" | "en") {
+  if (lang === "en") {
+    return [
+      {
+        icon: "🥑",
+        label: "Weight management & mixed nuts?",
+        prompt: "I am on a diet. Is having convection-dried longan with macadamia and almonds safe and weight-friendly?",
+        autoAllergy: false,
+      },
+      {
+        icon: "🌙",
+        label: "Insomnia & sleep support",
+        prompt: "I often experience insomnia. How should I consume longan with lotus seeds or herbal tea for deep restorative sleep?",
+        autoAllergy: false,
+      },
+      {
+        icon: "🤰",
+        label: "Prenatal & postpartum nutrition",
+        prompt: "Which nutrient-dense nut blends and daily dosages are best recommended for pregnant or nursing mothers?",
+        autoAllergy: false,
+      },
+      {
+        icon: "⚠️",
+        label: "Tree nut allergy safety check",
+        prompt: "I am allergic to tree nuts (cashews, almonds, macadamia). Do you have pure dried longan products that are 100% nut-free?",
+        autoAllergy: true,
+      },
+    ];
   }
-];
+  return [
+    {
+      icon: "🥑",
+      label: "Ăn hạt mix có sợ béo?",
+      prompt: "Tôi đang ăn kiêng sợ béo, ăn long nhãn mix cùng các loại hạt macca, hạnh nhân có an toàn và không bị tăng cân không?",
+      autoAllergy: false,
+    },
+    {
+      icon: "🌙",
+      label: "Mất ngủ, khó ngủ",
+      prompt: "Tôi hay bị mất ngủ, trằn trọc thì dùng Long nhãn ôm hạt sen hay trà dưỡng nhan thế nào để ngủ sâu giấc?",
+      autoAllergy: false,
+    },
+    {
+      icon: "🤰",
+      label: "Dinh dưỡng mẹ bầu",
+      prompt: "Mẹ bầu hoặc phụ nữ sau sinh thì nên chọn loại hạt dinh dưỡng mix nào và liều lượng bao nhiêu là tốt nhất?",
+      autoAllergy: false,
+    },
+    {
+      icon: "⚠️",
+      label: "Kiểm tra dị ứng hạt",
+      prompt: "Tôi có cơ địa dị ứng hạt vỏ cứng (hạt điều, hạnh nhân, macca), cửa hàng có sản phẩm long nhãn nào an toàn tuyệt đối không chứa hạt không?",
+      autoAllergy: true,
+    },
+  ];
+}
 
 // Hàm fallback thumbnail bao bì khi sản phẩm chưa có ảnh upload hoặc ảnh bị 404
 function getProductPackagingFallback(name?: string): string {
@@ -172,7 +203,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
     content: language === "en"
       ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
       : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
-    time: "Vừa xong"
+    time: language === "en" ? "Just now" : "Vừa xong"
   });
 
   const [messages, setMessages] = useState<MessageItem[]>(() => {
@@ -188,13 +219,15 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
     return [getInitialWelcomeMessage()];
   });
 
-  // Lưu lịch sử vào sessionStorage để không bao giờ mất khi đóng panel / unmount
+  // Lưu lịch sử vào sessionStorage để không bao giờ mất khi đóng panel / unmount (debounce 400ms)
   useEffect(() => {
-    if (typeof window !== "undefined" && messages.length > 0) {
+    if (typeof window === "undefined" || messages.length === 0) return;
+    const timer = setTimeout(() => {
       try {
         sessionStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(messages));
       } catch {}
-    }
+    }, 400);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   const handleResetChat = () => {
@@ -248,7 +281,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       id: `usr-${instanceId}-${userSeq}`,
       role: "user",
       content: text,
-      time: "Vừa xong"
+      time: language === "en" ? "Just now" : "Vừa xong"
     };
 
     const aiMessageId = `ai-${instanceId}-${aiSeq}`;
@@ -256,7 +289,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       id: aiMessageId,
       role: "assistant",
       content: "",
-      time: "Vừa xong",
+      time: language === "en" ? "Just now" : "Vừa xong",
       isStreaming: true
     };
 
@@ -440,9 +473,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                 ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
             }`}
-            title="Tối ưu calo, thực đơn lành mạnh"
+            title={language === "en" ? "Low calorie, healthy diet" : "Tối ưu calo, thực đơn lành mạnh"}
           >
-            🌿 Ăn kiêng
+            {language === "en" ? "🌿 Diet & Shape" : "🌿 Ăn kiêng"}
           </button>
 
           <button
@@ -453,9 +486,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                 ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
             }`}
-            title="Dưỡng tâm an thần, giấc ngủ ngon"
+            title={language === "en" ? "Restorative calm & sleep" : "Dưỡng tâm an thần, giấc ngủ ngon"}
           >
-            🌙 Trị mất ngủ
+            {language === "en" ? "🌙 Deep Sleep" : "🌙 Trị mất ngủ"}
           </button>
 
           <button
@@ -466,9 +499,9 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                 ? "bg-pink-600 text-white border-pink-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
             }`}
-            title="Bổ huyết, vi khoáng cho mẹ"
+            title={language === "en" ? "Essential minerals for mothers" : "Bổ huyết, vi khoáng cho mẹ"}
           >
-            🤰 Mẹ bầu
+            {language === "en" ? "🤰 Prenatal & Nursing" : "🤰 Mẹ bầu"}
           </button>
 
           <button
@@ -479,10 +512,14 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                 ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
                 : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
             }`}
-            title="Bật/Tắt chế độ cảnh báo và loại trừ sản phẩm chứa hạt"
+            title={language === "en" ? "Toggle nut-allergen safety filter" : "Bật/Tắt chế độ cảnh báo và loại trừ sản phẩm chứa hạt"}
           >
             <span>⚠️</span>
-            <span>{isNutAllergic ? "Đã lọc: Dị ứng hạt" : "Dị ứng hạt"}</span>
+            <span>
+              {isNutAllergic
+                ? (language === "en" ? "Filtered: Nut Allergy" : "Đã lọc: Dị ứng hạt")
+                : (language === "en" ? "Nut Allergy" : "Dị ứng hạt")}
+            </span>
           </button>
         </div>
       )}
@@ -494,7 +531,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
             <Lightbulb className="w-3.5 h-3.5 text-[#B45309]" />
             {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
           </span>
-          {QUICK_PROMPTS.map((item, idx) => (
+          {getQuickPrompts(language).map((item, idx) => (
             <button
               key={idx}
               disabled={isLoading}
@@ -541,7 +578,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               {msg.role === "assistant" && (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-[#B45309] mb-2 pb-1.5 border-b border-amber-100/80">
                   <Leaf className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Chuyên Viên AI Dinh Dưỡng Phố Hiến</span>
+                  <span>{language === "en" ? "Pho Hien AI Nutrition Advisor" : "Chuyên Viên AI Dinh Dưỡng Phố Hiến"}</span>
                 </div>
               )}
 
@@ -549,7 +586,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               {msg.role === "assistant" && !msg.content ? (
                 <div className="flex items-center gap-2 py-1 text-xs text-amber-900">
                   <Loader2 className="w-3.5 h-3.5 text-[#B45309] animate-spin shrink-0" />
-                  <span>Chuyên gia AI đang phân tích dữ liệu dinh dưỡng...</span>
+                  <span>{language === "en" ? "AI Expert is analyzing nutritional profile..." : "Chuyên gia AI đang phân tích dữ liệu dinh dưỡng..."}</span>
                 </div>
               ) : (
                 <div>
@@ -564,7 +601,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               {msg.portionTip && (
                 <div className="mt-2.5 p-2.5 bg-emerald-50/90 border border-emerald-200/80 rounded-xl text-xs text-emerald-950 flex items-start gap-2 shadow-2xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>Khẩu phần khuyến nghị:</strong> {msg.portionTip}</span>
+                  <span><strong>{language === "en" ? "Recommended portion:" : "Khẩu phần khuyến nghị:"}</strong> {msg.portionTip}</span>
                 </div>
               )}
 
@@ -572,7 +609,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               {msg.allergenNotice && (
                 <div className="mt-2.5 p-2.5 bg-rose-50/90 border border-rose-200/80 rounded-xl text-xs text-rose-950 flex items-start gap-2 shadow-2xs">
                   <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <span><strong>Lưu ý an toàn:</strong> {msg.allergenNotice}</span>
+                  <span><strong>{language === "en" ? "Safety notice:" : "Lưu ý an toàn:"}</strong> {msg.allergenNotice}</span>
                 </div>
               )}
 
@@ -580,7 +617,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
               {msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
                 <div className="mt-3 pt-2.5 border-t border-amber-100/80 space-y-2">
                   <span className="text-[11px] uppercase tracking-wider font-bold text-amber-800 block">
-                    🌿 Sản phẩm phù hợp từ cửa hàng:
+                    {language === "en" ? "🌿 Matching boutique products:" : "🌿 Sản phẩm phù hợp từ cửa hàng:"}
                   </span>
                   {msg.suggestedProducts.map((prod) => {
                     const mainThumb = getProductThumbnail(prod);
@@ -605,7 +642,8 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                             <h4 className="font-bold text-xs sm:text-sm text-stone-900 truncate">{prod.name || "Sản phẩm"}</h4>
                             <p className="text-[11px] text-stone-500">{prod.size || ""}</p>
                             <p className="text-xs sm:text-sm font-extrabold text-[#B45309]">
-                              {(prod.price ?? 0).toLocaleString("vi-VN")}đ
+                              {(prod.price ?? 0).toLocaleString(language === "en" ? "en-US" : "vi-VN")}
+                              {language === "en" ? " VND" : "đ"}
                             </p>
                           </div>
                         </div>
@@ -615,7 +653,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
                           className="min-h-[36px] bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 shadow-xs transition-transform active:scale-95"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          <span>Thêm</span>
+                          <span>{language === "en" ? "Add" : "Thêm"}</span>
                         </button>
                       </div>
                     );
@@ -644,7 +682,7 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
             onClick={() => handleSendMessage()}
             className="font-bold underline text-rose-900 ml-2 shrink-0 hover:text-rose-700 text-xs"
           >
-            Thử lại
+            {language === "en" ? "Retry" : "Thử lại"}
           </button>
         </div>
       )}
@@ -652,13 +690,15 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       {/* 5. Chuyển sang tư vấn viên người thật - ẩn khi đang gõ chữ */}
       {!isTypingMode && onSwitchToLiveChat && (
         <div className="px-3.5 py-2 bg-gradient-to-r from-amber-100/70 via-amber-50 to-orange-100/50 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-950 shrink-0 gap-2">
-          <span className="text-[11px] sm:text-xs">Cần giá sỉ hoặc hỗ trợ đơn hàng?</span>
+          <span className="text-[11px] sm:text-xs">
+            {language === "en" ? "Need wholesale pricing or order support?" : "Cần giá sỉ hoặc hỗ trợ đơn hàng?"}
+          </span>
           <button
             onClick={onSwitchToLiveChat}
             className="font-bold text-[#B45309] hover:text-[#92400E] flex items-center gap-1.5 shrink-0 px-2.5 py-1 rounded-lg bg-white/80 border border-amber-200/50 shadow-2xs active:scale-95 min-h-[32px] text-[11px] sm:text-xs"
           >
             <MessageSquareShare className="w-3.5 h-3.5" />
-            Gặp nhân viên tư vấn
+            {language === "en" ? "Talk to human advisor" : "Gặp nhân viên tư vấn"}
           </button>
         </div>
       )}

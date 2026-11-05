@@ -88,9 +88,9 @@ export const en = {
     invalidCode: "Invalid discount code",
     select_product: "Select Product",
     select_default: "-- Choose longan type --",
-    special_option: "Premium Special Dried Longan 500g (350.000đ)",
-    zip_option: "Zip Bag Dried Longan 500g (320.000đ)",
-    gift_option: "Luxury Gift Set 1kg (850.000đ)",
+    special_option: "Premium Special Dried Longan 500g (350,000 VND)",
+    zip_option: "Zip Bag Dried Longan 500g (320,000 VND)",
+    gift_option: "Luxury Gift Set 1kg (850,000 VND)",
     quantity: "Quantity",
     base_price: "Base Price",
     discount_amount: "Discount",
@@ -105,7 +105,9 @@ export const en = {
     email_check_spam: "(Please check your inbox or spam / junk folder shortly)",
     email_staff_call: "(Our team will call your phone number to confirm and dispatch your invoice directly)",
     fallback_guard_notice: "Online ordering is temporarily paused due to catalog maintenance. Please call our Hotline or contact via Zalo.",
-    call_hotline_to_order: "Call Hotline to Order"
+    call_hotline_to_order: "Call Hotline to Order",
+    discount_percent_label: "Discount",
+    remove_item: "Remove product"
   },
   // Custom Mix Banner
   custom_mix_banner: {
