@@ -14,7 +14,6 @@ import {
   Flame,
   Award,
   Play,
-  Sparkles,
   ShieldCheck,
   AlertTriangle,
   X,
@@ -540,11 +539,8 @@ export function ProductPairingSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
-            className="max-w-5xl mx-auto mt-6 p-4 sm:p-5 rounded-2xl bg-amber-100/70 border border-amber-300/80 flex items-start sm:items-center gap-3.5 text-xs sm:text-sm text-foreground/90 shadow-xs"
+            className="max-w-5xl mx-auto mt-6 p-4 sm:p-5 rounded-2xl bg-amber-100/70 border border-amber-300/80 text-xs sm:text-sm text-foreground/90 shadow-xs"
           >
-            <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-              <Sparkles className="w-4 h-4 text-accent" />
-            </div>
             <p className="leading-relaxed">
               <span className="font-bold text-primary">
                 {language === "en" ? "💡 30-Second At-Home Test: " : "💡 Mẹo kiểm tra nhanh 30 giây tại nhà: "}
