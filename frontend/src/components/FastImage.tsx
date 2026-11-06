@@ -37,6 +37,12 @@ export function resolveImageUrl(path?: string, fallback = "/images/setqua.jpg"):
   if (path.startsWith("/images/") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
     return path;
   }
+  // Nếu là ảnh upload (/uploads/...), giữ nguyên đường dẫn tương đối /uploads/...
+  // để mọi thiết bị (Mobile trong LAN, Desktop, Tablet, Domain bất kỳ) đều tải được qua Next.js rewrite proxy,
+  // không bị lỗi 'localhost:5050' khi xem trên điện thoại.
+  if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
+    return path.startsWith("/") ? path : `/${path}`;
+  }
   const base = API_URL.replace(/\/+$/, "");
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${cleanPath}`;

@@ -296,6 +296,11 @@ builder.Services.AddCors(options =>
                 // Môi trường dev (localhost, 127.0.0.1 trên mọi cổng)
                 if (host == "localhost" || host == "127.0.0.1") return true;
 
+                // Hỗ trợ thiết bị di động (Mobile) kiểm tra web trong cùng mạng LAN / Wi-Fi nội bộ
+                if (host.StartsWith("192.168.") || host.StartsWith("10.") ||
+                    (host.StartsWith("172.") && int.TryParse(host.Split('.')[1], out var octet2) && octet2 >= 16 && octet2 <= 31))
+                    return true;
+
                 // Tên miền chính thức và subdomain (nguyetnhanphohien.com, www.nguyetnhanphohien.com)
                 if (host == "nguyetnhanphohien.com" || host.EndsWith(".nguyetnhanphohien.com")) return true;
 

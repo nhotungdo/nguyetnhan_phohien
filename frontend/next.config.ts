@@ -47,6 +47,10 @@ const nextConfig: NextConfig = {
         source: "/uploads/:path*",
         destination: `${API_URL}/uploads/:path*`,
       },
+      {
+        source: "/hubs/:path*",
+        destination: `${API_URL}/hubs/:path*`,
+      },
     ];
   },
   async redirects() {

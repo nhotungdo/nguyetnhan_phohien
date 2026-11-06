@@ -7,6 +7,15 @@ import type { ChatSessionResponse, ChatMessageResponse } from "@/types/api.types
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
+function getSignalRHubUrl(hubPath: string): string {
+  if (typeof window !== "undefined") {
+    if (API_URL.includes("localhost") && !["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      return `${window.location.protocol}//${window.location.hostname}:5050${hubPath}`;
+    }
+  }
+  return `${API_URL}${hubPath}`;
+}
+
 /** Chỉ gửi tín hiệu "đang gõ" tối đa mỗi TYPING_THROTTLE_MS để không spam hub. */
 const TYPING_THROTTLE_MS = 1500;
 /** Tự ẩn chỉ báo "đang gõ" nếu không nhận được tín hiệu mới. */
@@ -215,7 +224,7 @@ export function useAdminChat() {
     fetchSessions();
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${API_URL}/hubs/chat`, {
+      .withUrl(getSignalRHubUrl("/hubs/chat"), {
         withCredentials: true,
         accessTokenFactory: () => adminAuth.getToken() || "",
         transport:

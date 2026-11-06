@@ -144,6 +144,9 @@ export function ProductInteractiveShowcase({
         if (p.startsWith("/images/") || p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
           return p;
         }
+        if (p.startsWith("/uploads/") || p.startsWith("uploads/")) {
+          return p.startsWith("/") ? p : `/${p}`;
+        }
         const base = API_URL.replace(/\/+$/, "");
         const path = p.startsWith("/") ? p : `/${p}`;
         return `${base}${path}`;

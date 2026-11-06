@@ -19,6 +19,9 @@ const resolveImageUrl = (path?: string) => {
   if (path.startsWith("/images/")) {
     return path;
   }
+  if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
+    return path.startsWith("/") ? path : `/${path}`;
+  }
   return `${API_URL}/${path.replace(/^\/+/, "")}`;
 };
 

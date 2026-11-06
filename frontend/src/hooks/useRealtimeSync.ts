@@ -8,6 +8,17 @@ import { adminAuth } from "@/services/api.service";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
+function getSignalRHubUrl(hubPath: string): string {
+  if (typeof window !== "undefined") {
+    // Nếu truy cập từ thiết bị khác trong mạng LAN mà API_URL chứa localhost:
+    // Tự động chuyển localhost thành IP máy chủ (ví dụ 192.168.1.15) để điện thoại kết nối được SignalR.
+    if (API_URL.includes("localhost") && !["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      return `${window.location.protocol}//${window.location.hostname}:5050${hubPath}`;
+    }
+  }
+  return `${API_URL}${hubPath}`;
+}
+
 /** Delay thử kết nối lại khi hub đóng (backend chưa chạy / reset). */
 const RESTART_DELAY_MS = 10_000;
 
@@ -51,7 +62,7 @@ export function useRealtimeSync() {
     };
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${API_URL}/hubs/products`, {
+      .withUrl(getSignalRHubUrl("/hubs/products"), {
         withCredentials: true,
         // Token admin để JoinAsAdmin nhận sự kiện đơn hàng/phiên chat.
         accessTokenFactory: () => adminAuth.getToken() || "",

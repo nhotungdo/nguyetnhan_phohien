@@ -21,6 +21,15 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 // còn lại (vd /uploads/banners/...) → ghép với API_URL.
 const isRemoteUrl = (url: string) => /^(https?:)?\/\//i.test(url) || url.startsWith("data:");
 
+const resolveSrc = (url?: string) => {
+  if (!url) return "";
+  if (isRemoteUrl(url)) return url;
+  if (url.startsWith("/uploads/") || url.startsWith("uploads/")) {
+    return url.startsWith("/") ? url : `/${url}`;
+  }
+  return `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const MAX_PRODUCT_IMAGE_MB = 5;
 
 // Server chỉ nhận các đuôi này (whitelist ở ProductsController/ContentController).
@@ -440,7 +449,7 @@ export default function ContentCMS() {
                     <td className="px-5 py-3.5">
                       <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
                         {p.images[0]
-                          ? <FastImage src={`${API_URL}${p.images[0].imagePath}`} alt={p.name} width={44} height={44} loading="lazy" className="w-full h-full object-cover" />
+                          ? <FastImage src={resolveSrc(p.images[0].imagePath)} alt={p.name} width={44} height={44} loading="lazy" className="w-full h-full object-cover" />
                           : <ImageIcon className="w-4 h-4 text-muted-foreground" />}
                       </div>
                     </td>
@@ -482,7 +491,7 @@ export default function ContentCMS() {
                   <div className="flex items-start gap-3">
                     <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center overflow-hidden border shrink-0">
                       {p.images[0]
-                        ? <FastImage src={`${API_URL}${p.images[0].imagePath}`} alt={p.name} width={64} height={64} loading="lazy" className="w-full h-full object-cover" />
+                        ? <FastImage src={resolveSrc(p.images[0].imagePath)} alt={p.name} width={64} height={64} loading="lazy" className="w-full h-full object-cover" />
                         : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -594,7 +603,7 @@ export default function ContentCMS() {
                 <div className="grid grid-cols-4 gap-3">
                   {existingImages.map(img => (
                     <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-border group">
-                      <FastImage src={`${API_URL}${img.imagePath}`} alt="" fill sizes="140px" loading="lazy" className="w-full h-full object-cover" />
+                      <FastImage src={resolveSrc(img.imagePath)} alt="" fill sizes="140px" loading="lazy" className="w-full h-full object-cover" />
                       {existingImages[0]?.id !== img.id && (
                         <button type="button" title="Đặt làm ảnh chính" onClick={() => setMainImage(img.id)}
                           className="absolute top-1 left-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -683,7 +692,7 @@ function ImageSlotEditor({ slot, value, onSaved }: {
     successTimerRef.current = setTimeout(() => setter(false), 4000);
   };
 
-  const currentSrc = value ? (isRemoteUrl(value) ? value : `${API_URL}${value}`) : null;
+  const currentSrc = value ? resolveSrc(value) : null;
   const previewSrc = previewUrl ?? currentSrc;
 
   const pickFile = (f: File) => {

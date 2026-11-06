@@ -69,6 +69,28 @@ async function readApiError(res: Response): Promise<Error> {
 }
 
 // ===== BASE FETCH HELPER =====
+function getFetchUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  // 1. Trong trình duyệt (client-side): dùng đường dẫn tương đối cho /api/...
+  // để Next.js rewrite proxy tự động chuyển tiếp về backend.
+  // Nhờ đó điện thoại trong mạng LAN (192.168.x.x) hay domain bất kỳ đều gọi được API
+  // mà không bị lỗi 'localhost' hay CORS.
+  if (typeof window !== "undefined") {
+    if (cleanPath.startsWith("/api/")) {
+      return cleanPath;
+    }
+    if (API_URL.includes("localhost") && !["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+      return `${window.location.protocol}//${window.location.hostname}:5050${cleanPath}`;
+    }
+  }
+  // 2. Trong Node.js (SSR / server-side rendering): dùng backend API_URL tuyệt đối
+  const base = API_URL.replace(/\/+$/, "");
+  return `${base}${cleanPath}`;
+}
+
 async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
@@ -82,12 +104,13 @@ async function apiFetch<T>(
   };
 
   let res: Response;
+  const targetUrl = getFetchUrl(path);
   try {
     // cache: "no-store" — khi Next prerender tĩnh (SSR), fetch mặc định bị đưa vào
     // Data Cache của Next và trả lại JSON ĐÓNG BĂNG từ lần build trước (dữ liệu cũ
     // trong HTML mãi không cập nhật). no-store = luôn đọc bản mới nhất từ API;
     // phần "giữ cho nhanh" do React Query (client) + output-cache của backend đảm nhiệm.
-    res = await fetch(`${API_URL}${path}`, { cache: "no-store", ...options, headers });
+    res = await fetch(targetUrl, { cache: "no-store", ...options, headers });
   } catch {
     // Lỗi mạng / CORS / backend chưa chạy → fetch ném TypeError "Failed to fetch".
     // Chuyển thành thông báo rõ nguyên nhân thay vì để lỗi trần lọt ra console.
@@ -111,8 +134,9 @@ async function uploadFetch<T>(path: string, file: File): Promise<T> {
   formData.append("file", file);
 
   let res: Response;
+  const targetUrl = getFetchUrl(path);
   try {
-    res = await fetch(`${API_URL}${path}`, {
+    res = await fetch(targetUrl, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

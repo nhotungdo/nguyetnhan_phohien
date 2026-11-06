@@ -61,7 +61,9 @@ const resolveCmsImage = (url?: string) =>
     ? ""
     : url.startsWith("/images/") || /^(https?:)?\/\//i.test(url) || url.startsWith("data:")
       ? url
-      : `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+      : url.startsWith("/uploads/") || url.startsWith("uploads/")
+        ? (url.startsWith("/") ? url : `/${url}`)
+        : `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 
 const subscribeAuth = (callback: () => void) => {
   window.addEventListener("storage", callback);
