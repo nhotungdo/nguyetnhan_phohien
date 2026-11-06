@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
+import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartButton } from "@/components/cart/CartButton";
 import { FastImage } from "@/components/FastImage";
@@ -264,12 +265,47 @@ export default function CustomMixStudio() {
   const { language, setLanguage } = useLanguageStore();
   const { addCustomMixItem, openCart, closeCart, getTotalItems } = useCartStore();
   const totalCartCount = getTotalItems();
+  const { content } = useWebsiteContent();
 
   const [packagings, setPackagings] = useState<CustomPackaging[]>(FALLBACK_PACKAGINGS);
   const [ingredients, setIngredients] = useState<CustomIngredient[]>(FALLBACK_INGREDIENTS);
   const [selectedPackagingId, setSelectedPackagingId] = useState<string>(
     FALLBACK_PACKAGINGS[1].id // Mặc định chọn Hộp nhựa 300g
   );
+
+  // Ánh xạ ảnh từ CMS (nếu admin đã cấu hình qua /content) đè lên imageUrl của bao bì & hạt
+  const displayPackagings = useMemo(() => {
+    return packagings.map((pkg) => {
+      let cmsImg = "";
+      if (pkg.packagingType === "ZipBag" || pkg.id.endsWith("150")) {
+        cmsImg = content["CustomMix_Pkg_ZipBag"];
+      } else if (pkg.packagingType === "Box" || pkg.id.endsWith("300")) {
+        cmsImg = content["CustomMix_Pkg_Box"];
+      } else if (pkg.packagingType === "GiftSet" || pkg.id.endsWith("900")) {
+        cmsImg = content["CustomMix_Pkg_GiftSet"];
+      }
+      return cmsImg ? { ...pkg, imageUrl: cmsImg } : pkg;
+    });
+  }, [packagings, content]);
+
+  const displayIngredients = useMemo(() => {
+    return ingredients.map((ing) => {
+      let cmsImg = "";
+      const lower = ing.name.toLowerCase();
+      if (lower.includes("nhãn") || ing.id.endsWith("0001")) {
+        cmsImg = content["CustomMix_Nut_LongNhan"];
+      } else if (lower.includes("macca") || ing.id.endsWith("0003")) {
+        cmsImg = content["CustomMix_Nut_Macca"];
+      } else if (lower.includes("điều") || ing.id.endsWith("0004")) {
+        cmsImg = content["CustomMix_Nut_HatDieu"];
+      } else if (lower.includes("hạnh nhân") || ing.id.endsWith("0005")) {
+        cmsImg = content["CustomMix_Nut_HanhNhan"];
+      } else if (lower.includes("bí xanh") || ing.id.endsWith("0006")) {
+        cmsImg = content["CustomMix_Nut_BiXanh"];
+      }
+      return cmsImg ? { ...ing, imageUrl: cmsImg } : ing;
+    });
+  }, [ingredients, content]);
 
   // Khối lượng từng loại hạt { [ingredientId]: grams }
   const [weights, setWeights] = useState<Record<string, number>>({});
@@ -379,9 +415,9 @@ export default function CustomMixStudio() {
   // Bao bì đang chọn
   const activePackaging = useMemo(() => {
     return (
-      packagings.find((p) => p.id === selectedPackagingId) || packagings[0]
+      displayPackagings.find((p) => p.id === selectedPackagingId) || displayPackagings[0]
     );
-  }, [packagings, selectedPackagingId]);
+  }, [displayPackagings, selectedPackagingId]);
 
   // Tổng số gram hiện tại
   const totalGrams = useMemo(() => {
@@ -591,7 +627,7 @@ export default function CustomMixStudio() {
 
   // Danh sách các hạt đã chọn kèm % tỉ lệ và key giao diện
   const selectedNutsList = useMemo(() => {
-    return ingredients
+    return displayIngredients
       .filter((ing) => (weights[ing.id] || 0) > 0)
       .map((ing) => {
         const grams = weights[ing.id] || 0;
@@ -607,7 +643,7 @@ export default function CustomMixStudio() {
           caloriesPer100g: ing.caloriesPer100g,
         };
       });
-  }, [ingredients, weights, targetGrams, language]);
+  }, [displayIngredients, weights, targetGrams, language]);
 
   // Bộ tính toán Calo & Dinh dưỡng thông minh
   const totalCalories = useMemo(() => {
@@ -724,7 +760,7 @@ export default function CustomMixStudio() {
           }
           if (validateRes.ingredients?.length) {
             validatedIngredients = validateRes.ingredients.map((ing) => {
-              const matched = ingredients.find((i) => i.id === ing.ingredientId);
+              const matched = displayIngredients.find((i) => i.id === ing.ingredientId);
               const trans = matched ? getIngredientTranslation(matched, language as "vi" | "en") : null;
               return {
                 ingredientId: ing.ingredientId,
@@ -927,6 +963,30 @@ export default function CustomMixStudio() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
+        {/* BANNER MINH HỌA TRANG TỰ CHỌN HẠT (CMS TỰ ĐỔI ĐƯỢC) */}
+        {content["CustomMix_BannerUrl"] && (
+          <div className="mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-200/80 shadow-md relative w-full aspect-[21/9] sm:aspect-[24/8] max-h-72 bg-gradient-to-r from-amber-100 to-amber-50">
+            <FastImage
+              src={content["CustomMix_BannerUrl"]}
+              alt={language === "en" ? "Custom Mix Atelier Banner" : "Banner Xưởng Chế Tác Hạt Riêng"}
+              fill
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              priority
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent flex items-end p-4 sm:p-6">
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-amber-300 uppercase tracking-widest bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-amber-300/40 inline-block mb-1">
+                  {language === "en" ? "Royal Longan Custom Atelier" : "Xưởng Tự Phối Hạt Hoàng Gia"}
+                </span>
+                <h2 className="text-white text-base sm:text-2xl font-bold drop-shadow-md">
+                  {language === "en" ? "Curate Your Signature Wellness Blend" : "Tự Tay Tuyển Chọn Tỉ Lệ Hạt Cho Riêng Bạn"}
+                </h2>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* THANH STEPPER 3 BƯỚC ĐIỀU HƯỚNG QUY TRÌNH THÔNG MINH */}
         <nav
           aria-label="Quy trình chế tác hạt"
@@ -1046,7 +1106,7 @@ export default function CustomMixStudio() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                {packagings.map((pkg) => {
+                {displayPackagings.map((pkg) => {
                   const isSelected = pkg.id === selectedPackagingId;
                   const pkgTrans = getPackagingTranslation(pkg, language as "vi" | "en");
                   return (
@@ -1282,7 +1342,7 @@ export default function CustomMixStudio() {
 
               {/* GRID 5 LOẠI HẠT VỚI BỘ ĐIỀU KHIỂN & SLIDER & NÚT KHÓA */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {ingredients.map((ing) => {
+                {displayIngredients.map((ing) => {
                   const currentWeight = weights[ing.id] || 0;
                   const isSelected = currentWeight > 0;
                   const isLocked = lockedNutIds.has(ing.id);

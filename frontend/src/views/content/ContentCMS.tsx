@@ -78,16 +78,129 @@ const TEXT_KEYS: TextFieldDef[] = [
 // Thứ tự nhóm hiển thị trong UI (lấy theo thứ tự xuất hiện của TEXT_KEYS)
 const TEXT_GROUPS = Array.from(new Set(TEXT_KEYS.map(f => f.group)));
 
-type ImageSlot = { key: string; label: string; hint: string; boxClass: string };
+type ImageSlot = {
+  key: string;
+  label: string;
+  hint: string;
+  boxClass: string;
+  group: string;
+  defaultPath?: string;
+};
 
-// Ô ảnh admin thay được trên Landing Page — key phải khớp whitelist phía backend
-// (ContentService.ImageKeys). boxClass = kiểu khung preview cho khớp tỷ lệ ảnh thật.
+// Danh sách các ô ảnh Quản trị viên có thể thay đổi trực tiếp qua CMS
+// Khớp whitelist ImageKeys phía Backend (ContentService.cs).
 const IMAGE_SLOTS: ImageSlot[] = [
-  { key: "SiteLogo",      label: "Logo thương hiệu",       hint: "Hiện ở header và footer. Để trống sẽ dùng logo mặc định /logo.jpg.", boxClass: "w-28 h-28 rounded-full" },
-  { key: "HeroBannerUrl", label: "Ảnh banner Hero",        hint: "Ảnh lớn ở phần mở đầu trang.", boxClass: "w-full aspect-video rounded-xl" },
-  { key: "StoryImage",    label: "Ảnh câu chuyện",         hint: "Bên cạnh tiêu đề “Thứ Quả Tiến Vua Trứ Danh”.", boxClass: "w-40 aspect-[4/5] rounded-xl" },
-  { key: "CultureImage",  label: "Ảnh văn hóa thưởng trà", hint: "Bên cạnh khối tròn ở mục Văn hóa.", boxClass: "w-40 h-40 rounded-full" },
+  // ===== 1. ẢNH TRANG CHỦ (LANDING PAGE) =====
+  {
+    key: "SiteLogo",
+    label: "Logo thương hiệu",
+    hint: "Hiển thị ở Header và Footer toàn trang web. Mặc định: /logo.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "Ảnh Trang Chủ (Landing Page)",
+    defaultPath: "/logo.jpg",
+  },
+  {
+    key: "HeroBannerUrl",
+    label: "Ảnh banner Hero",
+    hint: "Ảnh lớn ở phần mở đầu trang chủ Landing Page. Mặc định: /images/hero.png.",
+    boxClass: "w-full aspect-video rounded-xl",
+    group: "Ảnh Trang Chủ (Landing Page)",
+    defaultPath: "/images/hero.png",
+  },
+  {
+    key: "StoryImage",
+    label: "Ảnh câu chuyện di sản",
+    hint: "Bên cạnh tiêu đề “Thứ Quả Tiến Vua Trứ Danh”.",
+    boxClass: "w-40 aspect-[4/5] rounded-xl",
+    group: "Ảnh Trang Chủ (Landing Page)",
+  },
+  {
+    key: "CultureImage",
+    label: "Ảnh văn hóa thưởng trà",
+    hint: "Khối tròn tôn vinh nghệ thuật ẩm thực ở mục Văn hóa Phố Hiến.",
+    boxClass: "w-40 h-40 rounded-full",
+    group: "Ảnh Trang Chủ (Landing Page)",
+  },
+
+  // ===== 2. BAO BÌ & QUY CÁCH ĐÓNG GÓI (TRANG TỰ CHỌN HẠT) =====
+  {
+    key: "CustomMix_Pkg_ZipBag",
+    label: "Bao bì: Túi Zip 150g",
+    hint: "Ảnh thẻ chọn bao bì Bước 1 & tóm tắt đơn hàng trang /tu-chon-hat. Mặc định: /images/tuizip.jpg.",
+    boxClass: "w-32 h-32 rounded-2xl",
+    group: "Bao Bì Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/tuizip.jpg",
+  },
+  {
+    key: "CustomMix_Pkg_Box",
+    label: "Bao bì: Hộp Mica 300g",
+    hint: "Ảnh thẻ chọn bao bì Bước 1 & tóm tắt đơn hàng trang /tu-chon-hat. Mặc định: /images/hopnhua.jpg.",
+    boxClass: "w-32 h-32 rounded-2xl",
+    group: "Bao Bì Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/hopnhua.jpg",
+  },
+  {
+    key: "CustomMix_Pkg_GiftSet",
+    label: "Bao bì: Lễ Hộp Hoàng Gia 900g",
+    hint: "Ảnh thẻ chọn bao bì Bước 1 & tóm tắt đơn hàng trang /tu-chon-hat. Mặc định: /images/setqua.jpg.",
+    boxClass: "w-32 h-32 rounded-2xl",
+    group: "Bao Bì Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/setqua.jpg",
+  },
+
+  // ===== 3. NGUYÊN LIỆU 5 LOẠI HẠT ĐẶC SẢN (TRANG TỰ CHỌN HẠT) =====
+  {
+    key: "CustomMix_Nut_LongNhan",
+    label: "Hạt: Long Nhãn Phố Hiến Tuyển Chọn",
+    hint: "Ảnh hạt ở Bước 2 & cửa sổ xem cận cảnh trong /tu-chon-hat. Mặc định: /images/nuts/longnhanomsen.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "5 Loại Hạt Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/nuts/longnhanomsen.jpg",
+  },
+  {
+    key: "CustomMix_Nut_Macca",
+    label: "Hạt: Hạt Macca Tây Nguyên (Tách Nhân)",
+    hint: "Ảnh hạt ở Bước 2 & cửa sổ xem cận cảnh trong /tu-chon-hat. Mặc định: /images/nuts/macca.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "5 Loại Hạt Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/nuts/macca.jpg",
+  },
+  {
+    key: "CustomMix_Nut_HatDieu",
+    label: "Hạt: Hạt Điều Bình Phước Rang Mộc (A+)",
+    hint: "Ảnh hạt ở Bước 2 & cửa sổ xem cận cảnh trong /tu-chon-hat. Mặc định: /images/nuts/hatdieu.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "5 Loại Hạt Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/nuts/hatdieu.jpg",
+  },
+  {
+    key: "CustomMix_Nut_HanhNhan",
+    label: "Hạt: Hạnh Nhân Nướng Mộc California",
+    hint: "Ảnh hạt ở Bước 2 & cửa sổ xem cận cảnh trong /tu-chon-hat. Mặc định: /images/nuts/hanhnhan.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "5 Loại Hạt Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/nuts/hanhnhan.jpg",
+  },
+  {
+    key: "CustomMix_Nut_BiXanh",
+    label: "Hạt: Hạt Bí Xanh Ấn Độ",
+    hint: "Ảnh hạt ở Bước 2 & cửa sổ xem cận cảnh trong /tu-chon-hat. Mặc định: /images/nuts/bixanh.jpg.",
+    boxClass: "w-28 h-28 rounded-full",
+    group: "5 Loại Hạt Trang Tự Chọn Hạt (Custom Mix)",
+    defaultPath: "/images/nuts/bixanh.jpg",
+  },
+
+  // ===== 4. BANNER TRANG TỰ CHỌN HẠT =====
+  {
+    key: "CustomMix_BannerUrl",
+    label: "Banner đầu trang Tự Chọn Hạt",
+    hint: "Ảnh banner minh họa nổi bật ở phần đầu trang /tu-chon-hat.",
+    boxClass: "w-full aspect-video rounded-xl",
+    group: "Banner & Minh Họa Trang Tự Chọn Hạt",
+  },
 ];
+
+const IMAGE_GROUPS = Array.from(new Set(IMAGE_SLOTS.map(s => s.group)));
 
 const EMPTY_FORM: ProductRequest = { name: "", price: 0, size: "", description: "", isActive: true, displayOrder: 0 };
 
@@ -335,7 +448,7 @@ export default function ContentCMS() {
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "text",     label: "📝 Văn bản & Thông tin", icon: <Type className="w-4 h-4" /> },
     { key: "products", label: "📦 Sản phẩm",            icon: <Package className="w-4 h-4" /> },
-    { key: "images",   label: "🖼️ Ảnh Landing Page",   icon: <ImageIcon className="w-4 h-4" /> },
+    { key: "images",   label: "🖼️ Quản Lý Hình Ảnh (Website & Tự Chọn Hạt)", icon: <ImageIcon className="w-4 h-4" /> },
   ];
 
   // UI khi không tải được nội dung — không render form rỗng để tránh admin
@@ -361,7 +474,7 @@ export default function ContentCMS() {
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-primary">Nội dung Website</h2>
-        <p className="text-muted-foreground">Quản lý toàn bộ nội dung hiển thị trên Landing Page.</p>
+        <p className="text-muted-foreground">Quản lý toàn bộ nội dung hiển thị trên Landing Page và trang Tự Chọn Hạt.</p>
       </div>
 
       <div className="border-b border-border flex gap-1 overflow-x-auto pb-px scrollbar-none">
@@ -530,28 +643,46 @@ export default function ContentCMS() {
         </div>
       )}
 
-      {/* TAB 3: ANH LANDING PAGE (logo, hero, cau chuyen, van hoa) */}
+      {/* TAB 3: QUẢN LÝ HÌNH ẢNH (LANDING PAGE & TRANG TỰ CHỌN HẠT) */}
       {activeTab === "images" && (
-        <div className="space-y-5 max-w-3xl">
+        <div className="space-y-8 max-w-3xl">
           {isLoadingText ? (
             <div className="flex justify-center p-12"><Loader2 className="w-7 h-7 animate-spin text-primary" /></div>
           ) : isErrorText && !fetchedContents ? contentErrorBlock : (
-            IMAGE_SLOTS.map(slot => (
-              <ImageSlotEditor
-                key={slot.key}
-                slot={slot}
-                value={contents[slot.key] || ""}
-                onSaved={handleSlotSaved}
-              />
-            ))
+            IMAGE_GROUPS.map(groupName => {
+              const groupSlots = IMAGE_SLOTS.filter(s => s.group === groupName);
+              return (
+                <div key={groupName} className="space-y-4 bg-card/60 p-5 rounded-2xl border border-border shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                    <h3 className="text-base sm:text-lg font-bold text-primary flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5 text-accent" />
+                      <span>{groupName}</span>
+                    </h3>
+                    <span className="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-1 rounded-full border border-amber-200">
+                      {groupSlots.length} ô ảnh
+                    </span>
+                  </div>
+                  <div className="space-y-4 pt-1">
+                    {groupSlots.map(slot => (
+                      <ImageSlotEditor
+                        key={slot.key}
+                        slot={slot}
+                        value={contents[slot.key] || ""}
+                        onSaved={handleSlotSaved}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })
           )}
 
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
-            <p className="text-sm font-semibold text-blue-800">📌 Hướng dẫn sử dụng</p>
+            <p className="text-sm font-semibold text-blue-800">📌 Hướng dẫn sử dụng quản lý ảnh</p>
             <ul className="text-sm text-blue-700 space-y-1.5">
-              <li><strong>Upload từ máy:</strong> Ảnh lưu trên server, không phụ thuộc dịch vụ bên ngoài. Kéo thả hoặc click chọn file.</li>
-              <li><strong>Dùng URL:</strong> Dán link từ Imgur, Cloudinary hoặc CDN khác — link chia sẻ Google Drive/OneDrive không hiển thị trực tiếp.</li>
-              <li><strong>Tức thì:</strong> Thay đổi hiển thị ngay trên Landing Page, không cần build lại.</li>
+              <li><strong>Upload từ máy:</strong> Ảnh lưu an toàn trên server backend (/uploads/content/...), tự động dọn dẹp file cũ khi thay ảnh mới.</li>
+              <li><strong>Dùng URL:</strong> Dán link ảnh trực tiếp từ Imgur, Cloudinary, AWS S3 hoặc CDN khác.</li>
+              <li><strong>Tức thì:</strong> Sau khi lưu, ảnh mới được phát tín hiệu Realtime qua SignalR và cập nhật ngay lập tức trên cả Landing Page lẫn trang Tự Chọn Hạt mà không cần build lại dự án.</li>
             </ul>
           </div>
         </div>
@@ -692,7 +823,7 @@ function ImageSlotEditor({ slot, value, onSaved }: {
     successTimerRef.current = setTimeout(() => setter(false), 4000);
   };
 
-  const currentSrc = value ? resolveSrc(value) : null;
+  const currentSrc = value ? resolveSrc(value) : (slot.defaultPath ? resolveSrc(slot.defaultPath) : null);
   const previewSrc = previewUrl ?? currentSrc;
 
   const pickFile = (f: File) => {
