@@ -25,7 +25,7 @@ import {
   Copy,
   Lock,
   Unlock,
-  Sparkles,
+  BookOpen,
   ShieldCheck,
   Tag,
   QrCode,
@@ -1252,7 +1252,7 @@ export default function CustomMixStudio() {
               {/* Gợi ý công thức 1-click */}
               <div className="bg-[#FFFDF8] border border-[#FDE68A]/60 p-3.5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                 <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <BookOpen className="w-3.5 h-3.5 text-amber-600" />
                   {language === "en" ? "Suggested Recipes:" : "Công thức gợi ý:"}
                 </span>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
