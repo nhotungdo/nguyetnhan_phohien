@@ -160,8 +160,9 @@
     --sidebar-border: var(--nguyet-border);
     --sidebar-ring: var(--nguyet-gold);
 
-    /* Đồng bộ font di sản cho logo / thương hiệu */
-    --font-dancing: var(--font-playfair);
+    /* Đồng bộ font di sản vương giả cho logo / thương hiệu */
+    --font-brand: var(--font-cormorant), var(--font-playfair), Georgia, serif;
+    --font-dancing: var(--font-cormorant);
 }
 
 .dark {

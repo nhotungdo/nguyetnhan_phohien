@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Be_Vietnam_Pro, Playfair_Display, Geist_Mono } from "next/font/google";
+import { Be_Vietnam_Pro, Playfair_Display, Cormorant_Garamond, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
@@ -12,6 +12,14 @@ const beVietnam = Be_Vietnam_Pro({
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin", "latin-ext", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
@@ -119,7 +127,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${geistMono.variable}`}>
+    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${cormorant.variable} ${geistMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
