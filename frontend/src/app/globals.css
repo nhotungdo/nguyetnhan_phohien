@@ -341,6 +341,13 @@
 
   /* Mờ dần hai đầu dải marquee để chữ không bị "cụt" ở mép màn hình */
   .marquee-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 8%,
+      black 92%,
+      transparent
+    );
     mask-image: linear-gradient(
       to right,
       transparent,
@@ -440,7 +447,8 @@
   animation: marquee-horizontal 32s linear infinite;
 }
 
-.animate-marquee-track:hover {
+.animate-marquee-track:hover,
+.animate-marquee-track:active {
   animation-play-state: paused;
 }
 

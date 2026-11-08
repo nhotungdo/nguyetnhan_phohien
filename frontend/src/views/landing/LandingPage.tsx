@@ -1007,10 +1007,43 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <div className="border-y border-[#DED6C8] bg-[#FBF9F4]">
-          <ul className="container mx-auto px-4 md:px-6 py-5 flex flex-wrap gap-x-8 gap-y-3 text-sm text-[#584A3C]">
-            {brandCommitments.map((item) => <li key={item.id} className="flex items-center gap-2"><item.icon aria-hidden="true" className="w-4 h-4 shrink-0" />{item.label}</li>)}
-          </ul>
+        {/* Dải bảo chứng cam kết chất lượng thương hiệu - Tối ưu hoàn hảo cho cả Mobile & Desktop */}
+        <div className="border-y border-[#DED6C8] bg-[#FBF9F4] relative overflow-hidden">
+          {/* 1. Màn hình máy tính & máy tính bảng (md trở lên): Dàn ngang cân đối, icon huy hiệu sang trọng */}
+          <div className="hidden md:block container mx-auto px-4 md:px-6 py-4">
+            <ul className="flex flex-wrap items-center justify-center lg:justify-between gap-y-3 gap-x-6 lg:gap-x-8 text-[#584A3C]">
+              {brandCommitments.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-2.5 text-xs lg:text-[13px] xl:text-sm font-semibold tracking-tight text-[#4A3B2C] hover:text-primary transition-colors group cursor-default"
+                >
+                  <span className="w-7 h-7 rounded-full bg-amber-100/80 border border-amber-300/50 text-amber-900 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 group-hover:bg-amber-200/80 transition-all">
+                    <item.icon aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
+                  </span>
+                  <span className="whitespace-nowrap">{item.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 2. Màn hình điện thoại (dưới md): Băng chuyền chữ chạy mượt mà vô tận (Infinite Marquee Ticker) viền mờ 2 bên, chạm để tạm dừng */}
+          <div className="md:hidden relative w-full overflow-hidden marquee-mask py-3 select-none">
+            <div className="animate-marquee-track hover:[animation-play-state:paused] active:[animation-play-state:paused]">
+              {[...brandCommitments, ...brandCommitments].map((item, index) => (
+                <div
+                  key={`${item.id}-${index}`}
+                  aria-hidden={index >= brandCommitments.length}
+                  className="flex items-center gap-2 px-3.5 whitespace-nowrap text-xs font-semibold text-[#4A3B2C]"
+                >
+                  <span className="w-6 h-6 rounded-full bg-amber-100/90 border border-amber-300/60 text-amber-900 flex items-center justify-center shrink-0 shadow-2xs">
+                    <item.icon aria-hidden="true" className="w-3 h-3 shrink-0" />
+                  </span>
+                  <span>{item.label}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80 ml-2.5 shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* 3. Khu vực sản phẩm tương tác cao cấp */}
