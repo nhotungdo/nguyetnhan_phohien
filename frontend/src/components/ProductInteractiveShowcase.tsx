@@ -220,7 +220,7 @@ export function ProductInteractiveShowcase({
                     rotateY: 0,
                     transformStyle: "preserve-3d",
                   }}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 >
                   {/* Background mờ nhẹ tôn chiều sâu ảnh */}
@@ -445,8 +445,8 @@ export function ProductInteractiveShowcase({
               <div className="flex flex-col sm:flex-row gap-2.5 pt-1 w-full">
                 {onAddToCart && (
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                    whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                     onClick={handleAddToCartClick}
                     className={`flex-1 border-2 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
                       isAdded
@@ -468,8 +468,8 @@ export function ProductInteractiveShowcase({
                   </motion.button>
                 )}
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
                   className="flex-[1.2] bg-accent hover:bg-[#9A3412] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/40 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap group"
                 >

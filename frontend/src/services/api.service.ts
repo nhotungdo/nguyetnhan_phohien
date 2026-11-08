@@ -559,9 +559,20 @@ export const nutritionAiApi = {
             return;
           }
 
-          let parsed: any;
+          interface SseFrame {
+            event?: string;
+            text?: string;
+            suggestedProducts?: Record<string, unknown>[];
+            portionTip?: string;
+            PortionTip?: string;
+            allergenNotice?: string;
+            AllergenNotice?: string;
+            message?: string;
+          }
+
+          let parsed: SseFrame;
           try {
-            parsed = JSON.parse(dataStr);
+            parsed = JSON.parse(dataStr) as SseFrame;
           } catch (jsonErr) {
             console.warn("Lỗi parse frame SSE:", jsonErr, dataStr);
             continue;
