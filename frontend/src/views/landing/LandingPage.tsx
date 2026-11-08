@@ -653,18 +653,19 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={() => scrollToSection("hero")}>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-border shadow-sm relative shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#E8DFC8] shadow-xs relative shrink-0">
               <span className="absolute text-accent font-bold text-xs">NN</span>
               <FastImage
-                src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
+                src="/images/logo_emblem_circle.png"
+                fallbackSrc="/logo.jpg"
                 alt="Nguyệt Nhãn Phố Hiến"
                 fill
                 sizes="48px"
-                className="w-full h-full object-cover z-10"
+                className="w-full h-full object-contain p-1 z-10"
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
-            <span style={{ fontFamily: 'var(--font-cormorant)' }} className="font-medium italic text-xl min-[360px]:text-2xl sm:text-[26px] md:text-[30px] tracking-wide transition-colors text-primary whitespace-nowrap">
+            <span style={{ fontFamily: 'var(--font-lora)' }} className="font-medium italic text-lg min-[360px]:text-xl sm:text-2xl md:text-[27px] tracking-tight transition-colors text-primary whitespace-nowrap">
               Nguyệt Nhãn Phố Hiến
             </span>
           </div>
@@ -1915,15 +1916,16 @@ export default function LandingPage() {
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
               <div className="space-y-4 md:col-span-1">
-                <h3 style={{ fontFamily: 'var(--font-cormorant)' }} className="text-[32px] sm:text-[38px] font-medium italic text-[#F3D498] flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
+                <h3 style={{ fontFamily: 'var(--font-lora)' }} className="text-[28px] sm:text-[34px] font-medium italic text-[#F3D498] flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden border border-[#1D4D3E] relative shrink-0">
                     <span className="absolute">NN</span>
                     <FastImage
-                      src={resolveCmsImage(cmsContent.SiteLogo) || "/logo.jpg"}
+                      src="/images/logo_emblem_circle.png"
+                      fallbackSrc="/logo.jpg"
                       alt="Nguyệt Nhãn Phố Hiến"
                       fill
                       sizes="48px"
-                      className="w-full h-full object-cover z-10"
+                      className="w-full h-full object-contain p-1.5 z-10"
                       onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   </div>

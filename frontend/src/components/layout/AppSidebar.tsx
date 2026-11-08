@@ -78,10 +78,10 @@ export function AppSidebar() {
           <div className="w-10 h-10 rounded-md bg-card text-accent font-sans font-bold text-xs flex items-center justify-center overflow-hidden border border-border/30 shadow-sm relative shrink-0">
             <span className="absolute">NN</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.jpg" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-cover relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <img src="/images/logo_emblem_circle.png" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-contain p-1 relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
           </div>
           <div className="flex flex-col min-w-0">
-            <span style={{ fontFamily: 'var(--font-cormorant)' }} className="font-medium italic text-[26px] text-primary truncate leading-tight">Nguyệt Nhãn</span>
+            <span style={{ fontFamily: 'var(--font-lora)' }} className="font-medium italic text-2xl text-primary truncate leading-tight">Nguyệt Nhãn</span>
             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Trang quản trị</span>
           </div>
         </div>

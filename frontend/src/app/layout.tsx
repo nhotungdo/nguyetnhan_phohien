@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Be_Vietnam_Pro, Playfair_Display, Cormorant_Garamond, Geist_Mono } from "next/font/google";
+import { Be_Vietnam_Pro, Playfair_Display, Lora, Dancing_Script, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
@@ -18,11 +18,18 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const lora = Lora({
+  variable: "--font-lora",
   subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+
+const dancing = Dancing_Script({
+  variable: "--font-dancing",
+  subsets: ["vietnamese"],
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -127,7 +134,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${cormorant.variable} ${geistMono.variable}`}>
+    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${lora.variable} ${dancing.variable} ${geistMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
