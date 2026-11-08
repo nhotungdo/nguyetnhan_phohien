@@ -329,7 +329,6 @@ export default function CustomMixStudio() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [previewNut, setPreviewNut] = useState<CustomIngredient | null>(null);
-  const [isDraftRestored, setIsDraftRestored] = useState<boolean>(false);
 
   // Khôi phục bản nháp từ LocalStorage khi khởi tạo
   useEffect(() => {
@@ -344,7 +343,6 @@ export default function CustomMixStudio() {
           }
           if (parsed.customName) setCustomName(parsed.customName);
           if (parsed.customMessage !== undefined) setCustomMessage(parsed.customMessage);
-          setIsDraftRestored(true);
         }, 0);
       }
     } catch (e) {
@@ -563,7 +561,6 @@ export default function CustomMixStudio() {
     } catch (e) {
       console.warn("Could not remove custom mix draft:", e);
     }
-    setIsDraftRestored(false);
   };
 
   // Áp dụng công thức gợi ý
@@ -834,18 +831,7 @@ export default function CustomMixStudio() {
               <ArrowLeft className="w-5 h-5 text-[#B45309]" />
             </Link>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-bold text-[#B45309] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  Custom Mix Studio
-                </span>
-                {isDraftRestored && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    {language === "en" ? "Draft loaded" : "Đã nạp bản nháp"}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-base sm:text-xl font-bold text-primary leading-tight mt-0.5">
+              <h1 className="text-base sm:text-xl font-bold text-primary leading-tight">
                 {language === "en" ? "Artisan Custom Nut Atelier" : "Xưởng Chế Tác Hạt Riêng"}
               </h1>
             </div>
