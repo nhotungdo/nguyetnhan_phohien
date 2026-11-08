@@ -688,10 +688,10 @@ export default function LandingPage() {
             ))}
             <Link
               href="/tu-chon-hat"
-              className="text-xs xl:text-sm font-bold text-amber-900 bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 border border-amber-300 px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0"
+              className="text-xs xl:text-sm font-bold text-primary bg-[#F4EFE6] border border-[#E8DFC8] px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-xs hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
               <span>{t.nav.custom_mix || "Tự Chọn Hạt"}</span>
-              <span className="bg-[#B45309] text-white text-[10px] xl:text-[11px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-[#A61C45] text-white text-[10px] xl:text-[11px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {language === "en" ? "New" : "Mới"}
               </span>
             </Link>
@@ -821,16 +821,16 @@ export default function LandingPage() {
               <Link
                 href="/tu-chon-hat"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-base font-bold text-amber-900 bg-gradient-to-r from-amber-100/90 via-amber-50 to-amber-100/60 p-3 rounded-2xl flex items-center justify-between border border-amber-300 shadow-sm active:scale-98 transition-all my-1"
+                className="w-full text-base font-bold text-primary bg-[#F4EFE6] p-3 rounded-2xl flex items-center justify-between border border-[#E8DFC8] shadow-xs active:scale-98 transition-all my-1"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-xl bg-[#B45309] text-white flex items-center justify-center shadow-sm">
+                  <span className="w-8 h-8 rounded-xl bg-accent text-white flex items-center justify-center shadow-xs">
                     <ShoppingBag className="w-4 h-4" />
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold">{language === "en" ? "Bespoke Custom Mix" : "Tự Chọn Hạt Độc Bản"}</span>
-                      <span className="bg-[#B45309] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase">
+                      <span className="bg-[#A61C45] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full uppercase">
                         {language === "en" ? "New" : "Mới"}
                       </span>
                     </div>
@@ -1079,20 +1079,20 @@ export default function LandingPage() {
               className="max-w-3xl mx-auto text-center space-y-5"
             >
               {/* Huy hiệu di sản */}
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-50/90 border border-amber-200/80 text-[#92400E] text-xs sm:text-sm font-semibold shadow-xs">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#F4EFE6] border border-[#E8DFC8] text-primary text-xs sm:text-sm font-semibold shadow-xs">
                 <span>{language === "en" ? "Hung Yen Royal Delicacy" : "Di Sản Phẩm Vật Tiến Vua"}</span>
               </div>
 
               {/* Tiêu đề chính thức */}
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#173522] tracking-tight leading-tight [text-wrap:balance]">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
                 {language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}
               </h2>
 
               {/* Vạch hoa văn phân cách hoàng gia đối xứng */}
               <div className="flex items-center justify-center gap-3 py-1" aria-hidden="true">
-                <span className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent via-amber-400 to-amber-300" />
-                <span className="w-2 h-2 rotate-45 bg-[#854D0E] rounded-xs shadow-xs" />
-                <span className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent via-amber-400 to-amber-300" />
+                <span className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent via-[#A4723E] to-[#D97706]" />
+                <span className="w-2 h-2 rotate-45 bg-[#A4723E] rounded-xs shadow-xs" />
+                <span className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent via-[#A4723E] to-[#D97706]" />
               </div>
 
               {/* Đoạn văn giới thiệu thương hiệu */}
@@ -1102,16 +1102,16 @@ export default function LandingPage() {
 
               {/* 3 Thẻ bảo chứng chất lượng & nguồn gốc */}
               <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-3 text-xs sm:text-sm font-medium text-stone-700">
-                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
-                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E8DFC8] shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-primary shrink-0" />
                   <span>{language === "en" ? "100% Ancient Orchard" : "Nhãn Lồng Hương Chi Cổ Thụ"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
-                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E8DFC8] shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-primary shrink-0" />
                   <span>{language === "en" ? "Convection Heat Drying" : "Sấy Đối Lưu Khép Kín"}</span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-amber-200/60 shadow-xs">
-                  <CheckCircle className="w-4 h-4 text-[#173522] shrink-0" />
+                <div className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E8DFC8] shadow-xs">
+                  <CheckCircle className="w-4 h-4 text-primary shrink-0" />
                   <span>{language === "en" ? "No Additives • Pure" : "Chuẩn Vị • Không Phụ Gia"}</span>
                 </div>
               </div>
@@ -1135,28 +1135,28 @@ export default function LandingPage() {
                     variants={fadeUp}
                     whileHover={prefersReducedMotion ? undefined : { y: -8 }}
                     key={i}
-                    className="relative overflow-hidden bg-white p-7 sm:p-8 rounded-3xl border border-amber-200/60 hover:border-amber-400/80 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between h-full"
+                    className="relative overflow-hidden bg-white p-7 sm:p-8 rounded-3xl border border-[#E8DFC8] hover:border-primary/50 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between h-full"
                   >
                     {/* Hào quang nền dịu nhẹ khi hover */}
                     <div
                       aria-hidden="true"
                       className="absolute right-0 top-0 w-36 h-36 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                       style={{
-                        background: "radial-gradient(circle at 80% 20%, rgba(254, 243, 199, 0.7) 0%, transparent 70%)",
+                        background: "radial-gradient(circle at 80% 20%, rgba(243, 212, 152, 0.45) 0%, transparent 70%)",
                       }}
                     />
 
                     <div>
                       <div className="flex items-center justify-between mb-6">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-50 text-accent flex items-center justify-center">
-                          <CardIcon className="w-6 h-6 text-[#92400E]" strokeWidth={2.2} />
+                        <div className="w-14 h-14 rounded-2xl bg-[#F4EFE6] text-accent flex items-center justify-center">
+                          <CardIcon className="w-6 h-6 text-primary" strokeWidth={2.2} />
                         </div>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-accent">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#F4EFE6] text-primary border border-[#E8DFC8]">
                           {language === "en" ? `Value 0${i + 1}` : `Giá Trị 0${i + 1}`}
                         </span>
                       </div>
 
-                      <h3 className="relative text-xl font-bold text-[#173522] mb-3 group-hover:text-[#92400E] transition-colors [text-wrap:balance] min-h-[3.25rem] flex items-center">
+                      <h3 className="relative text-xl font-bold text-primary mb-3 group-hover:text-accent transition-colors [text-wrap:balance] min-h-[3.25rem] flex items-center">
                         {val.title}
                       </h3>
                       <p className="relative text-stone-600 leading-relaxed text-base [text-wrap:pretty]">
@@ -1195,7 +1195,7 @@ export default function LandingPage() {
                 <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-2xl [text-wrap:pretty]">
                   {language === "en" ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute." : cmsContent.StoryDescription || "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
                 </p>
-                <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-50/80 via-amber-50/40 to-transparent border-l-4 border-[#B45309] shadow-2xs">
+                <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#F4EFE6] via-[#FAF8F5] to-transparent border-l-4 border-accent shadow-2xs">
                   <p className="text-foreground/85 italic max-w-xl text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
                     {language === "en" ? "\"Pho Hien longan, it is said that its sweetness permeates the alluvium of the Red River, blended with the sun and wind of the delta. For generations, the people here preserve the craft of making longan, as a way to preserve the homeland soul.\"" : "\"Nhãn lồng Phố Hiến, người ta nói vị ngọt của nó thấm cả cái chất phù sa sông Hồng, quyện với nắng gió của vùng châu thổ. Trăm năm nay, người dân nơi đây vẫn giữ cái nghề làm long nhãn, như một cách lưu giữ hồn quê hương.\""}
                   </p>
@@ -1236,8 +1236,8 @@ export default function LandingPage() {
             </Reveal>
             <div ref={timelineRef} className="relative border-l-2 border-accent pl-6 sm:pl-8 ml-3 sm:ml-4 md:ml-0 md:pl-0 md:border-l-0 text-left md:text-center space-y-8 sm:space-y-12">
               {/* Trục thời gian được "vẽ" dần theo nhịp cuộn (chỉ hiện ở desktop, nơi các mốc nằm giữa) */}
-              <div aria-hidden className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 h-full w-[2px] bg-[#FDE68A]/80 rounded-full overflow-hidden">
-                <motion.div style={{ scaleY: timelineScaleY }} className="w-full h-full origin-top bg-gradient-to-b from-[#B45309] to-[#D97706]" />
+              <div aria-hidden className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 h-full w-[2px] bg-[#E8DFC8] rounded-full overflow-hidden">
+                <motion.div style={{ scaleY: timelineScaleY }} className="w-full h-full origin-top bg-gradient-to-b from-accent to-[#D97706]" />
               </div>
               <div className="relative md:flex items-center justify-between gap-8">
                 <div className="md:w-1/2 text-right hidden md:block">
@@ -1254,7 +1254,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.c16_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{t.history.c16_desc.split(". ")[0]}.</p>
-                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.c16_desc.split(". ")[1]}</div>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-border/80 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.c16_desc.split(". ")[1]}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8 flex-row-reverse">
@@ -1272,7 +1272,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-right">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.tree_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{language === "en" ? "Historical monument at Hien Pagoda." : "Di tích lịch sử tại Chùa Hiến."}</p>
-                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.tree_desc}</div>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-border/80 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.tree_desc}</div>
                 </div>
               </div>
               <div className="relative md:flex items-center justify-between gap-8">
@@ -1290,7 +1290,7 @@ export default function LandingPage() {
                 <div className="md:w-1/2 md:text-left">
                   <h3 className="text-lg sm:text-2xl font-bold text-accent md:hidden [text-wrap:balance]">{t.history.year2010_title}</h3>
                   <p className="text-sm text-foreground/80 md:hidden mb-2 [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[0]}.</p>
-                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-[#FDE68A]/70 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[1]}</div>
+                  <div className="bg-white/95 p-3.5 sm:p-4 rounded-xl border border-border/80 text-xs sm:text-sm text-foreground/85 leading-relaxed shadow-2xs [text-wrap:pretty]">{t.history.year2010_desc.split(". ")[1]}</div>
                 </div>
               </div>
             </div>
@@ -1909,13 +1909,13 @@ export default function LandingPage() {
 
       </main>
 
-      {/* 14. Footer */}
-      <footer id="lien-he" className="bg-foreground text-background py-16 border-t border-primary overflow-hidden w-full max-w-full [contain:paint]">
+      {/* 14. Footer — Xanh Ngọc Bích Đêm (#09231B) & Vàng Kim (#F3D498) */}
+      <footer id="lien-he" className="bg-[#09231B] text-[#FAF8F5] py-16 border-t border-[#1D4D3E] overflow-hidden w-full max-w-full [contain:paint]">
         <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
               <div className="space-y-4 md:col-span-1">
-                <h3 style={{ fontFamily: 'var(--font-playfair)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
+                <h3 style={{ fontFamily: 'var(--font-playfair)' }} className="text-[34px] font-bold text-[#F3D498] flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
                     <span className="absolute">NN</span>
                     <FastImage
@@ -1929,13 +1929,13 @@ export default function LandingPage() {
                   </div>
                   <span className="leading-tight">Nguyệt Nhãn Phố Hiến</span>
                 </h3>
-                <p className="text-stone-300 text-sm leading-relaxed">
+                <p className="text-[#B5C4BC] text-sm leading-relaxed">
                   {language === "en" ? "The brand providing authentic Pho Hien Dried Longan specialty. 100% natural, no preservatives, preserving traditional flavors." : "Thương hiệu cung cấp đặc sản Long Nhãn Phố Hiến chính gốc. Cam kết 100% tự nhiên, không chất bảo quản, giữ trọn hương vị truyền thống."}
                 </p>
               </div>
               <div className="space-y-4">
-                <h4 className="text-lg font-bold text-white">{t.nav.contact}</h4>
-                <ul className="space-y-2 text-stone-300 text-sm">
+                <h4 className="text-lg font-bold text-[#F3D498]">{t.nav.contact}</h4>
+                <ul className="space-y-2 text-[#B5C4BC] text-sm">
                   <li>Hotline/Zalo: {cmsContent.FooterHotline || "034 897 3285"}</li>
                   <li>Email: {cmsContent.ContactEmail || "nguyetnhanphohien@gmail.com"}</li>
                   <li>{language === "en" ? "Address" : "Địa chỉ"}: {cmsContent.FooterAddress || (language === "en" ? "123 Pho Hien, Hong Chau Ward, Hung Yen City" : "123 Phố Hiến, Phường Hồng Châu, Tp. Hưng Yên")}</li>
@@ -1943,38 +1943,38 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="space-y-4">
-                <h4 className="text-lg font-bold text-white">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
-                <ul className="space-y-2 text-stone-300 text-sm flex flex-col items-start">
-                  <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-white transition-colors text-left">{t.nav.products}</button></li>
-                  <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-white transition-colors text-left">{t.nav.story}</button></li>
-                  <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-white transition-colors text-left">{t.history.title}</button></li>
-                  <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-white transition-colors text-left">{t.culture.title}</button></li>
+                <h4 className="text-lg font-bold text-[#F3D498]">{language === "en" ? "Navigation" : "Điều Hướng"}</h4>
+                <ul className="space-y-2 text-[#B5C4BC] text-sm flex flex-col items-start">
+                  <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.nav.products}</button></li>
+                  <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.nav.story}</button></li>
+                  <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.history.title}</button></li>
+                  <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.culture.title}</button></li>
                 </ul>
               </div>
               <div className="space-y-4">
-                <h4 className="text-lg font-bold text-white">{language === "en" ? "Policies" : "Chính Sách"}</h4>
-                <ul className="space-y-2 text-stone-300 text-sm flex flex-col items-start">
-                  <li><Link href="/chinh-sach/giao-hang" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
-                  <li><Link href="/chinh-sach/doi-tra" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
-                  <li><Link href="/chinh-sach/bao-mat" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
-                  <li><Link href="/chinh-sach/kiem-dinh" prefetch={true} className="hover:text-white transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
+                <h4 className="text-lg font-bold text-[#F3D498]">{language === "en" ? "Policies" : "Chính Sách"}</h4>
+                <ul className="space-y-2 text-[#B5C4BC] text-sm flex flex-col items-start">
+                  <li><Link href="/chinh-sach/giao-hang" prefetch={true} className="hover:text-[#F3D498] transition-colors text-left">{language === "en" ? "Shipping Policy" : "Chính sách giao hàng"}</Link></li>
+                  <li><Link href="/chinh-sach/doi-tra" prefetch={true} className="hover:text-[#F3D498] transition-colors text-left">{language === "en" ? "Return Policy" : "Chính sách đổi trả"}</Link></li>
+                  <li><Link href="/chinh-sach/bao-mat" prefetch={true} className="hover:text-[#F3D498] transition-colors text-left">{language === "en" ? "Privacy Policy" : "Bảo mật thông tin"}</Link></li>
+                  <li><Link href="/chinh-sach/kiem-dinh" prefetch={true} className="hover:text-[#F3D498] transition-colors text-left">{language === "en" ? "Quality Inspection" : "Kiểm định chất lượng"}</Link></li>
                 </ul>
               </div>
             </div>
           </Reveal>
-          <div className="border-t border-primary mt-12 pt-8 text-center text-stone-300 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t border-[#1D4D3E] mt-12 pt-8 text-center text-[#B5C4BC] text-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex gap-4 items-center">
               {/* Social Icons */}
-              <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
+              <a href="https://www.facebook.com/NguyetNhanPhoHien" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0E2E24] border border-[#1D4D3E] flex items-center justify-center hover:bg-accent hover:border-accent hover:-translate-y-1 transition-all text-white group" title="Facebook">
                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z" /></svg>
               </a>
-              <a href="https://zalo.me/0982072601" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Zalo">
+              <a href="https://zalo.me/0982072601" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0E2E24] border border-[#1D4D3E] flex items-center justify-center hover:bg-accent hover:border-accent hover:-translate-y-1 transition-all text-white group" title="Zalo">
                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5C21 16.19 16.97 20 12 20C10.87 20 9.8 19.8 8.8 19.45C8.42 19.32 8.02 19.29 7.63 19.36L4.7 19.92C4.16 20.02 3.65 19.51 3.75 18.97L4.31 16.04C4.38 15.65 4.35 15.25 4.22 14.87C3.87 13.87 3.67 12.8 3.67 11.67C3.67 6.98 7.7 3.17 12.67 3.17C17.64 3.17 21 6.98 21 11.5Z" /><text x="12" y="15" fontFamily="Arial" fontSize="7" fontWeight="bold" fill="currentColor" stroke="none" textAnchor="middle">Zalo</text></svg>
               </a>
-              <a href="https://www.instagram.com/Nguy%E1%BB%87t%20Nh%C3%A3n%20Ph%E1%BB%91%20Hi%E1%BA%BFn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Instagram">
+              <a href="https://www.instagram.com/Nguy%E1%BB%87t%20Nh%C3%A3n%20Ph%E1%BB%91%20Hi%E1%BA%BFn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0E2E24] border border-[#1D4D3E] flex items-center justify-center hover:bg-accent hover:border-accent hover:-translate-y-1 transition-all text-white group" title="Instagram">
                 <svg className="w-5 h-5 fill-none stroke-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
               </a>
-              <a href="https://www.tiktok.com/@nguyetnhan888?_r=1&_t=ZS-99nuoBxZRau" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary flex items-center justify-center hover:bg-accent hover:-translate-y-1 transition-all text-white group" title="Tiktok">
+              <a href="https://www.tiktok.com/@nguyetnhan888?_r=1&_t=ZS-99nuoBxZRau" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0E2E24] border border-[#1D4D3E] flex items-center justify-center hover:bg-accent hover:border-accent hover:-translate-y-1 transition-all text-white group" title="Tiktok">
                 <svg className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.24-2.61.94-5.26 3.15-6.81 1.76-1.23 4-1.67 6.13-1.25V9.41c-1.31-.22-2.64-.17-3.92.2-1.57.46-2.94 1.48-3.79 2.85-.92 1.45-1.13 3.32-.61 4.96.48 1.48 1.54 2.82 2.93 3.48 1.63.76 3.63.76 5.25-.13 1.99-1.07 3.2-3.23 3.19-5.49-.04-4.84-.01-9.68-.01-14.52H12.53z" /></svg>
               </a>
             </div>

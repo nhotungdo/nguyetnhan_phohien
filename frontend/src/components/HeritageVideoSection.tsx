@@ -58,12 +58,12 @@ export function HeritageVideoSection({
     <section
       id="thuoc-phim"
       ref={containerRef}
-      className="relative py-16 sm:py-24 lg:py-28 bg-[#24140B] text-[#FAF6F0] overflow-hidden w-full max-w-full border-t border-b border-[#3D2516]"
+      className="relative py-16 sm:py-24 lg:py-28 bg-[#09231B] text-[#FAF8F5] overflow-hidden w-full max-w-full border-t border-b border-[#1D4D3E]"
     >
       {/* 1. Hiệu ứng ánh sáng hoàng kim nền an toàn, không tràn màn hình */}
       <div 
         aria-hidden 
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-80 bg-[radial-gradient(ellipse,rgba(217,119,6,0.18)_0%,rgba(120,53,15,0.08)_45%,transparent_70%)] pointer-events-none" 
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-80 bg-[radial-gradient(ellipse,rgba(217,119,6,0.18)_0%,rgba(15,62,48,0.12)_45%,transparent_70%)] pointer-events-none" 
       />
       <div 
         aria-hidden 
@@ -83,8 +83,8 @@ export function HeritageVideoSection({
           className="text-center space-y-3.5 mb-10 sm:mb-14"
         >
           {/* Huy hiệu ký sự */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3A2113] text-[#FDE68A] text-xs sm:text-sm font-semibold border border-[#5C361C] shadow-xs">
-            <Film className="w-4 h-4 text-[#FDE68A]" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0E2E24] text-[#F3D498] text-xs sm:text-sm font-semibold border border-[#2D6A56] shadow-xs">
+            <Film className="w-4 h-4 text-[#F3D498]" />
             <span className="uppercase tracking-widest text-[11px] sm:text-xs">
               {language === "en" ? "Heritage Documentary Archive" : "Tư Liệu Ký Sự Di Sản"}
             </span>
@@ -92,12 +92,12 @@ export function HeritageVideoSection({
           </div>
 
           {/* Tiêu đề chính */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-[#FAF6F0] [text-wrap:balance]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-[#FAF8F5] [text-wrap:balance]">
             {language === "en" ? "First is Kinh Ky, Second is Pho Hien" : "Thứ Nhất Kinh Kỳ, Thứ Nhì Phố Hiến"}
           </h2>
 
           {/* Đoạn dẫn dắt */}
-          <p className="text-sm sm:text-base md:text-lg text-[#D6C7B2] max-w-3xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
+          <p className="text-sm sm:text-base md:text-lg text-[#B5C4BC] max-w-3xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
             {language === "en"
               ? "Follow the historical footsteps back to the 16th century, exploring the legendary port along the Red River where nature, culture, and artisanal devotion gave birth to the royal tribute longan."
               : "Ngược dòng thời gian về thế kỷ 16, ghé thăm đô thị cổ sầm uất ven bờ sông Hồng bồi đắp phù sa — Nơi đất thiêng hội tụ để hun đúc nên linh hồn thức quả tiến vua lưu truyền trăm năm."}
@@ -222,22 +222,22 @@ export function HeritageVideoSection({
             return (
               <div
                 key={index}
-                className="relative group p-5 sm:p-6 rounded-2xl bg-[#2E1B10] border border-[#4A2D1B] hover:border-[#D97706]/70 transition-all duration-300 hover:-translate-y-1 shadow-md hover:shadow-2xl"
+                className="relative group p-5 sm:p-6 rounded-2xl bg-[#0E2E24] border border-[#1D4D3E] hover:border-[#D97706]/70 transition-all duration-300 hover:-translate-y-1 shadow-md hover:shadow-2xl"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#451A03] to-[#78350F] border border-[#92400E]/60 flex items-center justify-center text-[#FDE68A] shrink-0 group-hover:scale-105 transition-all shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0F3E30] to-[#164E3D] border border-[#2D6A56] flex items-center justify-center text-[#F3D498] shrink-0 group-hover:scale-105 transition-all shadow-2xs">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#F59E0B] block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#D97706] block">
                       {item.tag}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-[#FAF6F0] group-hover:text-[#FDE68A] transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-[#FAF8F5] group-hover:text-[#F3D498] transition-colors">
                       {item.title}
                     </h3>
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm text-[#D6C7B2] leading-relaxed [text-wrap:pretty]">
+                <p className="text-xs sm:text-sm text-[#B5C4BC] leading-relaxed [text-wrap:pretty]">
                   {item.desc}
                 </p>
               </div>
@@ -250,19 +250,19 @@ export function HeritageVideoSection({
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.45 }}
-          className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#2E1B10] via-[#3A2113] to-[#2E1B10] border border-[#5C361C] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left"
+          className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#0E2E24] via-[#11362B] to-[#0E2E24] border border-[#2D6A56] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left"
         >
           <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#F59E0B] block text-center sm:text-left">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#D97706] block text-center sm:text-left">
               {language === "en" ? "Timeless Folk Heritage" : "Ca Dao Cổ Phố Hiến"}
             </span>
             <p 
               style={{ fontFamily: "var(--font-playfair)" }}
-              className="text-xl sm:text-2xl md:text-3xl font-bold text-[#FDE68A] tracking-wide"
+              className="text-xl sm:text-2xl md:text-3xl font-bold text-[#F3D498] tracking-wide"
             >
               &ldquo;{language === "en" ? "First was the Imperial Capital, second was Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"}&rdquo;
             </p>
-            <p className="text-xs text-[#D6C7B2] italic">
+            <p className="text-xs text-[#B5C4BC] italic">
               {language === "en" 
                 ? "Preserving the authentic royal tribute taste through centuries of Vietnamese culture."
                 : "Lưu truyền nguyên vẹn tinh túy ngự phẩm tiến vua qua ngàn năm văn hiến."}

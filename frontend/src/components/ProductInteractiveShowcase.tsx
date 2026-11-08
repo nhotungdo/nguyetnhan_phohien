@@ -359,8 +359,8 @@ export function ProductInteractiveShowcase({
                       }}
                       className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
                         isCurrent
-                          ? "bg-amber-100/90 ring-1 ring-amber-700/30 shadow-xs"
-                          : "bg-stone-100/70 hover:bg-stone-100"
+                          ? "bg-[#F4EFE6] ring-1 ring-primary/40 shadow-xs"
+                          : "bg-white/80 hover:bg-white border border-border/40"
                       }`}
                     >
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden relative border border-border/40 shrink-0 bg-white">
@@ -378,7 +378,7 @@ export function ProductInteractiveShowcase({
                         <div className="text-[11px] sm:text-xs font-bold text-primary truncate sm:line-clamp-2 leading-tight" title={prod.name}>
                           {prod.name}
                         </div>
-                        <div className="text-xs font-bold text-[#854D0E] leading-tight mt-0.5">
+                        <div className="text-xs font-bold text-accent leading-tight mt-0.5">
                           {formatPrice(prod.price)}
                         </div>
                       </div>
@@ -393,8 +393,8 @@ export function ProductInteractiveShowcase({
               <div className="w-full">
                 {/* Quy cách & Tên */}
                 <div className="flex items-center justify-between gap-2 mb-1.5 w-full">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary text-accent text-[11px] sm:text-xs font-bold tracking-wide uppercase shrink-0">
-                    <Award className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#A61C45] text-white text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-xs shrink-0">
+                    <Award className="w-3 h-3 text-[#F3D498]" />
                     {language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua"}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full shrink-0">
@@ -451,7 +451,7 @@ export function ProductInteractiveShowcase({
                     className={`flex-1 border-2 font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
                       isAdded
                         ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/30"
-                        : "border-accent text-accent hover:bg-[#FEF3C7] hover:border-amber-500"
+                        : "border-accent text-accent hover:bg-accent/10 hover:border-accent"
                     }`}
                   >
                     {isAdded ? (

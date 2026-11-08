@@ -395,11 +395,11 @@ export function ProductPairingSection({
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
-              className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-amber-50/90 via-white to-amber-100/30 border-2 border-amber-300 shadow-lg relative overflow-hidden flex flex-col justify-between"
+              className="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#FAF8F5] via-white to-[#F4EFE6] border-2 border-primary/80 shadow-lg relative overflow-hidden flex flex-col justify-between"
             >
               <div
                 aria-hidden
-                className="absolute top-0 right-0 w-44 h-44 bg-[radial-gradient(circle,rgba(245,158,11,0.15)_0%,transparent_70%)] pointer-events-none"
+                className="absolute top-0 right-0 w-44 h-44 bg-[radial-gradient(circle,rgba(15,62,48,0.1)_0%,transparent_70%)] pointer-events-none"
               />
 
               <div>
@@ -408,7 +408,7 @@ export function ProductPairingSection({
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span>{language === "en" ? "Royal Heritage Standard" : "Nguyệt Nhãn Phố Hiến (Chuẩn Cung Đình)"}</span>
                   </div>
-                  <span className="text-xs font-semibold text-accent bg-amber-100/70 px-2.5 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-primary bg-[#F4EFE6] border border-[#E8DFC8] px-2.5 py-0.5 rounded-full">
                     {language === "en" ? "100% Pure" : "100% Thuần Khiết"}
                   </span>
                 </div>
@@ -457,7 +457,7 @@ export function ProductPairingSection({
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-amber-200/60 flex items-center gap-2 text-xs text-emerald-800 font-semibold">
+              <div className="mt-6 pt-4 border-t border-border flex items-center gap-2 text-xs text-emerald-800 font-semibold">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>{language === "en" ? "Guaranteed additive-free, zero sugar added, zero sulfur smoke." : "Cam kết không tẩm đường, không xông lưu huỳnh, sấy nhiệt khép kín."}</span>
               </div>
@@ -606,7 +606,7 @@ export function ProductPairingSection({
                     {isActive && (
                       <motion.div
                         layoutId="activeRecipeTab"
-                        className="absolute inset-0 bg-gradient-to-r from-[#92400E] to-[#B45309] rounded-xl sm:rounded-2xl shadow-sm"
+                        className="absolute inset-0 bg-primary rounded-xl sm:rounded-2xl shadow-sm"
                         transition={{ type: "spring", stiffness: 350, damping: 28 }}
                       />
                     )}
