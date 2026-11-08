@@ -257,7 +257,7 @@ export function HeritageVideoSection({
               {language === "en" ? "Timeless Folk Heritage" : "Ca Dao Cổ Phố Hiến"}
             </span>
             <p 
-              style={{ fontFamily: "var(--font-dancing)" }}
+              style={{ fontFamily: "var(--font-playfair)" }}
               className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-wide"
             >
               &ldquo;{language === "en" ? "First was the Imperial Capital, second was Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"}&rdquo;

@@ -27,7 +27,7 @@ export default function PolicyLayout({ children }: { children: React.ReactNode }
             >
               {language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}
             </button>
-            <div style={{ fontFamily: "var(--font-dancing)" }} className="text-xl sm:text-2xl font-bold">
+            <div style={{ fontFamily: "var(--font-playfair)" }} className="text-xl sm:text-2xl font-bold">
               Nguyệt Nhãn Phố Hiến
             </div>
           </div>

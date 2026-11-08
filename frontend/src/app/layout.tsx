@@ -1,22 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Dancing_Script } from "next/font/google";
+import { Be_Vietnam_Pro, Playfair_Display, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const beVietnam = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam",
   subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin", "latin-ext", "vietnamese"],
-});
-
-const dancingScript = Dancing_Script({
-  variable: "--font-dancing",
-  subsets: ["vietnamese"],
-  weight: ["700"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -114,7 +118,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable}`}>
+    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${geistMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
   Crown,
   Plus,
@@ -10,7 +10,6 @@ import {
   ChevronRight, 
   Award, 
   Check, 
-  Layers,
   Info
 } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
@@ -65,15 +64,6 @@ function getProductHotspots(lang: "vi" | "en") {
   ];
 }
 
-// Dữ liệu chỉ số cảm quan
-const PRODUCT_METRICS = [
-  { label: "Độ ngọt thanh tự nhiên", labelEn: "Natural Sweetness", value: 98, color: "from-amber-400 to-amber-600" },
-  { label: "Độ dẻo mọng cùi nhãn", labelEn: "Texture & Chewy", value: 95, color: "from-emerald-500 to-teal-600" },
-  { label: "Hương thơm nhãn lồng tự nhiên", labelEn: "Natural Longan Aroma", value: 100, color: "from-orange-400 to-red-500" },
-  { label: "Tỷ lệ hạt loại 1 tròn đều", labelEn: "Grade A Uniformity", value: 99, color: "from-yellow-400 to-amber-500" },
-];
-
-
 export function ProductInteractiveShowcase({
   products,
   language,
@@ -107,27 +97,6 @@ export function ProductInteractiveShowcase({
     }
   };
 
-  // Dùng useMotionValue thay cho useState để cập nhật GPU transform trực tiếp mà KHÔNG gây re-render component
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateXSpring = useSpring(useTransform(mouseY, [-0.5, 0.5], [6, -6]), { stiffness: 240, damping: 22 });
-  const rotateYSpring = useSpring(useTransform(mouseX, [-0.5, 0.5], [-6, 6]), { stiffness: 240, damping: 22 });
-
-  // Xử lý hiệu ứng 3D tilt theo góc chuột trực tiếp qua GPU mà không trigger re-render
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (prefersReducedMotion || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-
   const formatPrice = (price: number) => {
     if (language === "en") {
       return `$${(price / 25000).toFixed(2)}`;
@@ -157,7 +126,7 @@ export function ProductInteractiveShowcase({
   };
 
   return (
-    <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-gradient-to-b from-white via-amber-50/20 to-white w-full max-w-full [contain:paint]">
+    <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-white w-full max-w-full [contain:paint]">
       {/* Nền trang trí hạt ánh sáng */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-6 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[400px] bg-[radial-gradient(ellipse,rgba(253,230,138,0.25)_0%,rgba(253,230,138,0)_70%)] rounded-full pointer-events-none" />
@@ -208,7 +177,7 @@ export function ProductInteractiveShowcase({
                   {isSelected && (
                     <motion.div
                       layoutId="activeShowcaseTab"
-                      className="absolute inset-0 bg-gradient-to-r from-[#92400E] to-[#B45309] rounded-xl shadow-xs"
+                      className="absolute inset-0 bg-[#79502E] rounded-xl shadow-xs"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -237,8 +206,6 @@ export function ProductInteractiveShowcase({
             <div className="lg:col-span-5 flex flex-col items-center w-full min-w-0 max-w-full">
               <div
                 ref={cardRef}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
                 onClick={() => setActiveHotspot(null)}
                 className="relative w-full aspect-[4/5] max-h-[360px] sm:max-h-[400px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-amber-50/40 via-white to-amber-100/20 cursor-crosshair group select-none flex items-center justify-center"
                 style={{
@@ -249,8 +216,8 @@ export function ProductInteractiveShowcase({
                 <motion.div
                   className="w-full h-full relative flex items-center justify-center will-change-transform"
                   style={{
-                    rotateX: prefersReducedMotion ? 0 : rotateXSpring,
-                    rotateY: prefersReducedMotion ? 0 : rotateYSpring,
+                    rotateX: 0,
+                    rotateY: 0,
                     transformStyle: "preserve-3d",
                   }}
                   whileHover={{ scale: 1.02 }}
@@ -309,7 +276,7 @@ export function ProductInteractiveShowcase({
                         aria-expanded={isActive}
                         aria-controls={tooltipId}
                       >
-                        <span className="absolute inset-0 rounded-full bg-accent/40 animate-ping" />
+                        <span className="absolute inset-0 rounded-full bg-accent/10" />
                         <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-accent text-white shadow-md border-2 border-white font-bold text-xs transition-transform transform group-hover/pin:scale-110">
                           <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </span>
@@ -453,36 +420,6 @@ export function ProductInteractiveShowcase({
                   </span>
                 </div>
 
-                {/* Bảng chỉ số cảm quan (Sensory Metrics) với bố cục 2 cột gọn gàng */}
-                <div className="space-y-2 mb-3.5 w-full">
-                  <div className="text-xs font-bold uppercase tracking-wider text-primary/80 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-accent" />
-                    <span>{language === "en" ? "Sensory Quality Profile" : "Chỉ Số Tinh Túy Cảm Quan"}</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                    {PRODUCT_METRICS.map((metric, idx) => (
-                      <div key={idx} className="space-y-0.5 w-full">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="text-foreground/85 truncate">
-                            {language === "en" ? metric.labelEn : metric.label}
-                          </span>
-                          <span className="font-bold text-primary ml-1 shrink-0 tabular-nums">{metric.value}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-secondary/60 rounded-full overflow-hidden p-0.5">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${metric.value}%` }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: idx * 0.1, ease: EASE_OUT_EXPO }}
-                            className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Cam kết chất lượng 4 điểm */}
                 <div className="grid grid-cols-2 gap-2 py-2.5 border-t border-b border-border/50 mb-3.5 text-xs text-foreground/80 w-full">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -534,7 +471,7 @@ export function ProductInteractiveShowcase({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
-                  className="flex-[1.2] bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 hover:shadow-lg hover:shadow-[#92400E]/35 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap sheen group"
+                  className="flex-[1.2] bg-[#79502E] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 hover:shadow-lg hover:shadow-[#92400E]/35 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap group"
                 >
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>

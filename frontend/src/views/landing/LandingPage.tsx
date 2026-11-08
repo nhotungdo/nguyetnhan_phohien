@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Bot, Leaf, Flame, ShieldCheck, Award, Headphones, Play } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { EASE_OUT_EXPO, fadeUp, Reveal, ScrollProgressBar, staggerContainer } from "@/components/LandingMotion";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Bot, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
+import { EASE_OUT_EXPO, fadeUp, Reveal, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth } from "@/services/api.service";
 import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
 import { useOrderForm } from "@/hooks/useOrderForm";
@@ -27,9 +27,7 @@ import { useCartStore } from "@/stores/useCartStore";
 import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
-import { AnimatedWaveBackground } from "@/components/AnimatedWaveBackground";
 import { FireworksCelebration } from "@/components/FireworksCelebration";
-import { LiveOrderToast } from "@/components/LiveOrderToast";
 import { HeritageVideoSection } from "@/components/HeritageVideoSection";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 
@@ -136,18 +134,8 @@ export default function LandingPage() {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Parallax: khối chữ và khối ảnh hero trôi chậm hơn nhịp cuộn → tạo chiều sâu.
-  // Tắt hẳn khi người dùng bật "giảm chuyển động" trong hệ điều hành.
-  const heroRef = useRef<HTMLElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
-
-  const { scrollYProgress: heroScroll } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const heroImageY = useTransform(heroScroll, [0, 1], [0, prefersReducedMotion ? 0 : 90]);
-  const heroContentY = useTransform(heroScroll, [0, 1], [0, prefersReducedMotion ? 0 : 45]);
 
   // Mục Lịch sử: đường trục được "vẽ" dần theo tiến độ cuộn qua khối timeline.
   const { scrollYProgress: timelineScroll } = useScroll({
@@ -636,10 +624,10 @@ export default function LandingPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.32, ease: "easeOut" }}
-      className="min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground w-full max-w-full overflow-x-clip"
+      className="storefront min-h-screen bg-background text-foreground font-sans selection:bg-accent selection:text-accent-foreground w-full max-w-full overflow-x-clip"
     >
       {/* Thanh tiến trình cuộn — phản hồi tức thì vị trí đang đọc */}
-      <ScrollProgressBar />
+
 
       {/* Gallery Modal */}
       {galleryProduct && (
@@ -676,20 +664,17 @@ export default function LandingPage() {
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
-            <span style={{ fontFamily: 'var(--font-dancing)' }} className="font-bold text-lg min-[360px]:text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary whitespace-nowrap">
+            <span style={{ fontFamily: 'var(--font-playfair)' }} className="font-bold text-lg min-[360px]:text-xl sm:text-2xl md:text-[28px] tracking-wide transition-colors text-primary whitespace-nowrap">
               Nguyệt Nhãn Phố Hiến
             </span>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2 lg:gap-3.5 xl:gap-5 2xl:gap-6 shrink-0">
+          <nav className="hidden xl:flex items-center gap-2 lg:gap-3.5 xl:gap-5 2xl:gap-6 shrink-0">
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
-              { label: t.nav.film || "Thước phim", id: "thuoc-phim" },
-              { label: t.nav.history, id: "lich-su" },
               { label: t.nav.process, id: "quy-trinh" },
-              { label: t.nav.culture, id: "van-hoa" },
               { label: t.nav.contact, id: "lien-he" }
             ].map((item, index) => (
               <button
@@ -712,7 +697,7 @@ export default function LandingPage() {
             </Link>
           </nav>
 
-          <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4 shrink-0">
+          <div className="hidden xl:flex items-center gap-2 lg:gap-3 xl:gap-4 shrink-0">
             <button
               onClick={() => setLanguage(language === "vi" ? "en" : "vi")}
               className="text-xs lg:text-sm font-bold text-foreground/80 border px-2.5 lg:px-3 py-1.5 rounded-full hover:bg-muted transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0"
@@ -747,7 +732,7 @@ export default function LandingPage() {
           </div>
 
           {/* Mobile Right Controls */}
-          <div className="flex md:hidden items-center gap-1">
+          <div className="flex xl:hidden items-center gap-1">
             {!isMobileMenuOpen && (
               <>
                 <button
@@ -775,6 +760,7 @@ export default function LandingPage() {
               className="p-2 text-foreground/80 rounded-xl hover:bg-black/5 active:scale-95 transition-all"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Menu"
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6 text-primary" /> : <Menu className="w-6 h-6 text-primary" />}
             </button>
@@ -794,7 +780,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
-            className="fixed inset-0 z-[60] bg-white/98 backdrop-blur-xl pt-20 px-6 pb-8 flex flex-col justify-between md:hidden overflow-y-auto"
+            className="fixed inset-0 z-[60] bg-white/98 backdrop-blur-xl pt-20 px-6 pb-8 flex flex-col justify-between xl:hidden overflow-y-auto"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
@@ -940,49 +926,15 @@ export default function LandingPage() {
 
       <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
         {/* 2. Hero Banner */}
-        <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center pt-20 overflow-hidden w-full max-w-full [contain:paint]">
-          {/* Background Elements */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FEF3C7]/40 via-[#FFFDF8] to-[#FAFAF9]" />
-            <div className="absolute inset-0 bg-[#FDE68A]/15" />
-            
-            {/* Vầng sáng hoàng kim cao cấp dùng CSS Radial Gradient thuần túy (loại bỏ hoàn toàn filter: blur để tương thích 100% WebKit/iOS Safari) */}
-            <div
-              className="absolute top-0 left-0 w-[420px] max-w-full h-[420px] pointer-events-none"
-              style={{
-                background: "radial-gradient(circle at 15% 15%, rgba(253, 230, 138, 0.45) 0%, rgba(253, 230, 138, 0.18) 45%, transparent 70%)",
-              }}
-            />
-            <div
-              className="absolute top-1/4 right-0 w-[460px] max-w-full h-[460px] pointer-events-none"
-              style={{
-                background: "radial-gradient(circle at center, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.2) 45%, transparent 70%)",
-              }}
-            />
-            <div
-              className="absolute bottom-4 right-1/4 w-[320px] max-w-full h-[320px] pointer-events-none"
-              style={{
-                background: "radial-gradient(circle at center, rgba(255, 237, 213, 0.4) 0%, rgba(254, 215, 170, 0.15) 50%, transparent 70%)",
-              }}
-            />
-          </div>
-
+        <section id="hero" className="bg-[#F7F3EB] pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
             <motion.div
-              style={{ y: heroContentY }}
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="space-y-8 max-w-xl"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-secondary via-amber-50 to-secondary text-accent text-xs sm:text-sm font-bold border border-[#FDE68A] shadow-xs gold-shimmer-badge">
-                <span className="w-2 h-2 rounded-full bg-accent shrink-0 animate-pulse" />
-                <span>{language === "en" ? "Essence of Pho Hien" : "Tinh túy đất Phố Hiến"}</span>
-                <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 font-extrabold uppercase">
-                  {language === "en" ? "Royal Tribute" : "Tiến Vua"}
-                </span>
-              </div>
-              <h1 className="text-4xl sm:text-[40px] md:text-5xl lg:text-[52px] xl:text-[60px] font-black text-primary leading-[1.14] tracking-tight [text-wrap:balance]">
+              <h1 className="text-4xl sm:text-[40px] md:text-5xl lg:text-[52px] xl:text-[60px] font-semibold text-primary leading-[1.18] tracking-tight [text-wrap:balance]">
                 <motion.span
                   initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1012,49 +964,17 @@ export default function LandingPage() {
               </motion.p>
 
 
-              <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-4 pt-2 sm:pt-4">
-                <div className="relative w-full sm:w-auto">
-                  <span className="absolute -inset-1 rounded-full bg-accent/25 animate-pulse-ring pointer-events-none" />
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => scrollToSection("san-pham")}
-                    className="relative w-full sm:w-auto bg-gradient-to-r from-[#854D0E] via-[#A15C0E] to-[#B45309] text-white text-sm sm:text-base font-bold px-7 sm:px-9 py-3.5 sm:py-4 rounded-full shadow-xl shadow-[#854D0E]/25 hover:shadow-2xl hover:shadow-[#854D0E]/35 transition-all flex items-center justify-center gap-2 cursor-pointer sheen group"
-                  >
-                    <span>{t.hero.discover}</span>
-                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" />
-                  </motion.button>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5 w-full sm:flex sm:w-auto">
-                  <Link
-                    href="/tu-chon-hat"
-                    className="w-full sm:w-auto bg-gradient-to-r from-amber-100 via-amber-200 to-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-base font-bold px-3 sm:px-7 py-3 sm:py-4 rounded-full flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 text-center"
-                  >
-                    <span>{t.nav.custom_mix || "Tự Chọn Hạt"}</span>
-                  </Link>
-                  <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: "#FEF3C7" }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => scrollToSection("cau-chuyen")}
-                    className="w-full sm:w-auto bg-white text-accent border border-[#FDE68A] text-xs sm:text-base font-semibold px-3 sm:px-8 py-3 sm:py-4 rounded-full flex items-center justify-center cursor-pointer text-center"
-                  >
-                    {t.nav.story}
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => scrollToSection("thuoc-phim")}
-                    className="w-full sm:w-auto col-span-2 sm:col-span-1 bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 hover:from-amber-900 hover:to-stone-800 text-amber-200 border border-amber-400/50 text-xs sm:text-base font-bold px-4 sm:px-6 py-3 sm:py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-black/30 transition-all"
-                  >
-                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400 text-amber-400" />
-                    <span>{language === "en" ? "Watch Film" : "Xem Thước Phim"}</span>
-                  </motion.button>
-                </div>
+              <div className="flex flex-wrap items-center gap-5 pt-2">
+                <button onClick={() => scrollToSection("san-pham")} className="bg-[#79502E] hover:bg-[#603D23] text-white font-semibold px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors">
+                  {language === "en" ? "Browse products" : "Xem sản phẩm"}<ArrowRight className="w-4 h-4" />
+                </button>
+                <button onClick={() => scrollToSection("cau-chuyen")} className="text-primary underline underline-offset-4 py-3">
+                  {t.nav.story}
+                </button>
               </div>
             </motion.div>
 
             <motion.div
-              style={{ y: heroImageY }}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -1079,67 +999,10 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 2b. Dải cam kết thương hiệu dạng chữ chạy quảng cáo vô tận (Infinite Marquee Ticker) */}
-        <div className="relative border-y border-amber-200/60 bg-gradient-to-r from-amber-50/50 via-[#FCFBF7] to-amber-50/50 py-3 sm:py-3.5 w-full max-w-full overflow-hidden shadow-[0_2px_12px_-4px_rgba(133,77,14,0.06)] group">
-          {/* Đường viền ánh kim hoàng gia trên đỉnh & đáy */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent z-20 pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent z-20 pointer-events-none" />
-
-          {/* Lớp phủ mờ dần (Fade Gradient Masks) ở hai mép viền để chữ trôi vào/ra mềm mại */}
-          <div className="absolute left-0 inset-y-0 w-16 sm:w-28 bg-gradient-to-r from-[#FCFBF7] via-[#FCFBF7]/90 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 inset-y-0 w-16 sm:w-28 bg-gradient-to-l from-[#FCFBF7] via-[#FCFBF7]/90 to-transparent z-10 pointer-events-none" />
-
-          {/* Tia sáng hoàng kim lướt nhẹ qua ribbon định kỳ (Shimmer ray) */}
-          <motion.div
-            aria-hidden="true"
-            initial={{ x: "-100%" }}
-            animate={prefersReducedMotion ? undefined : { x: "500%" }}
-            transition={{
-              repeat: Infinity,
-              duration: 7,
-              ease: "easeInOut",
-              repeatDelay: 3.5,
-            }}
-            className="absolute inset-y-0 w-48 bg-gradient-to-r from-transparent via-amber-300/25 to-transparent -skew-x-12 pointer-events-none z-[1]"
-          />
-
-          {/* Băng chuyền chữ chạy vô tận (Marquee Track) */}
-          <div className="animate-marquee-track items-center py-0.5">
-            {[0, 1].map((copyIndex) => (
-              <div
-                key={copyIndex}
-                className="flex items-center shrink-0"
-                aria-hidden={copyIndex === 1}
-              >
-                {[...brandCommitments, ...brandCommitments].map((item, idx) => {
-                  const IconComponent = item.icon;
-                  return (
-                    <div
-                      key={`${item.id}-${idx}`}
-                      className="flex items-center gap-4 sm:gap-6 shrink-0 pr-4 sm:pr-6"
-                    >
-                      <div className="group/item flex items-center gap-2 sm:gap-2.5 px-3 py-1.5 rounded-full hover:bg-amber-100/70 transition-colors duration-200 cursor-default select-none">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200/90 text-[#92400E] flex items-center justify-center shrink-0 ring-1 ring-amber-300/70 shadow-2xs group-hover/item:scale-110 group-hover/item:ring-amber-500 group-hover/item:shadow-[0_4px_12px_rgba(217,119,6,0.25)] transition-all duration-300">
-                          <IconComponent
-                            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#92400E] transition-transform duration-300 group-hover/item:rotate-12"
-                            strokeWidth={2.2}
-                          />
-                        </div>
-                        <span className="text-xs sm:text-[13px] md:text-sm font-bold text-stone-800 tracking-tight whitespace-nowrap group-hover/item:text-[#92400E] transition-colors duration-200">
-                          {item.label}
-                        </span>
-                      </div>
-
-                      {/* Biểu tượng phân cách hoàng gia giữa các mục */}
-                      <span className="text-amber-500/80 text-xs sm:text-sm font-black select-none pointer-events-none" aria-hidden="true">
-                        ✦
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+        <div className="border-y border-[#DED6C8] bg-[#FBF9F4]">
+          <ul className="container mx-auto px-4 md:px-6 py-5 flex flex-wrap gap-x-8 gap-y-3 text-sm text-[#584A3C]">
+            {brandCommitments.map((item) => <li key={item.id} className="flex items-center gap-2"><item.icon aria-hidden="true" className="w-4 h-4 shrink-0" />{item.label}</li>)}
+          </ul>
         </div>
 
         {/* 3. Khu vực sản phẩm tương tác cao cấp */}
@@ -1167,90 +1030,13 @@ export default function LandingPage() {
           <ProductComparisonSection language={language as "vi" | "en"} />
         </SectionErrorBoundary>
 
-        {/* 5. BANNER GIỚI THIỆU: CUSTOM MIX STUDIO - TỰ CHỌN HẠT ĐỘC BẢN */}
-        <section className="py-12 bg-gradient-to-b from-white via-amber-50/60 to-white overflow-hidden w-full max-w-full [contain:paint]">
-          <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#12100E] via-[#221B17] to-[#12100E] text-white p-6 sm:p-10 md:p-12 shadow-2xl border border-amber-500/30">
-              {/* Nền sóng nước động hoàng kim & bụi vàng phát sáng lung linh */}
-              <AnimatedWaveBackground />
-
-              <div className="relative z-10 grid md:grid-cols-12 gap-8 items-center">
-                <div className="md:col-span-7 space-y-4 text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                    <span>{t.custom_mix_banner?.badge || "Trải Nghiệm Độc Bản"}</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                    {language === "en" ? (
-                      <>Craft Your Blend · <span className="text-amber-300">Personalize Label</span></>
-                    ) : (
-                      <>Tự Tay Phối Hạt · <span className="text-amber-300">Khắc Tên Riêng</span></>
-                    )}
-                  </h2>
-                  <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                    {t.custom_mix_banner?.desc || "Tự do lựa chọn tỉ lệ vàng từ 5 loại hạt đặc sản & dinh dưỡng (Long nhãn Phố Hiến, Macca Tây Nguyên, Hạt điều rang mộc, Hạnh nhân nướng, Hạt bí xanh). In tem nhãn mang tên bạn & lời chúc trang trọng."}
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      {t.custom_mix_banner?.zip_150 || "Túi Zip 150g · 69.000đ"}
-                    </span>
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      {t.custom_mix_banner?.mica_300 || "Hộp Mica 300g · 153.000đ"}
-                    </span>
-                    <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full text-stone-200 border border-white/15">
-                      {t.custom_mix_banner?.gift_900 || "Lễ Hộp 900g · 756.000đ"}
-                    </span>
-                  </div>
-                  <div className="pt-3">
-                    <Link
-                      href="/tu-chon-hat"
-                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-sm shadow-lg shadow-black/35 hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <span>{t.custom_mix_banner?.cta || "Vào Xưởng Chế Tác Hạt Riêng"}</span>
-                      <ArrowRight className="w-4 h-4 text-stone-950" />
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="md:col-span-5 relative flex justify-center py-4">
-                  <div className="relative w-60 h-60 sm:w-72 sm:h-72 rounded-3xl overflow-hidden border border-amber-500/40 group shadow-2xl">
-                    <FastImage
-                      src="/images/setqua3.jpg"
-                      alt={language === "en" ? "Bespoke Custom Mix" : "Tự Chọn Hạt Độc Bản"}
-                      fill
-                      sizes="(max-width: 768px) 240px, 288px"
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent flex items-end p-4">
-                      <div>
-                        <span className="text-amber-300 font-bold text-xs block">
-                          {t.custom_mix_banner?.free_label || "Miễn phí thiết kế nhãn riêng"}
-                        </span>
-                        <span className="text-stone-300 text-xs">
-                          {t.custom_mix_banner?.food_safety || "Đóng gói chuẩn quy trình ATVSTP"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Các huy hiệu hạt bay bồng bềnh xung quanh hũ quà */}
-                  <motion.div
-                    animate={prefersReducedMotion ? undefined : { y: [-6, 6, -6] }}
-                    transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-2 -right-3 sm:-right-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
-                  >
-                    <span>🌰</span> {t.custom_mix_banner?.macca || "Macca Đắk Lắk"}
-                  </motion.div>
-
-                  <motion.div
-                    animate={prefersReducedMotion ? undefined : { y: [6, -6, 6] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                    className="absolute -bottom-2 -left-3 sm:-left-4 bg-stone-900/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-amber-400/60 text-amber-200 text-xs font-bold shadow-xl flex items-center gap-1.5 pointer-events-none"
-                  >
-                    <span>👑</span> {t.custom_mix_banner?.longan || "Long Nhãn Phố Hiến"}
-                  </motion.div>
-                </div>
-              </div>
+        <section className="bg-[#F7F3EB] py-10 sm:py-14">
+          <div className="container mx-auto px-4 md:px-6 max-w-6xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="max-w-xl">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-primary">{language === "en" ? "Choose your own mix" : "Phối một hộp hạt theo ý bạn"}</h2>
+              <p className="mt-3 text-foreground/80 leading-relaxed">{language === "en" ? "Choose your nuts, packaging and a name for your label." : "Chọn loại hạt, bao bì và tên trên nhãn hộp."}</p>
             </div>
+            <Link href="/tu-chon-hat" className="inline-flex items-center gap-2 border border-[#79502E] text-[#79502E] rounded-lg px-5 py-3 font-semibold hover:bg-white transition-colors shrink-0">{t.nav.custom_mix || "Tự chọn hạt"}<ArrowRight className="w-4 h-4" /></Link>
           </div>
         </section>
 
@@ -2117,7 +1903,7 @@ export default function LandingPage() {
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
               <div className="space-y-4 md:col-span-1">
-                <h3 style={{ fontFamily: 'var(--font-dancing)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
+                <h3 style={{ fontFamily: 'var(--font-playfair)' }} className="text-[34px] font-bold text-white flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden relative shrink-0">
                     <span className="absolute">NN</span>
                     <FastImage
@@ -2623,7 +2409,7 @@ export default function LandingPage() {
       />
 
       {/* Thông báo khách hàng vừa đặt mua thời gian thực (Social Proof Live Order Toast) */}
-      <LiveOrderToast isChatOpen={isChatOpen} />
+
 
     </motion.div>
   );

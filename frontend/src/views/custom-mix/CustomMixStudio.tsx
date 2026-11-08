@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Plus,
   Minus,
-  Wand2,
   Scale,
   RotateCcw,
   Package,
@@ -1188,7 +1187,7 @@ export default function CustomMixStudio() {
                     title={language === "en" ? "Automatically fill remaining grams with Longan" : "Tự động bù số gram còn thiếu bằng Long Nhãn"}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-2xs cursor-pointer"
                   >
-                    <Wand2 className="w-3.5 h-3.5 text-amber-700" />
+                    <Plus className="w-3.5 h-3.5 text-amber-700" />
                     <span>{language === "en" ? "Fill Longan" : "Bù Long Nhãn"}</span>
                   </button>
 
@@ -1845,7 +1844,7 @@ export default function CustomMixStudio() {
                     {/* Tên do khách đặt */}
                     <div className="py-2 border-y border-[#B45309]/20">
                       <span
-                        style={{ fontFamily: "var(--font-dancing)" }}
+                        style={{ fontFamily: "var(--font-playfair)" }}
                         className="text-2xl sm:text-3xl font-bold text-[#B45309] block leading-tight tracking-wide"
                       >
                         {customName.trim() || (language === "en" ? "Custom Nut Blend" : "Sản Phẩm Tự Chọn Hạt")}
@@ -2084,7 +2083,7 @@ export default function CustomMixStudio() {
                 className="px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 text-[#78350F] text-xs font-bold transition-all active:scale-95 flex items-center gap-1 cursor-pointer shadow-2xs"
                 title={language === "en" ? "Automatically fill remaining grams with Longan" : "Tự động bù số gram còn thiếu bằng Long Nhãn"}
               >
-                <Wand2 className="w-3.5 h-3.5 text-amber-700" />
+                <Plus className="w-3.5 h-3.5 text-amber-700" />
                 <span>{language === "en" ? "Auto-fill" : "Bù đầy"}</span>
               </button>
             ) : isPerfectMatch ? (
