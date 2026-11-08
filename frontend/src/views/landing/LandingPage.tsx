@@ -939,7 +939,7 @@ export default function LandingPage() {
                   initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.85, delay: 0.25, ease: EASE_OUT_EXPO }}
-                  className="block text-[#173522]"
+                  className="block text-primary"
                 >
                   {heroLine1}
                 </motion.span>
@@ -963,12 +963,18 @@ export default function LandingPage() {
                 {language === "en" ? t.hero.subtitle : cmsContent.HeroSubtitle || "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
               </motion.p>
 
-
-              <div className="flex flex-wrap items-center gap-5 pt-2">
-                <button onClick={() => scrollToSection("san-pham")} className="bg-[#79502E] hover:bg-[#603D23] text-white font-semibold px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors">
-                  {language === "en" ? "Browse products" : "Xem sản phẩm"}<ArrowRight className="w-4 h-4" />
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5 pt-2">
+                <button
+                  onClick={() => scrollToSection("san-pham")}
+                  className="bg-accent hover:bg-[#9A3412] text-white font-bold px-7 py-3.5 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  <span>{language === "en" ? "Browse products" : "Xem sản phẩm"}</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
-                <button onClick={() => scrollToSection("cau-chuyen")} className="text-primary underline underline-offset-4 py-3">
+                <button
+                  onClick={() => scrollToSection("cau-chuyen")}
+                  className="text-primary font-bold hover:text-accent underline underline-offset-4 py-3 transition-colors cursor-pointer"
+                >
                   {t.nav.story}
                 </button>
               </div>
@@ -1030,13 +1036,19 @@ export default function LandingPage() {
           <ProductComparisonSection language={language as "vi" | "en"} />
         </SectionErrorBoundary>
 
-        <section className="bg-[#F7F3EB] py-10 sm:py-14">
+        <section className="bg-secondary/70 border-y border-border py-10 sm:py-14">
           <div className="container mx-auto px-4 md:px-6 max-w-6xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="max-w-xl">
               <h2 className="text-2xl sm:text-3xl font-semibold text-primary">{language === "en" ? "Choose your own mix" : "Phối một hộp hạt theo ý bạn"}</h2>
               <p className="mt-3 text-foreground/80 leading-relaxed">{language === "en" ? "Choose your nuts, packaging and a name for your label." : "Chọn loại hạt, bao bì và tên trên nhãn hộp."}</p>
             </div>
-            <Link href="/tu-chon-hat" className="inline-flex items-center gap-2 border border-[#79502E] text-[#79502E] rounded-lg px-5 py-3 font-semibold hover:bg-white transition-colors shrink-0">{t.nav.custom_mix || "Tự chọn hạt"}<ArrowRight className="w-4 h-4" /></Link>
+            <Link
+              href="/tu-chon-hat"
+              className="inline-flex items-center gap-2 bg-card border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl px-6 py-3 font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 shrink-0"
+            >
+              <span>{t.nav.custom_mix || "Tự chọn hạt"}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </section>
 
@@ -1753,7 +1765,7 @@ export default function LandingPage() {
                         value={form.discountCode}
                         onChange={(e) => setField("discountCode", e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyDiscount())}
-                        className="flex-1 bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all"
+                        className="flex-1 bg-background border border-border focus:border-accent focus:ring-1 focus:ring-accent rounded-xl px-4 py-3 outline-none transition-all"
                       />
                       <button
                         type="button"
@@ -1858,7 +1870,7 @@ export default function LandingPage() {
                       rows={3}
                       value={form.note}
                       onChange={(e) => setField("note", e.target.value)}
-                      className="w-full bg-background border border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-4 py-3 outline-none transition-all resize-none"
+                      className="w-full bg-background border border-border focus:border-accent focus:ring-1 focus:ring-accent rounded-xl px-4 py-3 outline-none transition-all resize-none"
                       placeholder={t.order.note_placeholder}
                     />
                   </div>
@@ -1870,7 +1882,7 @@ export default function LandingPage() {
                       </p>
                       <a
                         href={`tel:${cmsContent.Hotline || "0348973285"}`}
-                        className="w-full bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-white font-bold text-base py-3.5 rounded-xl shadow-lg shadow-black/25 transition-all flex justify-center items-center gap-2"
+                        className="w-full bg-accent hover:bg-[#9A3412] text-white font-bold text-base py-3.5 rounded-xl shadow-lg shadow-accent/25 transition-all flex justify-center items-center gap-2"
                       >
                         <Phone className="w-5 h-5" />
                         <span>{t.order.call_hotline_to_order || "Gọi Hotline Đặt Hàng"}: {cmsContent.Hotline || "034 897 3285"}</span>
@@ -1880,7 +1892,7 @@ export default function LandingPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting || !form.items.some((i) => i.productId)}
-                      className="w-full bg-gradient-to-r from-[#92400E] to-[#B45309] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-black/25 transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                      className="w-full bg-accent hover:bg-[#9A3412] text-white font-bold text-lg py-4 rounded-xl shadow-xl shadow-accent/25 transition-all hover:-translate-y-0.5 active:scale-95 flex justify-center items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
                     >
                       {isSubmitting ? (
                         <><Loader2 className="w-5 h-5 animate-spin" /> {t.order.submitting}</>

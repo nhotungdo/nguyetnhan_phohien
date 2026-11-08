@@ -243,7 +243,7 @@ export function ProductPairingSection({
   return (
     <section
       id="van-hoa"
-      className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF4E6] to-[#FFFDF8] relative overflow-hidden border-t border-[#FDE68A]/40 w-full max-w-full [contain:paint] scroll-mt-20 sm:scroll-mt-24"
+      className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF6F0] to-[#FFFDF8] relative overflow-hidden border-t border-border w-full max-w-full [contain:paint] scroll-mt-20 sm:scroll-mt-24"
     >
       {/* Nền trang trí hoa văn ánh sáng dùng Radial Gradient thuần (không dùng filter blur để an toàn WebKit) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
@@ -257,7 +257,7 @@ export function ProductPairingSection({
           {/* Cột chữ văn hóa */}
           <div className="lg:col-span-7">
             <Reveal>
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-[#FDE68A] shadow-xs mb-4">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-secondary text-accent text-xs md:text-sm font-semibold border border-border shadow-xs mb-4">
                 <span>
                   {language === "en"
                     ? "Pho Hien Culinary Heritage & Living Culture"
@@ -292,7 +292,7 @@ export function ProductPairingSection({
                 <motion.div
                   key={idx}
                   variants={fadeUp}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-[#FDE68A]/80 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-border shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
@@ -351,7 +351,7 @@ export function ProductPairingSection({
               </div>
 
               {/* Huy hiệu nổi bật góc ảnh */}
-              <div className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-2 bg-white px-3.5 py-2 rounded-2xl border border-[#FDE68A] shadow-lg flex items-center gap-2">
+              <div className="absolute -bottom-2 -left-2 sm:bottom-2 sm:left-2 bg-white px-3.5 py-2 rounded-2xl border border-border shadow-lg flex items-center gap-2">
                 <Award className="w-4 h-4 text-accent shrink-0" />
                 <span className="text-xs font-bold text-primary">
                   {language === "en" ? "Royal Tribute Legacy" : "Sản Vật Tiến Vua"}
@@ -362,7 +362,7 @@ export function ProductPairingSection({
         </div>
 
         {/* PHẦN 1.5: GÓC NGƯỜI SÀNH — BÍ QUYẾT PHÂN BIỆT LONG NHÃN TIẾN VUA VỚI NHÃN TẨM ĐƯỜNG / HÓA CHẤT */}
-        <div className="mb-16 sm:mb-20 pt-8 sm:pt-10 border-t border-[#FDE68A]/60">
+        <div className="mb-16 sm:mb-20 pt-8 sm:pt-10 border-t border-border">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -370,7 +370,7 @@ export function ProductPairingSection({
             transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
             className="text-center max-w-3xl mx-auto mb-8 sm:mb-12"
           >
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-secondary text-accent text-xs font-semibold border border-[#FDE68A] shadow-xs mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-secondary text-accent text-xs font-semibold border border-border shadow-xs mb-3">
               <Eye className="w-3.5 h-3.5 text-accent" />
               <span>{language === "en" ? "Connoisseur's Tasting Guide" : "Góc Người Sành Ẩm Thực"}</span>
             </div>
@@ -539,7 +539,7 @@ export function ProductPairingSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
-            className="max-w-5xl mx-auto mt-6 p-4 sm:p-5 rounded-2xl bg-amber-100/70 border border-amber-300/80 text-xs sm:text-sm text-foreground/90 shadow-xs"
+            className="max-w-5xl mx-auto mt-6 p-4 sm:p-5 rounded-2xl bg-secondary/70 border border-border text-xs sm:text-sm text-foreground/90 shadow-xs"
           >
             <p className="leading-relaxed">
               <span className="font-bold text-primary">
@@ -553,7 +553,7 @@ export function ProductPairingSection({
         </div>
 
         {/* PHẦN 2: THƯỞNG THỨC ĐÚNG ĐIỆU CÙNG NGUYỆT NHÃN (Bí quyết nghệ nhân & Công thức thực hành) */}
-        <div className="pt-6 border-t border-[#FDE68A]/60">
+        <div className="pt-6 border-t border-border">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -561,7 +561,7 @@ export function ProductPairingSection({
             transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
             className="text-center max-w-3xl mx-auto mb-8 sm:mb-12"
           >
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-accent text-xs font-semibold border border-[#FDE68A] shadow-xs mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-accent text-xs font-semibold border border-border shadow-xs mb-3">
               <ChefHat className="w-3.5 h-3.5 text-accent" />
               <span>{language === "en" ? "Artisan Gastronomic Rituals" : "Cẩm Nang Pha Chế Chuẩn Vị"}</span>
             </div>
@@ -578,7 +578,7 @@ export function ProductPairingSection({
 
           {/* Bộ 3 Tab chuyển đổi */}
           <div className="flex justify-center mb-8 sm:mb-10 w-full max-w-full">
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 p-1.5 rounded-2xl sm:rounded-3xl bg-white border border-[#FDE68A]/80 shadow-md max-w-2xl w-full">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 p-1.5 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-md max-w-2xl w-full">
               {RECIPES.map((r) => {
                 const isActive = r.id === activeId;
                 const Icon = r.id === "tra-cuc" ? Coffee : r.id === "che-sen" ? UtensilsCrossed : Wine;
@@ -626,7 +626,7 @@ export function ProductPairingSection({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
-              className="max-w-5xl mx-auto w-full bg-white/95 rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 border border-[#FDE68A]/80 shadow-xl relative overflow-hidden"
+              className="max-w-5xl mx-auto w-full bg-card rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 border border-border shadow-xl relative overflow-hidden"
             >
               <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-start w-full min-w-0">
                 {/* Cột trái: Tên món, Giới thiệu & Các bước thực hiện */}
@@ -652,7 +652,7 @@ export function ProductPairingSection({
 
                   {/* Huy hiệu thông số: Thời gian & Công dụng */}
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <div className="inline-flex items-center gap-2 bg-[#FFFDF8] px-3.5 py-2 rounded-xl border border-[#FDE68A] text-xs font-semibold text-primary">
+                    <div className="inline-flex items-center gap-2 bg-card px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-primary">
                       <Clock className="w-3.5 h-3.5 text-accent shrink-0" />
                       <span>
                         {language === "en" ? "Time: " : "Thời gian: "}
@@ -683,7 +683,7 @@ export function ProductPairingSection({
                       {activeRecipe.steps.map((st, sIdx) => (
                         <div
                           key={sIdx}
-                          className="flex items-start gap-3 py-2.5 border-b border-[#FDE68A]/40 last:border-none"
+                          className="flex items-start gap-3 py-2.5 border-b border-border/60 last:border-none"
                         >
                           <div className="w-6 h-6 rounded-full bg-accent/15 text-accent font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                             {sIdx + 1}
@@ -722,7 +722,7 @@ export function ProductPairingSection({
                       </span>
                     </div>
 
-                    <div className="divide-y divide-[#FDE68A]/50">
+                    <div className="divide-y divide-border/60">
                       {activeRecipe.ingredients.map((ing, i) => (
                         <div
                           key={i}
@@ -753,7 +753,7 @@ export function ProductPairingSection({
                   {/* Nút đặt mua nguyên liệu */}
                   <button
                     onClick={onOrderClick}
-                    className="w-full bg-accent hover:bg-accent/90 text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl shadow-lg shadow-accent/20 flex items-center justify-center gap-2 text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
+                    className="w-full bg-accent hover:bg-[#9A3412] text-white font-bold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl shadow-lg shadow-accent/25 flex items-center justify-center gap-2 text-xs sm:text-sm transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
                   >
                     <span>
                       {language === "en"
@@ -765,7 +765,7 @@ export function ProductPairingSection({
 
                   {/* Video Hướng Dẫn Thực Hành Nằm Ở Phần Trống Dưới Nút Đặt Mua */}
                   {activeRecipe.youtubeId && (
-                    <div className="pt-3.5 sm:pt-4 border-t border-[#FDE68A]/60 w-full space-y-2.5">
+                    <div className="pt-3.5 sm:pt-4 border-t border-border w-full space-y-2.5">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
                         <Play className="w-3.5 h-3.5 text-accent fill-accent shrink-0" />
                         <span>

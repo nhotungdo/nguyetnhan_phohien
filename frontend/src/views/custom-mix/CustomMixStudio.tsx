@@ -1249,7 +1249,7 @@ export default function CustomMixStudio() {
                         / {targetGrams}g
                       </span>
                     </span>
-                    <span className="text-xs font-bold text-[#B45309]">
+                    <span className="text-xs font-bold text-accent">
                       {progressPercent}%
                     </span>
                   </div>
@@ -1264,7 +1264,7 @@ export default function CustomMixStudio() {
                           ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
                           : isOverweight
                           ? "bg-gradient-to-r from-rose-500 to-rose-600"
-                          : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                          : "bg-gradient-to-r from-amber-500 to-accent"
                       }`}
                     />
                   </div>
@@ -1667,7 +1667,7 @@ export default function CustomMixStudio() {
                         ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
                         : isOverweight
                         ? "bg-gradient-to-r from-rose-500 to-rose-600"
-                        : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                        : "bg-gradient-to-r from-amber-500 to-accent"
                     }`}
                   />
                 </div>
@@ -2066,7 +2066,7 @@ export default function CustomMixStudio() {
                         ? "bg-emerald-500"
                         : isOverweight
                         ? "bg-rose-500"
-                        : "bg-gradient-to-r from-amber-400 to-[#B45309]"
+                        : "bg-gradient-to-r from-amber-500 to-accent"
                     }`}
                   />
                 </div>

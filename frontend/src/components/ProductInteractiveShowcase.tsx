@@ -177,12 +177,12 @@ export function ProductInteractiveShowcase({
                   {isSelected && (
                     <motion.div
                       layoutId="activeShowcaseTab"
-                      className="absolute inset-0 bg-[#79502E] rounded-xl shadow-xs"
+                      className="absolute inset-0 bg-primary rounded-xl shadow-xs"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
                   <span className="whitespace-nowrap relative z-10">{prod.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full relative z-10 ${isSelected ? "bg-[#78350F] text-amber-100 font-bold" : "bg-secondary text-accent font-bold"}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full relative z-10 ${isSelected ? "bg-black/20 text-white font-bold" : "bg-secondary text-primary font-bold"}`}>
                     {prod.size}
                   </span>
                 </button>
@@ -193,7 +193,7 @@ export function ProductInteractiveShowcase({
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
-          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-white rounded-3xl p-4 sm:p-6 lg:p-7 border border-[#FDE68A]/80 shadow-md hover:shadow-2xl hover:border-amber-400 transition-all duration-500 relative overflow-hidden group">
+          <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-card rounded-3xl p-4 sm:p-6 lg:p-7 border border-border shadow-md hover:shadow-xl hover:border-accent/40 transition-all duration-500 relative overflow-hidden group">
             {/* Vệt hào quang góc trên mềm mại */}
             <div
               className="absolute top-0 right-0 w-80 h-80 pointer-events-none -z-0 opacity-60 group-hover:opacity-100 transition-opacity duration-700"
@@ -412,7 +412,7 @@ export function ProductInteractiveShowcase({
 
                 {/* Giá bán nổi bật */}
                 <div className="flex flex-wrap items-baseline gap-2.5 mb-3.5 pt-0.5">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#78350F] font-sans shrink-0">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-accent font-sans shrink-0">
                     {formatPrice(activeProduct.price)}
                   </div>
                   <span className="text-xs text-muted-foreground font-medium">
@@ -471,7 +471,7 @@ export function ProductInteractiveShowcase({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onOrderProduct(activeProduct.id)}
-                  className="flex-[1.2] bg-[#79502E] hover:from-[#78350F] hover:to-[#92400E] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-md shadow-[#92400E]/20 hover:shadow-lg hover:shadow-[#92400E]/35 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap group"
+                  className="flex-[1.2] bg-accent hover:bg-[#9A3412] text-white font-bold py-2.5 sm:py-3 px-4 sm:px-5 rounded-xl shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/40 flex items-center justify-center gap-2 transition-all text-xs sm:text-sm md:text-base cursor-pointer whitespace-nowrap group"
                 >
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>

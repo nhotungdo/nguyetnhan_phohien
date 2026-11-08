@@ -19,7 +19,7 @@ export function CartSummary({ language, onCheckout }: CartSummaryProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="px-5 py-4 border-t border-[#FDE68A]/40 space-y-3 bg-[#FFFDF8]">
+    <div className="px-5 py-4 border-t border-border space-y-3 bg-card">
       {/* Price breakdown */}
       <div className="flex justify-between items-center text-sm font-bold text-primary">
         <span>{language === "en" ? "Total" : "Tổng tiền"}:</span>
@@ -30,7 +30,7 @@ export function CartSummary({ language, onCheckout }: CartSummaryProps) {
       <div>
         <button
           onClick={onCheckout}
-          className="w-full bg-gradient-to-r from-[#B45309] to-[#D97706] hover:from-[#92400E] hover:to-[#B45309] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-[#B45309]/25 active:scale-[0.98] flex items-center justify-center gap-2 text-base cursor-pointer"
+          className="w-full bg-accent hover:bg-[#9A3412] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-accent/25 active:scale-[0.98] flex items-center justify-center gap-2 text-base cursor-pointer"
         >
           <ShoppingCart className="w-5 h-5" />
           <span>{language === "en" ? "Buy Products" : "Mua sản phẩm"}</span>

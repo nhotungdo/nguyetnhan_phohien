@@ -104,57 +104,58 @@
 }
 
 :root {
-    /* 🎨 Bảng màu Nguyệt Nhãn Phố Hiến */
-    --nguyet-brand: #23452F;      /* Xanh thương hiệu */
-    --nguyet-brand-dark: #173522; /* Xanh đậm */
-    --nguyet-brand-light: #4F7D3A;/* Xanh lá */
+    /* 🎨 Bảng màu Nguyệt Nhãn Phố Hiến (Phương án 1: Nâu Hổ Phách & Vàng Mật Tiến Vua) */
+    --nguyet-primary: #3A2113;        /* Nâu gỗ mun hoàng cung - Tiêu đề & Cấu trúc thương hiệu */
+    --nguyet-primary-dark: #24140B;   /* Nâu đêm sâu thẳm - Background khối tối */
+    --nguyet-secondary: #78350F;      /* Nâu hổ phách trầm */
     
-    --nguyet-gold: #854D0E;       /* Vàng hổ phách Phố Hiến (Đạt chuẩn tương phản WCAG AA 6.8:1) */
-    --nguyet-gold-light: #FDE68A; /* Vàng nhạt viền */
+    --nguyet-accent: #C2410C;         /* Cam mật ong đậm - Nút mua nổi bật (High-conversion CTA) */
+    --nguyet-accent-hover: #9A3412;   /* Hover nút mua */
+    --nguyet-gold: #D97706;           /* Vàng kim hổ phách - Badge, sao, viền nhấn */
+    --nguyet-gold-light: #FDE68A;     /* Vàng kim sáng */
     
-    --nguyet-brown: #8B6748;      /* Nâu nhãn */
-    --nguyet-orange: #D98A43;     /* Cam nhãn */
+    --nguyet-canvas: #FAF6F0;         /* Kem nền lụa ấm áp (60%) */
+    --nguyet-card: #FFFFFF;           /* Trắng sứ ngà nổi khối cho thẻ sản phẩm */
+    --nguyet-muted: #F3ECE1;          /* Be gốm Bát Tràng làm nền phụ */
+    --nguyet-border: #E8DEC8;         /* Viền be gốm rõ nét, phân tách khối nội dung */
     
-    --nguyet-bg-cream: #FCFBF7;   /* Kem nền sang trọng, tinh tế */
-    --nguyet-bg-white: #FFFDF8;   /* Trắng ấm */
-    --nguyet-bg-green: #EDF3E9;   /* Xanh kem */
-    
-    --nguyet-accent-pink: #D99491;/* Hồng sen */
-    --nguyet-accent-sky: #6EB6E5; /* Xanh trời */
+    --nguyet-text-title: #2B180D;     /* Chữ tiêu đề tương phản tối đa */
+    --nguyet-text-body: #44403C;      /* Chữ nội dung chuẩn WCAG AA */
+    --nguyet-text-muted: #78716C;     /* Chữ phụ trợ */
 
     /* Map to Shadcn/Tailwind Variables */
-    --background: var(--nguyet-bg-cream);
-    --foreground: var(--nguyet-brand-dark);
-    --card: var(--nguyet-bg-white);
-    --card-foreground: var(--nguyet-brand-dark);
-    --popover: var(--nguyet-bg-white);
-    --popover-foreground: var(--nguyet-brand-dark);
-    --primary: var(--nguyet-brand);
-    --primary-foreground: var(--nguyet-bg-white);
-    --secondary: var(--nguyet-bg-green);
-    --secondary-foreground: var(--nguyet-brand);
-    --muted: var(--nguyet-bg-green);
-    --muted-foreground: #57534E;
-    --accent: var(--nguyet-gold);
+    --background: var(--nguyet-canvas);
+    --foreground: var(--nguyet-text-title);
+    --card: var(--nguyet-card);
+    --card-foreground: var(--nguyet-text-title);
+    --popover: var(--nguyet-card);
+    --popover-foreground: var(--nguyet-text-title);
+    --primary: var(--nguyet-primary);
+    --primary-foreground: #FFFFFF;
+    --secondary: var(--nguyet-muted);
+    --secondary-foreground: var(--nguyet-primary);
+    --muted: var(--nguyet-muted);
+    --muted-foreground: var(--nguyet-text-muted);
+    --accent: var(--nguyet-accent);
     --accent-foreground: #FFFFFF;
-    --destructive: #ef4444;
-    --border: var(--nguyet-gold-light);
-    --input: var(--nguyet-gold-light);
+    --destructive: #DC2626;
+    --border: var(--nguyet-border);
+    --input: var(--nguyet-border);
     --ring: var(--nguyet-gold);
-    --chart-1: var(--nguyet-brand);
+    --chart-1: var(--nguyet-primary);
     --chart-2: var(--nguyet-gold);
-    --chart-3: var(--nguyet-brown);
-    --chart-4: var(--nguyet-brand-light);
-    --chart-5: var(--nguyet-orange);
+    --chart-3: var(--nguyet-secondary);
+    --chart-4: var(--nguyet-accent);
+    --chart-5: #D98A43;
     --radius: 0.75rem;
     
-    --sidebar: var(--nguyet-bg-white);
-    --sidebar-foreground: var(--nguyet-brand-dark);
-    --sidebar-primary: var(--nguyet-brand);
-    --sidebar-primary-foreground: var(--nguyet-bg-white);
-    --sidebar-accent: var(--nguyet-bg-green);
-    --sidebar-accent-foreground: var(--nguyet-brand);
-    --sidebar-border: var(--nguyet-gold-light);
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: var(--nguyet-text-title);
+    --sidebar-primary: var(--nguyet-primary);
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: var(--nguyet-muted);
+    --sidebar-accent-foreground: var(--nguyet-primary);
+    --sidebar-border: var(--nguyet-border);
     --sidebar-ring: var(--nguyet-gold);
 
     /* Đồng bộ font di sản cho logo / thương hiệu */
@@ -162,39 +163,39 @@
 }
 
 .dark {
-    /* Dark mode organic theme */
-    --background: var(--nguyet-brand-dark);
-    --foreground: var(--nguyet-bg-cream);
-    --card: var(--nguyet-brand);
-    --card-foreground: var(--nguyet-bg-cream);
-    --popover: var(--nguyet-brand);
-    --popover-foreground: var(--nguyet-bg-cream);
-    --primary: var(--nguyet-gold);
-    --primary-foreground: var(--nguyet-brand-dark);
-    --secondary: var(--nguyet-brown);
-    --secondary-foreground: var(--nguyet-bg-cream);
-    --muted: #2A4533;
-    --muted-foreground: var(--nguyet-gold-light);
-    --accent: var(--nguyet-gold);
-    --accent-foreground: var(--nguyet-brand-dark);
-    --destructive: #7f1d1d;
-    --border: var(--nguyet-brown);
-    --input: var(--nguyet-brown);
-    --ring: var(--nguyet-gold);
-    --chart-1: var(--nguyet-gold);
-    --chart-2: var(--nguyet-orange);
-    --chart-3: var(--nguyet-bg-cream);
-    --chart-4: var(--nguyet-brand-light);
-    --chart-5: var(--nguyet-accent-sky);
+    /* Dark mode sang trọng */
+    --background: #1A0E07;
+    --foreground: #FAF6F0;
+    --card: #24140B;
+    --card-foreground: #FAF6F0;
+    --popover: #24140B;
+    --popover-foreground: #FAF6F0;
+    --primary: #FDE68A;
+    --primary-foreground: #24140B;
+    --secondary: #3A2113;
+    --secondary-foreground: #FAF6F0;
+    --muted: #2E1B10;
+    --muted-foreground: #D6C7B2;
+    --accent: #EA580C;
+    --accent-foreground: #FFFFFF;
+    --destructive: #EF4444;
+    --border: #3D2516;
+    --input: #3D2516;
+    --ring: #D97706;
+    --chart-1: #FDE68A;
+    --chart-2: #D97706;
+    --chart-3: #C2410C;
+    --chart-4: #F59E0B;
+    --chart-5: #9A3412;
     
-    --sidebar: var(--nguyet-brand-dark);
-    --sidebar-foreground: var(--nguyet-bg-cream);
-    --sidebar-primary: var(--nguyet-gold);
-    --sidebar-primary-foreground: var(--nguyet-brand-dark);
-    --sidebar-accent: #2A4533;
-    --sidebar-accent-foreground: var(--nguyet-bg-cream);
-    --sidebar-border: var(--nguyet-brown);
-    --sidebar-ring: var(--nguyet-gold);
+    --sidebar: #24140B;
+    --sidebar-foreground: #FAF6F0;
+    --sidebar-primary: #FDE68A;
+    --sidebar-primary-foreground: #24140B;
+    --sidebar-accent: #3A2113;
+    --sidebar-accent-foreground: #FAF6F0;
+    --sidebar-border: #3D2516;
+    --sidebar-ring: #D97706;
 }
 
 @layer base {

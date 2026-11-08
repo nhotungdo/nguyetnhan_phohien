@@ -58,12 +58,12 @@ export function HeritageVideoSection({
     <section
       id="thuoc-phim"
       ref={containerRef}
-      className="relative py-16 sm:py-24 lg:py-28 bg-gradient-to-b from-amber-50/70 via-[#FCFBF7] to-amber-50/50 text-foreground overflow-hidden w-full max-w-full border-t border-b border-amber-200/50"
+      className="relative py-16 sm:py-24 lg:py-28 bg-[#24140B] text-[#FAF6F0] overflow-hidden w-full max-w-full border-t border-b border-[#3D2516]"
     >
       {/* 1. Hiệu ứng ánh sáng hoàng kim nền an toàn, không tràn màn hình */}
       <div 
         aria-hidden 
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-80 bg-[radial-gradient(ellipse,rgba(253,230,138,0.35)_0%,rgba(253,230,138,0.1)_45%,transparent_70%)] pointer-events-none" 
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-80 bg-[radial-gradient(ellipse,rgba(217,119,6,0.18)_0%,rgba(120,53,15,0.08)_45%,transparent_70%)] pointer-events-none" 
       />
       <div 
         aria-hidden 
@@ -71,8 +71,8 @@ export function HeritageVideoSection({
       />
 
       {/* Đường chỉ vàng ngăn cách thanh lịch */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
-      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#D97706]/40 to-transparent" />
+      <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#D97706]/30 to-transparent" />
 
       <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-6xl w-full max-w-full">
         {/* 2. Tiêu đề phong cách Hoàng gia Di sản */}
@@ -83,21 +83,21 @@ export function HeritageVideoSection({
           className="text-center space-y-3.5 mb-10 sm:mb-14"
         >
           {/* Huy hiệu ký sự */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-accent text-xs sm:text-sm font-semibold border border-amber-300/80 shadow-xs">
-            <Film className="w-4 h-4 text-accent" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3A2113] text-[#FDE68A] text-xs sm:text-sm font-semibold border border-[#5C361C] shadow-xs">
+            <Film className="w-4 h-4 text-[#FDE68A]" />
             <span className="uppercase tracking-widest text-[11px] sm:text-xs">
               {language === "en" ? "Heritage Documentary Archive" : "Tư Liệu Ký Sự Di Sản"}
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
           </div>
 
           {/* Tiêu đề chính */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-primary [text-wrap:balance]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-[#FAF6F0] [text-wrap:balance]">
             {language === "en" ? "First is Kinh Ky, Second is Pho Hien" : "Thứ Nhất Kinh Kỳ, Thứ Nhì Phố Hiến"}
           </h2>
 
           {/* Đoạn dẫn dắt */}
-          <p className="text-sm sm:text-base md:text-lg text-foreground/80 max-w-3xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
+          <p className="text-sm sm:text-base md:text-lg text-[#D6C7B2] max-w-3xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
             {language === "en"
               ? "Follow the historical footsteps back to the 16th century, exploring the legendary port along the Red River where nature, culture, and artisanal devotion gave birth to the royal tribute longan."
               : "Ngược dòng thời gian về thế kỷ 16, ghé thăm đô thị cổ sầm uất ven bờ sông Hồng bồi đắp phù sa — Nơi đất thiêng hội tụ để hun đúc nên linh hồn thức quả tiến vua lưu truyền trăm năm."}
@@ -222,22 +222,22 @@ export function HeritageVideoSection({
             return (
               <div
                 key={index}
-                className="relative group p-5 sm:p-6 rounded-2xl bg-white/95 border border-amber-200/90 hover:border-amber-400 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-xl"
+                className="relative group p-5 sm:p-6 rounded-2xl bg-[#2E1B10] border border-[#4A2D1B] hover:border-[#D97706]/70 transition-all duration-300 hover:-translate-y-1 shadow-md hover:shadow-2xl"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200/80 border border-amber-300/80 flex items-center justify-center text-[#92400E] shrink-0 group-hover:scale-105 transition-all shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#451A03] to-[#78350F] border border-[#92400E]/60 flex items-center justify-center text-[#FDE68A] shrink-0 group-hover:scale-105 transition-all shadow-2xs">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-accent block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#F59E0B] block">
                       {item.tag}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-primary group-hover:text-accent transition-colors">
+                    <h3 className="text-base sm:text-lg font-bold text-[#FAF6F0] group-hover:text-[#FDE68A] transition-colors">
                       {item.title}
                     </h3>
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed [text-wrap:pretty]">
+                <p className="text-xs sm:text-sm text-[#D6C7B2] leading-relaxed [text-wrap:pretty]">
                   {item.desc}
                 </p>
               </div>
@@ -250,19 +250,19 @@ export function HeritageVideoSection({
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.45 }}
-          className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-amber-100/70 via-[#FFFDF8] to-amber-100/70 border border-amber-300/80 shadow-md flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left"
+          className="mt-8 sm:mt-10 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#2E1B10] via-[#3A2113] to-[#2E1B10] border border-[#5C361C] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left"
         >
           <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-accent block text-center sm:text-left">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#F59E0B] block text-center sm:text-left">
               {language === "en" ? "Timeless Folk Heritage" : "Ca Dao Cổ Phố Hiến"}
             </span>
             <p 
               style={{ fontFamily: "var(--font-playfair)" }}
-              className="text-xl sm:text-2xl md:text-3xl font-bold text-primary tracking-wide"
+              className="text-xl sm:text-2xl md:text-3xl font-bold text-[#FDE68A] tracking-wide"
             >
               &ldquo;{language === "en" ? "First was the Imperial Capital, second was Pho Hien" : "Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến"}&rdquo;
             </p>
-            <p className="text-xs text-stone-600 italic">
+            <p className="text-xs text-[#D6C7B2] italic">
               {language === "en" 
                 ? "Preserving the authentic royal tribute taste through centuries of Vietnamese culture."
                 : "Lưu truyền nguyên vẹn tinh túy ngự phẩm tiến vua qua ngàn năm văn hiến."}
@@ -274,7 +274,7 @@ export function HeritageVideoSection({
               href={`https://youtu.be/${youtubeId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#92400E] via-[#B45309] to-[#78350F] hover:from-[#78350F] hover:to-[#92400E] px-5 py-2.5 rounded-full shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white bg-accent hover:bg-[#9A3412] px-6 py-3 rounded-full shadow-lg shadow-accent/30 hover:scale-105 active:scale-95 transition-all"
             >
               <span>{language === "en" ? "Watch on YouTube" : "Xem trên YouTube"}</span>
               <ExternalLink className="w-4 h-4 text-white" />

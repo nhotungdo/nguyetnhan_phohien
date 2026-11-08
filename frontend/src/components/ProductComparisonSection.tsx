@@ -279,7 +279,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
 
               <div className="space-y-6">
                 {comparisons.map((row, idx) => (
-                  <div key={idx} className="space-y-1.5 pb-4 border-b border-[#FDE68A]/60 last:border-none">
+                  <div key={idx} className="space-y-1.5 pb-4 border-b border-border/60 last:border-none">
                     <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                       <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>{row.criteria}</span>
@@ -292,7 +292,7 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
               </div>
             </div>
 
-            <div className="mt-8 pt-5 border-t border-[#FDE68A]/70 flex items-center justify-center gap-2 text-xs text-emerald-800 font-semibold text-center">
+            <div className="mt-8 pt-5 border-t border-border flex items-center justify-center gap-2 text-xs text-emerald-800 font-semibold text-center">
               <Check className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
                 {language === "en"
