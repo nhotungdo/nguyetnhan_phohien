@@ -159,6 +159,9 @@
     --sidebar-accent-foreground: var(--nguyet-primary);
     --sidebar-border: var(--nguyet-border);
     --sidebar-ring: var(--nguyet-gold);
+
+    /* Đồng bộ font di sản cho logo / thương hiệu */
+    --font-dancing: var(--font-playfair);
 }
 
 .dark {
