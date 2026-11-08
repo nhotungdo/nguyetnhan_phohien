@@ -653,15 +653,15 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" onClick={() => scrollToSection("hero")}>
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#E8DFC8] shadow-xs relative shrink-0">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border border-[#E8DFC8] shadow-sm relative shrink-0">
               <span className="absolute text-accent font-bold text-xs">NN</span>
               <FastImage
-                src="/images/logo_emblem_circle.png"
+                src={resolveCmsImage(cmsContent.SiteLogo) || "/images/logo_emblem_circle.png"}
                 fallbackSrc="/logo.jpg"
                 alt="Nguyệt Nhãn Phố Hiến"
                 fill
-                sizes="48px"
-                className="w-full h-full object-contain p-1 z-10"
+                sizes="56px"
+                className="w-full h-full object-contain p-0.5 z-10"
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
@@ -1917,15 +1917,15 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
               <div className="space-y-4 md:col-span-1">
                 <h3 style={{ fontFamily: 'var(--font-dancing), cursive' }} className="text-[32px] sm:text-[38px] font-bold text-[#F3D498] flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden border border-[#1D4D3E] relative shrink-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden border border-[#F3D498]/40 shadow-md relative shrink-0">
                     <span className="absolute">NN</span>
                     <FastImage
-                      src="/images/logo_emblem_circle.png"
+                      src={resolveCmsImage(cmsContent.SiteLogo) || "/images/logo_emblem_circle.png"}
                       fallbackSrc="/logo.jpg"
                       alt="Nguyệt Nhãn Phố Hiến"
                       fill
-                      sizes="48px"
-                      className="w-full h-full object-contain p-1.5 z-10"
+                      sizes="64px"
+                      className="w-full h-full object-contain p-0.5 z-10"
                       onError={(e) => e.currentTarget.style.display = 'none'}
                     />
                   </div>

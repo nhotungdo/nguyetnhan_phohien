@@ -75,10 +75,10 @@ export function AppSidebar() {
           onClick={() => handleNavigate("/dashboard")}
           className="flex items-center gap-3 px-2 py-2 cursor-pointer select-none"
         >
-          <div className="w-10 h-10 rounded-md bg-card text-accent font-sans font-bold text-xs flex items-center justify-center overflow-hidden border border-border/30 shadow-sm relative shrink-0">
+          <div className="w-11 h-11 rounded-full bg-card text-accent font-sans font-bold text-xs flex items-center justify-center overflow-hidden border border-border/40 shadow-xs relative shrink-0">
             <span className="absolute">NN</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo_emblem_circle.png" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-contain p-1 relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <img src="/images/logo_emblem_circle.png" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-contain p-0.5 relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
           </div>
           <div className="flex flex-col min-w-0">
             <span style={{ fontFamily: 'var(--font-dancing), cursive' }} className="font-bold text-3xl text-primary truncate leading-tight">Nguyệt Nhãn</span>
