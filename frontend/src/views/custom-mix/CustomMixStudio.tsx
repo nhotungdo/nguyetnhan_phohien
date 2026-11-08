@@ -31,12 +31,15 @@ import {
   Layers,
   Heart,
   Sliders,
+  Bot,
+  Sparkles,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartButton } from "@/components/cart/CartButton";
+import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { FastImage } from "@/components/FastImage";
 import { customMixApi } from "@/services/api.service";
 import type {
@@ -329,6 +332,27 @@ export default function CustomMixStudio() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [previewNut, setPreviewNut] = useState<CustomIngredient | null>(null);
+
+  // Trạng thái mở modal Chuyên gia AI Dinh Dưỡng
+  const [isAiChatOpen, setIsAiChatOpen] = useState<boolean>(false);
+  const [aiCustomPrompt, setAiCustomPrompt] = useState<string | undefined>(undefined);
+
+  // Tóm tắt công thức hạt hiện tại cho AI phân tích
+  const currentRecipeSummary = useMemo(() => {
+    const activeItems = Object.entries(weights)
+      .filter(([_, g]) => g > 0)
+      .map(([id, g]) => {
+        const ing = displayIngredients.find((i) => i.id === id);
+        const name = ing ? (language === "en" ? getIngredientTranslation(ing, "en").name : ing.name) : id;
+        return `${g}g ${name}`;
+      });
+    return activeItems.join(", ");
+  }, [weights, displayIngredients, language]);
+
+  const handleOpenAiNutrition = (promptToSend?: string) => {
+    setAiCustomPrompt(promptToSend);
+    setIsAiChatOpen(true);
+  };
 
   // Khôi phục bản nháp từ LocalStorage khi khởi tạo
   useEffect(() => {
@@ -838,6 +862,18 @@ export default function CustomMixStudio() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Nút Tư Vấn AI Dinh Dưỡng trên Header */}
+            <button
+              type="button"
+              onClick={() => handleOpenAiNutrition()}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full border border-amber-300 bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 hover:from-amber-500/20 hover:to-amber-500/30 text-[#92400E] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title={language === "en" ? "Consult AI Nutritionist" : "Tư vấn AI Dinh Dưỡng"}
+              aria-label={language === "en" ? "Consult AI Nutritionist" : "Tư vấn AI Dinh Dưỡng"}
+            >
+              <Bot className="w-3.5 h-3.5 text-[#B45309]" />
+              <span className="hidden sm:inline">{language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}</span>
+            </button>
+
             {/* Nút chia sẻ công thức */}
             <button
               type="button"
@@ -1166,6 +1202,28 @@ export default function CustomMixStudio() {
 
                 {/* Tiện ích thông minh */}
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (currentRecipeSummary) {
+                        const prompt = language === "en"
+                          ? `I am mixing a ${targetGrams}g custom nut box containing: ${currentRecipeSummary}. Please analyze its health benefits and give advice.`
+                          : `Tôi đang phối hũ hạt ${targetGrams}g gồm: ${currentRecipeSummary}. Nhờ chuyên gia AI phân tích lợi ích và tư vấn tỷ lệ tối ưu cho tôi.`;
+                        handleOpenAiNutrition(prompt);
+                      } else {
+                        const prompt = language === "en"
+                          ? `Please recommend an optimal nut recipe for a ${targetGrams}g box combining dried longan with nutritious tree nuts.`
+                          : `Hãy gợi ý cho tôi một công thức phối hạt dinh dưỡng chuẩn cho hộp ${targetGrams}g kết hợp giữa Long Nhãn và các loại hạt.`;
+                        handleOpenAiNutrition(prompt);
+                      }
+                    }}
+                    type="button"
+                    title={language === "en" ? "Get recipe suggestions from Nutrition AI" : "Nhận gợi ý công thức chuẩn từ AI Dinh Dưỡng"}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/35 border border-amber-400/80 text-[#92400E] text-xs font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
+                  >
+                    <Bot className="w-3.5 h-3.5 text-[#B45309]" />
+                    <span>{language === "en" ? "AI Recipe Advisor" : "AI Gợi Ý Tỷ Lệ"}</span>
+                  </button>
+
                   <button
                     onClick={handleAutoFillLongNhan}
                     disabled={remainingGrams <= 0}
@@ -1921,6 +1979,22 @@ export default function CustomMixStudio() {
                     <span>{topNutrientHighlight}</span>
                   </div>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const recipeText = currentRecipeSummary || (language === "en" ? "No ingredients selected yet" : "Chưa chọn hạt");
+                    const prompt = language === "en"
+                      ? `Please analyze my current custom mix: ${recipeText} (Total: ${totalCalories} kcal). Is this blend well-balanced and safe for daily wellness?`
+                      : `Hãy phân tích chuyên sâu công thức hạt tôi đang chọn: ${recipeText} (Tổng ${totalCalories} kcal). Công thức này có cân bằng và phù hợp để dưỡng sinh mỗi ngày không?`;
+                    handleOpenAiNutrition(prompt);
+                  }}
+                  className="w-full mt-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/40 border border-amber-400/60 text-[#FDE68A] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98"
+                >
+                  <Bot className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>{language === "en" ? "Consult AI on this blend" : "Hỏi Chuyên Gia AI về công thức này"}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                </button>
               </div>
 
               {/* TÓM TẮT GIÁ & NÚT ĐẶT HÀNG TRÊN DESKTOP */}
@@ -2062,6 +2136,23 @@ export default function CustomMixStudio() {
 
           {/* Cụm nút hành động linh hoạt trên Mobile */}
           <div className="shrink-0 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                const prompt = currentRecipeSummary
+                  ? (language === "en"
+                      ? `Please analyze my current recipe: ${currentRecipeSummary}.`
+                      : `Nhờ AI phân tích công thức này: ${currentRecipeSummary}.`)
+                  : undefined;
+                handleOpenAiNutrition(prompt);
+              }}
+              className="p-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-500/25 border border-amber-300 text-[#78350F] transition-all active:scale-95 flex items-center justify-center cursor-pointer shadow-2xs"
+              title={language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}
+              aria-label={language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}
+            >
+              <Bot className="w-4 h-4 text-[#B45309]" />
+            </button>
+
             {remainingGrams > 0 ? (
               <button
                 type="button"
@@ -2190,8 +2281,82 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
+      {/* NÚT AI DINH DƯỠNG NỔI */}
+      {!isAiChatOpen && (
+        <motion.button
+          id="ai-nutrition-floating-button"
+          onClick={() => handleOpenAiNutrition()}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          aria-label={language === "en" ? "AI Nutrition Advisor" : "Chuyên Gia AI Dinh Dưỡng"}
+          className="fixed bottom-24 right-4 sm:bottom-6 sm:right-24 z-40 bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-white p-3 sm:px-4 sm:py-3.5 rounded-full shadow-2xl hover:shadow-[#92400E]/50 flex items-center gap-2.5 transition-all group border border-amber-300/40 cursor-pointer"
+        >
+          <div className="relative">
+            <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:scale-110 transition-transform" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping pointer-events-none" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white" />
+          </div>
+          <div className="hidden sm:flex flex-col text-left leading-tight pr-1">
+            <span className="text-[10px] font-normal text-amber-200">Trợ lý công thức</span>
+            <span className="font-bold text-xs tracking-wide text-white">AI Dinh Dưỡng</span>
+          </div>
+        </motion.button>
+      )}
+
+      {/* MODAL TRỢ LÝ AI DINH DƯỠNG */}
+      <AnimatePresence>
+        {isAiChatOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed inset-0 z-[100] sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[420px] sm:h-[630px] sm:max-h-[calc(100dvh-2.5rem)] w-full h-[100dvh] bg-white sm:rounded-2xl sm:shadow-2xl sm:border sm:border-amber-200/70 overflow-hidden flex flex-col sm:origin-bottom-right"
+          >
+            {/* Header Modal */}
+            <div className="bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-white p-3.5 sm:p-4 pt-[max(0.875rem,env(safe-area-inset-top))] shrink-0 shadow-md flex justify-between items-center">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
+                  <Bot className="w-5 h-5 text-amber-200" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm sm:text-base leading-tight truncate">
+                    {language === "en" ? "AI Nutrition Advisor" : "Chuyên Gia AI Dinh Dưỡng"}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="truncate">
+                      {language === "en" ? "Custom Mix Recipe Advisor" : "Tư vấn công thức tự chọn hạt"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAiChatOpen(false)}
+                className="hover:bg-white/20 p-2 rounded-full transition-all active:scale-95 touch-manipulation cursor-pointer text-white"
+                aria-label={language === "en" ? "Close" : "Đóng"}
+              >
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            </div>
+
+            {/* AI Nutrition Widget Body */}
+            <div className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
+              <NutritionAiWidget
+                language={language as "vi" | "en"}
+                initialPrompt={aiCustomPrompt}
+                customRecipeContext={currentRecipeSummary || undefined}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* NÚT GIỎ HÀNG NỔI & DRAWER */}
-      <CartButton />
+      <CartButton isChatOpen={isAiChatOpen} />
       <CartDrawer
         language={language as "vi" | "en"}
         onCheckout={() => {

@@ -37,6 +37,8 @@ interface NutritionAiWidgetProps {
   language?: "vi" | "en";
   isKeyboardOpen?: boolean;
   onSwitchToLiveChat?: () => void;
+  initialPrompt?: string;
+  customRecipeContext?: string;
 }
 
 // Hàm tạo prompt gợi ý nhanh theo ngôn ngữ
@@ -186,10 +188,17 @@ function FormattedMessage({ content }: { content: string }) {
   );
 }
 
-export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onSwitchToLiveChat }: NutritionAiWidgetProps) {
+export function NutritionAiWidget({
+  language = "vi",
+  isKeyboardOpen = false,
+  onSwitchToLiveChat,
+  initialPrompt,
+  customRecipeContext
+}: NutritionAiWidgetProps) {
   const instanceId = useId();
   const seqRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const hasTriggeredInitialPromptRef = useRef<string | null>(null);
 
   // Bộ chọn thể trạng sức khỏe (Health Profile State)
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
@@ -262,6 +271,16 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
       abortControllerRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim() && hasTriggeredInitialPromptRef.current !== initialPrompt.trim()) {
+      hasTriggeredInitialPromptRef.current = initialPrompt.trim();
+      const timer = setTimeout(() => {
+        handleSendMessage(initialPrompt.trim());
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialPrompt]);
 
   const handleSendMessage = async (
     textToSend?: string,
@@ -552,6 +571,21 @@ export function NutritionAiWidget({ language = "vi", isKeyboardOpen = false, onS
             <Lightbulb className="w-3.5 h-3.5 text-[#B45309]" />
             {language === "en" ? "Questions:" : "Gợi ý hỏi:"}
           </span>
+          {customRecipeContext && (
+            <button
+              disabled={isLoading}
+              onClick={() => {
+                const prompt = language === "en"
+                  ? `Please evaluate and advise on my custom nut mix: ${customRecipeContext}. What are its nutritional highlights and who is it best suited for?`
+                  : `Hãy phân tích dinh dưỡng và tư vấn công thức mix hạt tự chọn của tôi: ${customRecipeContext}. Công thức này phù hợp thể trạng nào?`;
+                handleSendMessage(prompt);
+              }}
+              className="min-h-[30px] sm:min-h-[28px] text-xs bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/40 text-amber-950 border border-amber-400/80 px-3 py-1 rounded-full whitespace-nowrap shadow-xs transition-all active:scale-95 shrink-0 flex items-center gap-1.5 font-bold disabled:opacity-50 touch-manipulation cursor-pointer"
+            >
+              <span>🧪</span>
+              <span>{language === "en" ? "Analyze my current blend" : "Phân tích công thức hạt này"}</span>
+            </button>
+          )}
           {getQuickPrompts(language).map((item, idx) => (
             <button
               key={idx}
