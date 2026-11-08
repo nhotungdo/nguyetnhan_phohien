@@ -28,8 +28,8 @@ const lora = Lora({
 
 const dancing = Dancing_Script({
   variable: "--font-dancing",
-  subsets: ["vietnamese"],
-  weight: ["500", "600", "700"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 

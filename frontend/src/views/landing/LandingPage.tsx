@@ -665,7 +665,7 @@ export default function LandingPage() {
                 onError={(e) => e.currentTarget.style.display = 'none'}
               />
             </div>
-            <span style={{ fontFamily: 'var(--font-lora)' }} className="font-medium italic text-lg min-[360px]:text-xl sm:text-2xl md:text-[27px] tracking-tight transition-colors text-primary whitespace-nowrap">
+            <span style={{ fontFamily: 'var(--font-dancing), cursive' }} className="font-bold text-2xl min-[360px]:text-[26px] sm:text-3xl md:text-[34px] tracking-wide transition-colors text-primary whitespace-nowrap">
               Nguyệt Nhãn Phố Hiến
             </span>
           </div>
@@ -1916,7 +1916,7 @@ export default function LandingPage() {
           <Reveal y={30}>
             <div className="grid md:grid-cols-4 gap-8 md:gap-12">
               <div className="space-y-4 md:col-span-1">
-                <h3 style={{ fontFamily: 'var(--font-lora)' }} className="text-[28px] sm:text-[34px] font-medium italic text-[#F3D498] flex items-center gap-3">
+                <h3 style={{ fontFamily: 'var(--font-dancing), cursive' }} className="text-[32px] sm:text-[38px] font-bold text-[#F3D498] flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-accent font-sans font-bold text-xs overflow-hidden border border-[#1D4D3E] relative shrink-0">
                     <span className="absolute">NN</span>
                     <FastImage

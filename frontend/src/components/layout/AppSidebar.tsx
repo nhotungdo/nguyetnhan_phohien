@@ -81,7 +81,7 @@ export function AppSidebar() {
             <img src="/images/logo_emblem_circle.png" alt="Nguyệt Nhãn Phố Hiến" className="w-full h-full object-contain p-1 relative z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
           </div>
           <div className="flex flex-col min-w-0">
-            <span style={{ fontFamily: 'var(--font-lora)' }} className="font-medium italic text-2xl text-primary truncate leading-tight">Nguyệt Nhãn</span>
+            <span style={{ fontFamily: 'var(--font-dancing), cursive' }} className="font-bold text-3xl text-primary truncate leading-tight">Nguyệt Nhãn</span>
             <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Trang quản trị</span>
           </div>
         </div>
