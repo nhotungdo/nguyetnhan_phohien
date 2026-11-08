@@ -671,10 +671,11 @@ export default function LandingPage() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center gap-2 lg:gap-3.5 xl:gap-5 2xl:gap-6 shrink-0">
+          <nav className="hidden xl:flex items-center gap-2 lg:gap-3 xl:gap-4.5 2xl:gap-6 shrink-0">
             {[
               { label: t.nav.products, id: "san-pham" },
               { label: t.nav.story, id: "cau-chuyen" },
+              { label: t.nav.cuisine || (language === "en" ? "Pho Hien Cuisine" : "Ẩm Thực Phố Hiến"), id: "am-thuc" },
               { label: t.nav.process, id: "quy-trinh" },
               { label: t.nav.contact, id: "lien-he" }
             ].map((item, index) => (
@@ -799,10 +800,10 @@ export default function LandingPage() {
               {[
                 { label: t.nav.products, id: "san-pham" },
                 { label: t.nav.story, id: "cau-chuyen" },
+                { label: t.nav.cuisine || (language === "en" ? "Pho Hien Cuisine" : "Ẩm Thực Phố Hiến"), id: "am-thuc" },
                 { label: t.nav.film || "Thước phim", id: "thuoc-phim" },
                 { label: t.nav.history, id: "lich-su" },
                 { label: t.nav.process, id: "quy-trinh" },
-                { label: t.nav.culture, id: "van-hoa" },
                 { label: t.nav.contact, id: "lien-he" }
               ].map((item, index) => (
                 <motion.button
@@ -1950,7 +1951,7 @@ export default function LandingPage() {
                   <li><button onClick={() => scrollToSection("san-pham")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.nav.products}</button></li>
                   <li><button onClick={() => scrollToSection("cau-chuyen")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.nav.story}</button></li>
                   <li><button onClick={() => scrollToSection("lich-su")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.history.title}</button></li>
-                  <li><button onClick={() => scrollToSection("van-hoa")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.culture.title}</button></li>
+                  <li><button onClick={() => scrollToSection("am-thuc")} className="hover:text-[#F3D498] transition-colors text-left cursor-pointer">{t.nav.cuisine || (language === "en" ? "Pho Hien Cuisine" : "Ẩm Thực Phố Hiến")}</button></li>
                 </ul>
               </div>
               <div className="space-y-4">

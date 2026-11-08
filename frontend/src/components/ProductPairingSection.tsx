@@ -242,9 +242,11 @@ export function ProductPairingSection({
 
   return (
     <section
-      id="van-hoa"
+      id="am-thuc"
       className="py-16 sm:py-24 bg-gradient-to-b from-[#FFFDF8] via-[#FAF6F0] to-[#FFFDF8] relative overflow-hidden border-t border-border w-full max-w-full [contain:paint] scroll-mt-20 sm:scroll-mt-24"
     >
+      {/* Anchor alias để tương thích cả liên kết cũ van-hoa */}
+      <span id="van-hoa" className="sr-only" />
       {/* Nền trang trí hoa văn ánh sáng dùng Radial Gradient thuần (không dùng filter blur để an toàn WebKit) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[radial-gradient(circle,rgba(253,230,138,0.35)_0%,rgba(253,230,138,0)_70%)] rounded-full" />

@@ -3,6 +3,7 @@ export const en = {
   nav: {
     products: "Products",
     story: "Our Story",
+    cuisine: "Pho Hien Cuisine",
     history: "History",
     process: "Craft Process",
     culture: "Culture",

@@ -3,6 +3,7 @@ export const vi = {
   nav: {
     products: "Sản phẩm",
     story: "Câu chuyện",
+    cuisine: "Ẩm Thực Phố Hiến",
     history: "Lịch sử",
     process: "Quy trình",
     culture: "Văn hóa",
