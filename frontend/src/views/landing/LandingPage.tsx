@@ -927,8 +927,24 @@ export default function LandingPage() {
       </AnimatePresence>
 
       <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
-        {/* 2. Hero Banner */}
-        <section id="hero" className="bg-[#F7F3EB] pt-28 pb-12 sm:pt-36 sm:pb-16 w-full">
+        {/* 2. Hero Banner với phông nền di sản Chùa Chuông Phố Hiến */}
+        <section id="hero" className="relative bg-[#F7F3EB] pt-28 pb-12 sm:pt-36 sm:pb-16 w-full overflow-hidden">
+          {/* Lớp nền Chùa Chuông cổ kính với overlay mềm mại */}
+          <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0">
+            <FastImage
+              src={resolveCmsImage(cmsContent.HeroBgImage) || "/images/chuachuong_hero_bg.jpg"}
+              fallbackSrc="/images/chuachuong.jpg"
+              alt="Chùa Chuông Phố Hiến"
+              fill
+              priority
+              sizes="100vw"
+              className="w-full h-full object-cover object-center scale-105"
+            />
+            {/* Lớp phủ bảo vệ tương phản chữ (WCAG AAA) & hòa hợp màu ấm thương hiệu */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5]/96 via-[#FAF8F5]/85 to-[#FAF8F5]/55 md:from-[#FAF8F5]/96 md:via-[#FAF8F5]/80 md:to-[#FAF8F5]/45" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FAF8F5]/80 via-transparent to-[#FBF9F4]" />
+          </div>
+
           <div className="container mx-auto px-4 md:px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center w-full max-w-full">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
