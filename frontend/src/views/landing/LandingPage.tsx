@@ -999,7 +999,7 @@ export default function LandingPage() {
                             (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
                           )[0]?.imagePath
                         )
-                      : "/images/setqua3.jpg"
+                      : "/images/combo3sp.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}
               />

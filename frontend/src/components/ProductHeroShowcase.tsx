@@ -76,7 +76,7 @@ export function ProductHeroShowcase({
     setIsHovered(false);
   }, [mouseX, mouseY]);
 
-  const imageSource = bannerUrl || "/images/setqua3.jpg";
+  const imageSource = bannerUrl || "/images/combo3sp.jpg";
 
   return (
     <figure className="w-full max-w-lg lg:max-w-xl mx-auto select-none">
@@ -135,7 +135,7 @@ export function ProductHeroShowcase({
           >
             <FastImage
               src={imageSource}
-              fallbackSrc="/images/setqua3.jpg"
+              fallbackSrc="/images/combo3sp.jpg"
               alt="Bộ Sưu Tập Nguyệt Nhãn Phố Hiến"
               fill
               priority
