@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useSyncExternalStore } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { FastImage } from "@/components/FastImage";
 import { ShoppingBag, ArrowRight } from "lucide-react";
@@ -18,13 +18,11 @@ export function ProductHeroShowcase({
 }: ProductHeroShowcaseProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice(
-      "ontouchstart" in window || navigator.maxTouchPoints > 0
-    );
-  }, []);
+  const isTouchDevice = useSyncExternalStore(
+    () => () => {},
+    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0),
+    () => false
+  );
 
   // Motion values for smooth 3D tilting
   const mouseX = useMotionValue(0);

@@ -272,16 +272,6 @@ export function NutritionAiWidget({
     };
   }, []);
 
-  useEffect(() => {
-    if (initialPrompt && initialPrompt.trim() && hasTriggeredInitialPromptRef.current !== initialPrompt.trim()) {
-      hasTriggeredInitialPromptRef.current = initialPrompt.trim();
-      const timer = setTimeout(() => {
-        handleSendMessage(initialPrompt.trim());
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [initialPrompt]);
-
   const handleSendMessage = async (
     textToSend?: string,
     overrideGoal?: string | null,
@@ -430,6 +420,21 @@ export function NutritionAiWidget({
       setIsLoading(false);
     }
   };
+
+  const handleSendMessageRef = useRef(handleSendMessage);
+  useEffect(() => {
+    handleSendMessageRef.current = handleSendMessage;
+  });
+
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim() && hasTriggeredInitialPromptRef.current !== initialPrompt.trim()) {
+      hasTriggeredInitialPromptRef.current = initialPrompt.trim();
+      const timer = setTimeout(() => {
+        handleSendMessageRef.current(initialPrompt.trim());
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialPrompt]);
 
   const handleAddToCart = (product: SuggestedProduct) => {
     const fallbackThumb = getProductPackagingFallback(product.name);

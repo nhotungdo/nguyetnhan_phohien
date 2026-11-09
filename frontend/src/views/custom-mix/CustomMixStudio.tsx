@@ -340,7 +340,7 @@ export default function CustomMixStudio() {
   // Tóm tắt công thức hạt hiện tại cho AI phân tích
   const currentRecipeSummary = useMemo(() => {
     const activeItems = Object.entries(weights)
-      .filter(([_, g]) => g > 0)
+      .filter(([, g]) => g > 0)
       .map(([id, g]) => {
         const ing = displayIngredients.find((i) => i.id === id);
         const name = ing ? (language === "en" ? getIngredientTranslation(ing, "en").name : ing.name) : id;
