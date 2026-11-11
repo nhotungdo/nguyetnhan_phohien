@@ -25,3 +25,4 @@ export function StorefrontLayout({ children, headerOffset = true }: StorefrontLa
 }
 
 export default StorefrontLayout;
+

@@ -163,3 +163,4 @@ export function ProductCatalogView() {
 }
 
 export default ProductCatalogView;
+

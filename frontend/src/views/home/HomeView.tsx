@@ -122,7 +122,7 @@ export function HomeView() {
               {language === "en"
                 ? t.hero.subtitle
                 : cmsContent.HeroSubtitle ||
-                  "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
+                "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
             </motion.p>
 
             <div className="flex flex-wrap items-center gap-4 sm:gap-5 pt-2">
