@@ -1,12 +1,8 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { productApi } from "@/services/api.service";
 import { fetchWebsiteContent, websiteContentQueryKey } from "@/lib/contentQuery";
-import { HeroSection } from "@/views/landing/HeroSection";
-import { IntroductionSection } from "@/views/landing/IntroductionSection";
-import { StorySection } from "@/views/landing/StorySection";
-import { HistorySection } from "@/views/landing/HistorySection";
-import { OrderSection } from "@/views/landing/OrderSection";
-import { ContactSection } from "@/views/landing/ContactSection";
+import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
+import { HomeView } from "@/views/home/HomeView";
 
 /** Load products + CMS content on server render:
  *  - <img> tags of product images / logo / banner appear in initial HTML →
@@ -46,14 +42,9 @@ export default async function Home() {
 
   return (
     <HydrationBoundary state={state}>
-      <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
-        <HeroSection />
-        <IntroductionSection />
-        <StorySection />
-        <HistorySection />
-        <OrderSection />
-        <ContactSection />
-      </main>
+      <StorefrontLayout headerOffset={false}>
+        <HomeView />
+      </StorefrontLayout>
     </HydrationBoundary>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { EASE_OUT_EXPO, Reveal } from "@/components/LandingMotion";
 import { ProductScrollytelling } from "@/components/ProductScrollytelling";
@@ -11,6 +12,7 @@ import { scrollToSection } from "@/lib/scrollToSection";
 import { resolveCmsImage } from "@/lib/cmsImage";
 
 export function HistorySection() {
+  const router = useRouter();
   const timelineRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: timelineScroll } = useScroll({
     target: timelineRef,
@@ -146,7 +148,14 @@ export function HistorySection() {
       <ProductPairingSection
         language={language as "vi" | "en"}
         cultureImage={cmsContent.CultureImage ? resolveCmsImage(cmsContent.CultureImage) : undefined}
-        onOrderClick={() => scrollToSection("dat-hang")}
+        onOrderClick={() => {
+          const el = document.getElementById("dat-hang");
+          if (el) {
+            scrollToSection("dat-hang");
+          } else {
+            router.push("/san-pham#dat-hang");
+          }
+        }}
       />
     </>
   );

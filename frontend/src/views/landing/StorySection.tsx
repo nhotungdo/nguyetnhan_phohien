@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 import { HeritageVideoSection } from "@/components/HeritageVideoSection";
@@ -62,13 +63,14 @@ export function StorySection() {
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 <span className="text-foreground/30 hidden sm:inline">•</span>
-                <button
-                  onClick={() => scrollToSection("lich-su")}
+                <Link
+                  href="/am-thuc"
+                  prefetch={true}
                   className="inline-flex items-center gap-2 text-foreground/70 hover:text-accent font-medium text-sm transition-colors cursor-pointer"
                 >
                   {language === "en" ? "Explore historical timeline" : "Khám phá dòng chảy lịch sử"}{" "}
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
