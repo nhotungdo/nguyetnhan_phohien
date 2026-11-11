@@ -48,9 +48,9 @@ export function IntroductionSection() {
           </div>
 
           {/* Tiêu đề chính thức */}
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
             {language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}
-          </h2>
+          </h1>
 
           {/* Vạch hoa văn phân cách hoàng gia đối xứng */}
           <div className="flex items-center justify-center gap-3 py-1" aria-hidden="true">

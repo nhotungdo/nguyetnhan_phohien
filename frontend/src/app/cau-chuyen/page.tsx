@@ -20,21 +20,6 @@ export const metadata: Metadata = {
 export default function CauChuyenPage() {
   return (
     <StorefrontLayout>
-      {/* Subpage Header Banner */}
-      <section className="bg-gradient-to-b from-amber-100/60 via-[#F7F3EB] to-background pt-8 pb-10 sm:pt-12 sm:pb-14 border-b border-[#E8DFC8]/60">
-        <div className="container mx-auto px-4 md:px-6 text-center max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E8DFC8] text-primary text-xs sm:text-sm font-semibold shadow-2xs mb-4">
-            <span>Di Sản Văn Hóa & Tinh Hoa Đất Việt</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
-            Câu Chuyện Nguyệt Nhãn Phố Hiến
-          </h1>
-          <p className="mt-3 text-base sm:text-lg text-stone-700 leading-relaxed [text-wrap:pretty]">
-            Hành trình gìn giữ phong vị long nhãn tiến vua từ thế kỷ 16 trên dải đất phù sa sông Hồng Hưng Yên.
-          </p>
-        </div>
-      </section>
-
       {/* 1. Giới thiệu thương hiệu & 3 thẻ bảo chứng */}
       <IntroductionSection />
 

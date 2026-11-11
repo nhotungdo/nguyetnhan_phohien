@@ -41,21 +41,6 @@ export default async function SanPhamPage() {
   return (
     <HydrationBoundary state={state}>
       <StorefrontLayout>
-        {/* Subpage Header Banner */}
-        <section className="bg-gradient-to-b from-amber-100/60 via-[#F7F3EB] to-background pt-8 pb-10 sm:pt-12 sm:pb-14 border-b border-[#E8DFC8]/60">
-          <div className="container mx-auto px-4 md:px-6 text-center max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E8DFC8] text-primary text-xs sm:text-sm font-semibold shadow-2xs mb-4">
-              <span>Chính Hãng • Sấy Đối Lưu Khép Kín • 100% Tự Nhiên</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
-              Bộ Sưu Tập Nguyệt Nhãn Phố Hiến
-            </h1>
-            <p className="mt-3 text-base sm:text-lg text-stone-700 leading-relaxed [text-wrap:pretty]">
-              Tuyển chọn từ những cùi nhãn lồng Hương Chi cổ thụ dày mọng, giữ trọn vẹn vị ngọt thanh tao và hương thơm tự nhiên.
-            </p>
-          </div>
-        </section>
-
         {/* Danh mục sản phẩm tương tác & So sánh chất lượng */}
         <ProductCatalogView />
 

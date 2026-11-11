@@ -983,30 +983,6 @@ export default function CustomMixStudio() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
-        {/* BANNER MINH HỌA TRANG TỰ CHỌN HẠT (CMS TỰ ĐỔI ĐƯỢC) */}
-        {content["CustomMix_BannerUrl"] && (
-          <div className="mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-200/80 shadow-md relative w-full aspect-[21/9] sm:aspect-[24/8] max-h-72 bg-gradient-to-r from-amber-100 to-amber-50">
-            <FastImage
-              src={content["CustomMix_BannerUrl"]}
-              alt={language === "en" ? "Custom Mix Atelier Banner" : "Banner Xưởng Chế Tác Hạt Riêng"}
-              fill
-              sizes="(max-width: 1280px) 100vw, 1280px"
-              priority
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent flex items-end p-4 sm:p-6">
-              <div>
-                <span className="text-[10px] sm:text-xs font-bold text-amber-300 uppercase tracking-widest bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full border border-amber-300/40 inline-block mb-1">
-                  {language === "en" ? "Royal Longan Custom Atelier" : "Xưởng Tự Phối Hạt Hoàng Gia"}
-                </span>
-                <h2 className="text-white text-base sm:text-2xl font-bold drop-shadow-md">
-                  {language === "en" ? "Curate Your Signature Wellness Blend" : "Tự Tay Tuyển Chọn Tỉ Lệ Hạt Cho Riêng Bạn"}
-                </h2>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* THANH STEPPER 3 BƯỚC ĐIỀU HƯỚNG QUY TRÌNH THÔNG MINH */}
         <nav
           aria-label="Quy trình chế tác hạt"
@@ -1076,31 +1052,6 @@ export default function CustomMixStudio() {
             </button>
           </div>
         </nav>
-
-        {/* INTRO HERO BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#23452F] via-[#2F5A3E] to-[#1C3625] text-white p-6 sm:p-8 mb-8 shadow-xl border border-emerald-900/40">
-          <div className="relative z-10 max-w-3xl space-y-2.5">
-            <span className="inline-block text-xs uppercase tracking-widest text-[#E9B949] font-bold">
-              {language === "en" ? "Exclusive Pho Hien Specialty" : "Đặc sản Phố Hiến độc bản"}
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#FFF9ED] leading-tight [text-wrap:balance]">
-              {language === "en"
-                ? "Craft Your Custom Nut Blend & Name Your Own Masterpiece"
-                : "Tự Tay Mix Hạt Theo Sở Thích & Đặt Tên Cho Tuyệt Tác Của Bạn"}
-            </h2>
-            <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-light">
-              {language === "en"
-                ? "Freely blend proportions from 5 celebrated nuts and delicacies. Match the exact target weight at a fixed all-inclusive price, complete with complimentary custom label printing."
-                : "Tự do lựa chọn tỉ lệ từ 5 loại hạt dinh dưỡng & đặc sản trứ danh. Đạt đúng khối lượng tịnh yêu cầu với mức giá cố định trọn gói, được in tem nhãn cá nhân hóa miễn phí."}
-            </p>
-          </div>
-          <div
-            className="absolute right-0 bottom-0 w-64 h-64 pointer-events-none"
-            style={{
-              background: "radial-gradient(circle at 80% 80%, rgba(233, 185, 73, 0.25) 0%, transparent 70%)",
-            }}
-          />
-        </div>
 
         {/* WORKSPACE LAYOUT (2 COLUMNS) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

@@ -316,76 +316,15 @@ export function PhoHienCulinaryView() {
 
   return (
     <div className="bg-[#FAF8F5] text-stone-900 min-h-screen">
-      {/* 1. HERO BANNER: TINH HOA ẨM THỰC PHỐ HIẾN */}
-      <section className="relative overflow-hidden pt-10 pb-14 sm:pt-16 sm:pb-20 border-b border-[#E8DFC8]/70 bg-gradient-to-b from-[#F5EFE6] via-[#FAF8F5] to-[#FAF8F5]">
-        <div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(#D97706_0.8px,transparent_0.8px)] [background-size:20px_20px]"
-        />
-
-        <div className="container mx-auto px-4 md:px-6 relative z-10 text-center max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#E8DFC8] text-primary text-xs sm:text-sm font-semibold shadow-2xs mb-5"
-          >
-            <span>{language === "en" ? "Artisan Gastronomy & Royal Tribute" : "Nghệ Thuật Ẩm Thực & Phong Vị Tiến Vua"}</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1, ease: EASE_OUT_EXPO }}
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight [text-wrap:balance] leading-tight"
-          >
-            {language === "en" ? "Pho Hien Culinary Heritage & Tea Rituals" : "Văn Hóa Ẩm Thực & Phong Vị Cung Đình Phố Hiến"}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: EASE_OUT_EXPO }}
-            className="mt-3 text-base sm:text-lg text-stone-700 leading-relaxed [text-wrap:pretty] max-w-2xl mx-auto font-normal"
-          >
-            {language === "en"
-              ? "“First is the Capital, second is Pho Hien” — Where royal tribute longan unites Red River alluvium, centuries of graceful tea appreciation, and regal court delicacies."
-              : "“Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến” — Nơi long nhãn tiến vua hòa quyện cùng nghệ thuật ẩm thực cung đình, nếp sống tao nhã “ăn hương, ăn hoa” và những chén trà đàm đạo ngàn năm."}
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: EASE_OUT_EXPO }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
-          >
-            <a
-              href="#bo-tu-ngu-thien"
-              className="bg-accent hover:bg-[#9A3412] text-white font-bold px-6 py-3.5 rounded-xl inline-flex items-center gap-2 shadow-lg shadow-accent/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all text-sm sm:text-base cursor-pointer"
-            >
-              <span>{language === "en" ? "Explore 4 Royal Recipes" : "Khám Phá Bộ Tứ Ngự Thiện"}</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-            <Link
-              href="/san-pham"
-              className="bg-white hover:bg-[#F4EFE6] text-primary font-bold px-6 py-3.5 rounded-xl inline-flex items-center gap-2 border border-[#E8DFC8] shadow-xs hover:scale-105 active:scale-95 transition-all text-sm sm:text-base"
-            >
-              <ShoppingCart className="w-4 h-4 text-accent" />
-              <span>{language === "en" ? "Artisan Ingredients" : "Nguyên Liệu Chuẩn Vị"}</span>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 2. KHỐI 1: TRIẾT LÝ ẨM THỰC "ĂN HƯƠNG ĂN HOA" */}
-      <section className="py-14 sm:py-20 container mx-auto px-4 md:px-6 max-w-6xl">
+      {/* KHỐI 1: TRIẾT LÝ ẨM THỰC "ĂN HƯƠNG ĂN HOA" */}
+      <section className="py-12 sm:py-16 container mx-auto px-4 md:px-6 max-w-6xl">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
           <span className="text-accent text-xs sm:text-sm font-bold uppercase tracking-wider block mb-2">
             {language === "en" ? "Living Gastronomy" : "Nếp Sống Tao Nhã"}
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
             {language === "en" ? "“Savoring Fragrance, Savoring Flowers”" : "Triết Lý Ẩm Thực “Ăn Hương, Ăn Hoa”"}
-          </h2>
+          </h1>
           <p className="mt-3 text-sm sm:text-base text-stone-600 leading-relaxed [text-wrap:pretty]">
             {language === "en"
               ? "To Pho Hien gourmets, dried longan is not merely sweet, but a refined ingredient elevating daily moments into mindful ceremonies."

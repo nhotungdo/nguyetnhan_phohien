@@ -146,11 +146,11 @@ export function ProductInteractiveShowcase({
             <span>{language === "en" ? "King's Tribute Longan Collection" : "Bộ Sưu Tập Long Nhãn Tiến Vua"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight mb-2.5 [text-wrap:balance]">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight mb-2.5 [text-wrap:balance]">
             {language === "en" 
               ? (cmsContent.ProductsTitle_En || "Artisanal Specialty Products") 
               : (cmsContent.ProductsTitle || "Tinh Hoa Sản Phẩm Nguyệt Nhãn")}
-          </h2>
+          </h1>
           <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto [text-wrap:pretty]">
             {language === "en"
               ? (cmsContent.ProductsSubtitle_En || "Hand-selected Hương Chi longan, dried using hot air convective drying to preserve its golden hue and honeyed fragrance.")

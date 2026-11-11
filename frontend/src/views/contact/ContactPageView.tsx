@@ -25,10 +25,10 @@ export function ContactPageView() {
           {/* Cột 1: Thông tin liên hệ & Kênh hỗ trợ */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DFC8] shadow-sm space-y-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-accent" />
                 <span>{language === "en" ? "Official Contact" : "Thông Tin Chính Thức"}</span>
-              </h2>
+              </h1>
 
               <div className="space-y-4 text-sm sm:text-base">
                 <a
