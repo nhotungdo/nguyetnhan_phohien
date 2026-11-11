@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Coffee,
@@ -243,9 +244,10 @@ function formatPrice(amount: number, language: "vi" | "en") {
 }
 
 export function PhoHienCulinaryView() {
+  const router = useRouter();
   const { language } = useLanguageStore();
   const { products: apiProducts } = useProducts();
-  const { addItem: addCartItem, openCart } = useCartStore();
+  const { addItem: addCartItem, closeCart } = useCartStore();
 
   const [activeRecipeId, setActiveRecipeId] = useState<string>("tra-cuc");
   const activeRecipe = CULINARY_RECIPES.find((r) => r.id === activeRecipeId) || CULINARY_RECIPES[0];
@@ -693,21 +695,37 @@ export function PhoHienCulinaryView() {
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
                       <span className="text-lg font-extrabold text-accent">
                         {formatPrice(prod.price, language as "vi" | "en")}
                       </span>
 
-                      <button
-                        onClick={() => {
-                          addCartItem(prod);
-                          openCart();
-                        }}
-                        className="bg-primary hover:bg-[#155A46] text-white p-2.5 rounded-xl transition-all shadow-xs hover:scale-105 active:scale-95 cursor-pointer"
-                        title={language === "en" ? "Add to cart" : "Thêm vào giỏ"}
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addCartItem(prod);
+                          }}
+                          className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-accent transition-all active:scale-95 cursor-pointer shadow-2xs"
+                          title={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
+                          aria-label={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addCartItem(prod);
+                            closeCart();
+                            router.push("/san-pham#dat-hang");
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-accent hover:bg-[#9A3412] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                          title={language === "en" ? "Buy Now" : "Mua Ngay"}
+                        >
+                          <span>{language === "en" ? "Buy Now" : "Mua Ngay"}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
