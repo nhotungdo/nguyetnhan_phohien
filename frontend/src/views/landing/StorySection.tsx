@@ -38,10 +38,10 @@ export function StorySection() {
               </div>
             </div>
             <div className="flex-1 space-y-8">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary [text-wrap:balance] leading-tight">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary [text-wrap:balance] tracking-tight leading-tight">
                 {language === "en" ? "Famous Royal Tribute" : cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh"}
               </h2>
-              <p className="text-base sm:text-lg text-foreground/80 leading-relaxed max-w-2xl [text-wrap:pretty]">
+              <p className="text-sm sm:text-base text-stone-700 leading-relaxed max-w-2xl [text-wrap:pretty]">
                 {language === "en"
                   ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute."
                   : cmsContent.StoryDescription ||

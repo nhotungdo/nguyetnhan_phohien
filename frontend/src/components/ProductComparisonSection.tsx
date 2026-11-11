@@ -92,10 +92,10 @@ export function ProductComparisonSection({ language = "vi" }: { language?: "vi" 
             <span>{language === "en" ? "Quality Transparency" : "Minh Bạch Chất Lượng"}</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight mb-3 sm:mb-4 [text-wrap:balance]">
             {language === "en" ? "Purity Uncompromised: The Nguyệt Nhãn Standard" : "Khác Biệt Làm Nên Đẳng Cấp Nguyệt Nhãn"}
           </h2>
-          <p className="text-foreground/80 text-sm sm:text-base md:text-lg leading-relaxed [text-wrap:pretty]">
+          <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto [text-wrap:pretty]">
             {language === "en"
               ? "We steadfastly uphold an honest artisanal approach — prioritizing purity and user well-being over volume, honoring the prestigious Pho Hien heritage."
               : "Chúng tôi kiên định với phương pháp làm nghề tử tế — không chạy theo số lượng, đặt sức khỏe người dùng và uy tín danh thơm Phố Hiến lên hàng đầu."}

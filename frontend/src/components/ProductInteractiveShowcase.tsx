@@ -146,12 +146,12 @@ export function ProductInteractiveShowcase({
             <span>{language === "en" ? "King's Tribute Longan Collection" : "Bộ Sưu Tập Long Nhãn Tiến Vua"}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-tight mb-2.5 [text-wrap:balance]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight mb-2.5 [text-wrap:balance]">
             {language === "en" 
               ? (cmsContent.ProductsTitle_En || "Artisanal Specialty Products") 
               : (cmsContent.ProductsTitle || "Tinh Hoa Sản Phẩm Nguyệt Nhãn")}
           </h2>
-          <p className="text-foreground/80 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto [text-wrap:pretty]">
+          <p className="text-stone-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto [text-wrap:pretty]">
             {language === "en"
               ? (cmsContent.ProductsSubtitle_En || "Hand-selected Hương Chi longan, dried using hot air convective drying to preserve its golden hue and honeyed fragrance.")
               : (cmsContent.ProductsSubtitle || "Từng cùi nhãn Hương Chi được chọn lọc kỹ lưỡng, sấy nhiệt nóng (sấy đối lưu) giữ trọn sắc vàng óng ánh và hương thơm ngọt ngào trứ danh.")}

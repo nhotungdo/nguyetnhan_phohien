@@ -91,7 +91,7 @@ export function HomeView() {
               <span>{language === "en" ? "Pho Hien Heritage Delicacy" : "Thương Hiệu Di Sản Phố Hiến"}</span>
             </div>
 
-            <h1 className="text-4xl sm:text-[40px] md:text-5xl lg:text-[52px] xl:text-[60px] font-semibold text-primary leading-[1.18] tracking-tight [text-wrap:balance]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary leading-[1.15] tracking-tight [text-wrap:balance]">
               <motion.span
                 initial={{ opacity: 0, y: 28 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -116,7 +116,7 @@ export function HomeView() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.85, delay: 0.55, ease: EASE_OUT_EXPO }}
-              className="text-base sm:text-lg md:text-xl text-foreground/85 leading-relaxed [text-wrap:pretty] max-w-xl font-normal"
+              className="text-base sm:text-lg text-stone-700 leading-relaxed [text-wrap:pretty] max-w-xl font-normal"
             >
               {language === "en"
                 ? t.hero.subtitle
@@ -211,10 +211,10 @@ export function HomeView() {
             <span className="text-xs font-bold uppercase tracking-wider text-accent bg-amber-100/80 px-3.5 py-1.5 rounded-full border border-amber-300/50">
               {language === "en" ? "Selected Royal Tribute" : "Tinh Hoa Phẩm Vật Tiến Vua"}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary [text-wrap:balance]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
               {language === "en" ? "Signature Pho Hien Longan" : "Bộ Sưu Tập Sản Phẩm Tiêu Biểu"}
             </h2>
-            <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+            <p className="text-stone-600 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
               Những dòng sản phẩm được nghệ nhân sấy nhiệt đối lưu tỉ mỉ, giữ trọn vị ngọt thanh dịu và màu vàng hổ phách tự nhiên.
             </p>
           </div>
@@ -320,10 +320,10 @@ export function HomeView() {
               <span className="text-xs font-bold uppercase tracking-wider text-accent bg-amber-100/80 px-3.5 py-1.5 rounded-full border border-amber-300/50">
                 Khởi Nguồn Thế Kỷ 16
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-primary leading-tight [text-wrap:balance]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
                 {cmsContent.StoryTitle || "Thứ Quả Tiến Vua Trứ Danh Đất Hưng Yên"}
               </h2>
-              <p className="text-stone-700 text-base leading-relaxed [text-wrap:pretty]">
+              <p className="text-stone-700 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
                 Tương truyền vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm.
               </p>
               <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -356,10 +356,10 @@ export function HomeView() {
             <span className="text-xs font-bold uppercase tracking-wider text-primary bg-amber-200/60 px-3 py-1 rounded-full mb-3 inline-block">
               Trải Nghiệm Độc Bản
             </span>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-primary">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
               {language === "en" ? "Bespoke Custom Mix Studio" : "Phối Một Hộp Hạt Theo Ý Bạn"}
             </h2>
-            <p className="mt-2 text-foreground/80 leading-relaxed text-sm sm:text-base">
+            <p className="mt-2 text-foreground/80 leading-relaxed text-sm sm:text-base [text-wrap:pretty]">
               Tự tay lựa chọn tỉ lệ 5 loại hạt, chọn mẫu bao bì hộp quà cao cấp và in tem nhãn mang tên riêng của bạn hoặc người thương.
             </p>
           </div>
@@ -377,10 +377,10 @@ export function HomeView() {
       {/* 6. Lối tắt Đặt Hàng Trực Tuyến Nhanh */}
       <section className="py-14 sm:py-18 bg-[#451A03] text-white">
         <div className="container mx-auto px-4 md:px-6 text-center max-w-2xl space-y-4">
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#FDE68A] leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#FDE68A] tracking-tight leading-tight [text-wrap:balance]">
             Thưởng Thức Hương Vị Tinh Túy Ngay Hôm Nay
           </h2>
-          <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-stone-300 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
             Cam kết chất lượng tuyệt hảo, đóng gói kín khí giữ trọn độ dẻo và hương thơm tự nhiên giao tận tay bạn.
           </p>
           <div className="pt-3 flex flex-wrap items-center justify-center gap-4">

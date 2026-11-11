@@ -48,7 +48,7 @@ export function IntroductionSection() {
           </div>
 
           {/* Tiêu đề chính thức */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight leading-tight [text-wrap:balance]">
             {language === "en" ? t.about.title : cmsContent.AboutTitle || t.about.title}
           </h2>
 
@@ -60,7 +60,7 @@ export function IntroductionSection() {
           </div>
 
           {/* Đoạn văn giới thiệu thương hiệu */}
-          <p className="text-base sm:text-lg md:text-xl text-stone-700 leading-relaxed max-w-2xl mx-auto font-normal [text-wrap:pretty]">
+          <p className="text-sm sm:text-base text-stone-600 leading-relaxed max-w-2xl mx-auto font-normal [text-wrap:pretty]">
             {language === "en" ? t.about.desc : cmsContent.AboutDescription || t.about.desc}
           </p>
 

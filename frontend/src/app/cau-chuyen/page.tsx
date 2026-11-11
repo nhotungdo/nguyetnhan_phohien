@@ -44,10 +44,10 @@ export default function CauChuyenPage() {
       {/* 3. Lối dẫn tiếp nối sang Ẩm thực hoặc Sản phẩm */}
       <section className="py-12 sm:py-16 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 border-t border-[#E8DFC8]">
         <div className="container mx-auto px-4 md:px-6 text-center max-w-2xl">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight mb-3 [text-wrap:balance]">
             Tiếp Tục Khám Phá Nét Đẹp Phố Hiến
           </h2>
-          <p className="text-stone-600 mb-6 text-sm sm:text-base">
+          <p className="text-stone-600 mb-6 text-sm sm:text-base [text-wrap:pretty]">
             Tìm hiểu dòng chảy lịch sử 300 năm và cẩm nang thưởng thức long nhãn đúng điệu hoàng gia.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">

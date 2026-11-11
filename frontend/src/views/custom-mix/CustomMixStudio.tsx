@@ -1083,7 +1083,7 @@ export default function CustomMixStudio() {
             <span className="inline-block text-xs uppercase tracking-widest text-[#E9B949] font-bold">
               {language === "en" ? "Exclusive Pho Hien Specialty" : "Đặc sản Phố Hiến độc bản"}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#FFF9ED] leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#FFF9ED] leading-tight [text-wrap:balance]">
               {language === "en"
                 ? "Craft Your Custom Nut Blend & Name Your Own Masterpiece"
                 : "Tự Tay Mix Hạt Theo Sở Thích & Đặt Tên Cho Tuyệt Tác Của Bạn"}

@@ -125,10 +125,10 @@ export function ProductCatalogView() {
       <section className="bg-secondary/70 border-y border-border py-10 sm:py-14">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="max-w-xl">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-primary">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
               {language === "en" ? "Choose your own mix" : "Phối một hộp hạt theo ý bạn"}
             </h2>
-            <p className="mt-3 text-foreground/80 leading-relaxed">
+            <p className="mt-2 text-stone-600 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
               {language === "en"
                 ? "Choose your nuts, packaging and a name for your label in our bespoke studio."
                 : "Tự tay lựa chọn 5 loại hạt, kiểu dáng hộp quà và in tem nhãn mang tên bạn hoàn toàn miễn phí."}

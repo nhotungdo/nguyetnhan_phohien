@@ -238,7 +238,7 @@ export function OrderSection() {
           <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div>
               <Reveal>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-white leading-tight [text-wrap:balance]">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4 sm:mb-6 text-white tracking-tight leading-tight [text-wrap:balance]">
                   {language === "en"
                     ? "Enjoy the Essence of Royal Flavor"
                     : cmsContent.OrderTitle
@@ -247,7 +247,7 @@ export function OrderSection() {
                 </h2>
               </Reveal>
               <Reveal delay={0.08}>
-                <p className="text-sm sm:text-lg text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90 max-w-xl [text-wrap:pretty]">
+                <p className="text-sm sm:text-base text-[#FDE68A] mb-6 sm:mb-8 leading-relaxed opacity-90 max-w-xl [text-wrap:pretty]">
                   {language === "en"
                     ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands."
                     : cmsContent.OrderDescription ||

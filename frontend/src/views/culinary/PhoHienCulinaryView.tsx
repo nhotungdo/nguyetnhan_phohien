@@ -337,7 +337,7 @@ export function PhoHienCulinaryView() {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: EASE_OUT_EXPO }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary tracking-tight [text-wrap:balance] leading-[1.2]"
+            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight [text-wrap:balance] leading-tight"
           >
             {language === "en" ? "Pho Hien Culinary Heritage & Tea Rituals" : "Văn Hóa Ẩm Thực & Phong Vị Cung Đình Phố Hiến"}
           </motion.h1>
@@ -346,7 +346,7 @@ export function PhoHienCulinaryView() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease: EASE_OUT_EXPO }}
-            className="mt-4 sm:mt-5 text-base sm:text-lg md:text-xl text-stone-700 leading-relaxed [text-wrap:pretty] max-w-3xl mx-auto font-normal"
+            className="mt-3 text-base sm:text-lg text-stone-700 leading-relaxed [text-wrap:pretty] max-w-2xl mx-auto font-normal"
           >
             {language === "en"
               ? "“First is the Capital, second is Pho Hien” — Where royal tribute longan unites Red River alluvium, centuries of graceful tea appreciation, and regal court delicacies."

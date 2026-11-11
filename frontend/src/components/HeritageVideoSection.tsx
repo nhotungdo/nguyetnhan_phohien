@@ -92,12 +92,12 @@ export function HeritageVideoSection({
           </div>
 
           {/* Tiêu đề chính */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.18] text-[#FAF8F5] [text-wrap:balance]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-[#FAF8F5] [text-wrap:balance]">
             {language === "en" ? "First is Kinh Ky, Second is Pho Hien" : "Thứ Nhất Kinh Kỳ, Thứ Nhì Phố Hiến"}
           </h2>
 
           {/* Đoạn dẫn dắt */}
-          <p className="text-sm sm:text-base md:text-lg text-[#B5C4BC] max-w-3xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
+          <p className="text-sm sm:text-base text-[#D1DCD5] max-w-2xl mx-auto leading-relaxed [text-wrap:pretty] font-normal">
             {language === "en"
               ? "Follow the historical footsteps back to the 16th century, exploring the legendary port along the Red River where nature, culture, and artisanal devotion gave birth to the royal tribute longan."
               : "Ngược dòng thời gian về thế kỷ 16, ghé thăm đô thị cổ sầm uất ven bờ sông Hồng bồi đắp phù sa — Nơi đất thiêng hội tụ để hun đúc nên linh hồn thức quả tiến vua lưu truyền trăm năm."}

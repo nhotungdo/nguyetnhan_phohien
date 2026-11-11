@@ -105,7 +105,7 @@ export function ContactPageView() {
 
           {/* Cột 2: Form gửi lời nhắn / yêu cầu báo giá */}
           <div className="lg:col-span-7 bg-white p-6 sm:p-10 rounded-3xl border border-[#E8DFC8] shadow-md">
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-primary mb-2 [text-wrap:balance]">
               {language === "en" ? "Send Us a Message" : "Gửi Lời Nhắn Đến Nguyệt Nhãn"}
             </h2>
             <p className="text-stone-600 text-sm sm:text-base mb-6 leading-relaxed">
