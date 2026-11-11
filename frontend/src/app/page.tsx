@@ -46,7 +46,14 @@ export default async function Home() {
 
   return (
     <HydrationBoundary state={state}>
-      <HeroPage />
+      <main className="w-full max-w-full overflow-x-clip pb-20 md:pb-0">
+        <HeroPage />
+        <GioiThieuPage />
+        <CauChuyenPage />
+        <LichSuPage />
+        <DatHangPage />
+        <LienHePage />
+      </main>
     </HydrationBoundary>
   );
 }
