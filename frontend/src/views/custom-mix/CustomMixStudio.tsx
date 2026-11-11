@@ -829,7 +829,9 @@ export default function CustomMixStudio() {
   // Mua ngay
   const handleBuyNow = () => {
     if (!isPerfectMatch || isValidating) return;
-    handleAddToCart(true);
+    handleAddToCart(false);
+    closeCart();
+    router.push("/san-pham#dat-hang");
   };
 
   const todayStr = useMemo(() => {

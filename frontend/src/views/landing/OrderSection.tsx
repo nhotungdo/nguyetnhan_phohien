@@ -31,6 +31,7 @@ import { useCartStore } from "@/stores/useCartStore";
 import { FireworksCelebration } from "@/components/FireworksCelebration";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import type { ProductResponse } from "@/types/api.types";
+import { scrollToSection } from "@/lib/scrollToSection";
 
 const inputClass = (error?: unknown) =>
   `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all text-base sm:text-sm ${
@@ -190,26 +191,37 @@ export function OrderSection() {
     { requireAdministrativeUnits: !isManualAddress, language: language as "vi" | "en" }
   );
 
-  const hasSyncedCartToFormRef = useRef(false);
+  const prevCartSerializedRef = useRef<string>("");
+
+  // Tự động đồng bộ các sản phẩm từ giỏ hàng / nút "Đặt mua" / "Mua ngay" vào khung đặt hàng
   useEffect(() => {
-    if (
-      !hasSyncedCartToFormRef.current &&
-      cartStoreItems.length > 0 &&
-      form.items.length === 1 &&
-      !form.items[0].productId &&
-      !form.items[0].isCustomMix
-    ) {
-      hasSyncedCartToFormRef.current = true;
-      setCartItems(
-        cartStoreItems.map((i) => ({
-          productId: i.productId,
-          quantity: i.quantity,
-          isCustomMix: i.isCustomMix,
-          customMixDetails: i.customMixDetails,
-        }))
-      );
+    if (!isMounted) return;
+
+    const cartPayload = cartStoreItems.map((i) => ({
+      productId: i.productId,
+      quantity: i.quantity > 0 ? i.quantity : 1,
+      isCustomMix: i.isCustomMix,
+      customMixDetails: i.customMixDetails,
+    }));
+    const currentSerialized = JSON.stringify(cartPayload);
+
+    if (currentSerialized !== prevCartSerializedRef.current) {
+      prevCartSerializedRef.current = currentSerialized;
+      if (cartPayload.length > 0) {
+        setCartItems(cartPayload);
+      }
     }
-  }, [cartStoreItems, form.items, setCartItems]);
+  }, [cartStoreItems, isMounted, setCartItems]);
+
+  // Tự động cuộn mượt đến khung đặt hàng nếu URL chứa hash #dat-hang
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#dat-hang") {
+      const timer = setTimeout(() => {
+        scrollToSection("dat-hang");
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const wardOptions = wardsOf(vnProvinces, form.province);
   const hasFieldErrors = Object.values(errors).some(Boolean);

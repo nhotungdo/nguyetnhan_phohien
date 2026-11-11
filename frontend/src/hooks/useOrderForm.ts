@@ -194,23 +194,24 @@ export function useOrderForm(
     }[],
     discountCode?: string
   ) => {
-    if (cartItems.length > 0) {
-      setForm((prev) => ({
-        ...prev,
-        items: cartItems.map((c) => ({
-          productId: c.productId,
-          quantity: c.quantity > 0 ? c.quantity : 1,
-          // Sản phẩm tự chọn hạt KHÔNG có ProductId riêng (dùng Id bao bì), nên phải
-          // mang theo công thức + giá: thiếu 2 field này thì đơn gửi lên bị coi là
-          // sản phẩm thường và backend trả 400 "sản phẩm không tồn tại".
-          ...(c.isCustomMix
-            ? { isCustomMix: true as const, customMixDetails: c.customMixDetails }
-            : {}),
-        })),
-        ...(discountCode !== undefined ? { discountCode } : {}),
-      }));
-      invalidateDiscount();
-    }
+    setForm((prev) => ({
+      ...prev,
+      items:
+        cartItems.length > 0
+          ? cartItems.map((c) => ({
+              productId: c.productId,
+              quantity: c.quantity > 0 ? c.quantity : 1,
+              // Sản phẩm tự chọn hạt KHÔNG có ProductId riêng (dùng Id bao bì), nên phải
+              // mang theo công thức + giá: thiếu 2 field này thì đơn gửi lên bị coi là
+              // sản phẩm thường và backend trả 400 "sản phẩm không tồn tại".
+              ...(c.isCustomMix
+                ? { isCustomMix: true as const, customMixDetails: c.customMixDetails }
+                : {}),
+            }))
+          : [{ productId: "", quantity: 1 }],
+      ...(discountCode !== undefined ? { discountCode } : {}),
+    }));
+    invalidateDiscount();
   }, [invalidateDiscount]);
 
   const applyDiscount = async (codeOverride?: string) => {

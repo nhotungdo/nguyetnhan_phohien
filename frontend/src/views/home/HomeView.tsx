@@ -19,7 +19,7 @@ export function HomeView() {
   const { t, language } = useLanguageStore();
   const { content: cmsContent } = useWebsiteContent();
   const { products: apiProducts } = useProducts();
-  const { addItem: addCartItem } = useCartStore();
+  const { addItem: addCartItem, closeCart } = useCartStore();
 
   const brandCommitments = [
     { id: "natural", label: t.about.natural_title, icon: Leaf },
@@ -282,6 +282,7 @@ export function HomeView() {
                           type="button"
                           onClick={() => {
                             addCartItem(prod);
+                            closeCart();
                             router.push("/san-pham#dat-hang");
                           }}
                           className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accent hover:bg-[#9A3412] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer whitespace-nowrap"
