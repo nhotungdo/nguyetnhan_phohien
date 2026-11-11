@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageCircle } from "lucide-react";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 
 export function ContactPageView() {
@@ -41,6 +41,30 @@ export function ContactPageView() {
                   <div>
                     <p className="text-xs text-stone-500 font-medium">Hotline / Zalo (24/7)</p>
                     <p className="font-bold text-primary text-base sm:text-lg">{cmsContent.Hotline || "0982.072.601"}</p>
+                  </div>
+                </a>
+
+                <a
+                  href="https://www.facebook.com/NguyetNhanPhoHien"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-4 p-3.5 rounded-2xl bg-[#F7F3EB] hover:bg-amber-100/60 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#1877F2] text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs text-stone-500 font-medium">
+                      {language === "en" ? "Official Facebook Fanpage" : "Fanpage Facebook Chính Thức"}
+                    </p>
+                    <p className="font-bold text-primary text-base">fb.com/NguyetNhanPhoHien</p>
+                    <p className="text-[11px] text-stone-500">
+                      {language === "en"
+                        ? "Direct consultation & latest seasonal harvest updates"
+                        : "Tư vấn trực tiếp, cập nhật ưu đãi & mùa vụ mới"}
+                    </p>
                   </div>
                 </a>
 
@@ -92,14 +116,27 @@ export function ContactPageView() {
               <p className="text-xs sm:text-sm text-stone-200 leading-relaxed mb-4">
                 Quý công ty, đối tác cần báo giá chiết khấu đơn hàng lớn và in logo quà tặng riêng, vui lòng liên hệ trực tiếp qua Zalo hoặc Hotline để nhận chính sách tốt nhất.
               </p>
-              <a
-                href="https://zalo.me/0982072601"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#F3D498] text-primary hover:bg-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all"
-              >
-                <span>Nhắn Tin Qua Zalo Ngay</span>
-              </a>
+              <div className="flex flex-wrap gap-2.5">
+                <a
+                  href="https://zalo.me/0982072601"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#F3D498] text-primary hover:bg-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-full transition-all"
+                >
+                  <span>Nhắn Tin Qua Zalo</span>
+                </a>
+                <a
+                  href="https://www.facebook.com/NguyetNhanPhoHien"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#1877F2] text-white hover:bg-[#166fe5] font-bold text-xs sm:text-sm px-4 py-2.5 rounded-full transition-all"
+                >
+                  <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z" />
+                  </svg>
+                  <span>Nhắn Qua Facebook</span>
+                </a>
+              </div>
             </div>
           </div>
 
