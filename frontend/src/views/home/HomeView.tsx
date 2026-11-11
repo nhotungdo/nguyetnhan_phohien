@@ -257,25 +257,40 @@ export function HomeView() {
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#E8DFC8]/60 flex items-center justify-between">
+                    <div className="pt-3 border-t border-[#E8DFC8]/60 flex items-center justify-between gap-2">
                       <div>
                         <span className="text-xs text-stone-500 block">Giá niêm yết</span>
-                        <span className="text-lg font-bold text-accent">
+                        <span className="text-base sm:text-lg font-extrabold text-accent">
                           {language === "en"
                             ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}`
                             : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
                         </span>
                       </div>
-                      <button
-                        onClick={() => {
-                          addCartItem(prod);
-                          router.push("/san-pham#dat-hang");
-                        }}
-                        className="bg-accent hover:bg-[#9A3412] text-white p-2.5 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
-                        title="Thêm vào giỏ và đặt mua"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addCartItem(prod);
+                          }}
+                          className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-accent transition-all active:scale-95 cursor-pointer shadow-2xs"
+                          title={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
+                          aria-label={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addCartItem(prod);
+                            router.push("/san-pham#dat-hang");
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-accent hover:bg-[#9A3412] text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                          title={language === "en" ? "Buy Now" : "Mua Ngay"}
+                        >
+                          <span>{language === "en" ? "Buy Now" : "Mua Ngay"}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
