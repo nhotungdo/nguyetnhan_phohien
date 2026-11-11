@@ -210,8 +210,8 @@ export function NutritionAiWidget({
     id: "welcome-init",
     role: "assistant",
     content: language === "en"
-      ? "Hello! I am your AI Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
-      : "Kính chào quý khách! Tôi là Chuyên Viên AI Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
+      ? "Hello! I am your Nutrition & Wellness Advisor from Nguyet Nhan Pho Hien. Our specialty blends include convection-dried longan and nutrient-dense tree nuts (lotus seeds, macadamia, almonds, cashews). How may I assist your health and wellness goals today?"
+      : "Kính chào quý khách! Tôi là Chuyên Viên Dinh Dưỡng & Dưỡng Sinh Nguyệt Nhãn Phố Hiến. Dòng sản phẩm của chúng tôi là sự kết hợp tinh hoa giữa Long Nhãn sấy đối lưu và Hệ sinh thái Hạt dinh dưỡng cao cấp (Hạt sen, Macca, Hạnh nhân, Điều, Bí xanh). Quý khách đang cần tư vấn cho thể trạng hoặc mục tiêu sức khỏe nào ạ?",
     time: language === "en" ? "Just now" : "Vừa xong"
   });
 
@@ -638,7 +638,7 @@ export function NutritionAiWidget({
               {msg.role === "assistant" && (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-[#B45309] mb-2 pb-1.5 border-b border-amber-100/80">
                   <Leaf className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{language === "en" ? "Pho Hien AI Nutrition Advisor" : "Chuyên Viên AI Dinh Dưỡng Phố Hiến"}</span>
+                  <span>{language === "en" ? "Pho Hien Nutrition Advisor" : "Chuyên Viên Dinh Dưỡng Phố Hiến"}</span>
                 </div>
               )}
 
@@ -646,7 +646,7 @@ export function NutritionAiWidget({
               {msg.role === "assistant" && !msg.content ? (
                 <div className="flex items-center gap-2 py-1 text-xs text-amber-900">
                   <Loader2 className="w-3.5 h-3.5 text-[#B45309] animate-spin shrink-0" />
-                  <span>{language === "en" ? "AI Expert is analyzing nutritional profile..." : "Chuyên gia AI đang phân tích dữ liệu dinh dưỡng..."}</span>
+                  <span>{language === "en" ? "Nutritionist is analyzing nutritional profile..." : "Chuyên gia đang phân tích dữ liệu dinh dưỡng..."}</span>
                 </div>
               ) : (
                 <div>

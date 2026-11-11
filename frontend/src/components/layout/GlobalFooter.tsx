@@ -11,7 +11,7 @@ import {
   Send,
   Loader2,
   AlertCircle,
-  Bot,
+  Leaf,
   Headphones,
   X,
 } from "lucide-react";
@@ -512,15 +512,12 @@ export function GlobalFooter() {
             whileTap={{ scale: 0.92 }}
             onClick={handleToggleChat}
             className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#B45309] to-[#D97706] text-white rounded-full shadow-2xl flex items-center justify-center hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-[#B45309]/30 cursor-pointer"
-            aria-label={language === "en" ? "Open AI & Advisor live chat" : "Mở chat tư vấn AI & Chuyên viên"}
+            aria-label={language === "en" ? "Open customer support live chat" : "Mở chat tư vấn trực tuyến"}
           >
             <span
               aria-hidden
               className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring"
             />
-            <span className="absolute -top-2 -left-2 bg-emerald-800 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-0.5 border border-white">
-              <Bot className="w-2.5 h-2.5" /> AI
-            </span>
             <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
@@ -580,7 +577,7 @@ export function GlobalFooter() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
                       {chatMode === "ai" ? (
-                        <Bot className="w-5 h-5 text-amber-200" />
+                        <Leaf className="w-5 h-5 text-amber-200" />
                       ) : (
                         <Headphones className="w-5 h-5 text-emerald-200" />
                       )}
@@ -592,8 +589,8 @@ export function GlobalFooter() {
                       >
                         {chatMode === "ai"
                           ? language === "en"
-                            ? "AI Nutrition Advisor"
-                            : "Chuyên Gia AI Dinh Dưỡng"
+                            ? "Nutrition Advisor"
+                            : "Tư Vấn Dinh Dưỡng"
                           : language === "en"
                             ? "Live Customer Advisor"
                             : "Tư Vấn Viên Trực Tuyến"}
@@ -671,8 +668,8 @@ export function GlobalFooter() {
                         : "text-white/80 hover:text-white"
                     }`}
                   >
-                    <Bot className="w-3.5 h-3.5 text-amber-500" />
-                    <span>{language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}</span>
+                    <Leaf className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}</span>
                   </button>
                   <button
                     onClick={() => {

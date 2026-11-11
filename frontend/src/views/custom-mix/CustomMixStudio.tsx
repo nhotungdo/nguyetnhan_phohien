@@ -31,8 +31,7 @@ import {
   Layers,
   Heart,
   Sliders,
-  Bot,
-  Sparkles,
+  Leaf,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -862,16 +861,16 @@ export default function CustomMixStudio() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Nút Tư Vấn AI Dinh Dưỡng trên Header */}
+            {/* Nút Tư Vấn Dinh Dưỡng trên Header */}
             <button
               type="button"
               onClick={() => handleOpenAiNutrition()}
               className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full border border-amber-300 bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 hover:from-amber-500/20 hover:to-amber-500/30 text-[#92400E] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-              title={language === "en" ? "Consult AI Nutritionist" : "Tư vấn AI Dinh Dưỡng"}
-              aria-label={language === "en" ? "Consult AI Nutritionist" : "Tư vấn AI Dinh Dưỡng"}
+              title={language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}
+              aria-label={language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}
             >
-              <Bot className="w-3.5 h-3.5 text-[#B45309]" />
-              <span className="hidden sm:inline">{language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}</span>
+              <Leaf className="w-3.5 h-3.5 text-[#B45309]" />
+              <span className="hidden sm:inline">{language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}</span>
             </button>
 
             {/* Nút chia sẻ công thức */}
@@ -1217,11 +1216,11 @@ export default function CustomMixStudio() {
                       }
                     }}
                     type="button"
-                    title={language === "en" ? "Get recipe suggestions from Nutrition AI" : "Nhận gợi ý công thức chuẩn từ AI Dinh Dưỡng"}
+                    title={language === "en" ? "Recipe suggestions" : "Gợi ý tỷ lệ phối hạt"}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 hover:from-amber-500/25 hover:to-amber-500/35 border border-amber-400/80 text-[#92400E] text-xs font-bold transition-all active:scale-95 shadow-2xs cursor-pointer"
                   >
-                    <Bot className="w-3.5 h-3.5 text-[#B45309]" />
-                    <span>{language === "en" ? "AI Recipe Advisor" : "AI Gợi Ý Tỷ Lệ"}</span>
+                    <Leaf className="w-3.5 h-3.5 text-[#B45309]" />
+                    <span>{language === "en" ? "Recipe Advisor" : "Gợi Ý Tỷ Lệ"}</span>
                   </button>
 
                   <button
@@ -1991,9 +1990,8 @@ export default function CustomMixStudio() {
                   }}
                   className="w-full mt-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-amber-500/20 hover:from-amber-500/30 hover:to-amber-500/40 border border-amber-400/60 text-[#FDE68A] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98"
                 >
-                  <Bot className="w-4 h-4 text-amber-300 animate-pulse" />
-                  <span>{language === "en" ? "Consult AI on this blend" : "Hỏi Chuyên Gia AI về công thức này"}</span>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <Leaf className="w-4 h-4 text-amber-300" />
+                  <span>{language === "en" ? "Consult on this blend" : "Tư vấn dinh dưỡng công thức này"}</span>
                 </button>
               </div>
 
@@ -2147,10 +2145,10 @@ export default function CustomMixStudio() {
                 handleOpenAiNutrition(prompt);
               }}
               className="p-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-500/25 border border-amber-300 text-[#78350F] transition-all active:scale-95 flex items-center justify-center cursor-pointer shadow-2xs"
-              title={language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}
-              aria-label={language === "en" ? "Nutrition AI" : "AI Dinh Dưỡng"}
+              title={language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}
+              aria-label={language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}
             >
-              <Bot className="w-4 h-4 text-[#B45309]" />
+              <Leaf className="w-4 h-4 text-[#B45309]" />
             </button>
 
             {remainingGrams > 0 ? (
@@ -2281,7 +2279,7 @@ export default function CustomMixStudio() {
         )}
       </AnimatePresence>
 
-      {/* NÚT AI DINH DƯỠNG NỔI */}
+      {/* NÚT DINH DƯỠNG NỔI */}
       {!isAiChatOpen && (
         <motion.button
           id="ai-nutrition-floating-button"
@@ -2290,22 +2288,22 @@ export default function CustomMixStudio() {
           animate={{ scale: 1, opacity: 1 }}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
-          aria-label={language === "en" ? "AI Nutrition Advisor" : "Chuyên Gia AI Dinh Dưỡng"}
+          aria-label={language === "en" ? "Nutrition Advisor" : "Chuyên Gia Dinh Dưỡng"}
           className="fixed bottom-24 right-4 sm:bottom-6 sm:right-24 z-40 bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-white p-3 sm:px-4 sm:py-3.5 rounded-full shadow-2xl hover:shadow-[#92400E]/50 flex items-center gap-2.5 transition-all group border border-amber-300/40 cursor-pointer"
         >
           <div className="relative">
-            <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:scale-110 transition-transform" />
+            <Leaf className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:scale-110 transition-transform" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping pointer-events-none" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white" />
           </div>
           <div className="hidden sm:flex flex-col text-left leading-tight pr-1">
             <span className="text-[10px] font-normal text-amber-200">Trợ lý công thức</span>
-            <span className="font-bold text-xs tracking-wide text-white">AI Dinh Dưỡng</span>
+            <span className="font-bold text-xs tracking-wide text-white">Tư Vấn Dinh Dưỡng</span>
           </div>
         </motion.button>
       )}
 
-      {/* MODAL TRỢ LÝ AI DINH DƯỠNG */}
+      {/* MODAL TRỢ LÝ DINH DƯỠNG */}
       <AnimatePresence>
         {isAiChatOpen && (
           <motion.div
@@ -2319,11 +2317,11 @@ export default function CustomMixStudio() {
             <div className="bg-gradient-to-r from-[#78350F] via-[#92400E] to-[#B45309] text-white p-3.5 sm:p-4 pt-[max(0.875rem,env(safe-area-inset-top))] shrink-0 shadow-md flex justify-between items-center">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
-                  <Bot className="w-5 h-5 text-amber-200" />
+                  <Leaf className="w-5 h-5 text-amber-200" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm sm:text-base leading-tight truncate">
-                    {language === "en" ? "AI Nutrition Advisor" : "Chuyên Gia AI Dinh Dưỡng"}
+                    {language === "en" ? "Nutrition Advisor" : "Chuyên Gia Dinh Dưỡng"}
                   </p>
                   <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

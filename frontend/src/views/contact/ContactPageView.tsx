@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageCircle, Sparkles } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageCircle } from "lucide-react";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 
@@ -26,7 +26,7 @@ export function ContactPageView() {
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DFC8] shadow-sm space-y-6">
               <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
+                <MessageCircle className="w-5 h-5 text-accent" />
                 <span>{language === "en" ? "Official Contact" : "Thông Tin Chính Thức"}</span>
               </h2>
 

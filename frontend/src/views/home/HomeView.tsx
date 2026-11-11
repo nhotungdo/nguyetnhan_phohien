@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShoppingCart, Sparkles, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
+import { ArrowRight, ShoppingCart, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
@@ -88,7 +88,6 @@ export function HomeView() {
             className="space-y-8 max-w-xl"
           >
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-[#E8DFC8] text-primary text-xs sm:text-sm font-semibold shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-accent" />
               <span>{language === "en" ? "Pho Hien Heritage Delicacy" : "Thương Hiệu Di Sản Phố Hiến"}</span>
             </div>
 
