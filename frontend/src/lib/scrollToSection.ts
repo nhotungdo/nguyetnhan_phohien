@@ -11,3 +11,4 @@ export const scrollToSection = (id: string) => {
     });
   }
 };
+

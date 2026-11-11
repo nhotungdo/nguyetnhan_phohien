@@ -8,3 +8,4 @@ export const resolveCmsImage = (url?: string) =>
       : url.startsWith("/uploads/") || url.startsWith("uploads/")
         ? (url.startsWith("/") ? url : `/${url}`)
         : `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+
