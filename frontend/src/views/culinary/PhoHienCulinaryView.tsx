@@ -16,6 +16,8 @@ import {
   ShoppingCart,
   Leaf,
   ShieldCheck,
+  Play,
+  ExternalLink,
 } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
@@ -27,6 +29,7 @@ import type { ProductResponse } from "@/types/api.types";
 
 interface RecipeItem {
   id: string;
+  youtubeId: string;
   name: string;
   nameEn: string;
   category: string;
@@ -49,6 +52,7 @@ interface RecipeItem {
 const CULINARY_RECIPES: RecipeItem[] = [
   {
     id: "tra-cuc",
+    youtubeId: "62Da133k_aw",
     name: "Trà Dưỡng Nhan Hoa Cúc Chi Long Nhãn",
     nameEn: "Imperial Longan Chrysanthemum Wellness Tea",
     category: "Thức Uống Dưỡng Tâm",
@@ -94,6 +98,7 @@ const CULINARY_RECIPES: RecipeItem[] = [
   },
   {
     id: "che-sen",
+    youtubeId: "6XLEmHUX8Rs",
     name: "Chè Long Nhãn Lồng Hạt Sen Cung Đình",
     nameEn: "Royal Lotus Seed in Longan Sweet Soup",
     category: "Món Tráng Miệng Thượng Phẩm",
@@ -139,6 +144,7 @@ const CULINARY_RECIPES: RecipeItem[] = [
   },
   {
     id: "yen-chung",
+    youtubeId: "DTKkNiV61GQ",
     name: "Tổ Yến Chưng Long Nhãn Táo Đỏ",
     nameEn: "Imperial Bird's Nest with Longan & Red Dates",
     category: "Món Ngự Thiện Đại Bổ",
@@ -184,6 +190,7 @@ const CULINARY_RECIPES: RecipeItem[] = [
   },
   {
     id: "ruou-quy",
+    youtubeId: "xYEddncbdlk",
     name: "Rượu Long Nhãn Khí Huyết Đại Bổ",
     nameEn: "Rejuvenating Longan Herbal Longevity Liquor",
     category: "Rượu Thuốc Quý Gia Truyền",
@@ -472,6 +479,14 @@ export function PhoHienCulinaryView() {
                       ? "Yến Chưng Nhãn"
                       : "Rượu Đại Bổ"}
                   </span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5 shrink-0 ${
+                      isActive ? "bg-white/20 text-[#FDE68A]" : "bg-amber-100 text-accent"
+                    }`}
+                  >
+                    <Play className="w-2.5 h-2.5 fill-current" />
+                    <span>Video</span>
+                  </span>
                 </button>
               );
             })}
@@ -597,6 +612,48 @@ export function PhoHienCulinaryView() {
                   </div>
                 </div>
               </div>
+
+              {/* VIDEO HƯỚNG DẪN THỰC HÀNH TƯƠNG ỨNG TỪNG MÓN */}
+              {activeRecipe.youtubeId && (
+                <div className="mt-8 pt-6 sm:pt-8 border-t border-stone-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-2 font-bold text-base sm:text-lg text-primary">
+                      <Play className="w-4 h-4 text-accent fill-accent shrink-0" />
+                      <span>
+                        {language === "en"
+                          ? `Video Guide: How to prepare ${activeRecipe.nameEn}`
+                          : `Video Hướng Dẫn: Cách chế biến ${activeRecipe.name}`}
+                      </span>
+                    </div>
+                    <a
+                      href={`https://www.youtube.com/watch?v=${activeRecipe.youtubeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1.5 shrink-0"
+                    >
+                      <span>{language === "en" ? "Watch on YouTube" : "Xem trên YouTube"}</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+
+                  <div className="relative w-full aspect-video sm:aspect-21/9 lg:aspect-16/7 max-h-[380px] rounded-2xl overflow-hidden shadow-md border-2 border-stone-100 bg-black group">
+                    <iframe
+                      key={activeRecipe.youtubeId}
+                      src={`https://www.youtube-nocookie.com/embed/${activeRecipe.youtubeId}?rel=0&modestbranding=1`}
+                      title={language === "en" ? `${activeRecipe.nameEn} Video Guide` : `Video cách làm ${activeRecipe.name}`}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-xs text-stone-500 text-center mt-2.5 italic">
+                    {language === "en"
+                      ? `Step-by-step video demonstration for ${activeRecipe.nameEn}`
+                      : `Xem cận cảnh các bước thao tác chế biến ${activeRecipe.name} chuẩn phong vị nghệ nhân`}
+                  </p>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
