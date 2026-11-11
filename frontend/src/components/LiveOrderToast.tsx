@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, ShoppingBag } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { FastImage } from "@/components/FastImage";
 import { orderApi } from "@/services/api.service";
 import type { RecentOrderActivity } from "@/types/api.types";
@@ -157,15 +157,14 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
                 <ShoppingBag className="w-3 h-3 text-amber-600 shrink-0" />
                 <span className="truncate">
                   {language === "en"
-                    ? `Just ordered · ${
-                        currentOrder.timeAgo
-                          ? currentOrder.timeAgo
-                              .replace("phút trước", "mins ago")
-                              .replace("giờ trước", "hours ago")
-                              .replace("ngày trước", "days ago")
-                              .replace("Vừa xong", "Just now")
-                          : "Recently"
-                      }`
+                    ? `Just ordered · ${currentOrder.timeAgo
+                      ? currentOrder.timeAgo
+                        .replace("phút trước", "mins ago")
+                        .replace("giờ trước", "hours ago")
+                        .replace("ngày trước", "days ago")
+                        .replace("Vừa xong", "Just now")
+                      : "Recently"
+                    }`
                     : `Vừa đặt mua · ${currentOrder.timeAgo || "Gần đây"}`}
                 </span>
               </div>

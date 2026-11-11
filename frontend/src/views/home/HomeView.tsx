@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
 import { ProductHeroShowcase } from "@/components/ProductHeroShowcase";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";

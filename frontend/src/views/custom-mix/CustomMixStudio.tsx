@@ -34,7 +34,7 @@ import {
   Leaf,
 } from "lucide-react";
 import { useCartStore } from "@/stores/useCartStore";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartButton } from "@/components/cart/CartButton";
@@ -1009,18 +1009,16 @@ export default function CustomMixStudio() {
             <button
               type="button"
               onClick={() => scrollToStep("step2Section")}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${
-                isPerfectMatch
+              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${isPerfectMatch
                   ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                   : "bg-white text-stone-700 border-border/70 hover:bg-neutral-50"
-              }`}
+                }`}
             >
               <span
-                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${
-                  isPerfectMatch
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${isPerfectMatch
                     ? "bg-emerald-600 text-white"
                     : "bg-amber-100 text-[#B45309]"
-                }`}
+                  }`}
               >
                 {isPerfectMatch ? "✓" : "2"}
               </span>
@@ -1033,18 +1031,16 @@ export default function CustomMixStudio() {
             <button
               type="button"
               onClick={() => scrollToStep("step3Section")}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${
-                customName.trim() && isPerfectMatch
+              className={`flex items-center justify-center gap-1.5 sm:gap-2.5 py-2 px-2 sm:px-3 rounded-xl transition-all cursor-pointer border ${customName.trim() && isPerfectMatch
                   ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                   : "bg-white text-stone-700 border-border/70 hover:bg-neutral-50"
-              }`}
+                }`}
             >
               <span
-                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${
-                  customName.trim() && isPerfectMatch
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${customName.trim() && isPerfectMatch
                     ? "bg-emerald-600 text-white"
                     : "bg-neutral-100 text-neutral-600"
-                }`}
+                  }`}
               >
                 {customName.trim() && isPerfectMatch ? "✓" : "3"}
               </span>
@@ -1087,11 +1083,10 @@ export default function CustomMixStudio() {
                       key={pkg.id}
                       onClick={() => handleSelectPackaging(pkg)}
                       type="button"
-                      className={`group text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
-                        isSelected
+                      className={`group text-left p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${isSelected
                           ? "border-[#B45309] bg-[#FFFBEB] shadow-md ring-2 ring-[#B45309]/20"
                           : "border-border/60 hover:border-[#FDE68A] hover:bg-[#FFFDF8]"
-                      }`}
+                        }`}
                     >
                       {isSelected && (
                         <div className="absolute top-2.5 right-2.5 z-10 w-5 h-5 rounded-full bg-[#B45309] text-white flex items-center justify-center shadow-sm">
@@ -1221,19 +1216,18 @@ export default function CustomMixStudio() {
                     </span>
                   </div>
                   <span
-                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${
-                      isPerfectMatch
+                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${isPerfectMatch
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                         : isOverweight
-                        ? "bg-rose-50 text-rose-800 border-rose-300"
-                        : "bg-amber-50 text-amber-800 border-amber-300"
-                    }`}
+                          ? "bg-rose-50 text-rose-800 border-rose-300"
+                          : "bg-amber-50 text-amber-800 border-amber-300"
+                      }`}
                   >
                     {isPerfectMatch
                       ? (language === "en" ? "🟢 100% Exact Match" : "🟢 Chuẩn xác 100%")
                       : isOverweight
-                      ? (language === "en" ? `🔴 Over by ${Math.abs(remainingGrams)}g` : `🔴 Vượt ${Math.abs(remainingGrams)}g`)
-                      : (language === "en" ? `🟡 Need ${remainingGrams}g more` : `🟡 Còn thiếu ${remainingGrams}g`)}
+                        ? (language === "en" ? `🔴 Over by ${Math.abs(remainingGrams)}g` : `🔴 Vượt ${Math.abs(remainingGrams)}g`)
+                        : (language === "en" ? `🟡 Need ${remainingGrams}g more` : `🟡 Còn thiếu ${remainingGrams}g`)}
                   </span>
                 </div>
 
@@ -1255,13 +1249,12 @@ export default function CustomMixStudio() {
                       initial={false}
                       animate={{ width: `${progressPercent}%` }}
                       transition={{ duration: 0.25 }}
-                      className={`h-full rounded-full transition-colors ${
-                        isPerfectMatch
+                      className={`h-full rounded-full transition-colors ${isPerfectMatch
                           ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
                           : isOverweight
-                          ? "bg-gradient-to-r from-rose-500 to-rose-600"
-                          : "bg-gradient-to-r from-amber-500 to-accent"
-                      }`}
+                            ? "bg-gradient-to-r from-rose-500 to-rose-600"
+                            : "bg-gradient-to-r from-amber-500 to-accent"
+                        }`}
                     />
                   </div>
                 </div>
@@ -1347,11 +1340,10 @@ export default function CustomMixStudio() {
                   return (
                     <div
                       key={ing.id}
-                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
-                        isSelected
+                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${isSelected
                           ? "border-[#B45309]/60 bg-[#FFFDF8] shadow-sm ring-1 ring-[#B45309]/30"
                           : "border-border/60 bg-white hover:border-[#FDE68A]/80"
-                      }`}
+                        }`}
                     >
                       <div>
                         {/* Header của thẻ hạt */}
@@ -1392,11 +1384,10 @@ export default function CustomMixStudio() {
                                     ? (language === "en" ? "Unlock weight" : "Mở khóa khối lượng")
                                     : (language === "en" ? "Lock weight (keeps grams fixed)" : "Khóa khối lượng (giữ cố định số gram)")
                                 }
-                                className={`p-1 rounded-md transition-all cursor-pointer ${
-                                  isLocked
+                                className={`p-1 rounded-md transition-all cursor-pointer ${isLocked
                                     ? "bg-amber-100 text-amber-900 border border-amber-300"
                                     : "text-stone-400 hover:text-stone-600 hover:bg-stone-100"
-                                }`}
+                                  }`}
                               >
                                 {isLocked ? <Lock className="w-3.5 h-3.5 text-[#B45309]" /> : <Unlock className="w-3.5 h-3.5" />}
                               </button>
@@ -1559,11 +1550,10 @@ export default function CustomMixStudio() {
                         ? "e.g., Mom's Glow Box, Daily Energy Mix..."
                         : "Ví dụ: Hộp Dưỡng Nhan Mẹ Yêu, Mix Năng Lượng Của Nam..."
                     }
-                    className={`w-full bg-[#FFFDF8] border rounded-2xl px-4 py-3 text-sm font-semibold text-primary outline-none transition-all ${
-                      nameError
+                    className={`w-full bg-[#FFFDF8] border rounded-2xl px-4 py-3 text-sm font-semibold text-primary outline-none transition-all ${nameError
                         ? "border-red-500 ring-2 ring-red-200"
                         : "border-border/80 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
-                    }`}
+                      }`}
                   />
                   {nameError ? (
                     <p className="text-xs text-red-600 font-semibold mt-1.5 flex items-center gap-1">
@@ -1626,19 +1616,18 @@ export default function CustomMixStudio() {
                   {language === "en" ? "Capacity Meter" : "Đo lường dung tích"}
                 </span>
                 <span
-                  className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
-                    isPerfectMatch
+                  className={`text-xs font-bold px-2.5 py-1 rounded-full border ${isPerfectMatch
                       ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                       : isOverweight
-                      ? "bg-rose-50 text-rose-800 border-rose-300"
-                      : "bg-amber-50 text-amber-800 border-amber-300"
-                  }`}
+                        ? "bg-rose-50 text-rose-800 border-rose-300"
+                        : "bg-amber-50 text-amber-800 border-amber-300"
+                    }`}
                 >
                   {isPerfectMatch
                     ? (language === "en" ? "🟢 100% Exact Match" : "🟢 Chuẩn xác 100%")
                     : isOverweight
-                    ? (language === "en" ? "🔴 Overweight" : "🔴 Quá tải")
-                    : (language === "en" ? `🟡 Need ${remainingGrams}g more` : `🟡 Còn thiếu ${remainingGrams}g`)}
+                      ? (language === "en" ? "🔴 Overweight" : "🔴 Quá tải")
+                      : (language === "en" ? `🟡 Need ${remainingGrams}g more` : `🟡 Còn thiếu ${remainingGrams}g`)}
                 </span>
               </div>
 
@@ -1658,13 +1647,12 @@ export default function CustomMixStudio() {
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
                     transition={{ duration: 0.3 }}
-                    className={`h-full rounded-full transition-colors ${
-                      isPerfectMatch
+                    className={`h-full rounded-full transition-colors ${isPerfectMatch
                         ? "bg-gradient-to-r from-emerald-500 to-emerald-600"
                         : isOverweight
-                        ? "bg-gradient-to-r from-rose-500 to-rose-600"
-                        : "bg-gradient-to-r from-amber-500 to-accent"
-                    }`}
+                          ? "bg-gradient-to-r from-rose-500 to-rose-600"
+                          : "bg-gradient-to-r from-amber-500 to-accent"
+                      }`}
                   />
                 </div>
               </div>
@@ -1709,11 +1697,10 @@ export default function CustomMixStudio() {
                   <button
                     type="button"
                     onClick={() => setPreviewTab("jar")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      previewTab === "jar"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${previewTab === "jar"
                         ? "bg-[#E9B949] text-stone-950 shadow-sm"
                         : "text-emerald-200 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
                     <span>{language === "en" ? "Virtual Jar" : "Mô Phỏng Hũ"}</span>
@@ -1721,11 +1708,10 @@ export default function CustomMixStudio() {
                   <button
                     type="button"
                     onClick={() => setPreviewTab("label")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      previewTab === "label"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${previewTab === "label"
                         ? "bg-[#E9B949] text-stone-950 shadow-sm"
                         : "text-emerald-200 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Tag className="w-3.5 h-3.5" />
                     <span>{language === "en" ? "Royal Label" : "Tem Nhãn"}</span>
@@ -2053,32 +2039,30 @@ export default function CustomMixStudio() {
                     </span>
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                      isPerfectMatch
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isPerfectMatch
                         ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                         : isOverweight
-                        ? "bg-rose-50 text-rose-800 border-rose-300"
-                        : "bg-amber-50 text-amber-800 border-amber-300"
-                    }`}
+                          ? "bg-rose-50 text-rose-800 border-rose-300"
+                          : "bg-amber-50 text-amber-800 border-amber-300"
+                      }`}
                   >
                     {isPerfectMatch
                       ? (language === "en" ? "🟢 100% Ready" : "🟢 Đã đủ 100%")
                       : isOverweight
-                      ? (language === "en" ? `🔴 Over ${Math.abs(remainingGrams)}g` : `🔴 Thừa ${Math.abs(remainingGrams)}g`)
-                      : (language === "en" ? `🟡 Need ${remainingGrams}g` : `🟡 Thiếu ${remainingGrams}g`)}
+                        ? (language === "en" ? `🔴 Over ${Math.abs(remainingGrams)}g` : `🔴 Thừa ${Math.abs(remainingGrams)}g`)
+                        : (language === "en" ? `🟡 Need ${remainingGrams}g` : `🟡 Thiếu ${remainingGrams}g`)}
                   </span>
                 </div>
 
                 <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden border border-border/60">
                   <div
                     style={{ width: `${progressPercent}%` }}
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      isPerfectMatch
+                    className={`h-full rounded-full transition-all duration-300 ${isPerfectMatch
                         ? "bg-emerald-500"
                         : isOverweight
-                        ? "bg-rose-500"
-                        : "bg-gradient-to-r from-amber-500 to-accent"
-                    }`}
+                          ? "bg-rose-500"
+                          : "bg-gradient-to-r from-amber-500 to-accent"
+                      }`}
                   />
                 </div>
               </div>
@@ -2092,8 +2076,8 @@ export default function CustomMixStudio() {
               onClick={() => {
                 const prompt = currentRecipeSummary
                   ? (language === "en"
-                      ? `Please analyze my current recipe: ${currentRecipeSummary}.`
-                      : `Nhờ AI phân tích công thức này: ${currentRecipeSummary}.`)
+                    ? `Please analyze my current recipe: ${currentRecipeSummary}.`
+                    : `Nhờ AI phân tích công thức này: ${currentRecipeSummary}.`)
                   : undefined;
                 handleOpenAiNutrition(prompt);
               }}

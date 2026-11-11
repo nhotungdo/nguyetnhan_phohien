@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 import { HeritageVideoSection } from "@/components/HeritageVideoSection";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { scrollToSection } from "@/lib/scrollToSection";
 import { resolveCmsImage } from "@/lib/cmsImage";
@@ -45,7 +45,7 @@ export function StorySection() {
                 {language === "en"
                   ? "Legend has it that in the 16th century, a mandarin patrolling through Pho Hien exactly when the longans were ripe tasted the thick, juicy, sweet and fragrant flesh, and immediately brought it back to offer to the king. Since then, Hung Yen longan became an annual royal tribute."
                   : cmsContent.StoryDescription ||
-                    "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
+                  "Tương truyền, vào thế kỷ 16, một vị quan đi tuần qua vùng Phố Hiến đúng độ nhãn chín. Nếm thử thấy cùi dày, mọng nước, vị ngọt lịm thơm ngát, liền mang về dâng vua. Từ đó, nhãn lồng Hưng Yên trở thành sản vật tiến vua hàng năm."}
               </p>
               <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#F4EFE6] via-[#FAF8F5] to-transparent border-l-4 border-accent shadow-2xs">
                 <p className="text-foreground/85 italic max-w-xl text-sm sm:text-base leading-relaxed [text-wrap:pretty]">

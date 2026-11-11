@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
@@ -396,11 +396,10 @@ export function PhoHienCulinaryView() {
                 <button
                   key={recipe.id}
                   onClick={() => setActiveRecipeId(recipe.id)}
-                  className={`py-3 px-3 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer text-center sm:text-left ${
-                    isActive
+                  className={`py-3 px-3 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer text-center sm:text-left ${isActive
                       ? "bg-primary text-white border-primary shadow-md scale-102"
                       : "bg-white text-stone-700 border-[#E8DFC8] hover:bg-[#FAF8F5] hover:border-amber-300"
-                  }`}
+                    }`}
                 >
                   <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-[#FDE68A]" : "text-accent"}`} />
                   <span className="truncate max-w-full">
@@ -408,22 +407,21 @@ export function PhoHienCulinaryView() {
                       ? recipe.id === "tra-cuc"
                         ? "Wellness Tea"
                         : recipe.id === "che-sen"
-                        ? "Lotus Soup"
-                        : recipe.id === "yen-chung"
-                        ? "Bird's Nest"
-                        : "Herbal Wine"
+                          ? "Lotus Soup"
+                          : recipe.id === "yen-chung"
+                            ? "Bird's Nest"
+                            : "Herbal Wine"
                       : recipe.id === "tra-cuc"
-                      ? "Trà Dưỡng Nhan"
-                      : recipe.id === "che-sen"
-                      ? "Chè Sen Long Nhãn"
-                      : recipe.id === "yen-chung"
-                      ? "Yến Chưng Nhãn"
-                      : "Rượu Đại Bổ"}
+                        ? "Trà Dưỡng Nhan"
+                        : recipe.id === "che-sen"
+                          ? "Chè Sen Long Nhãn"
+                          : recipe.id === "yen-chung"
+                            ? "Yến Chưng Nhãn"
+                            : "Rượu Đại Bổ"}
                   </span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5 shrink-0 ${
-                      isActive ? "bg-white/20 text-[#FDE68A]" : "bg-amber-100 text-accent"
-                    }`}
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5 shrink-0 ${isActive ? "bg-white/20 text-[#FDE68A]" : "bg-amber-100 text-accent"
+                      }`}
                   >
                     <Play className="w-2.5 h-2.5 fill-current" />
                     <span>Video</span>

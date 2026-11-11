@@ -1,6 +1,6 @@
 "use client";
 
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 
 export default function DeliveryPolicy() {
   const language = useLanguageStore((s) => s.language);

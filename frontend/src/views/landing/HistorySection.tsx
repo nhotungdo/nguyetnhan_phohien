@@ -6,7 +6,7 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import { EASE_OUT_EXPO, Reveal } from "@/components/LandingMotion";
 import { ProductScrollytelling } from "@/components/ProductScrollytelling";
 import { ProductPairingSection } from "@/components/ProductPairingSection";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { scrollToSection } from "@/lib/scrollToSection";
 import { resolveCmsImage } from "@/lib/cmsImage";

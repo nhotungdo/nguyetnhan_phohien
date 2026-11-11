@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { adminAuth } from "@/services/api.service";
 import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useCartStore } from "@/stores/useCartStore";
 import { FastImage } from "@/components/FastImage";
@@ -44,7 +44,7 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
   const pathname = usePathname();
   const isAdmin = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -92,13 +92,12 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
         initial={{ y: -90, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full ${
-          isScrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full ${isScrolled
             ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3"
             : pathname === "/"
               ? "bg-white/80 md:bg-transparent backdrop-blur-xs md:backdrop-blur-none py-3 sm:py-4"
               : "bg-white/95 backdrop-blur-md border-b border-[#E8DFC8]/60 py-2.5 sm:py-3.5 shadow-xs"
-        }`}
+          }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
           {/* Logo & Tên Thương Hiệu */}
@@ -138,15 +137,13 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
                   key={item.href}
                   href={item.href}
                   prefetch={true}
-                  className={`text-xs lg:text-sm xl:text-[15px] font-semibold transition-all duration-300 ease-in-out relative group whitespace-nowrap shrink-0 py-1 ${
-                    active ? "text-accent font-bold" : "text-foreground/80 hover:text-accent"
-                  }`}
+                  className={`text-xs lg:text-sm xl:text-[15px] font-semibold transition-all duration-300 ease-in-out relative group whitespace-nowrap shrink-0 py-1 ${active ? "text-accent font-bold" : "text-foreground/80 hover:text-accent"
+                    }`}
                 >
                   {item.label}
                   <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ease-in-out ${
-                      active ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
+                    className={`absolute -bottom-1 left-0 h-0.5 bg-accent transition-all duration-300 ease-in-out ${active ? "w-full" : "w-0 group-hover:w-full"
+                      }`}
                   />
                 </Link>
               );
@@ -156,9 +153,8 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
             <Link
               href="/tu-chon-hat"
               prefetch={true}
-              className={`text-xs xl:text-sm font-bold bg-[#F4EFE6] border border-[#E8DFC8] px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-xs hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                pathname === "/tu-chon-hat" ? "ring-2 ring-accent text-accent" : "text-primary"
-              }`}
+              className={`text-xs xl:text-sm font-bold bg-[#F4EFE6] border border-[#E8DFC8] px-2.5 lg:px-3.5 py-1.5 rounded-full shadow-xs hover:shadow-md hover:scale-105 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${pathname === "/tu-chon-hat" ? "ring-2 ring-accent text-accent" : "text-primary"
+                }`}
             >
               <span>{t.nav.custom_mix || "Tự Chọn Hạt"}</span>
               <span className="bg-[#A61C45] text-white text-[10px] xl:text-[11px] font-extrabold px-1.5 xl:px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -283,9 +279,8 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
                       href={item.href}
                       prefetch={true}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`w-full text-lg font-bold text-left py-2.5 flex items-center justify-between border-b border-border/40 transition-colors ${
-                        active ? "text-accent" : "text-primary hover:text-accent"
-                      }`}
+                      className={`w-full text-lg font-bold text-left py-2.5 flex items-center justify-between border-b border-border/40 transition-colors ${active ? "text-accent" : "text-primary hover:text-accent"
+                        }`}
                     >
                       <span>{item.label}</span>
                       <ChevronRight className="w-4 h-4 text-accent/70" />

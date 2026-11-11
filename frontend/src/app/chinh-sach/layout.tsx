@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 
 export default function PolicyLayout({ children }: { children: React.ReactNode }) {
   const { language, setLanguage } = useLanguageStore();

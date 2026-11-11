@@ -22,7 +22,7 @@ import { CartButton, CartDrawer } from "@/components/cart";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { useLiveChat } from "@/hooks/useLiveChat";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useCartStore } from "@/stores/useCartStore";
 import { resolveCmsImage } from "@/lib/cmsImage";
@@ -30,7 +30,7 @@ import { resolveCmsImage } from "@/lib/cmsImage";
 export function GlobalFooter() {
   const router = useRouter();
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -500,11 +500,10 @@ export function GlobalFooter() {
       {/* Floating Chat Button */}
       {!isChatOpen && (
         <div
-          className={`fixed z-50 flex flex-col items-end transition-all ${
-            isScrolled
+          className={`fixed z-50 flex flex-col items-end transition-all ${isScrolled
               ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6"
               : "bottom-5 right-3.5 sm:bottom-6 sm:right-6"
-          } flex`}
+            } flex`}
         >
           <motion.button
             id="chat-floating-button"
@@ -561,13 +560,13 @@ export function GlobalFooter() {
               style={
                 visualHeight !== null
                   ? {
-                      height: `${visualHeight}px`,
-                      top: `${visualTop}px`,
-                      bottom: "auto",
-                      position: "fixed",
-                      left: 0,
-                      right: 0,
-                    }
+                    height: `${visualHeight}px`,
+                    top: `${visualTop}px`,
+                    bottom: "auto",
+                    position: "fixed",
+                    left: 0,
+                    right: 0,
+                  }
                   : undefined
               }
               className="fixed inset-0 z-[100] sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:h-[620px] sm:max-h-[calc(100dvh-2.5rem)] w-full h-[100dvh] bg-white sm:rounded-2xl sm:shadow-2xl sm:border sm:border-amber-200/70 overflow-hidden flex flex-col sm:origin-bottom-right"
@@ -597,15 +596,14 @@ export function GlobalFooter() {
                       </p>
                       <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
                         <span
-                          className={`w-2 h-2 rounded-full ${
-                            chatMode === "ai"
+                          className={`w-2 h-2 rounded-full ${chatMode === "ai"
                               ? "bg-amber-300 animate-pulse"
                               : connectionStatus === "connected"
                                 ? "bg-emerald-400"
                                 : connectionStatus === "failed"
                                   ? "bg-rose-400"
                                   : "bg-amber-400 animate-pulse"
-                          }`}
+                            }`}
                         />
                         <span className="truncate">
                           {chatMode === "ai"
@@ -662,11 +660,10 @@ export function GlobalFooter() {
                 <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/25 backdrop-blur-xs rounded-xl text-xs font-semibold">
                   <button
                     onClick={() => setChatMode("ai")}
-                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation cursor-pointer ${
-                      chatMode === "ai"
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation cursor-pointer ${chatMode === "ai"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Leaf className="w-3.5 h-3.5 text-amber-600" />
                     <span>{language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}</span>
@@ -676,20 +673,18 @@ export function GlobalFooter() {
                       setChatMode("human");
                       if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
                     }}
-                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation cursor-pointer ${
-                      chatMode === "human"
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation cursor-pointer ${chatMode === "human"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`w-2 h-2 rounded-full ${
-                        connectionStatus === "connected"
+                      className={`w-2 h-2 rounded-full ${connectionStatus === "connected"
                           ? "bg-emerald-400"
                           : connectionStatus === "failed"
                             ? "bg-rose-400"
                             : "bg-amber-400 animate-pulse"
-                      }`}
+                        }`}
                     />
                     <span>{language === "en" ? "Live Advisor" : "Tư Vấn Viên"}</span>
                   </button>
@@ -787,17 +782,15 @@ export function GlobalFooter() {
                           initial={{ opacity: 0, y: 10, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                          className={`p-3 sm:p-3.5 rounded-2xl text-[13.5px] sm:text-sm max-w-[88%] sm:max-w-[82%] shadow-xs leading-relaxed ${
-                            msg.senderType === "Guest"
+                          className={`p-3 sm:p-3.5 rounded-2xl text-[13.5px] sm:text-sm max-w-[88%] sm:max-w-[82%] shadow-xs leading-relaxed ${msg.senderType === "Guest"
                               ? "bg-gradient-to-br from-[#B45309] to-[#92400E] text-white self-end rounded-br-xs"
                               : "bg-white border border-amber-100 text-stone-900 self-start rounded-tl-xs"
-                          }`}
+                            }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                           <span
-                            className={`text-[10px] block mt-1.5 opacity-70 ${
-                              msg.senderType === "Guest" ? "text-right" : ""
-                            }`}
+                            className={`text-[10px] block mt-1.5 opacity-70 ${msg.senderType === "Guest" ? "text-right" : ""
+                              }`}
                           >
                             {new Date(msg.sentAt).toLocaleTimeString("vi-VN", {
                               hour: "2-digit",
@@ -844,9 +837,8 @@ export function GlobalFooter() {
                       <div ref={messagesEndRef} />
                     </div>
                     <div
-                      className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${
-                        isKeyboardOpen ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-                      }`}
+                      className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${isKeyboardOpen ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                        }`}
                     >
                       <div className="relative flex items-center">
                         <input

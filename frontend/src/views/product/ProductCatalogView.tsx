@@ -3,7 +3,7 @@
 import { useState, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useCartStore } from "@/stores/useCartStore";
@@ -17,7 +17,7 @@ import { scrollToSection } from "@/lib/scrollToSection";
 
 export function ProductCatalogView() {
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );

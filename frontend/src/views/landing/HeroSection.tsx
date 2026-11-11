@@ -23,7 +23,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { adminAuth } from "@/services/api.service";
 import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useCartStore } from "@/stores/useCartStore";
@@ -54,7 +54,7 @@ const getAuthServerSnapshot = () => false;
 export function HeroSection() {
   const isAdmin = useSyncExternalStore(subscribeAuth, getAuthSnapshot, getAuthServerSnapshot);
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -204,9 +204,8 @@ export function HeroSection() {
         initial={{ y: -90, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: EASE_OUT_EXPO }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full ${
-          isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,box-shadow] duration-300 w-full max-w-full ${isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-2.5 sm:py-3" : "bg-transparent py-3 sm:py-5"
+          }`}
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between w-full max-w-full">
           <div
@@ -535,7 +534,7 @@ export function HeroSection() {
               {language === "en"
                 ? t.hero.subtitle
                 : cmsContent.HeroSubtitle ||
-                  "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
+                "Long nhãn sấy khô tự nhiên, giữ trọn vị ngọt thanh tao và hương thơm đặc trưng của nhãn lồng Phố Hiến - Hưng Yên. Một món quà sức khỏe từ ngàn xưa."}
             </motion.p>
 
             <div className="flex flex-wrap items-center gap-4 sm:gap-5 pt-2">
@@ -568,10 +567,10 @@ export function HeroSection() {
                   ? resolveCmsImage(cmsContent.HeroBannerUrl)
                   : effectiveProducts[0]?.images && effectiveProducts[0].images.length > 0
                     ? resolveCmsImage(
-                        [...effectiveProducts[0].images].sort(
-                          (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
-                        )[0]?.imagePath
-                      )
+                      [...effectiveProducts[0].images].sort(
+                        (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
+                      )[0]?.imagePath
+                    )
                     : "/images/combo3sp.jpg"
               }
               onExploreClick={() => scrollToSection("san-pham")}

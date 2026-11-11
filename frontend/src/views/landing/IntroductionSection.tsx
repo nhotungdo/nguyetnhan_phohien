@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle, Leaf, Flame, ShieldCheck } from "lucide-react";
 import { fadeUp, staggerContainer } from "@/components/LandingMotion";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 
 export function IntroductionSection() {

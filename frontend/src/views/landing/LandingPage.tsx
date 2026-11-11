@@ -13,7 +13,7 @@ import { wardsOf } from "@/lib/vnAddress";
 import { composeAddress, MAX_ADDRESS_DETAIL_LENGTH, MAX_EMAIL_LENGTH, MAX_NAME_LENGTH, normalizePhone, type OrderFieldErrorCode } from "@/lib/validation";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { ProductGalleryModal } from "@/components/ProductGalleryModal";
 import { FastImage } from "@/components/FastImage";
@@ -146,7 +146,7 @@ export default function LandingPage() {
 
   // Dùng useSyncExternalStore để kiểm tra đã mount ở client mà không gây lỗi hydration mismatch hay cascading render
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -1011,10 +1011,10 @@ export default function LandingPage() {
                     ? resolveCmsImage(cmsContent.HeroBannerUrl)
                     : effectiveProducts[0]?.images && effectiveProducts[0].images.length > 0
                       ? resolveCmsImage(
-                          [...effectiveProducts[0].images].sort(
-                            (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
-                          )[0]?.imagePath
-                        )
+                        [...effectiveProducts[0].images].sort(
+                          (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
+                        )[0]?.imagePath
+                      )
                       : "/images/combo3sp.jpg"
                 }
                 onExploreClick={() => scrollToSection("san-pham")}
@@ -1713,94 +1713,94 @@ export default function LandingPage() {
                     {form.items.map((item, idx) => {
                       const custom = item.isCustomMix ? item.customMixDetails : undefined;
                       return (
-                      <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-amber-50/70">
-                        <div className="flex-1 min-w-0">
-                          {custom ? (
-                            // Sản phẩm tự chọn hạt: công thức do khách chốt trong Custom Mix
-                            // Studio nên hiển thị cố định, không cho đổi sang sản phẩm khác
-                            // (đổi ô chọn cũng không làm thay đổi đơn vì backend dùng công thức).
-                            <div className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2">
-                              <p className="text-sm font-semibold text-foreground truncate">
-                                {custom.customProductName}
-                              </p>
-                              <p className="text-xs text-foreground/60 truncate">
-                                {language === "en"
-                                  ? custom.packagingName
+                        <div key={idx} className="flex flex-col sm:flex-row gap-2.5 p-3 rounded-xl bg-amber-50/70">
+                          <div className="flex-1 min-w-0">
+                            {custom ? (
+                              // Sản phẩm tự chọn hạt: công thức do khách chốt trong Custom Mix
+                              // Studio nên hiển thị cố định, không cho đổi sang sản phẩm khác
+                              // (đổi ô chọn cũng không làm thay đổi đơn vì backend dùng công thức).
+                              <div className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2">
+                                <p className="text-sm font-semibold text-foreground truncate">
+                                  {custom.customProductName}
+                                </p>
+                                <p className="text-xs text-foreground/60 truncate">
+                                  {language === "en"
+                                    ? custom.packagingName
                                       .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
                                       .replace("Túi Zip", "Zip Bag")
                                       .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
                                       .replace("Hộp Mica", "Mica Jar")
                                       .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
                                       .replace("Lễ Hộp", "Luxury Gift Box")
-                                  : custom.packagingName} ({custom.targetWeightGrams}g)
-                                {custom.ingredients?.length
-                                  ? ` · ${custom.ingredients.map((ing) => {
+                                    : custom.packagingName} ({custom.targetWeightGrams}g)
+                                  {custom.ingredients?.length
+                                    ? ` · ${custom.ingredients.map((ing) => {
                                       const rawName = ing.name || "";
                                       const ingName = language === "en"
                                         ? rawName
-                                            .replace("Long Nhãn Phố Hiến", "Pho Hien Longan")
-                                            .replace("Long nhãn Phố Hiến", "Pho Hien Longan")
-                                            .replace("Hạt Macca Đắk Lắk", "Dak Lak Macadamia")
-                                            .replace("Macca Tây Nguyên", "Highland Macadamia")
-                                            .replace("Hạt Điều Bình Phước Rang Mộc", "Roasted Cashews")
-                                            .replace("Hạt điều rang mộc", "Roasted Cashews")
-                                            .replace("Hạnh Nhân Mỹ Nướng Giòn", "Baked Almonds")
-                                            .replace("Hạnh nhân nướng", "Baked Almonds")
-                                            .replace("Hạt Bí Xanh Ấn Độ", "Pumpkin Seeds")
-                                            .replace("Hạt bí xanh", "Pumpkin Seeds")
+                                          .replace("Long Nhãn Phố Hiến", "Pho Hien Longan")
+                                          .replace("Long nhãn Phố Hiến", "Pho Hien Longan")
+                                          .replace("Hạt Macca Đắk Lắk", "Dak Lak Macadamia")
+                                          .replace("Macca Tây Nguyên", "Highland Macadamia")
+                                          .replace("Hạt Điều Bình Phước Rang Mộc", "Roasted Cashews")
+                                          .replace("Hạt điều rang mộc", "Roasted Cashews")
+                                          .replace("Hạnh Nhân Mỹ Nướng Giòn", "Baked Almonds")
+                                          .replace("Hạnh nhân nướng", "Baked Almonds")
+                                          .replace("Hạt Bí Xanh Ấn Độ", "Pumpkin Seeds")
+                                          .replace("Hạt bí xanh", "Pumpkin Seeds")
                                         : rawName;
                                       return `${ingName} ${ing.weightGrams}g`;
                                     }).join(", ")}`
-                                  : ""}
-                              </p>
-                            </div>
-                          ) : (
-                            <select
-                              id={`productSelect-${idx}`}
-                              name={`productSelect-${idx}`}
-                              required
-                              aria-label={`${t.order.select_product} ${idx + 1}`}
-                              value={item.productId}
-                              onChange={(e) => updateItem(idx, "productId", e.target.value)}
-                              className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all truncate"
-                            >
-                              <option value="">{t.order.select_default}</option>
-                              {effectiveProducts.map((prod) => (
-                                <option key={prod.id} value={prod.id}>
-                                  {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
-                          <div className="w-24 shrink-0">
-                            <input
-                              id={`productQty-${idx}`}
-                              name={`productQty-${idx}`}
-                              type="number"
-                              min="1"
-                              max="999"
-                              required
-                              aria-label={`${language === "en" ? "Quantity for product" : "Số lượng sản phẩm"} ${idx + 1}`}
-                              value={item.quantity}
-                              onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)}
-                              className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm text-center outline-none transition-all"
-                            />
+                                    : ""}
+                                </p>
+                              </div>
+                            ) : (
+                              <select
+                                id={`productSelect-${idx}`}
+                                name={`productSelect-${idx}`}
+                                required
+                                aria-label={`${t.order.select_product} ${idx + 1}`}
+                                value={item.productId}
+                                onChange={(e) => updateItem(idx, "productId", e.target.value)}
+                                className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm outline-none transition-all truncate"
+                              >
+                                <option value="">{t.order.select_default}</option>
+                                {effectiveProducts.map((prod) => (
+                                  <option key={prod.id} value={prod.id}>
+                                    {prod.name} - {language === "en" ? `$${(prod.price / 25000).toFixed(2).replace(',', '.')}` : `${prod.price.toLocaleString("vi-VN").replace(/,/g, '.')}đ`}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </div>
-                          {form.items.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeItem(idx)}
-                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors shrink-0"
-                              title={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
-                              aria-label={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
+                          <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
+                            <div className="w-24 shrink-0">
+                              <input
+                                id={`productQty-${idx}`}
+                                name={`productQty-${idx}`}
+                                type="number"
+                                min="1"
+                                max="999"
+                                required
+                                aria-label={`${language === "en" ? "Quantity for product" : "Số lượng sản phẩm"} ${idx + 1}`}
+                                value={item.quantity}
+                                onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)}
+                                className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm text-center outline-none transition-all"
+                              />
+                            </div>
+                            {form.items.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeItem(idx)}
+                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                                title={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
+                                aria-label={t.order.remove_item || (language === "en" ? "Remove item" : "Xóa sản phẩm")}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
                       );
                     })}
                   </div>
@@ -2038,11 +2038,10 @@ export default function LandingPage() {
       {/* 14. Nút Chat Trực Tuyến & Chuyên Gia AI Dinh Dưỡng */}
       {/* Nút tròn nổi mở chat khi đang đóng */}
       {!isMobileMenuOpen && !isChatOpen && (
-        <div className={`fixed z-50 flex flex-col items-end transition-all ${
-          isScrolled 
-            ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6" 
+        <div className={`fixed z-50 flex flex-col items-end transition-all ${isScrolled
+            ? "bottom-20 right-3.5 sm:bottom-6 sm:right-6"
             : "bottom-5 right-3.5 sm:bottom-6 sm:right-6"
-        } flex`}>
+          } flex`}>
           <motion.button
             id="chat-floating-button"
             whileHover={{ scale: 1.08 }}
@@ -2089,13 +2088,13 @@ export default function LandingPage() {
               style={
                 visualHeight !== null
                   ? {
-                      height: `${visualHeight}px`,
-                      top: `${visualTop}px`,
-                      bottom: "auto",
-                      position: "fixed",
-                      left: 0,
-                      right: 0,
-                    }
+                    height: `${visualHeight}px`,
+                    top: `${visualTop}px`,
+                    bottom: "auto",
+                    position: "fixed",
+                    left: 0,
+                    right: 0,
+                  }
                   : undefined
               }
               className="fixed inset-0 z-[100] sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[410px] sm:h-[620px] sm:max-h-[calc(100dvh-2.5rem)] w-full h-[100dvh] bg-white sm:rounded-2xl sm:shadow-2xl sm:border sm:border-amber-200/70 overflow-hidden flex flex-col sm:origin-bottom-right"
@@ -2112,18 +2111,17 @@ export default function LandingPage() {
                         {chatMode === "ai" ? (language === "en" ? "Nutrition Advisor" : "Tư Vấn Dinh Dưỡng") : (language === "en" ? "Live Customer Advisor" : "Tư Vấn Viên Trực Tuyến")}
                       </p>
                       <div className="flex items-center gap-1.5 text-[11px] opacity-90 leading-tight">
-                        <span className={`w-2 h-2 rounded-full ${
-                          chatMode === "ai" 
-                            ? "bg-amber-300 animate-pulse" 
+                        <span className={`w-2 h-2 rounded-full ${chatMode === "ai"
+                            ? "bg-amber-300 animate-pulse"
                             : connectionStatus === "connected"
                               ? "bg-emerald-400"
                               : connectionStatus === "failed"
                                 ? "bg-rose-400"
                                 : "bg-amber-400 animate-pulse"
-                        }`} />
+                          }`} />
                         <span className="truncate">
-                          {chatMode === "ai" 
-                            ? (language === "en" ? "Gemini AI Nutrition" : "Trí tuệ nhân tạo Gemini AI") 
+                          {chatMode === "ai"
+                            ? (language === "en" ? "Gemini AI Nutrition" : "Trí tuệ nhân tạo Gemini AI")
                             : connectionStatus === "connected"
                               ? (language === "en" ? "Online & Ready" : "Đang trực tuyến sẵn sàng")
                               : connectionStatus === "failed"
@@ -2167,11 +2165,10 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 gap-1.5 p-1 bg-black/25 backdrop-blur-xs rounded-xl text-xs font-semibold">
                   <button
                     onClick={() => setChatMode("ai")}
-                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${
-                      chatMode === "ai"
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${chatMode === "ai"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <Leaf className="w-3.5 h-3.5 text-amber-600" />
                     <span>{language === "en" ? "Nutrition Guide" : "Tư Vấn Dinh Dưỡng"}</span>
@@ -2181,15 +2178,13 @@ export default function LandingPage() {
                       setChatMode("human");
                       if (chatStarted) connect(guestName || undefined, guestPhone || undefined);
                     }}
-                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${
-                      chatMode === "human"
+                    className={`min-h-[34px] py-1 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all touch-manipulation ${chatMode === "human"
                         ? "bg-white text-[#92400E] shadow-sm font-bold"
                         : "text-white/80 hover:text-white"
-                    }`}
+                      }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${
-                      connectionStatus === "connected" ? "bg-emerald-400" : connectionStatus === "failed" ? "bg-rose-400" : "bg-amber-400 animate-pulse"
-                    }`} />
+                    <span className={`w-2 h-2 rounded-full ${connectionStatus === "connected" ? "bg-emerald-400" : connectionStatus === "failed" ? "bg-rose-400" : "bg-amber-400 animate-pulse"
+                      }`} />
                     <span>{language === "en" ? "Live Advisor" : "Tư Vấn Viên"}</span>
                   </button>
                 </div>
@@ -2283,11 +2278,10 @@ export default function LandingPage() {
                           initial={{ opacity: 0, y: 10, scale: 0.97 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                          className={`p-3 sm:p-3.5 rounded-2xl text-[13.5px] sm:text-sm max-w-[88%] sm:max-w-[82%] shadow-xs leading-relaxed ${
-                            msg.senderType === "Guest"
+                          className={`p-3 sm:p-3.5 rounded-2xl text-[13.5px] sm:text-sm max-w-[88%] sm:max-w-[82%] shadow-xs leading-relaxed ${msg.senderType === "Guest"
                               ? "bg-gradient-to-br from-[#B45309] to-[#92400E] text-white self-end rounded-br-xs"
                               : "bg-white border border-amber-100 text-stone-900 self-start rounded-tl-xs"
-                          }`}
+                            }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                           <span className={`text-[10px] block mt-1.5 opacity-70 ${msg.senderType === "Guest" ? "text-right" : ""}`}>
@@ -2329,9 +2323,8 @@ export default function LandingPage() {
                       )}
                       <div ref={messagesEndRef} />
                     </div>
-                    <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${
-                      isKeyboardOpen ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-                    }`}>
+                    <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${isKeyboardOpen ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                      }`}>
                       <div className="relative flex items-center">
                         <input
                           type="text"

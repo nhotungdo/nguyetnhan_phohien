@@ -24,7 +24,7 @@ import {
   normalizePhone,
   type OrderFieldErrorCode,
 } from "@/lib/validation";
-import { useLanguageStore } from "@/store/useLanguageStore";
+import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
@@ -34,10 +34,9 @@ import type { ProductResponse } from "@/types/api.types";
 import { scrollToSection } from "@/lib/scrollToSection";
 
 const inputClass = (error?: unknown) =>
-  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all text-base sm:text-sm ${
-    error
-      ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-      : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
+  `w-full bg-background border rounded-xl px-4 py-3 outline-none transition-all text-base sm:text-sm ${error
+    ? "border-red-300 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+    : "border-[#FDE68A] focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309]"
   }`;
 
 function FieldError({ message }: { message?: string }) {
@@ -53,7 +52,7 @@ function FieldError({ message }: { message?: string }) {
 export function OrderSection() {
   const prefersReducedMotion = useReducedMotion();
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false
   );
@@ -263,7 +262,7 @@ export function OrderSection() {
                   {language === "en"
                     ? "Order today to receive the freshest batches of dried longan. We guarantee the highest quality delivered to your hands."
                     : cmsContent.OrderDescription ||
-                      "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
+                    "Đặt hàng ngay hôm nay để nhận được những mẻ long nhãn mới nhất. Chúng tôi cam kết chất lượng tuyệt hảo đến tay bạn."}
                 </p>
               </Reveal>
 
@@ -363,9 +362,9 @@ export function OrderSection() {
                           <span>
                             {emailDeliveryStatus === "NotConfigured"
                               ? t.order.order_received_email_maintenance ||
-                                "Đơn hàng đã tiếp nhận thành công! Cổng gửi email tự động đang tạm bảo trì:"
+                              "Đơn hàng đã tiếp nhận thành công! Cổng gửi email tự động đang tạm bảo trì:"
                               : t.order.order_received_email_pending ||
-                                "Hệ thống đã tiếp nhận đơn hàng và đang tiến hành gửi hóa đơn & thông tin xác nhận đến:"}
+                              "Hệ thống đã tiếp nhận đơn hàng và đang tiến hành gửi hóa đơn & thông tin xác nhận đến:"}
                           </span>
                         </div>
                         <p className="text-sm font-bold text-emerald-950 pl-6 break-all">
@@ -374,9 +373,9 @@ export function OrderSection() {
                         <p className="text-xs text-neutral-600 pl-6 italic">
                           {emailDeliveryStatus === "NotConfigured"
                             ? t.order.email_staff_call ||
-                              "(Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và gửi hóa đơn cho bạn)"
+                            "(Nhân viên sẽ liên hệ qua số điện thoại để xác nhận đơn và gửi hóa đơn cho bạn)"
                             : t.order.email_check_spam ||
-                              "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam trong ít phút tới)"}
+                            "(Vui lòng kiểm tra hộp thư đến hoặc mục thư rác / spam trong ít phút tới)"}
                         </p>
                       </div>
                     ) : (
@@ -572,9 +571,8 @@ export function OrderSection() {
                         autoComplete="address-line1"
                         aria-label={t.order.address_detail}
                         aria-invalid={!!errors.addressDetail}
-                        placeholder={`${t.order.address_detail} (${
-                          language === "en" ? "e.g. 123 Pho Hien street" : "ví dụ: 123 đường Phố Hiến"
-                        })`}
+                        placeholder={`${t.order.address_detail} (${language === "en" ? "e.g. 123 Pho Hien street" : "ví dụ: 123 đường Phố Hiến"
+                          })`}
                         value={form.addressDetail}
                         onChange={(e) => setField("addressDetail", e.target.value)}
                         onBlur={() => validateField("addressDetail")}
@@ -632,35 +630,35 @@ export function OrderSection() {
                               <p className="text-xs text-foreground/60 truncate">
                                 {language === "en"
                                   ? custom.packagingName
-                                      .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
-                                      .replace("Túi Zip", "Zip Bag")
-                                      .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
-                                      .replace("Hộp Mica", "Mica Jar")
-                                      .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
-                                      .replace("Lễ Hộp", "Luxury Gift Box")
+                                    .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
+                                    .replace("Túi Zip", "Zip Bag")
+                                    .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
+                                    .replace("Hộp Mica", "Mica Jar")
+                                    .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
+                                    .replace("Lễ Hộp", "Luxury Gift Box")
                                   : custom.packagingName}{" "}
                                 ({custom.targetWeightGrams}g)
                                 {custom.ingredients?.length
                                   ? ` · ${custom.ingredients
-                                      .map((ing) => {
-                                        const rawName = ing.name || "";
-                                        const ingName =
-                                          language === "en"
-                                            ? rawName
-                                                .replace("Long Nhãn Phố Hiến", "Pho Hien Longan")
-                                                .replace("Long nhãn Phố Hiến", "Pho Hien Longan")
-                                                .replace("Hạt Macca Đắk Lắk", "Dak Lak Macadamia")
-                                                .replace("Macca Tây Nguyên", "Highland Macadamia")
-                                                .replace("Hạt Điều Bình Phước Rang Mộc", "Roasted Cashews")
-                                                .replace("Hạt điều rang mộc", "Roasted Cashews")
-                                                .replace("Hạnh Nhân Mỹ Nướng Giòn", "Baked Almonds")
-                                                .replace("Hạnh nhân nướng", "Baked Almonds")
-                                                .replace("Hạt Bí Xanh Ấn Độ", "Pumpkin Seeds")
-                                                .replace("Hạt bí xanh", "Pumpkin Seeds")
-                                            : rawName;
-                                        return `${ingName} ${ing.weightGrams}g`;
-                                      })
-                                      .join(", ")}`
+                                    .map((ing) => {
+                                      const rawName = ing.name || "";
+                                      const ingName =
+                                        language === "en"
+                                          ? rawName
+                                            .replace("Long Nhãn Phố Hiến", "Pho Hien Longan")
+                                            .replace("Long nhãn Phố Hiến", "Pho Hien Longan")
+                                            .replace("Hạt Macca Đắk Lắk", "Dak Lak Macadamia")
+                                            .replace("Macca Tây Nguyên", "Highland Macadamia")
+                                            .replace("Hạt Điều Bình Phước Rang Mộc", "Roasted Cashews")
+                                            .replace("Hạt điều rang mộc", "Roasted Cashews")
+                                            .replace("Hạnh Nhân Mỹ Nướng Giòn", "Baked Almonds")
+                                            .replace("Hạnh nhân nướng", "Baked Almonds")
+                                            .replace("Hạt Bí Xanh Ấn Độ", "Pumpkin Seeds")
+                                            .replace("Hạt bí xanh", "Pumpkin Seeds")
+                                          : rawName;
+                                      return `${ingName} ${ing.weightGrams}g`;
+                                    })
+                                    .join(", ")}`
                                   : ""}
                               </p>
                             </div>
@@ -695,9 +693,8 @@ export function OrderSection() {
                               min="1"
                               max="999"
                               required
-                              aria-label={`${language === "en" ? "Quantity for product" : "Số lượng sản phẩm"} ${
-                                idx + 1
-                              }`}
+                              aria-label={`${language === "en" ? "Quantity for product" : "Số lượng sản phẩm"} ${idx + 1
+                                }`}
                               value={item.quantity}
                               onChange={(e) => updateItem(idx, "quantity", parseInt(e.target.value) || 1)}
                               className="w-full bg-white border border-gray-200 focus:border-[#B45309] focus:ring-1 focus:ring-[#B45309] rounded-xl px-3 py-2 text-sm text-center outline-none transition-all"
@@ -749,14 +746,12 @@ export function OrderSection() {
                     <p className="text-green-600 text-sm flex items-center gap-1">
                       <CheckCircle className="w-4 h-4" />
                       {discountResult.percentOff
-                        ? `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${
-                            discountResult.percentOff
-                          }%`
-                        : `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${
-                            language === "en"
-                              ? `${((discountResult.amountOff || 0) / 25000).toFixed(2).replace(",", ".")}`
-                              : `${discountResult.amountOff?.toLocaleString("vi-VN").replace(/,/g, ".")}đ`
-                          }`}
+                        ? `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${discountResult.percentOff
+                        }%`
+                        : `${t.order.discount_percent_label || (language === "en" ? "Discount" : "Giảm")} ${language === "en"
+                          ? `${((discountResult.amountOff || 0) / 25000).toFixed(2).replace(",", ".")}`
+                          : `${discountResult.amountOff?.toLocaleString("vi-VN").replace(/,/g, ".")}đ`
+                        }`}
                     </p>
                   )}
                   {discountNotice && (
