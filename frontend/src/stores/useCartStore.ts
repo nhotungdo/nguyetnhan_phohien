@@ -54,6 +54,7 @@ export const useCartStore = create<CartStore>()(
                   ? { ...i, quantity: i.quantity + 1 }
                   : i
               ),
+              isOpen: false,
             };
           }
           const sortedImages = product.images && product.images.length > 0
@@ -71,7 +72,7 @@ export const useCartStore = create<CartStore>()(
             quantity: 1,
             isCustomMix: false,
           };
-          return { items: [...state.items, newItem] };
+          return { items: [...state.items, newItem], isOpen: false };
         });
       },
 
@@ -103,6 +104,7 @@ export const useCartStore = create<CartStore>()(
                   ? { ...i, quantity: i.quantity + quantity }
                   : i
               ),
+              isOpen: false,
             };
           }
 
@@ -126,7 +128,7 @@ export const useCartStore = create<CartStore>()(
             customMixDetails: customMix,
           };
 
-          return { items: [...state.items, newItem] };
+          return { items: [...state.items, newItem], isOpen: false };
         });
       },
 
