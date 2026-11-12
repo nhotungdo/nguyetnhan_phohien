@@ -15,6 +15,7 @@ import {
   Award,
   ArrowRight,
   ShoppingCart,
+  Check,
   Leaf,
   ShieldCheck,
   Play,
@@ -254,6 +255,7 @@ export function PhoHienCulinaryView() {
   const { language } = useLanguageStore();
   const { products: apiProducts } = useProducts();
   const { addItem: addCartItem, closeCart } = useCartStore();
+  const [addedProductId, setAddedProductId] = useState<string | null>(null);
 
   const [activeRecipeId, setActiveRecipeId] = useState<string>("tra-cuc");
   const [hoveredPillar, setHoveredPillar] = useState<number | null>(null);
@@ -772,12 +774,24 @@ export function PhoHienCulinaryView() {
                           type="button"
                           onClick={() => {
                             addCartItem(prod);
+                            setAddedProductId(prod.id);
+                            setTimeout(() => {
+                              setAddedProductId((curr) => (curr === prod.id ? null : curr));
+                            }, 1500);
                           }}
-                          className="p-2 sm:p-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-accent transition-all active:scale-95 cursor-pointer shadow-2xs"
+                          className={`p-2 sm:p-2.5 rounded-xl border transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                            addedProductId === prod.id
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                              : "border-amber-300 bg-amber-50 hover:bg-amber-100 text-accent"
+                          }`}
                           title={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
                           aria-label={language === "en" ? "Add to cart" : "Thêm vào giỏ hàng"}
                         >
-                          <ShoppingCart className="w-4 h-4" />
+                          {addedProductId === prod.id ? (
+                            <Check className="w-4 h-4 text-emerald-600 animate-badge-pop" />
+                          ) : (
+                            <ShoppingCart className="w-4 h-4" />
+                          )}
                         </button>
                         <button
                           type="button"
