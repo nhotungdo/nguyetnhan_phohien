@@ -320,17 +320,18 @@ export function ProductInteractiveShowcase({
                   );
                 })}
 
-                {/* Nút xem bộ sưu tập ảnh góc dưới phải */}
+                {/* Nút xem chi tiết sản phẩm góc dưới phải */}
                 <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-20">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onOpenGallery(activeProduct);
                     }}
-                    className="flex items-center gap-1.5 bg-black/65 hover:bg-black/85 text-white backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1.5 bg-black/70 hover:bg-black/90 text-white backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    title={language === "en" ? "View full 360° product details" : "Xem chi tiết bao quát 360°"}
                   >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>{language === "en" ? "Gallery" : "Xem Ảnh"}</span>
+                    <Eye className="w-3.5 h-3.5 text-amber-300" />
+                    <span>{language === "en" ? "Product Details" : "Xem Chi Tiết"}</span>
                   </button>
                 </div>
 
@@ -439,6 +440,19 @@ export function ProductInteractiveShowcase({
                     <span className="truncate">{language === "en" ? "Nationwide delivery" : "Giao hàng toàn quốc"}</span>
                   </div>
                 </div>
+
+                {/* Nút xem toàn bộ hồ sơ chi tiết & cảm quan */}
+                <button
+                  type="button"
+                  onClick={() => onOpenGallery(activeProduct)}
+                  className="w-full py-2.5 px-3.5 rounded-xl bg-[#F7F3EB] hover:bg-amber-100/70 border border-[#E8DFC8] text-primary font-bold text-xs flex items-center justify-between transition-all cursor-pointer group shadow-2xs mb-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
+                    <span>{language === "en" ? "View Full Specifications & Sensory Tasting Profile" : "Xem Hồ Sơ Thông Số Chi Tiết & Cảm Quan Thưởng Vị"}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-accent transition-transform group-hover:translate-x-0.5" />
+                </button>
               </div>
 
               {/* Nút hành động Mua Ngay */}

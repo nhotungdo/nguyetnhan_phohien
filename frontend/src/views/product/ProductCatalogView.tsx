@@ -57,16 +57,16 @@ export function ProductCatalogView() {
         let size = prod.size;
         let description = prod.description;
 
-        if (prod.id === "default-dac-biet" || prod.name.includes("Đặc Biệt")) {
-          name = "Special Reserve Dried Longan";
-          description =
-            "Thick-fleshed Huong Chi longan, hot-air convection dried, uniform golden amber fruit, delightfully chewy and delicately sweet.";
-        } else if (prod.id === "default-tui-zip" || prod.name.includes("Túi Zip")) {
-          name = "Airtight Zipper Pouch Dried Longan";
+        if (prod.id === "default-tui-zip" || prod.name.includes("Túi Zip") || prod.name.includes("Tứ Dã")) {
+          name = "Zipper Pouch 150g (Four Realms Pearls)";
           description =
             "Convenient resealable zipper pouch for daily storage, airtight seal keeping natural chewiness and fragrance, perfect for tea, sweet soup, or restorative infusions.";
-        } else if (prod.id === "default-set-qua" || prod.name.includes("Set Quà") || prod.name.includes("Hoàng Gia")) {
-          name = "Royal Heritage Gift Set";
+        } else if (prod.id === "default-dac-biet" || prod.name.includes("Đặc Biệt") || prod.name.includes("Tiến Vua")) {
+          name = "Special Reserve Box 300g (Ngoc Nhan)";
+          description =
+            "Thick-fleshed Huong Chi longan, hot-air convection dried, uniform golden amber fruit, delightfully chewy and delicately sweet.";
+        } else if (prod.id === "default-set-qua" || prod.name.includes("Set Quà") || prod.name.includes("Hoàng Gia") || prod.name.includes("Thương Cảng")) {
+          name = "Imperial Gift Set 900g (Port Moonrise)";
           description =
             "Elegantly designed gift box honoring centuries of Pho Hien cultural heritage, paired with a luxury tote bag, the perfect wellness gift for loved ones and partners.";
         }

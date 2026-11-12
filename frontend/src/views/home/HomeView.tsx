@@ -1,18 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShoppingCart, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
+import { ArrowRight, ShoppingCart, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
 import { ProductHeroShowcase } from "@/components/ProductHeroShowcase";
+import { ProductDetailModal } from "@/components/ProductDetailModal";
 import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 import { resolveCmsImage } from "@/lib/cmsImage";
+import type { ProductResponse } from "@/types/api.types";
 
 export function HomeView() {
   const router = useRouter();
@@ -20,6 +23,7 @@ export function HomeView() {
   const { content: cmsContent } = useWebsiteContent();
   const { products: apiProducts } = useProducts();
   const { addItem: addCartItem, closeCart } = useCartStore();
+  const [selectedDetailProduct, setSelectedDetailProduct] = useState<ProductResponse | null>(null);
 
   const brandCommitments = [
     { id: "natural", label: t.about.natural_title, icon: Leaf },
@@ -231,7 +235,11 @@ export function HomeView() {
                   key={prod.id || index}
                   className="bg-[#FCFBF7] rounded-3xl border border-[#E8DFC8] overflow-hidden hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between group"
                 >
-                  <div className="relative aspect-square w-full overflow-hidden bg-white/60">
+                  <div
+                    onClick={() => setSelectedDetailProduct(prod)}
+                    className="relative aspect-square w-full overflow-hidden bg-white/60 cursor-pointer"
+                    title={language === "en" ? "Click to view full product details" : "Nhấn để xem chi tiết bao quát sản phẩm"}
+                  >
                     <FastImage
                       src={imageSrc}
                       fallbackSrc="/images/combo3sp.jpg"
@@ -245,14 +253,27 @@ export function HomeView() {
                         {prod.size}
                       </span>
                     )}
+
+                    {/* Nút xem chi tiết nổi khi hover */}
+                    <div className="absolute bottom-3 right-3 bg-black/65 hover:bg-black/85 text-white backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-all duration-200">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{language === "en" ? "Details" : "Chi Tiết"}</span>
+                    </div>
                   </div>
 
                   <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                     <div>
-                      <h3 className="font-bold text-lg sm:text-xl text-primary line-clamp-1 group-hover:text-accent transition-colors">
+                      <h3
+                        onClick={() => setSelectedDetailProduct(prod)}
+                        className="font-bold text-lg sm:text-xl text-primary line-clamp-1 group-hover:text-accent transition-colors cursor-pointer"
+                        title={language === "en" ? "View full details" : "Xem chi tiết sản phẩm"}
+                      >
                         {prod.name}
                       </h3>
-                      <p className="text-xs sm:text-sm text-stone-600 line-clamp-2 mt-1 leading-relaxed">
+                      <p
+                        onClick={() => setSelectedDetailProduct(prod)}
+                        className="text-xs sm:text-sm text-stone-600 line-clamp-2 mt-1 leading-relaxed cursor-pointer"
+                      >
                         {prod.description || (language === "en" ? "100% authentic Pho Hien dried longan." : "Long nhãn Hưng Yên sấy nhiệt đối lưu tự nhiên, chuẩn vị tiến vua.")}
                       </p>
                     </div>
@@ -412,6 +433,27 @@ export function HomeView() {
           </div>
         </div>
       </section>
+
+      {/* Modal Xem Chi Tiết Bao Quát Sản Phẩm */}
+      {selectedDetailProduct && (
+        <ProductDetailModal
+          product={selectedDetailProduct}
+          language={language as "vi" | "en"}
+          onClose={() => setSelectedDetailProduct(null)}
+          onOrder={() => {
+            addCartItem(selectedDetailProduct);
+            closeCart();
+            router.push("/san-pham#dat-hang");
+            setSelectedDetailProduct(null);
+          }}
+          onAddToCart={(prod, qty) => {
+            const count = qty || 1;
+            for (let i = 0; i < count; i++) {
+              addCartItem(prod);
+            }
+          }}
+        />
+      )}
     </>
   );
 }

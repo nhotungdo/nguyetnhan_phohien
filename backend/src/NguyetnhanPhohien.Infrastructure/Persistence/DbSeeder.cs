@@ -87,11 +87,45 @@ public static class DbSeeder
         {
             var products = new List<Product>
             {
-                new() { Name = "\"Ngọc Nhãn Tiến Vua\" (Phiên bản Ngự Thiện)", Price = 350000, Size = "500g", Description = "Khẳng định đẳng cấp. Từ \"Ngự Thiện\" (đồ ăn của vua) khiến khách hàng tò mò muốn nếm thử hương vị mà ngày xưa chỉ vua chúa mới được ăn.", DisplayOrder = 1 },
-                new() { Name = "Gói \"Trân Châu Tứ Dã\"", Price = 320000, Size = "500g", Description = "\"Trân châu\" (ngọc quý) ngụ ý những viên nhãn và hạt chất lượng cao nhất được thu thập từ bốn phương (tứ dã) gói gọn trong một chiếc túi nhỏ bé.", DisplayOrder = 2 },
-                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\"", Price = 850000, Size = "1kg", Description = "Đưa người nhận xuyên không về Phố Hiến sầm uất thế kỷ 17. Mở hộp quà ra như mở ra một đêm ngắm trăng (Vọng nguyệt) bên bến thương cảng phồn hoa.", DisplayOrder = 3 }
+                new() { Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)", Price = 69000, Size = "150g", Description = "Túi zip khóa kín khí tiện lợi bảo quản hàng ngày, múi nhãn Hương Chi sấy nhiệt đối lưu dẻo thơm, phù hợp pha trà, ăn liền hoặc mang theo.", DisplayOrder = 1 },
+                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Nhãn lồng cùi dày Hương Chi thượng hạng tuyển chọn, sấy nhiệt nóng (sấy đối lưu), màu vàng cánh gián hổ phách sang trọng, dẻo ngọt thanh tao.", DisplayOrder = 2 },
+                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)", Price = 756000, Size = "900g", Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách trang trọng, tinh hoa phẩm vật tiến vua, là món quà sức khỏe thượng hạng trao gửi tri ân.", DisplayOrder = 3 }
             };
             db.Products.AddRange(products);
+            await db.SaveChangesAsync();
+        }
+        else
+        {
+            // Cập nhật quy cách và giá chuẩn theo phân cấp mới nhất:
+            // 1. Gói Túi Zip 150g (Trân Châu Tứ Dã) giá 69,000đ
+            // 2. Hộp Đặc Biệt 300g (Ngọc Nhãn Tiến Vua) giá 153,000đ
+            // 3. Lễ Hộp Hoàng Gia 900g (Vọng Nguyệt Thương Cảng) giá 756,000đ
+            var existingProds = await db.Products.ToListAsync();
+            foreach (var p in existingProds)
+            {
+                if (p.Name.Contains("Tứ Dã") || p.Name.Contains("Túi Zip") || (p.DisplayOrder == 1 && (p.Price == 320000 || p.Price == 350000 || p.Price == 69000)))
+                {
+                    p.Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)";
+                    p.Size = "150g";
+                    p.Price = 69000;
+                    p.DisplayOrder = 1;
+                }
+                else if (p.Name.Contains("Tiến Vua") || p.Name.Contains("Đặc Biệt") || (p.DisplayOrder == 2 && (p.Price == 350000 || p.Price == 320000 || p.Price == 153000)))
+                {
+                    p.Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)";
+                    p.Size = "300g";
+                    p.Price = 153000;
+                    p.DisplayOrder = 2;
+                }
+                else if (p.Name.Contains("Thương Cảng") || p.Name.Contains("Hoàng Gia") || p.Name.Contains("Set Quà") || p.DisplayOrder == 3)
+                {
+                    p.Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)";
+                    p.Size = "900g";
+                    p.Price = 756000;
+                    p.DisplayOrder = 3;
+                }
+            }
+            await db.SaveChangesAsync();
         }
 
         // ===== SEED BAO BÌ TỰ CHỌN HẠT (CUSTOM MIX PACKAGINGS) =====
