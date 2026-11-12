@@ -19,7 +19,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FBF8F1] via-[#F4EDE0] to-[#E9DFCE] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
+      className={`relative w-full aspect-[16/11] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FBF8F1] via-[#F4EDE0] to-[#E9DFCE] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
     >
       {/* Nền ánh sáng ấm áp góc bàn trà */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(251,191,36,0.18),transparent_70%)] pointer-events-none" />
@@ -40,163 +40,164 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
 
       {/* SVG Canvas Diễn Hoạt Tách Trà & Sóng Mật */}
       <svg
-        viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        viewBox="0 0 240 160"
+        className="w-full h-full max-w-[220px] max-h-[145px] overflow-visible drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* 1. Làn khói trà lượn lờ (Animated Steam Wisps) */}
-        {!shouldReduceMotion && (
-          <g className="opacity-75">
-            {/* Làn khói 1 */}
-            <motion.path
-              d="M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0"
-              stroke="rgba(180, 83, 9, 0.35)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              fill="none"
-              animate={{
-                d: [
-                  "M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0",
-                  "M108 55 C112 42, 104 30, 112 18 C115 10, 108 4, 111 0",
-                  "M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0",
-                ],
-                opacity: [0.2, 0.6, 0.1],
-                y: [0, -6, 0],
-              }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            />
-            {/* Làn khói 2 (Ở giữa, cao hơn) */}
-            <motion.path
-              d="M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0"
-              stroke="rgba(217, 119, 6, 0.45)"
-              strokeWidth="2.8"
-              strokeLinecap="round"
-              fill="none"
-              animate={{
-                d: [
-                  "M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0",
-                  "M120 52 C116 38, 124 26, 117 12 C114 5, 122 1, 119 0",
-                  "M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0",
-                ],
-                opacity: [0.3, 0.8, 0.2],
-                y: [0, -8, 0],
-              }}
-              transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            />
-            {/* Làn khói 3 (Bên phải) */}
-            <motion.path
-              d="M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0"
-              stroke="rgba(180, 83, 9, 0.35)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              fill="none"
-              animate={{
-                d: [
-                  "M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0",
-                  "M132 55 C129 43, 137 32, 130 20 C127 12, 135 5, 132 0",
-                  "M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0",
-                ],
-                opacity: [0.2, 0.65, 0.15],
-                y: [0, -5, 0],
-              }}
-              transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            />
-          </g>
-        )}
+        {/* Nhóm nâng toàn bộ tách trà & khói lên cao (Elevated Tea Set & Wisps) */}
+        <g transform="translate(0 -26)">
+          {/* 1. Làn khói trà lượn lờ (Animated Steam Wisps) */}
+          {!shouldReduceMotion && (
+            <g className="opacity-75">
+              {/* Làn khói 1 */}
+              <motion.path
+                d="M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0"
+                stroke="rgba(180, 83, 9, 0.35)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                fill="none"
+                animate={{
+                  d: [
+                    "M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0",
+                    "M108 55 C112 42, 104 30, 112 18 C115 10, 108 4, 111 0",
+                    "M108 55 C104 42, 114 32, 108 20 C104 12, 110 5, 107 0",
+                  ],
+                  opacity: [0.2, 0.6, 0.1],
+                  y: [0, -6, 0],
+                }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              {/* Làn khói 2 (Ở giữa, cao hơn) */}
+              <motion.path
+                d="M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0"
+                stroke="rgba(217, 119, 6, 0.45)"
+                strokeWidth="2.8"
+                strokeLinecap="round"
+                fill="none"
+                animate={{
+                  d: [
+                    "M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0",
+                    "M120 52 C116 38, 124 26, 117 12 C114 5, 122 1, 119 0",
+                    "M120 52 C125 38, 115 28, 122 14 C126 6, 118 2, 120 0",
+                  ],
+                  opacity: [0.3, 0.8, 0.2],
+                  y: [0, -8, 0],
+                }}
+                transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              />
+              {/* Làn khói 3 (Bên phải) */}
+              <motion.path
+                d="M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0"
+                stroke="rgba(180, 83, 9, 0.35)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                fill="none"
+                animate={{
+                  d: [
+                    "M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0",
+                    "M132 55 C129 43, 137 32, 130 20 C127 12, 135 5, 132 0",
+                    "M132 55 C136 43, 128 34, 134 22 C138 14, 131 6, 133 0",
+                  ],
+                  opacity: [0.2, 0.65, 0.15],
+                  y: [0, -5, 0],
+                }}
+                transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              />
+            </g>
+          )}
 
-        <g transform="translate(0 -18)">
-        {/* 2. Đĩa lót tách trà gốm sứ */}
-        <ellipse cx="120" cy="128" rx="66" ry="14" fill="#D6C7B2" />
-        <ellipse cx="120" cy="126" rx="62" ry="12" fill="#E8DFC8" className="stroke-[#B4A088]" strokeWidth="1.5" />
-        <ellipse cx="120" cy="125" rx="48" ry="8" fill="#CBBBA4" opacity="0.6" />
+          {/* 2. Đĩa lót tách trà gốm sứ */}
+          <ellipse cx="120" cy="128" rx="66" ry="14" fill="#D6C7B2" />
+          <ellipse cx="120" cy="126" rx="62" ry="12" fill="#E8DFC8" className="stroke-[#B4A088]" strokeWidth="1.5" />
+          <ellipse cx="120" cy="125" rx="48" ry="8" fill="#CBBBA4" opacity="0.6" />
 
-        {/* 3. Thân tách trà gốm ngọc bích */}
-        <path
-          d="M78 68 C80 106, 92 118, 120 118 C148 118, 160 106, 162 68 Z"
-          fill="url(#teaCupGradient)"
-          stroke="#0F3E30"
-          strokeWidth="2.5"
-        />
+          {/* 3. Thân tách trà gốm ngọc bích */}
+          <path
+            d="M78 68 C80 106, 92 118, 120 118 C148 118, 160 106, 162 68 Z"
+            fill="url(#teaCupGradient)"
+            stroke="#0F3E30"
+            strokeWidth="2.5"
+          />
 
-        {/* Quai tách trà */}
-        <path
-          d="M158 76 C176 78, 176 102, 154 104"
-          fill="none"
-          stroke="#0F3E30"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M158 76 C173 78, 173 100, 154 103"
-          fill="none"
-          stroke="#34D399"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          opacity="0.6"
-        />
+          {/* Quai tách trà */}
+          <path
+            d="M158 76 C176 78, 176 102, 154 104"
+            fill="none"
+            stroke="#0F3E30"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M158 76 C173 78, 173 100, 154 103"
+            fill="none"
+            stroke="#34D399"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            opacity="0.6"
+          />
 
-        {/* Viền hoa văn cung đình trên miệng chén */}
-        <ellipse cx="120" cy="68" rx="42" ry="10" fill="#0A2C22" />
-        <ellipse cx="120" cy="68" rx="40" ry="8.5" fill="url(#teaLiquorGradient)" />
+          {/* Viền hoa văn cung đình trên miệng chén */}
+          <ellipse cx="120" cy="68" rx="42" ry="10" fill="#0A2C22" />
+          <ellipse cx="120" cy="68" rx="40" ry="8.5" fill="url(#teaLiquorGradient)" />
 
-        {/* 4. Sóng mật long nhãn lan tỏa trong lòng chén (Golden Ripples) */}
-        {!shouldReduceMotion && (
-          <g>
-            <motion.ellipse
-              cx="120"
-              cy="68"
-              rx="18"
-              ry="4"
-              fill="none"
-              stroke="#FDE68A"
-              strokeWidth="1.5"
-              animate={{
-                rx: [8, 32],
-                ry: [2, 7.5],
-                opacity: [0.9, 0],
-              }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
-            />
-            <motion.ellipse
-              cx="120"
-              cy="68"
-              rx="12"
-              ry="3"
-              fill="none"
-              stroke="#F59E0B"
-              strokeWidth="1.2"
-              animate={{
-                rx: [4, 24],
-                ry: [1, 6],
-                opacity: [0.8, 0],
-              }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
-            />
-          </g>
-        )}
+          {/* 4. Sóng mật long nhãn lan tỏa trong lòng chén (Golden Ripples) */}
+          {!shouldReduceMotion && (
+            <g>
+              <motion.ellipse
+                cx="120"
+                cy="68"
+                rx="18"
+                ry="4"
+                fill="none"
+                stroke="#FDE68A"
+                strokeWidth="1.5"
+                animate={{
+                  rx: [8, 32],
+                  ry: [2, 7.5],
+                  opacity: [0.9, 0],
+                }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
+              />
+              <motion.ellipse
+                cx="120"
+                cy="68"
+                rx="12"
+                ry="3"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="1.2"
+                animate={{
+                  rx: [4, 24],
+                  ry: [1, 6],
+                  opacity: [0.8, 0],
+                }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay: 0.8 }}
+              />
+            </g>
+          )}
 
-        {/* 5. Múi long nhãn vàng hổ phách chìm trong nước trà */}
-        <motion.g
-          animate={
-            shouldReduceMotion
-              ? {}
-              : {
-                  y: [-1.5, 1.5, -1.5],
-                  rotate: [-3, 3, -3],
-                }
-          }
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {/* Múi nhãn chính */}
-          <ellipse cx="120" cy="68" rx="9" ry="5.5" fill="#D97706" />
-          <ellipse cx="119" cy="67.5" rx="7.5" ry="4" fill="#FBBF24" />
-          <ellipse cx="117.5" cy="66.5" rx="3.5" ry="1.8" fill="#FEF3C7" opacity="0.9" />
-          {/* Hạt cúc chi hoặc cánh hoa sen trôi dập dềnh */}
-          <circle cx="106" cy="67" r="2.8" fill="#FEF08A" />
-          <circle cx="106" cy="67" r="1.4" fill="#D97706" />
-          <path d="M133 65 C136 63, 139 67, 134 69 Z" fill="#F472B6" opacity="0.85" />
-        </motion.g>
+          {/* 5. Múi long nhãn vàng hổ phách chìm trong nước trà */}
+          <motion.g
+            animate={
+              shouldReduceMotion
+                ? {}
+                : {
+                    y: [-1.5, 1.5, -1.5],
+                    rotate: [-3, 3, -3],
+                  }
+            }
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {/* Múi nhãn chính */}
+            <ellipse cx="120" cy="68" rx="9" ry="5.5" fill="#D97706" />
+            <ellipse cx="119" cy="67.5" rx="7.5" ry="4" fill="#FBBF24" />
+            <ellipse cx="117.5" cy="66.5" rx="3.5" ry="1.8" fill="#FEF3C7" opacity="0.9" />
+            {/* Hạt cúc chi hoặc cánh hoa sen trôi dập dềnh */}
+            <circle cx="106" cy="67" r="2.8" fill="#FEF08A" />
+            <circle cx="106" cy="67" r="1.4" fill="#D97706" />
+            <path d="M133 65 C136 63, 139 67, 134 69 Z" fill="#F472B6" opacity="0.85" />
+          </motion.g>
         </g>
 
         {/* Gradients */}
@@ -217,7 +218,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
       </svg>
 
       {/* Micro-Badges thông điệp triết lý */}
-      <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] font-bold text-amber-950/80 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs">
+      <div className="absolute bottom-2 sm:bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-amber-950/80 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs z-20">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           Nhiệt độ hãm 85°C – 90°C
@@ -240,19 +241,19 @@ export function LotusLonganVisualizer({ isHovered = false, className = "" }: Vis
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FFFDF7] via-[#FAF3E3] to-[#F1E5CB] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
+      className={`relative w-full aspect-[16/11] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FFFDF7] via-[#FAF3E3] to-[#F1E5CB] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
     >
       {/* Vệt ánh sáng tỏa ngát */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.15),transparent_65%)] pointer-events-none" />
 
       {/* SVG Canvas Hạt Sen Lồng Múi Nhãn */}
       <svg
-        viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        viewBox="0 0 240 160"
+        className="w-full h-full max-w-[220px] max-h-[145px] overflow-visible drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g transform="translate(0 -18)">
+        <g transform="translate(0 -26)">
         {/* Lá dứa xanh tươi nền phía sau */}
         <g opacity="0.85">
           <path
@@ -378,7 +379,7 @@ export function LotusLonganVisualizer({ isHovered = false, className = "" }: Vis
       </svg>
 
       {/* Micro-Badges thông điệp */}
-      <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] font-bold text-amber-950/80 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs">
+      <div className="absolute bottom-2 sm:bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-amber-950/80 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs z-20">
         <span className="flex items-center gap-1 text-emerald-800">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
           Quy tắc 2 phút vàng
@@ -401,19 +402,19 @@ export function AmberWineVisualizer({ isHovered = false, className = "" }: Visua
 
   return (
     <div
-      className={`relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FAF4EC] via-[#F4E9DB] to-[#E9DAC6] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
+      className={`relative w-full aspect-[16/11] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-b from-[#FAF4EC] via-[#F4E9DB] to-[#E9DAC6] border border-[#E8DFC8] flex items-center justify-center select-none shadow-inner ${className}`}
     >
       {/* Vệt ánh sáng ủ men ấm cúng */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_65%,rgba(180,83,9,0.18),transparent_70%)] pointer-events-none" />
 
       {/* SVG Canvas Bình Rượu Nếp Long Nhãn */}
       <svg
-        viewBox="0 -4 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        viewBox="0 -10 240 165"
+        className="w-full h-full max-w-[220px] max-h-[145px] overflow-visible drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g transform="translate(0 -18)">
+        <g transform="translate(0 -24)">
         {/* Đĩa đế kê bình */}
         <ellipse cx="120" cy="132" rx="48" ry="10" fill="#D3C3AD" />
         <ellipse cx="120" cy="130" rx="44" ry="8" fill="#BFAFA0" opacity="0.6" />
@@ -548,7 +549,7 @@ export function AmberWineVisualizer({ isHovered = false, className = "" }: Visua
       </svg>
 
       {/* Micro-Badges thông điệp */}
-      <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] font-bold text-amber-950/80 bg-white/80 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs">
+      <div className="absolute bottom-2 sm:bottom-2.5 left-2.5 sm:left-3 right-2.5 sm:right-3 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-amber-950/80 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-xl border border-amber-200/60 shadow-2xs z-20">
         <span className="flex items-center gap-1 text-red-900">
           <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
           Ủ men 60 – 90 ngày

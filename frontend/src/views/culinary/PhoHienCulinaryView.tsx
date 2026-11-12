@@ -387,12 +387,12 @@ export function PhoHienCulinaryView() {
                 className="bg-white rounded-3xl border border-[#E8DFC8] shadow-sm hover:shadow-xl hover:border-amber-400/60 transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1.5"
               >
                 {/* Khung Animation Diễn Hoạt Trực Quan */}
-                <div className="p-3 sm:p-3.5 pb-0">
+                <div className="p-3.5 sm:p-4 pb-1 sm:pb-2">
                   <VisualizerComponent isHovered={hoveredPillar === idx} />
                 </div>
 
                 {/* Phần Nội Dung Triết Lý & Điểm Nhấn Cảm Quan */}
-                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-5 sm:p-6 pt-3 sm:pt-4 flex-1 flex flex-col justify-between space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-[11px] font-bold uppercase tracking-wide px-3 py-1 rounded-full bg-amber-50 text-accent border border-amber-200/80 shadow-2xs">
