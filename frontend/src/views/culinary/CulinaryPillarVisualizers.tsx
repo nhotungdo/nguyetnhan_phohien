@@ -107,7 +107,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
 
         {/* 2. Đĩa lót tách trà gốm sứ */}
         <ellipse cx="120" cy="128" rx="66" ry="14" fill="#D6C7B2" />
-        <ellipse cx="120" cy="126" rx="62" ry="12" fill="#E8DECة" className="stroke-[#B4A088]" strokeWidth="1.5" />
+        <ellipse cx="120" cy="126" rx="62" ry="12" fill="#E8DFC8" className="stroke-[#B4A088]" strokeWidth="1.5" />
         <ellipse cx="120" cy="125" rx="48" ry="8" fill="#CBBBA4" opacity="0.6" />
 
         {/* 3. Thân tách trà gốm ngọc bích */}

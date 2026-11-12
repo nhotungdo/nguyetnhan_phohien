@@ -31,7 +31,7 @@ import {
   TeaInfusionVisualizer,
   LotusLonganVisualizer,
   AmberWineVisualizer,
-} from "@/components/culinary/CulinaryPillarVisualizers";
+} from "./CulinaryPillarVisualizers";
 import type { ProductResponse } from "@/types/api.types";
 
 interface RecipeItem {
@@ -469,8 +469,8 @@ export function PhoHienCulinaryView() {
                   key={recipe.id}
                   onClick={() => setActiveRecipeId(recipe.id)}
                   className={`py-3 px-3 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer text-center sm:text-left ${isActive
-                      ? "bg-primary text-white border-primary shadow-md scale-102"
-                      : "bg-white text-stone-700 border-[#E8DFC8] hover:bg-[#FAF8F5] hover:border-amber-300"
+                    ? "bg-primary text-white border-primary shadow-md scale-102"
+                    : "bg-white text-stone-700 border-[#E8DFC8] hover:bg-[#FAF8F5] hover:border-amber-300"
                     }`}
                 >
                   <IconComp className={`w-4 h-4 shrink-0 ${isActive ? "text-[#FDE68A]" : "text-accent"}`} />
