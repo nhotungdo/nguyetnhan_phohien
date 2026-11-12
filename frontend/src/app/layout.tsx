@@ -6,7 +6,8 @@ import { Providers } from "@/components/Providers";
 const beVietnam = Be_Vietnam_Pro({
   variable: "--font-be-vietnam",
   subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -134,7 +135,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${beVietnam.variable} ${playfair.variable} ${lora.variable} ${dancing.variable} ${geistMono.variable}`}>
+    <html
+      lang="vi"
+      className={`${beVietnam.variable} ${beVietnam.className} ${playfair.variable} ${lora.variable} ${dancing.variable} ${geistMono.variable}`}
+    >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
@@ -144,7 +148,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col antialiased w-full max-w-full overflow-x-clip">
+      <body className={`${beVietnam.className} min-h-full flex flex-col antialiased w-full max-w-full overflow-x-clip font-sans`}>
         <Providers>
           {children}
         </Providers>

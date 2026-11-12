@@ -1813,7 +1813,7 @@ export default function CustomMixStudio() {
                 <div className="bg-[#FFF9ED] text-[#292524] rounded-2xl p-5 shadow-2xl border-2 border-[#E9B949] relative">
                   <div className="border border-[#B45309]/30 p-4 rounded-xl space-y-3.5 text-center relative bg-[radial-gradient(#FDE68A_1px,transparent_1px)] [background-size:16px_16px]">
                     {/* Con dấu triện đỏ điện tử góc tem nhãn */}
-                    <div className="absolute top-2 right-2 w-12 h-12 border-2 border-red-700/80 text-red-700 rounded-sm flex flex-col items-center justify-center font-serif text-[7.5px] leading-tight rotate-[-4deg] shadow-2xs select-none pointer-events-none uppercase font-extrabold bg-red-50/20">
+                    <div className="absolute top-2 right-2 w-12 h-12 border-2 border-red-700/80 text-red-700 rounded-sm flex flex-col items-center justify-center text-[7.5px] leading-tight rotate-[-4deg] shadow-2xs select-none pointer-events-none uppercase font-extrabold bg-red-50/20">
                       <span>NGUYỆT NHÃN</span>
                       <span className="text-[6px] tracking-wider text-red-800">THƯỢNG PHẨM</span>
                       <span className="text-[5.5px] text-red-600">PHỐ HIẾN</span>
@@ -1832,7 +1832,6 @@ export default function CustomMixStudio() {
                     {/* Tên do khách đặt */}
                     <div className="py-2 border-y border-[#B45309]/20">
                       <span
-                        style={{ fontFamily: "var(--font-playfair)" }}
                         className="text-2xl sm:text-3xl font-bold text-[#B45309] block leading-tight tracking-wide"
                       >
                         {customName.trim() || (language === "en" ? "Custom Nut Blend" : "Sản Phẩm Tự Chọn Hạt")}
