@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, MessageCircle, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
+import { Menu, X, ArrowRight, ShoppingCart, ShoppingBag, Phone, MapPin, ChevronRight, CheckCircle, AlertCircle, Loader2, Send, Plus, Trash2, LayoutDashboard, KeyRound, Leaf, Flame, ShieldCheck, Award, Headphones } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { EASE_OUT_EXPO, fadeUp, Reveal, staggerContainer } from "@/components/LandingMotion";
 import { adminAuth } from "@/services/api.service";
@@ -723,7 +723,7 @@ export default function LandingPage() {
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 p-1.5 shrink-0"
               aria-label={language === "en" ? "Live Chat" : "Trò chuyện trực tuyến"}
             >
-              <MessageCircle className="w-5 h-5" />
+              <Leaf className="w-5 h-5" />
             </button>
             <button
               onClick={() => scrollToSection("dat-hang")}
@@ -2056,7 +2056,7 @@ export default function LandingPage() {
           >
             {/* Badge nhấp nháy nổi bật */}
             <span aria-hidden className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring" />
-            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -2422,7 +2422,7 @@ export default function LandingPage() {
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0"
               aria-label={language === "en" ? "Customer advice" : "Tư vấn"}
             >
-              <MessageCircle className="w-4 h-4 text-accent mb-0.5" />
+              <Leaf className="w-4 h-4 text-accent mb-0.5" />
               <span className="text-xs font-bold">{language === "en" ? "Advisor" : "Tư Vấn"}</span>
             </button>
 

@@ -8,7 +8,6 @@ import {
   ArrowRight,
   ShoppingCart,
   ShoppingBag,
-  MessageCircle,
   Phone,
   ChevronRight,
   LayoutDashboard,
@@ -287,7 +286,7 @@ export function HeroSection() {
               className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 p-1.5 shrink-0"
               aria-label={language === "en" ? "Live Chat" : "Trò chuyện trực tuyến"}
             >
-              <MessageCircle className="w-5 h-5" />
+              <Leaf className="w-5 h-5" />
             </button>
             <button
               onClick={() => scrollToSection("dat-hang")}

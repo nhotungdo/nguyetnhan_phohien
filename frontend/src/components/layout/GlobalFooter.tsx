@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  MessageCircle,
   Phone,
   ShoppingCart,
   ShoppingBag,
@@ -517,7 +516,7 @@ export function GlobalFooter() {
               aria-hidden
               className="absolute inset-0 rounded-full border-2 border-amber-500 animate-pulse-ring"
             />
-            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white shadow-lg border-2 border-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -935,7 +934,7 @@ export function GlobalFooter() {
               className="flex flex-col items-center justify-center py-1 px-2 text-primary hover:text-accent transition-colors shrink-0 cursor-pointer"
               aria-label={language === "en" ? "Customer advice" : "Tư vấn"}
             >
-              <MessageCircle className="w-4 h-4 text-accent mb-0.5" />
+              <Leaf className="w-4 h-4 text-accent mb-0.5" />
               <span className="text-xs font-bold">{language === "en" ? "Advisor" : "Tư Vấn"}</span>
             </button>
 

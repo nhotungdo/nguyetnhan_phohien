@@ -8,7 +8,7 @@ import {
   X,
   ShoppingCart,
   ShoppingBag,
-  MessageCircle,
+  Leaf,
   Phone,
   ChevronRight,
   LayoutDashboard,
@@ -190,7 +190,7 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
                 className="text-base font-semibold text-foreground/80 hover:text-accent transition-all duration-300 ease-in-out flex items-center gap-2 p-1.5 shrink-0 cursor-pointer"
                 aria-label={language === "en" ? "Live Chat" : "Trò chuyện trực tuyến"}
               >
-                <MessageCircle className="w-5 h-5" />
+                <Leaf className="w-5 h-5" />
               </button>
             )}
             <Link
