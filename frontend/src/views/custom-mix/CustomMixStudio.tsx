@@ -40,6 +40,7 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartButton } from "@/components/cart/CartButton";
 import { NutritionAiWidget } from "@/components/NutritionAiWidget";
 import { FastImage } from "@/components/FastImage";
+import { resolveCmsImage } from "@/lib/cmsImage";
 import { customMixApi } from "@/services/api.service";
 import type {
   CustomPackaging,
@@ -307,6 +308,9 @@ export default function CustomMixStudio() {
       return cmsImg ? { ...ing, imageUrl: cmsImg } : ing;
     });
   }, [ingredients, content]);
+
+  // Banner đầu trang: ưu tiên ảnh Quản trị viên đã cấu hình trong CMS
+  const bannerUrl = resolveCmsImage(content["CustomMix_BannerUrl"]) || "/images/banner_tu_chon_hat.png";
 
   // Khối lượng từng loại hạt { [ingredientId]: grams }
   const [weights, setWeights] = useState<Record<string, number>>({});
@@ -985,6 +989,32 @@ export default function CustomMixStudio() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
+        {/* BANNER TỰ CHỌN HẠT DINH DƯỠNG */}
+        <section
+          className="mb-6 sm:mb-8"
+          aria-label={language === "en" ? "Custom nutritious nut mix banner" : "Banner tự chọn hạt dinh dưỡng"}
+        >
+          <button
+            type="button"
+            onClick={() => scrollToStep("step1Section")}
+            className="group block w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FDE68A]/70 shadow-sm hover:shadow-lg transition-all cursor-pointer"
+          >
+            <FastImage
+              src={bannerUrl}
+              alt={
+                language === "en"
+                  ? "Create your own nutritious nut mix – free to blend to your taste"
+                  : "Tự chọn hạt dinh dưỡng – tự do phối trộn theo sở thích"
+              }
+              width={2752}
+              height={1536}
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+            />
+          </button>
+        </section>
+
         {/* THANH STEPPER 3 BƯỚC ĐIỀU HƯỚNG QUY TRÌNH THÔNG MINH */}
         <nav
           aria-label="Quy trình chế tác hạt"

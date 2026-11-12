@@ -197,6 +197,7 @@ const IMAGE_SLOTS: ImageSlot[] = [
     hint: "Ảnh banner minh họa nổi bật ở phần đầu trang /tu-chon-hat.",
     boxClass: "w-full aspect-video rounded-xl",
     group: "Banner & Minh Họa Trang Tự Chọn Hạt",
+    defaultPath: "/images/banner_tu_chon_hat.png",
   },
 ];
 
