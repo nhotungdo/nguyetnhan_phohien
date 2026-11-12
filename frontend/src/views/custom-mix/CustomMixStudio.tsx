@@ -63,12 +63,12 @@ const FALLBACK_PACKAGINGS: CustomPackaging[] = [
   },
   {
     id: "c0000001-0000-0000-0000-000000000300",
-    name: "Hộp Nhựa Mica Trong Suốt",
+    name: "Hộp Tròn Nắp Gỗ Cao Cấp",
     packagingType: "Box",
     capacityGrams: 300,
     fixedPrice: 153000,
     imageUrl: "/images/hopnhua.jpg",
-    description: "Hộp tròn mica cao cấp nắp nhôm xé, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
+    description: "Hộp tròn cao cấp nắp gỗ tự nhiên kín khí, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
     displayOrder: 2,
   },
   {
@@ -198,10 +198,10 @@ function getPackagingTranslation(pkg: CustomPackaging, language: "vi" | "en") {
       description: "Silver-lined airtight zip bag, retaining pristine crispness and aroma, convenient for everyday carry.",
     };
   }
-  if (pkg.capacityGrams === 300 || lower.includes("nhựa") || lower.includes("mica")) {
+  if (pkg.capacityGrams === 300 || lower.includes("gỗ") || lower.includes("nhựa") || lower.includes("mica")) {
     return {
-      name: "Crystal Clear Mica Jar",
-      description: "Premium round mica jar with peelable aluminum seal, optimal preservation, showcasing distinct layered nuts.",
+      name: "Premium Wooden Lid Jar",
+      description: "Premium round canister with airtight natural wooden lid, optimal preservation, showcasing distinct layered nuts.",
     };
   }
   if (pkg.capacityGrams === 900 || lower.includes("quà") || lower.includes("gift") || lower.includes("hộp")) {
@@ -1600,7 +1600,7 @@ export default function CustomMixStudio() {
                   <p className="leading-relaxed text-[11px]">
                     {language === "en"
                       ? "Allergen Notice: Packed in a dedicated facility handling natural tree nuts (Longan, Macadamia, Cashew, Almond, Pumpkin Seeds). Preserved naturally with vacuum or nitrogen-sealed tech."
-                      : "Cam kết ATVSTP: Chế tác vô trùng từ 100% hạt cây tuyển chọn (Long nhãn, Macca, Điều, Hạnh nhân, Bí xanh). Niêm phong màng nhôm khóa khí không dùng phụ gia bảo quản."}
+                      : "Cam kết ATVSTP: Chế tác vô trùng từ 100% hạt cây tuyển chọn (Long nhãn, Macca, Điều, Hạnh nhân, Bí xanh). Niêm phong nắp gỗ khóa khí không dùng phụ gia bảo quản."}
                   </p>
                 </div>
               </div>
@@ -1727,12 +1727,18 @@ export default function CustomMixStudio() {
               {previewTab === "jar" && (
                 <div className="space-y-4">
                   <div className="relative w-full max-w-[280px] mx-auto aspect-[3/4] bg-stone-950/50 rounded-[2rem] border-2 border-[#E9B949]/60 p-3 shadow-2xl flex flex-col justify-between overflow-hidden backdrop-blur-xs">
-                    {/* Nắp hũ nhôm xé ánh kim hoặc khóa miệng túi */}
-                    <div className="w-full h-7 rounded-xl bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 border border-amber-400 shadow-md flex items-center justify-center shrink-0">
-                      <span className="text-[10px] font-extrabold uppercase text-[#78350F] tracking-wider">
+                    {/* Nắp gỗ tự nhiên hoặc khóa miệng túi */}
+                    <div className={`w-full h-7 rounded-xl border shadow-md flex items-center justify-center shrink-0 ${
+                      activePackaging.packagingType === "ZipBag"
+                        ? "bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 border-amber-400"
+                        : "bg-gradient-to-r from-[#8B5A2B] via-[#A0522D] to-[#6E421F] border-[#CD853F]/80"
+                    }`}>
+                      <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
+                        activePackaging.packagingType === "ZipBag" ? "text-[#78350F]" : "text-amber-100"
+                      }`}>
                         {activePackaging.packagingType === "ZipBag"
                           ? (language === "en" ? "Airtight Seal" : "Khóa Kín Khí")
-                          : (language === "en" ? "Aseptic Aluminum Lid" : "Nắp Nhôm Xé Vô Trùng")}
+                          : (language === "en" ? "Airtight Wooden Lid" : "Nắp Gỗ Tự Nhiên Kín Khí")}
                       </span>
                     </div>
 

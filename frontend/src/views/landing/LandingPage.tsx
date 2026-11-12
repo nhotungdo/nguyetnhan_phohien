@@ -1728,8 +1728,10 @@ export default function LandingPage() {
                                     ? custom.packagingName
                                       .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
                                       .replace("Túi Zip", "Zip Bag")
-                                      .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
-                                      .replace("Hộp Mica", "Mica Jar")
+                                      .replace("Hộp Tròn Nắp Gỗ Cao Cấp", "Premium Wooden Lid Jar")
+                                      .replace("Hộp Nắp Gỗ", "Wooden Lid Jar")
+                                      .replace("Hộp Nhựa Mica Trong Suốt", "Wooden Lid Jar")
+                                      .replace("Hộp Mica", "Wooden Lid Jar")
                                       .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
                                       .replace("Lễ Hộp", "Luxury Gift Box")
                                     : custom.packagingName} ({custom.targetWeightGrams}g)
@@ -1865,8 +1867,10 @@ export default function LandingPage() {
                             size = size
                               .replace("Túi Zip Khóa Khí Tiện Lợi", "Airtight Zipper Bag")
                               .replace("Túi Zip", "Zip Bag")
-                              .replace("Hộp Nhựa Mica Trong Suốt", "Clear Mica Jar")
-                              .replace("Hộp Mica", "Mica Jar")
+                              .replace("Hộp Tròn Nắp Gỗ Cao Cấp", "Premium Wooden Lid Jar")
+                              .replace("Hộp Nắp Gỗ", "Wooden Lid Jar")
+                              .replace("Hộp Nhựa Mica Trong Suốt", "Wooden Lid Jar")
+                              .replace("Hộp Mica", "Wooden Lid Jar")
                               .replace("Lễ Hộp Quà Tặng Hoàng Gia", "Royal Gift Box")
                               .replace("Lễ Hộp", "Luxury Gift Box");
                           }

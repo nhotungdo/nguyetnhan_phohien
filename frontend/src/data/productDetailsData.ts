@@ -86,7 +86,7 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
       { labelVi: "Thành phần phối trộn", labelEn: "Ingredients", valueVi: "Long nhãn Phố Hiến, Hạt điều, Macca, Bí xanh, Hạnh nhân", valueEn: "Dried longan, Cashews, Macadamia, Pumpkin seeds, Almonds" },
       { labelVi: "Phương pháp chế biến", labelEn: "Processing", valueVi: "Long nhãn sấy đối lưu + Hạt sấy giòn nhiệt thấp không chiên dầu", valueEn: "Convection-dried longan + Slow-roasted oil-free nuts" },
       { labelVi: "Hàm lượng phụ gia", labelEn: "Additives", valueVi: "0% Đường hóa học - 0% Lưu huỳnh - 0% Chất bảo quản", valueEn: "0% Added Sugar - 0% Sulfur - 0% Preservatives" },
-      { labelVi: "Quy chuẩn bao bì", labelEn: "Packaging", valueVi: "Túi zip tráng màng nhôm khóa kín khí 2 mặt chống ẩm", valueEn: "Airtight double-foil zipper pouch" },
+      { labelVi: "Quy chuẩn bao bì", labelEn: "Packaging", valueVi: "Túi zip tráng bạc khóa kín khí 2 mặt chống ẩm", valueEn: "Airtight moisture-barrier zipper pouch" },
       { labelVi: "Hạn sử dụng", labelEn: "Shelf Life", valueVi: "12 tháng kể từ ngày sản xuất", valueEn: "12 months from production" },
       { labelVi: "Tiêu chuẩn kiểm nghiệm", labelEn: "Standards", valueVi: "OCOP 4 Sao, Chứng nhận ATVSTP quốc gia", valueEn: "OCOP 4-Star & National Food Hygiene Standard" },
     ],
@@ -148,9 +148,9 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
     taglineVi: "Từng tầng hạt dinh dưỡng xếp lớp sang trọng bên cùi nhãn Hương Chi tiến vua hổ phách.",
     taglineEn: "Elegantly layered nutrient-rich nuts embracing golden imperial Huong Chi longan.",
     overviewVi:
-      'Hộp "Ngọc Nhãn Tiến Vua" 300g tôn vinh tinh hoa ẩm thực cung đình. Sự kết hợp độc bản giữa cùi nhãn Hương Chi bãi bồi Phố Hiến sấy nhiệt đối lưu dẻo mềm cùng 4 loại hạt dinh dưỡng cao cấp (Hạt điều, Macca, Bí xanh, Hạnh nhân) tuyển chọn loại 1. Đựng trong hộp mica nắp nhôm xé cao cấp, nhìn rõ từng tầng hạt xếp lớp bắt mắt, sang trọng khi đặt trên bàn trà tiếp khách.',
+      'Hộp "Ngọc Nhãn Tiến Vua" 300g tôn vinh tinh hoa ẩm thực cung đình. Sự kết hợp độc bản giữa cùi nhãn Hương Chi bãi bồi Phố Hiến sấy nhiệt đối lưu dẻo mềm cùng 4 loại hạt dinh dưỡng cao cấp (Hạt điều, Macca, Bí xanh, Hạnh nhân) tuyển chọn loại 1. Đựng trong hộp tròn cao cấp nắp gỗ tự nhiên kín khí sang trọng, nhìn rõ từng tầng hạt xếp lớp bắt mắt, nâng tầm không gian bàn trà tiếp khách.',
     overviewEn:
-      'The "Royal Longan" 300g canister celebrates royal banquet refinement. An exclusive blend of thick-fleshed Pho Hien convection-dried longan and 4 premium whole nuts (Cashews, Macadamia, Pumpkin seeds, Almonds). Sealed in a transparent food-grade mica canister with an aluminum peel-off lid.',
+      'The "Royal Longan" 300g canister celebrates royal banquet refinement. An exclusive blend of thick-fleshed Pho Hien convection-dried longan and 4 premium whole nuts (Cashews, Macadamia, Pumpkin seeds, Almonds). Sealed in a premium canister with an airtight natural wooden lid.',
     ingredientsList: [
       { nameVi: "Long Nhãn Tiến Vua Hương Chi", nameEn: "Royal Tribute Huong Chi Longan", characteristicVi: "Cùi dày mọng, màu vàng cánh gián hổ phách, dẻo sần sật ngọt thanh", characteristicEn: "Thick-fleshed amber fruit, tenderly chewy with pure honeyed taste" },
       { nameVi: "Hạt Macca Tây Nguyên Hạng A", nameEn: "Grade-A Highland Macadamia", characteristicVi: "Hạt tròn đều, vị bùi béo tự nhiên, giàu chất chống oxy hóa", characteristicEn: "Uniform kernels, rich buttery taste, abundant in antioxidants" },
@@ -168,7 +168,7 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
       { labelVi: "Khối lượng tịnh", labelEn: "Net Weight", valueVi: "300g / hộp", valueEn: "300g / canister" },
       { labelVi: "Thành phần", labelEn: "Ingredients", valueVi: "Long nhãn Hương Chi Phố Hiến, Hạt điều, Macca, Hạnh nhân, Bí xanh", valueEn: "Huong Chi longan, Cashews, Macadamia, Almonds, Pumpkin seeds" },
       { labelVi: "Công nghệ chế biến", labelEn: "Processing", valueVi: "Nhãn sấy đối lưu 36h + Hạt sấy chín chậm nhiệt thấp giữ trọn dầu tốt", valueEn: "36h convection drying + Low-temp nut roasting preserving healthy oils" },
-      { labelVi: "Quy cách đóng gói", labelEn: "Packaging", valueVi: "Hộp tròn mica cao cấp, màng nhôm xé kín khí, nắp đậy tiện dụng", valueEn: "Premium transparent mica canister with peel-off foil seal and cap" },
+      { labelVi: "Quy cách đóng gói", labelEn: "Packaging", valueVi: "Hộp tròn cao cấp, nắp gỗ tự nhiên kín khí, tem niêm phong sang trọng", valueEn: "Premium canister with airtight natural wooden lid and seal" },
       { labelVi: "Hạn sử dụng", labelEn: "Shelf Life", valueVi: "12 tháng kể từ ngày sản xuất", valueEn: "12 months from production" },
       { labelVi: "Tiêu chuẩn an toàn", labelEn: "Food Safety", valueVi: "OCOP 4 Sao, 0% Lưu huỳnh, 0% Phẩm màu hay đường hóa học", valueEn: "OCOP 4-Star, 0% Sulfur fumes, 0% Artificial color or sugar" },
     ],
@@ -203,14 +203,14 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
       },
     ],
     storageTipsVi: [
-      "Đóng chặt nắp nhựa sau mỗi lần sử dụng.",
-      "Bảo quản nơi khô ráo, tránh nhiệt độ cao và ánh nắng trực tiếp.",
-      "Sau khi bóc lớp màng nhôm bảo vệ, nên để trong ngăn mát tủ lạnh (4-8°C) để giữ hạt luôn giòn rụm và nhãn luôn dẻo thơm.",
+      "Đóng chặt nắp gỗ sau mỗi lần sử dụng để giữ trọn độ giòn thơm và kín khí.",
+      "Bảo quản nơi khô ráo, thoáng mát, tránh nhiệt độ cao và ánh nắng trực tiếp.",
+      "Sau khi mở nắp gỗ, nên để trong ngăn mát tủ lạnh (4-8°C) để giữ hạt luôn giòn rụm và nhãn luôn dẻo thơm.",
     ],
     storageTipsEn: [
-      "Snap the cap tightly after every opening.",
+      "Seal the wooden lid tightly after each use to keep freshness.",
       "Store in a dry ambient space away from direct sunlight.",
-      "Refrigerate (4-8°C) once the aluminum seal is peeled to maintain crispiness and tender texture.",
+      "Refrigerate (4-8°C) once the wooden lid is opened to maintain crispiness and tender texture.",
     ],
   },
 

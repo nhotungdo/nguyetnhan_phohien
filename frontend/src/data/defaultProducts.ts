@@ -16,7 +16,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     name: "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)",
     price: 153000,
     size: "Hộp 300g",
-    description: "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp mica nắp nhôm xé cao cấp.",
+    description: "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.",
     isActive: true,
     displayOrder: 2,
     images: [{ id: "img-hop-nhua", imagePath: "/images/hopnhua.jpg", displayOrder: 1 }],

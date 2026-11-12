@@ -88,7 +88,7 @@ public static class DbSeeder
             var products = new List<Product>
             {
                 new() { Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)", Price = 69000, Size = "150g", Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.", DisplayOrder = 1 },
-                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp mica nắp nhôm xé cao cấp.", DisplayOrder = 2 },
+                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.", DisplayOrder = 2 },
                 new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)", Price = 756000, Size = "900g", Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.", DisplayOrder = 3 }
             };
             db.Products.AddRange(products);
@@ -116,7 +116,7 @@ public static class DbSeeder
                     p.Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)";
                     p.Size = "300g";
                     p.Price = 153000;
-                    p.Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp mica nắp nhôm xé cao cấp.";
+                    p.Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.";
                     p.DisplayOrder = 2;
                 }
                 else if (p.Name.Contains("Thương Cảng") || p.Name.Contains("Hoàng Gia") || p.Name.Contains("Set Quà") || p.DisplayOrder == 3)
@@ -150,12 +150,12 @@ public static class DbSeeder
                 new()
                 {
                     Id = new Guid("c0000001-0000-0000-0000-000000000300"),
-                    Name = "Hộp Nhựa Mica Trong Suốt",
+                    Name = "Hộp Tròn Nắp Gỗ Cao Cấp",
                     PackagingType = "Box",
                     CapacityGrams = 300,
                     FixedPrice = 153000,
                     ImageUrl = "/images/hopnhua.jpg",
-                    Description = "Hộp tròn mica cao cấp nắp nhôm xé, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
+                    Description = "Hộp tròn cao cấp nắp gỗ tự nhiên kín khí, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
                     DisplayOrder = 2
                 },
                 new()
@@ -171,6 +171,21 @@ public static class DbSeeder
                 }
             };
             db.CustomPackagings.AddRange(packagings);
+            await db.SaveChangesAsync();
+        }
+        else
+        {
+            var existingPackagings = await db.CustomPackagings.ToListAsync();
+            foreach (var pk in existingPackagings)
+            {
+                if (pk.PackagingType == "Box" || pk.CapacityGrams == 300)
+                {
+                    pk.Name = "Hộp Tròn Nắp Gỗ Cao Cấp";
+                    pk.Description = "Hộp tròn cao cấp nắp gỗ tự nhiên kín khí, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.";
+                    pk.FixedPrice = 153000;
+                }
+            }
+            await db.SaveChangesAsync();
         }
 
         // ===== SEED 5 LOẠI HẠT NGUYÊN LIỆU (KHÔNG ÓC CHÓ, KHÔNG TÁO ĐỎ, KHÔNG KỶ TỬ, KHÔNG HẠT SEN) =====
