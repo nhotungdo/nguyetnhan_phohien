@@ -41,7 +41,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
       {/* SVG Canvas Diễn Hoạt Tách Trà & Sóng Mật */}
       <svg
         viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -246,7 +246,7 @@ export function LotusLonganVisualizer({ isHovered = false, className = "" }: Vis
       {/* SVG Canvas Hạt Sen Lồng Múi Nhãn */}
       <svg
         viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -405,7 +405,7 @@ export function AmberWineVisualizer({ isHovered = false, className = "" }: Visua
       {/* SVG Canvas Bình Rượu Nếp Long Nhãn */}
       <svg
         viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
+        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
