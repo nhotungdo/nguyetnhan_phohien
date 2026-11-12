@@ -41,7 +41,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
       {/* SVG Canvas Diễn Hoạt Tách Trà & Sóng Mật */}
       <svg
         viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
+        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -105,6 +105,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
           </g>
         )}
 
+        <g transform="translate(0 -18)">
         {/* 2. Đĩa lót tách trà gốm sứ */}
         <ellipse cx="120" cy="128" rx="66" ry="14" fill="#D6C7B2" />
         <ellipse cx="120" cy="126" rx="62" ry="12" fill="#E8DFC8" className="stroke-[#B4A088]" strokeWidth="1.5" />
@@ -196,6 +197,7 @@ export function TeaInfusionVisualizer({ isHovered = false, className = "" }: Vis
           <circle cx="106" cy="67" r="1.4" fill="#D97706" />
           <path d="M133 65 C136 63, 139 67, 134 69 Z" fill="#F472B6" opacity="0.85" />
         </motion.g>
+        </g>
 
         {/* Gradients */}
         <defs>
@@ -246,10 +248,11 @@ export function LotusLonganVisualizer({ isHovered = false, className = "" }: Vis
       {/* SVG Canvas Hạt Sen Lồng Múi Nhãn */}
       <svg
         viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
+        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
+        <g transform="translate(0 -18)">
         {/* Lá dứa xanh tươi nền phía sau */}
         <g opacity="0.85">
           <path
@@ -355,6 +358,7 @@ export function LotusLonganVisualizer({ isHovered = false, className = "" }: Vis
             />
           )}
         </motion.g>
+        </g>
 
         {/* Gradients */}
         <defs>
@@ -404,11 +408,12 @@ export function AmberWineVisualizer({ isHovered = false, className = "" }: Visua
 
       {/* SVG Canvas Bình Rượu Nếp Long Nhãn */}
       <svg
-        viewBox="0 0 240 150"
-        className="w-full h-full max-w-[220px] max-h-[140px] -translate-y-1.5 drop-shadow-md z-10"
+        viewBox="0 -4 240 150"
+        className="w-full h-full max-w-[220px] max-h-[140px] drop-shadow-md z-10"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
+        <g transform="translate(0 -18)">
         {/* Đĩa đế kê bình */}
         <ellipse cx="120" cy="132" rx="48" ry="10" fill="#D3C3AD" />
         <ellipse cx="120" cy="130" rx="44" ry="8" fill="#BFAFA0" opacity="0.6" />
@@ -529,6 +534,7 @@ export function AmberWineVisualizer({ isHovered = false, className = "" }: Visua
           <rect x="139" y="52" width="12" height="15" rx="2" fill="#B91C1C" />
           <circle cx="145" cy="56" r="1.5" fill="#FDE047" />
         </motion.g>
+        </g>
 
         {/* Gradients */}
         <defs>
