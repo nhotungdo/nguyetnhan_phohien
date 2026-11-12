@@ -87,9 +87,9 @@ public static class DbSeeder
         {
             var products = new List<Product>
             {
-                new() { Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)", Price = 69000, Size = "150g", Description = "Túi zip khóa kín khí tiện lợi bảo quản hàng ngày, múi nhãn Hương Chi sấy nhiệt đối lưu dẻo thơm, phù hợp pha trà, ăn liền hoặc mang theo.", DisplayOrder = 1 },
-                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Nhãn lồng cùi dày Hương Chi thượng hạng tuyển chọn, sấy nhiệt nóng (sấy đối lưu), màu vàng cánh gián hổ phách sang trọng, dẻo ngọt thanh tao.", DisplayOrder = 2 },
-                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)", Price = 756000, Size = "900g", Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách trang trọng, tinh hoa phẩm vật tiến vua, là món quà sức khỏe thượng hạng trao gửi tri ân.", DisplayOrder = 3 }
+                new() { Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)", Price = 69000, Size = "150g", Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.", DisplayOrder = 1 },
+                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp mica nắp nhôm xé cao cấp.", DisplayOrder = 2 },
+                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)", Price = 756000, Size = "900g", Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.", DisplayOrder = 3 }
             };
             db.Products.AddRange(products);
             await db.SaveChangesAsync();
@@ -108,6 +108,7 @@ public static class DbSeeder
                     p.Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)";
                     p.Size = "150g";
                     p.Price = 69000;
+                    p.Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.";
                     p.DisplayOrder = 1;
                 }
                 else if (p.Name.Contains("Tiến Vua") || p.Name.Contains("Đặc Biệt") || (p.DisplayOrder == 2 && (p.Price == 350000 || p.Price == 320000 || p.Price == 153000)))
@@ -115,6 +116,7 @@ public static class DbSeeder
                     p.Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)";
                     p.Size = "300g";
                     p.Price = 153000;
+                    p.Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp mica nắp nhôm xé cao cấp.";
                     p.DisplayOrder = 2;
                 }
                 else if (p.Name.Contains("Thương Cảng") || p.Name.Contains("Hoàng Gia") || p.Name.Contains("Set Quà") || p.DisplayOrder == 3)
@@ -122,6 +124,7 @@ public static class DbSeeder
                     p.Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)";
                     p.Size = "900g";
                     p.Price = 756000;
+                    p.Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.";
                     p.DisplayOrder = 3;
                 }
             }

@@ -210,11 +210,11 @@ export function ProductDetailModal({
               <ul className="space-y-1.5 text-stone-700 text-[11.5px] leading-tight">
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "100% genuine Huong Chi longan" : "100% nhãn Hương Chi bãi bồi Phố Hiến"}</span>
+                  <span>{language === "en" ? "Convection dried longan + 4 nutritious nuts" : "Long nhãn sấy đối lưu + 4 loại hạt dinh dưỡng"}</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Convection dried, zero sulfur fumes" : "Sấy đối lưu nhiệt nóng, không lưu huỳnh"}</span>
+                  <span>{language === "en" ? "Macadamia, Cashews, Almonds, Pumpkin seeds" : "Hạt điều, Macca, Bí xanh, Hạnh nhân giòn bùi"}</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -321,43 +321,66 @@ export function ProductDetailModal({
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
                           <div className="flex justify-between mb-1 text-[11px]">
-                            <span className="text-stone-600">{language === "en" ? "Tender Chewiness" : "Độ dẻo sần sật"}</span>
-                            <span className="font-bold text-primary">{detailInfo.sensory.chewiness}/10</span>
+                            <span className="text-stone-600">{language === "en" ? "Nut Crispiness" : "Độ giòn bùi của hạt"}</span>
+                            <span className="font-bold text-primary">{detailInfo.sensory.nutCrispiness}/10</span>
                           </div>
                           <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.chewiness * 10}%` }} />
+                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.nutCrispiness * 10}%` }} />
                           </div>
                         </div>
 
                         <div>
                           <div className="flex justify-between mb-1 text-[11px]">
-                            <span className="text-stone-600">{language === "en" ? "Royal Sweetness" : "Vị ngọt thanh tao"}</span>
-                            <span className="font-bold text-primary">{detailInfo.sensory.sweetness}/10</span>
+                            <span className="text-stone-600">{language === "en" ? "Longan Chewiness" : "Độ dẻo mọng long nhãn"}</span>
+                            <span className="font-bold text-primary">{detailInfo.sensory.longanChewiness}/10</span>
                           </div>
                           <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.sweetness * 10}%` }} />
+                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.longanChewiness * 10}%` }} />
                           </div>
                         </div>
 
                         <div>
                           <div className="flex justify-between mb-1 text-[11px]">
-                            <span className="text-stone-600">{language === "en" ? "Floral Aroma" : "Hương hoa nhãn"}</span>
-                            <span className="font-bold text-primary">{detailInfo.sensory.aroma}/10</span>
+                            <span className="text-stone-600">{language === "en" ? "Natural Sweetness" : "Vị ngọt thanh tự nhiên"}</span>
+                            <span className="font-bold text-primary">{detailInfo.sensory.naturalSweetness}/10</span>
                           </div>
                           <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.aroma * 10}%` }} />
+                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.naturalSweetness * 10}%` }} />
                           </div>
                         </div>
 
                         <div>
                           <div className="flex justify-between mb-1 text-[11px]">
-                            <span className="text-stone-600">{language === "en" ? "Amber Glow" : "Sắc vàng hổ phách"}</span>
-                            <span className="font-bold text-primary">{detailInfo.sensory.amberColor}/10</span>
+                            <span className="text-stone-600">{language === "en" ? "Rich Nutty Aroma" : "Hương thơm ngậy hòa quyện"}</span>
+                            <span className="font-bold text-primary">{detailInfo.sensory.harmoniousAroma}/10</span>
                           </div>
                           <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.amberColor * 10}%` }} />
+                            <div className="h-full bg-accent rounded-full" style={{ width: `${detailInfo.sensory.harmoniousAroma * 10}%` }} />
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Danh sách 5 thành phần hạt & long nhãn phối trộn */}
+                    <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
+                        <span>{language === "en" ? "Composition of 5 Nutritious Ingredients" : "Bộ 5 Thành Phần Long Nhãn & Hạt Dinh Dưỡng Mix"}</span>
+                      </h4>
+                      <div className="space-y-1.5 text-xs">
+                        {detailInfo.ingredientsList.map((ing, i) => (
+                          <div key={i} className="flex items-start gap-2 bg-white/90 p-2 rounded-xl border border-amber-200/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-bold text-primary block leading-tight text-[11.5px]">
+                                {language === "en" ? ing.nameEn : ing.nameVi}
+                              </span>
+                              <span className="text-[11px] text-stone-600 block leading-tight mt-0.5">
+                                {language === "en" ? ing.characteristicEn : ing.characteristicVi}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

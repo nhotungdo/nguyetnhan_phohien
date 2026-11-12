@@ -32,34 +32,34 @@ interface ProductInteractiveShowcaseProps {
 function getProductHotspots(lang: "vi" | "en") {
   return [
     {
+      id: "nuts-blend",
+      x: 35,
+      y: 28,
+      title: lang === "en" ? "Nutrient-Dense 4-Nut Mix" : "Hạt dinh dưỡng mix 4 loại",
+      desc: lang === "en"
+        ? "Slow-roasted whole Macadamia, Cashews, Almonds and Pumpkin seeds for rich, wholesome crunch."
+        : "Hạt điều, macca, bí xanh, hạnh nhân sấy chín giòn bùi tự nhiên, dồi dào Omega và vitamin E.",
+      badge: lang === "en" ? "4 Nut Blend" : "Hạt Dinh Dưỡng",
+    },
+    {
+      id: "longan-flesh",
+      x: 65,
+      y: 55,
+      title: lang === "en" ? "Sweet Huong Chi Longan" : "Long nhãn Hương Chi dẻo mật",
+      desc: lang === "en"
+        ? "Convection-dried thick pulp preserving golden amber glow and delicate honey sweetness."
+        : "Cùi nhãn dày sấy đối lưu gió nóng tuần hoàn, màu vàng hổ phách, dẻo sần sật ngọt thanh.",
+      badge: lang === "en" ? "Convection Dried" : "Nhãn Tiến Vua",
+    },
+    {
       id: "preservation",
-      x: 68,
-      y: 24,
-      title: lang === "en" ? "12-Month Airtight Preservation" : "Bảo quản kín khí 12 tháng",
+      x: 50,
+      y: 78,
+      title: lang === "en" ? "12-Month Airtight Freshness" : "Bảo quản kín khí 12 tháng",
       desc: lang === "en"
-        ? "Aseptic sealed packaging preserves full chewiness and natural longan aroma."
-        : "Đóng gói tiêu chuẩn vô trùng, giữ trọn độ dẻo và hương thơm nhãn lồng nguyên bản.",
-      badge: lang === "en" ? "12-Month Shelf Life" : "Hạn dùng 12 Tháng",
-    },
-    {
-      id: "color",
-      x: 32,
-      y: 48,
-      title: lang === "en" ? "Amber Golden Hue" : "Sắc vàng cánh gián hổ phách",
-      desc: lang === "en"
-        ? "Natural color from warm convection drying, strictly free of artificial colorings or sulfur fumes."
-        : "Màu tự nhiên từ quy trình sấy nhiệt nóng đối lưu, tuyệt đối không dùng phẩm màu hay xông lưu huỳnh.",
-      badge: lang === "en" ? "100% Natural" : "Tự Nhiên 100%",
-    },
-    {
-      id: "texture",
-      x: 64,
-      y: 66,
-      title: lang === "en" ? "Thick Tender Flesh" : "Cùi dày mọng ráo mặt",
-      desc: lang === "en"
-        ? "Handpicked grade-1 Huong Chi longan from alluvial plains, tender texture and delicate royal sweetness."
-        : "Tuyển chọn từ nhãn Hương Chi loại 1 bãi bồi Phố Hiến, cắn dẻo sần sật, ngọt thanh tao.",
-      badge: lang === "en" ? "Grade 1 Huong Chi" : "Hương Chi Loại 1",
+        ? "Sealed packaging keeps nuts extra-crunchy and longan tenderly moist without preservatives."
+        : "Bao bì kín khí bảo vệ độ giòn tan của hạt và độ dẻo của nhãn, 0% chất bảo quản hay lưu huỳnh.",
+      badge: lang === "en" ? "12-Month Shelf Life" : "Chuẩn OCOP 4 Sao",
     },
   ];
 }

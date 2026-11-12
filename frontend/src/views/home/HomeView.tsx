@@ -219,7 +219,9 @@ export function HomeView() {
               {language === "en" ? "Signature Pho Hien Longan" : "Bộ Sưu Tập Sản Phẩm Tiêu Biểu"}
             </h2>
             <p className="text-stone-600 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
-              Những dòng sản phẩm được nghệ nhân sấy nhiệt đối lưu tỉ mỉ, giữ trọn vị ngọt thanh dịu và màu vàng hổ phách tự nhiên.
+              {language === "en"
+                ? "Exquisite blends of sweet convection-dried Pho Hien longan and 4 wholesome roasted nuts (Cashews, Macadamia, Pumpkin seeds, Almonds)."
+                : "Những dòng sản phẩm kết hợp tinh hoa giữa Long Nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên."}
             </p>
           </div>
 
