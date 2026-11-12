@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
+import { resolveProductPrimaryImage } from "@/lib/cmsImage";
 import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
@@ -660,10 +661,7 @@ export function PhoHienCulinaryView() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-12">
             {showcaseProducts.map((prod) => {
-              const imageSrc =
-                prod.images && prod.images.length > 0 && prod.images[0].imagePath
-                  ? prod.images[0].imagePath
-                  : "/images/hopnhua.jpg";
+              const imageSrc = resolveProductPrimaryImage(prod);
 
               return (
                 <div

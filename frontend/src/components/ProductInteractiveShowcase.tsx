@@ -16,8 +16,7 @@ import { FastImage } from "@/components/FastImage";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import type { ProductResponse } from "@/types/api.types";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
+import { resolveProductPrimaryImage } from "@/lib/cmsImage";
 
 interface ProductInteractiveShowcaseProps {
   products: ProductResponse[];
@@ -104,37 +103,8 @@ export function ProductInteractiveShowcase({
     return `${price.toLocaleString("vi-VN").replace(/,/g, ".")}đ`;
   };
 
-  // Xác định ảnh hiển thị: ưu tiên ảnh từ database (prod.images) theo displayOrder
-  const getProductImage = (prod?: ProductResponse) => {
-    if (prod?.images && prod.images.length > 0) {
-      const sorted = [...prod.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-      const p = sorted[0]?.imagePath;
-      if (p) {
-        if (p.startsWith("/images/") || p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
-          return p;
-        }
-        if (p.startsWith("/uploads/") || p.startsWith("uploads/")) {
-          return p.startsWith("/") ? p : `/${p}`;
-        }
-        const base = API_URL.replace(/\/+$/, "");
-        const path = p.startsWith("/") ? p : `/${p}`;
-        return `${base}${path}`;
-      }
-    }
-    if (prod?.imageUrl) {
-      const p = prod.imageUrl;
-      if (p.startsWith("/images/") || p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
-        return p;
-      }
-      if (p.startsWith("/uploads/") || p.startsWith("uploads/")) {
-        return p.startsWith("/") ? p : `/${p}`;
-      }
-      const base = API_URL.replace(/\/+$/, "");
-      const path = p.startsWith("/") ? p : `/${p}`;
-      return `${base}${path}`;
-    }
-    return "/images/combo3sp.jpg";
-  };
+  // Xác định ảnh hiển thị: chuẩn hóa đồng bộ với HomeView và ProductDetailModal
+  const getProductImage = (prod?: ProductResponse) => resolveProductPrimaryImage(prod);
 
   return (
     <section id="san-pham" className="py-10 sm:py-16 scroll-mt-20 sm:scroll-mt-24 relative overflow-hidden bg-white w-full max-w-full [contain:paint]">

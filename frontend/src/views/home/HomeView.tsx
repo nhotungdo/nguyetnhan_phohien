@@ -14,7 +14,7 @@ import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
-import { resolveCmsImage } from "@/lib/cmsImage";
+import { resolveCmsImage, resolveProductPrimaryImage } from "@/lib/cmsImage";
 import type { ProductResponse } from "@/types/api.types";
 
 export function HomeView() {
@@ -159,9 +159,7 @@ export function HomeView() {
               bannerUrl={
                 cmsContent.HeroBannerUrl
                   ? resolveCmsImage(cmsContent.HeroBannerUrl)
-                  : displayProducts[0]?.images && displayProducts[0].images.length > 0
-                    ? resolveCmsImage(displayProducts[0].images[0]?.imagePath)
-                    : "/images/combo3sp.jpg"
+                  : "/images/combo3sp.jpg"
               }
               onExploreClick={() => {
                 router.push("/san-pham");
@@ -227,11 +225,7 @@ export function HomeView() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {displayProducts.map((prod, index) => {
-              const sortedImages = prod.images && prod.images.length > 0
-                ? [...prod.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
-                : [];
-              const rawPath = sortedImages[0]?.imagePath || prod.imageUrl;
-              const imageSrc = resolveCmsImage(rawPath) || "/images/combo3sp.jpg";
+              const imageSrc = resolveProductPrimaryImage(prod);
 
               return (
                 <div
