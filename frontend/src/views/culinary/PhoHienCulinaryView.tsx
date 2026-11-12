@@ -27,6 +27,11 @@ import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useProducts } from "@/hooks/useProducts";
 import { useCartStore } from "@/stores/useCartStore";
 import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
+import {
+  TeaInfusionVisualizer,
+  LotusLonganVisualizer,
+  AmberWineVisualizer,
+} from "@/components/culinary/CulinaryPillarVisualizers";
 import type { ProductResponse } from "@/types/api.types";
 
 interface RecipeItem {
@@ -251,7 +256,16 @@ export function PhoHienCulinaryView() {
   const { addItem: addCartItem, closeCart } = useCartStore();
 
   const [activeRecipeId, setActiveRecipeId] = useState<string>("tra-cuc");
+  const [hoveredPillar, setHoveredPillar] = useState<number | null>(null);
   const activeRecipe = CULINARY_RECIPES.find((r) => r.id === activeRecipeId) || CULINARY_RECIPES[0];
+
+  const handleJumpToRecipe = (recipeId: string) => {
+    setActiveRecipeId(recipeId);
+    const target = document.getElementById("bo-tu-ngu-thien");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   const showcaseProducts: ProductResponse[] = (
     apiProducts && apiProducts.length > 0 ? apiProducts : DEFAULT_FALLBACK_PRODUCTS
@@ -259,31 +273,52 @@ export function PhoHienCulinaryView() {
 
   const culinaryPillars = [
     {
-      icon: "🍵",
+      id: "tra-cuc",
+      recipeId: "tra-cuc",
+      Visualizer: TeaInfusionVisualizer,
       badge: language === "en" ? "Tea & Contemplation" : "Thưởng Trà Đàm Đạo",
       title: language === "en" ? "Refined Tea Rituals" : "Thưởng Trà Đối Ẩm",
+      tagline: language === "en" ? "Infuse at 85°C – 90°C • Lotus Scent" : "Hãm 85°C – 90°C • Đượm Hương Sen",
       desc:
         language === "en"
           ? "Replacing artificial sugar with naturally sweet convection-dried longan, harmonizing with chrysanthemum and lotus tea for deep inner tranquility."
           : "Đưa long nhãn vào tách trà sen, cúc chi thay cho đường nhân tạo. Vị ngọt mật thanh tao xoa dịu tâm trí, an thần và dưỡng nhan khi đối ẩm tri âm.",
+      sensoryChips:
+        language === "en"
+          ? ["Water 85°C – 90°C", "Zero Artificial Sugar", "Deep Sleep"]
+          : ["Nước hãm 85°C – 90°C", "0% Đường tinh luyện", "An thần dưỡng nhan"],
     },
     {
-      icon: "🪷",
+      id: "che-sen",
+      recipeId: "che-sen",
+      Visualizer: LotusLonganVisualizer,
       badge: language === "en" ? "Royal Dessert" : "Món Tráng Miệng Hoàng Gia",
       title: language === "en" ? "The Royal Sweet Delicacy" : "Chè Sen Tiến Vua",
+      tagline: language === "en" ? "Golden 2-Min Rule • Crisp Pulp" : "Quy Tắc 2 Phút Vàng • Giòn Sần Sật",
       desc:
         language === "en"
           ? "Lotus seeds tucked into golden longan pockets, simmered with rock sugar and pandan for a crisp, light, and digestive wellness dessert."
           : "Từng hạt sen bở bùi lồng trong múi nhãn vàng óng, nấu cùng đường phèn lá dứa. Món tráng miệng thanh mát giải nhiệt, giữ trọn độ giòn sần sật.",
+      sensoryChips:
+        language === "en"
+          ? ["Golden 2-Min Rule", "Lotus In Longan", "Crisp Texture"]
+          : ["Quy tắc 2 phút vàng", "Sen lồng cùi nhãn", "Cùi giòn sần sật"],
     },
     {
-      icon: "🏺",
+      id: "ruou-nhan",
+      recipeId: "ruou-nhan",
+      Visualizer: AmberWineVisualizer,
       badge: language === "en" ? "Virtuous Tribute" : "Tặng Phẩm Nghĩa Tình",
       title: language === "en" ? "Tribute to Parents & Friends" : "Bình Rượu Nếp Thơm Thảo",
+      tagline: language === "en" ? "60–90 Days Aged • Warming Nectar" : "Ủ Men 60–90 Ngày • Ấm Tỳ Vị",
       desc:
         language === "en"
           ? "Longan infused with traditional sticky rice wine to strengthen bones, warm the stomach, and serve as an esteemed gift for elders."
           : "Cốt rượu nếp cái hoa vàng ngâm cùng cùi nhãn Hương Chi bồi bổ khí huyết, ấm tỳ vị. Món quà sức khỏe trân quý gửi trao đấng sinh thành.",
+      sensoryChips:
+        language === "en"
+          ? ["Aged 60–90 Days", "Sticky Rice Wine", "Vitality Tonic"]
+          : ["Ủ men 60–90 ngày", "Nếp cái hoa vàng", "Bồi bổ khí huyết"],
     },
   ];
 
@@ -321,11 +356,13 @@ export function PhoHienCulinaryView() {
     <div className="bg-[#FAF8F5] text-stone-900 min-h-screen">
       {/* KHỐI 1: TRIẾT LÝ ẨM THỰC "ĂN HƯƠNG ĂN HOA" */}
       <section className="py-12 sm:py-16 container mx-auto px-4 md:px-6 max-w-6xl">
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <span className="text-accent text-xs sm:text-sm font-bold uppercase tracking-wider block mb-2">
-            {language === "en" ? "Living Gastronomy" : "Nếp Sống Tao Nhã"}
-          </span>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+          <div className="mb-3 sm:mb-3.5">
+            <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider text-accent bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-300/60 shadow-2xs">
+              {language === "en" ? "Living Gastronomy" : "Nếp Sống Tao Nhã"}
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance] mb-3">
             {language === "en" ? "“Savoring Fragrance, Savoring Flowers”" : "Triết Lý Ẩm Thực “Ăn Hương, Ăn Hoa”"}
           </h1>
           <p className="mt-3 text-sm sm:text-base text-stone-600 leading-relaxed [text-wrap:pretty]">
@@ -336,37 +373,71 @@ export function PhoHienCulinaryView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {culinaryPillars.map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.6, delay: idx * 0.15, ease: EASE_OUT_EXPO }}
-              className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DFC8] shadow-sm hover:shadow-md transition-all flex flex-col justify-between group hover:-translate-y-1"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">
-                    {item.icon}
-                  </span>
-                  <span className="text-[11px] font-bold uppercase px-3 py-1 rounded-full bg-amber-50 text-accent border border-amber-200">
-                    {item.badge}
-                  </span>
+          {culinaryPillars.map((item, idx) => {
+            const VisualizerComponent = item.Visualizer;
+            return (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.6, delay: idx * 0.15, ease: EASE_OUT_EXPO }}
+                onMouseEnter={() => setHoveredPillar(idx)}
+                onMouseLeave={() => setHoveredPillar(null)}
+                className="bg-white rounded-3xl border border-[#E8DFC8] shadow-sm hover:shadow-xl hover:border-amber-400/60 transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1.5"
+              >
+                {/* Khung Animation Diễn Hoạt Trực Quan */}
+                <div className="p-3 sm:p-3.5 pb-0">
+                  <VisualizerComponent isHovered={hoveredPillar === idx} />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-primary mb-2.5">
-                  {item.title}
-                </h3>
-                <p className="text-stone-600 text-xs sm:text-sm leading-relaxed [text-wrap:pretty]">
-                  {item.desc}
-                </p>
-              </div>
 
-              <div className="mt-6 pt-4 border-t border-stone-100 flex items-center text-xs font-semibold text-accent gap-1">
-                <span>{language === "en" ? "Signature Pho Hien tradition" : "Nét đẹp truyền thống Phố Hiến"}</span>
-              </div>
-            </motion.div>
-          ))}
+                {/* Phần Nội Dung Triết Lý & Điểm Nhấn Cảm Quan */}
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wide px-3 py-1 rounded-full bg-amber-50 text-accent border border-amber-200/80 shadow-2xs">
+                        {item.badge}
+                      </span>
+                      <span className="text-xs text-stone-400 font-semibold">0{idx + 1}</span>
+                    </div>
+
+                    <h3 className="text-lg sm:text-xl font-extrabold text-primary mb-1.5 group-hover:text-accent transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs font-semibold text-amber-800/90 mb-2.5">
+                      {item.tagline}
+                    </p>
+                    <p className="text-stone-600 text-xs sm:text-sm leading-relaxed [text-wrap:pretty]">
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  {/* Micro-tags đặc sắc cảm quan & Nút xem công thức */}
+                  <div className="space-y-3 pt-3 border-t border-stone-100">
+                    <div className="flex flex-wrap gap-1.5">
+                      {item.sensoryChips.map((chip, cIdx) => (
+                        <span
+                          key={cIdx}
+                          className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-[#FAF6EE] text-[#78350F] border border-[#E8DFC8]"
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleJumpToRecipe(item.recipeId)}
+                      className="w-full mt-2 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100/70 hover:from-primary hover:to-primary/90 text-accent hover:text-white border border-amber-200/80 hover:border-primary font-bold text-xs flex items-center justify-between transition-all duration-300 group/btn cursor-pointer shadow-2xs"
+                    >
+                      <span>{language === "en" ? "Explore Imperial Recipe" : "Xem công thức chế biến"}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
