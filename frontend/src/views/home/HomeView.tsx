@@ -209,11 +209,13 @@ export function HomeView() {
       {/* 3. Bộ Sưu Tập Tinh Hoa (Top 3 Bestseller Showcase Preview) */}
       <section className="py-14 sm:py-20 bg-white">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16 space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-accent bg-amber-100/80 px-3.5 py-1.5 rounded-full border border-amber-300/50">
-              {language === "en" ? "Selected Royal Tribute" : "Tinh Hoa Phẩm Vật Tiến Vua"}
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
+          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+            <div className="mb-3.5 sm:mb-4">
+              <span className="inline-flex items-center justify-center text-xs font-bold uppercase tracking-wider text-accent bg-amber-100/90 px-4 py-1.5 rounded-full border border-amber-300/60 shadow-2xs">
+                {language === "en" ? "Selected Royal Tribute" : "Tinh Hoa Phẩm Vật Tiến Vua"}
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance] mb-3 sm:mb-4">
               {language === "en" ? "Signature Pho Hien Longan" : "Bộ Sưu Tập Sản Phẩm Tiêu Biểu"}
             </h2>
             <p className="text-stone-600 text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
