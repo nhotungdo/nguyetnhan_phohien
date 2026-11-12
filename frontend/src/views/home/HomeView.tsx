@@ -227,10 +227,11 @@ export function HomeView() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {displayProducts.map((prod, index) => {
-              const imageSrc =
-                prod.images && prod.images.length > 0
-                  ? resolveCmsImage(prod.images[0].imagePath)
-                  : "/images/combo3sp.jpg";
+              const sortedImages = prod.images && prod.images.length > 0
+                ? [...prod.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+                : [];
+              const rawPath = sortedImages[0]?.imagePath || prod.imageUrl;
+              const imageSrc = resolveCmsImage(rawPath) || "/images/combo3sp.jpg";
 
               return (
                 <div

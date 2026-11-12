@@ -17,7 +17,8 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
-import { FastImage, resolveImageUrl } from "@/components/FastImage";
+import { FastImage } from "@/components/FastImage";
+import { resolveCmsImage } from "@/lib/cmsImage";
 import type { ProductResponse } from "@/types/api.types";
 import { findProductDetail, type ProductDetailInfo } from "@/data/productDetailsData";
 
@@ -51,16 +52,22 @@ export function ProductDetailModal({
   // Lấy dữ liệu chi tiết chuyên sâu của sản phẩm
   const detailInfo: ProductDetailInfo = findProductDetail(product);
 
-  // Đảm bảo ảnh sản phẩm luôn ưu tiên ảnh DB/API, bổ sung thêm các ảnh fallback góc chụp
-  const apiImages = product.images && product.images.length > 0
-    ? [...product.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((img) => img.imagePath)
+  // Lấy ảnh trực tiếp từ database (product.images)
+  const dbImages = product.images && product.images.length > 0
+    ? [...product.images]
+        .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+        .map((img) => resolveCmsImage(img.imagePath))
+        .filter(Boolean)
     : [];
 
-  const combinedImages = [
-    ...(apiImages.length > 0 ? apiImages : [detailInfo.image]),
-    ...detailInfo.fallbackImages.filter((p) => !apiImages.includes(p)),
-  ];
-  const images = Array.from(new Set(combinedImages));
+  // Ưu tiên tuyệt đối danh sách ảnh từ DB. Chỉ khi DB hoàn toàn chưa có ảnh mới dùng imageUrl hoặc fallback của chính sản phẩm đó.
+  const images = dbImages.length > 0
+    ? dbImages
+    : product.imageUrl
+      ? [resolveCmsImage(product.imageUrl)]
+      : detailInfo.fallbackImages && detailInfo.fallbackImages.length > 0
+        ? detailInfo.fallbackImages.map((p) => resolveCmsImage(p))
+        : ["/images/combo3sp.jpg"];
 
   const imageCount = images.length;
   const prev = () => setCurrentIdx((i) => (i - 1 + imageCount) % imageCount);
@@ -142,8 +149,8 @@ export function ProductDetailModal({
           <div className="md:col-span-5 p-4 sm:p-5 flex flex-col bg-[#FCFBF8]">
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-white border border-[#E8DFC8] shadow-inner flex items-center justify-center shrink-0">
               <FastImage
-                src={resolveImageUrl(images[currentIdx])}
-                fallbackSrc="/images/hopnhua.jpg"
+                src={images[currentIdx] || "/images/combo3sp.jpg"}
+                fallbackSrc={images[0] || "/images/combo3sp.jpg"}
                 alt={`${product.name} - ảnh ${currentIdx + 1}`}
                 fill
                 priority
@@ -189,8 +196,8 @@ export function ProductDetailModal({
                     }`}
                   >
                     <FastImage
-                      src={resolveImageUrl(img)}
-                      fallbackSrc="/images/hopnhua.jpg"
+                      src={img}
+                      fallbackSrc={images[0] || "/images/combo3sp.jpg"}
                       alt=""
                       width={56}
                       height={56}

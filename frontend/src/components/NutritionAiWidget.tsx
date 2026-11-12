@@ -103,15 +103,15 @@ function getQuickPrompts(lang: "vi" | "en") {
 function getProductPackagingFallback(name?: string): string {
   const n = (name || "").toLowerCase();
   if (n.includes("tiến vua") || n.includes("ngự thiện") || n.includes("hộp")) {
-    return "/images/hopnhua.jpg";
+    return "/images/hopnhua/hopnhua.jpg";
   }
   if (n.includes("tứ dã") || n.includes("trân châu") || n.includes("túi") || n.includes("gói")) {
-    return "/images/tuizip.jpg";
+    return "/images/tuizip/tuizip.jpg";
   }
   if (n.includes("vọng nguyệt") || n.includes("thương cảng") || n.includes("set") || n.includes("lễ hộp")) {
-    return "/images/setqua.jpg";
+    return "/images/hopdo/hopdo.jpg";
   }
-  return "/images/hopnhua.jpg";
+  return "/images/combo3sp.jpg";
 }
 
 // Ưu tiên đường dẫn ảnh thật của sản phẩm từ DB/admin, chỉ fallback ảnh bao bì khi chưa có
@@ -223,7 +223,7 @@ export function NutritionAiWidget({
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-      } catch {}
+      } catch { }
     }
     return [getInitialWelcomeMessage()];
   });
@@ -234,7 +234,7 @@ export function NutritionAiWidget({
     const timer = setTimeout(() => {
       try {
         sessionStorage.setItem(AI_HISTORY_STORAGE_KEY, JSON.stringify(messages));
-      } catch {}
+      } catch { }
     }, 400);
     return () => clearTimeout(timer);
   }, [messages]);
@@ -243,7 +243,7 @@ export function NutritionAiWidget({
     if (typeof window !== "undefined") {
       try {
         sessionStorage.removeItem(AI_HISTORY_STORAGE_KEY);
-      } catch {}
+      } catch { }
     }
     setMessages([getInitialWelcomeMessage()]);
     setErrorMsg(null);
@@ -331,14 +331,14 @@ export function NutritionAiWidget({
     const hasAnyProfile = !!goalDescription || activeGoal === "pregnancy" || activeNutAllergic;
     const healthProfile = hasAnyProfile
       ? {
-          goal: goalDescription,
-          healthCondition: activeGoal === "pregnancy" 
-            ? (language === "en" ? "Pregnant / breastfeeding woman" : "Phụ nữ mang thai / đang cho con bú") 
-            : undefined,
-          allergens: activeNutAllergic 
-            ? (language === "en" ? ["Tree nuts", "Cashews", "Almonds", "Macadamia"] : ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Macca"]) 
-            : undefined
-        }
+        goal: goalDescription,
+        healthCondition: activeGoal === "pregnancy"
+          ? (language === "en" ? "Pregnant / breastfeeding woman" : "Phụ nữ mang thai / đang cho con bú")
+          : undefined,
+        allergens: activeNutAllergic
+          ? (language === "en" ? ["Tree nuts", "Cashews", "Almonds", "Macadamia"] : ["Hạt vỏ cứng (Tree nuts)", "Hạt điều", "Hạnh nhân", "Macca"])
+          : undefined
+      }
       : undefined;
 
     // Khởi tạo AbortController mới
@@ -369,11 +369,11 @@ export function NutritionAiWidget({
               prev.map((msg) =>
                 msg.id === aiMessageId
                   ? {
-                      ...msg,
-                      suggestedProducts: meta.suggestedProducts,
-                      portionTip: meta.portionTip,
-                      allergenNotice: meta.allergenNotice
-                    }
+                    ...msg,
+                    suggestedProducts: meta.suggestedProducts,
+                    portionTip: meta.portionTip,
+                    allergenNotice: meta.allergenNotice
+                  }
                   : msg
               )
             );
@@ -404,12 +404,12 @@ export function NutritionAiWidget({
         prev.map((m) =>
           m.id === aiMessageId
             ? {
-                ...m,
-                content: m.content
-                  ? `${m.content}\n\n*(Lưu ý: Phản hồi bị ngắt quãng do kết nối mạng. Quý khách có thể thử lại hoặc chọn các câu hỏi gợi ý bên dưới để được tư vấn tiếp nhé.)*`
-                  : (language === "en" ? "There was a temporary interruption connecting to the AI Nutrition Advisor. Please try again shortly!" : "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!"),
-                isStreaming: false
-              }
+              ...m,
+              content: m.content
+                ? `${m.content}\n\n*(Lưu ý: Phản hồi bị ngắt quãng do kết nối mạng. Quý khách có thể thử lại hoặc chọn các câu hỏi gợi ý bên dưới để được tư vấn tiếp nhé.)*`
+                : (language === "en" ? "There was a temporary interruption connecting to the AI Nutrition Advisor. Please try again shortly!" : "Đã có sự gián đoạn tạm thời khi kết nối với Chuyên gia AI Dinh Dưỡng. Quý khách vui lòng thử lại sau ít giây nhé!"),
+              isStreaming: false
+            }
             : m
         )
       );
@@ -513,11 +513,10 @@ export function NutritionAiWidget({
           <button
             onClick={() => handleGoalSelect("diet")}
             disabled={isLoading}
-            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-              selectedGoal === "diet"
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${selectedGoal === "diet"
                 ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-            }`}
+              }`}
             title={language === "en" ? "Low calorie, healthy diet" : "Tối ưu calo, thực đơn lành mạnh"}
           >
             {language === "en" ? "🌿 Diet & Shape" : "🌿 Ăn kiêng"}
@@ -526,11 +525,10 @@ export function NutritionAiWidget({
           <button
             onClick={() => handleGoalSelect("insomnia")}
             disabled={isLoading}
-            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-              selectedGoal === "insomnia"
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${selectedGoal === "insomnia"
                 ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-            }`}
+              }`}
             title={language === "en" ? "Restorative calm & sleep" : "Dưỡng tâm an thần, giấc ngủ ngon"}
           >
             {language === "en" ? "🌙 Deep Sleep" : "🌙 Trị mất ngủ"}
@@ -539,11 +537,10 @@ export function NutritionAiWidget({
           <button
             onClick={() => handleGoalSelect("pregnancy")}
             disabled={isLoading}
-            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${
-              selectedGoal === "pregnancy"
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-medium disabled:opacity-50 active:scale-95 touch-manipulation ${selectedGoal === "pregnancy"
                 ? "bg-pink-600 text-white border-pink-700 shadow-xs"
                 : "bg-white text-stone-700 border-amber-200 hover:bg-amber-50"
-            }`}
+              }`}
             title={language === "en" ? "Essential minerals for mothers" : "Bổ huyết, vi khoáng cho mẹ"}
           >
             {language === "en" ? "🤰 Prenatal & Nursing" : "🤰 Mẹ bầu"}
@@ -552,11 +549,10 @@ export function NutritionAiWidget({
           <button
             onClick={handleNutAllergyToggle}
             disabled={isLoading}
-            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 active:scale-95 touch-manipulation ${
-              isNutAllergic
+            className={`min-h-[30px] sm:min-h-[28px] text-[11px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full border transition-all shrink-0 font-bold flex items-center gap-1 disabled:opacity-50 active:scale-95 touch-manipulation ${isNutAllergic
                 ? "bg-rose-600 text-white border-rose-700 shadow-xs animate-pulse"
                 : "bg-white text-rose-700 border-rose-200 hover:bg-rose-50"
-            }`}
+              }`}
             title={language === "en" ? "Toggle nut-allergen safety filter" : "Bật/Tắt chế độ cảnh báo và loại trừ sản phẩm chứa hạt"}
           >
             <span>⚠️</span>
@@ -628,11 +624,10 @@ export function NutritionAiWidget({
             className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
           >
             <div
-              className={`p-3.5 sm:p-4 rounded-2xl leading-relaxed shadow-xs ${
-                msg.role === "user"
+              className={`p-3.5 sm:p-4 rounded-2xl leading-relaxed shadow-xs ${msg.role === "user"
                   ? "max-w-[88%] sm:max-w-[82%] bg-gradient-to-br from-[#B45309] to-[#92400E] text-white rounded-br-xs text-[13.5px] sm:text-sm"
                   : "max-w-[92%] sm:max-w-[85%] bg-white border border-amber-100/90 text-stone-900 rounded-tl-xs text-[13.5px] sm:text-sm"
-              }`}
+                }`}
             >
               {/* Role badge cho Chuyên Viên AI */}
               {msg.role === "assistant" && (
@@ -766,9 +761,8 @@ export function NutritionAiWidget({
       )}
 
       {/* 6. Ô nhập câu hỏi */}
-      <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${
-        isTypingMode ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-      }`}>
+      <div className={`p-2.5 sm:p-3.5 bg-white border-t border-amber-200/70 shrink-0 transition-all ${isTypingMode ? "pb-2 pt-2" : "pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        }`}>
         <div className="relative flex items-center">
           <input
             type="text"

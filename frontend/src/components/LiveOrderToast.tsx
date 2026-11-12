@@ -12,7 +12,7 @@ import type { RecentOrderActivity } from "@/types/api.types";
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050").replace(/\/+$/, "");
 
 const resolveImageUrl = (path?: string) => {
-  if (!path) return "/images/setqua.jpg";
+  if (!path) return "/images/combo3sp.jpg";
   if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
     return path;
   }
@@ -94,10 +94,10 @@ export function LiveOrderToast({ isChatOpen = false }: LiveOrderToastProps) {
     let timer: ReturnType<typeof setTimeout>;
 
     if (isVisible) {
-      // Đang hiển thị: giữ 6.5 giây rồi ẩn
+      // Đang hiển thị: giữ 10.5 giây rồi ẩn
       timer = setTimeout(() => {
         setIsVisible(false);
-      }, 6500);
+      }, 10500);
     } else {
       // Đang ẩn: lần đầu chờ 4 giây, các lần sau chờ 14 giây rồi đổi sang đơn kế tiếp và hiện
       const delay = isFirstMountRef.current ? 4000 : 14000;

@@ -82,25 +82,62 @@ public static class DbSeeder
         // khởi động và ghi đè Tên/Mô tả mà admin đã sửa trong Dashboard.
         // Tên/mô tả mặc định nằm ở nhánh seed bên dưới — chỉ chạy khi bảng trống.
 
-        // ===== SEED SẢN PHẨM MẶC ĐỊNH =====
+        // ===== SEED SẢN PHẨM MẶC ĐỊNH VÀ BỘ ẢNH DATABASE =====
         if (!await db.Products.AnyAsync())
         {
-            var products = new List<Product>
+            var p1 = new Product
             {
-                new() { Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)", Price = 69000, Size = "150g", Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.", DisplayOrder = 1 },
-                new() { Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)", Price = 153000, Size = "300g", Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.", DisplayOrder = 2 },
-                new() { Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)", Price = 756000, Size = "900g", Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.", DisplayOrder = 3 }
+                Id = new Guid("b0000001-0000-0000-0000-000000000150"),
+                Name = "Gói \"Trân Châu Tứ Dã\" (Túi Zip)",
+                Price = 69000,
+                Size = "150g",
+                Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.",
+                ImageUrl = "/images/tuizip/tuizip.jpg",
+                DisplayOrder = 1,
+                Images = new List<ProductImage>
+                {
+                    new() { ImagePath = "/images/tuizip/tuizip.jpg", DisplayOrder = 0 },
+                    new() { ImagePath = "/images/tuizip/tuizip2.png", DisplayOrder = 1 },
+                    new() { ImagePath = "/images/tuizip/tuizip3.png", DisplayOrder = 2 }
+                }
             };
-            db.Products.AddRange(products);
+            var p2 = new Product
+            {
+                Id = new Guid("b0000001-0000-0000-0000-000000000300"),
+                Name = "Hộp \"Ngọc Nhãn Tiến Vua\" (Bản Ngự Thiện)",
+                Price = 153000,
+                Size = "300g",
+                Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.",
+                ImageUrl = "/images/hopnhua/hopnhua.jpg",
+                DisplayOrder = 2,
+                Images = new List<ProductImage>
+                {
+                    new() { ImagePath = "/images/hopnhua/hopnhua.jpg", DisplayOrder = 0 },
+                    new() { ImagePath = "/images/hopnhua/hopnhua2.png", DisplayOrder = 1 }
+                }
+            };
+            var p3 = new Product
+            {
+                Id = new Guid("b0000001-0000-0000-0000-000000000900"),
+                Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)",
+                Price = 756000,
+                Size = "900g",
+                Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.",
+                ImageUrl = "/images/hopdo/hopdo.jpg",
+                DisplayOrder = 3,
+                Images = new List<ProductImage>
+                {
+                    new() { ImagePath = "/images/hopdo/hopdo.jpg", DisplayOrder = 0 },
+                    new() { ImagePath = "/images/hopdo/anhad.png", DisplayOrder = 1 }
+                }
+            };
+            db.Products.AddRange(p1, p2, p3);
             await db.SaveChangesAsync();
         }
         else
         {
-            // Cập nhật quy cách và giá chuẩn theo phân cấp mới nhất:
-            // 1. Gói Túi Zip 150g (Trân Châu Tứ Dã) giá 69,000đ
-            // 2. Hộp Đặc Biệt 300g (Ngọc Nhãn Tiến Vua) giá 153,000đ
-            // 3. Lễ Hộp Hoàng Gia 900g (Vọng Nguyệt Thương Cảng) giá 756,000đ
-            var existingProds = await db.Products.ToListAsync();
+            // Cập nhật quy cách, giá chuẩn và nạp ảnh từ database
+            var existingProds = await db.Products.Include(p => p.Images).ToListAsync();
             foreach (var p in existingProds)
             {
                 if (p.Name.Contains("Tứ Dã") || p.Name.Contains("Túi Zip") || (p.DisplayOrder == 1 && (p.Price == 320000 || p.Price == 350000 || p.Price == 69000)))
@@ -109,7 +146,19 @@ public static class DbSeeder
                     p.Size = "150g";
                     p.Price = 69000;
                     p.Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.";
+                    p.ImageUrl = "/images/tuizip/tuizip.jpg";
                     p.DisplayOrder = 1;
+
+                    if (!p.Images.Any() || p.Images.All(img => img.ImagePath.EndsWith("tuizip.jpg") && !img.ImagePath.Contains("tuizip/")))
+                    {
+                        db.ProductImages.RemoveRange(p.Images);
+                        p.Images = new List<ProductImage>
+                        {
+                            new() { ProductId = p.Id, ImagePath = "/images/tuizip/tuizip.jpg", DisplayOrder = 0 },
+                            new() { ProductId = p.Id, ImagePath = "/images/tuizip/tuizip2.png", DisplayOrder = 1 },
+                            new() { ProductId = p.Id, ImagePath = "/images/tuizip/tuizip3.png", DisplayOrder = 2 }
+                        };
+                    }
                 }
                 else if (p.Name.Contains("Tiến Vua") || p.Name.Contains("Đặc Biệt") || (p.DisplayOrder == 2 && (p.Price == 350000 || p.Price == 320000 || p.Price == 153000)))
                 {
@@ -117,7 +166,18 @@ public static class DbSeeder
                     p.Size = "300g";
                     p.Price = 153000;
                     p.Description = "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.";
+                    p.ImageUrl = "/images/hopnhua/hopnhua.jpg";
                     p.DisplayOrder = 2;
+
+                    if (!p.Images.Any() || p.Images.All(img => img.ImagePath.EndsWith("hopnhua.jpg") && !img.ImagePath.Contains("hopnhua/")))
+                    {
+                        db.ProductImages.RemoveRange(p.Images);
+                        p.Images = new List<ProductImage>
+                        {
+                            new() { ProductId = p.Id, ImagePath = "/images/hopnhua/hopnhua.jpg", DisplayOrder = 0 },
+                            new() { ProductId = p.Id, ImagePath = "/images/hopnhua/hopnhua2.png", DisplayOrder = 1 }
+                        };
+                    }
                 }
                 else if (p.Name.Contains("Thương Cảng") || p.Name.Contains("Hoàng Gia") || p.Name.Contains("Set Quà") || p.DisplayOrder == 3)
                 {
@@ -125,7 +185,18 @@ public static class DbSeeder
                     p.Size = "900g";
                     p.Price = 756000;
                     p.Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.";
+                    p.ImageUrl = "/images/hopdo/hopdo.jpg";
                     p.DisplayOrder = 3;
+
+                    if (!p.Images.Any() || p.Images.All(img => img.ImagePath.EndsWith("setqua.jpg") || (img.ImagePath.EndsWith("hopdo.jpg") && !img.ImagePath.Contains("hopdo/"))))
+                    {
+                        db.ProductImages.RemoveRange(p.Images);
+                        p.Images = new List<ProductImage>
+                        {
+                            new() { ProductId = p.Id, ImagePath = "/images/hopdo/hopdo.jpg", DisplayOrder = 0 },
+                            new() { ProductId = p.Id, ImagePath = "/images/hopdo/anhad.png", DisplayOrder = 1 }
+                        };
+                    }
                 }
             }
             await db.SaveChangesAsync();
@@ -143,7 +214,7 @@ public static class DbSeeder
                     PackagingType = "ZipBag",
                     CapacityGrams = 150,
                     FixedPrice = 69000,
-                    ImageUrl = "/images/tuizip.jpg",
+                    ImageUrl = "/images/tuizip/tuizip.jpg",
                     Description = "Túi zip tráng bạc khóa kín khí, giữ trọn hương vị và độ giòn tan, tiện lợi mang theo hàng ngày.",
                     DisplayOrder = 1
                 },
@@ -154,7 +225,7 @@ public static class DbSeeder
                     PackagingType = "Box",
                     CapacityGrams = 300,
                     FixedPrice = 153000,
-                    ImageUrl = "/images/hopnhua.jpg",
+                    ImageUrl = "/images/hopnhua/hopnhua.jpg",
                     Description = "Hộp tròn cao cấp nắp gỗ tự nhiên kín khí, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.",
                     DisplayOrder = 2
                 },
@@ -165,7 +236,7 @@ public static class DbSeeder
                     PackagingType = "GiftSet",
                     CapacityGrams = 900,
                     FixedPrice = 756000,
-                    ImageUrl = "/images/setqua.jpg",
+                    ImageUrl = "/images/hopdo/hopdo.jpg",
                     Description = "Lễ hộp cao cấp mang âm hưởng Phố Hiến ngàn năm kèm túi xách trang trọng, món quà thượng hạng trao gửi yêu thương.",
                     DisplayOrder = 3
                 }
@@ -178,11 +249,22 @@ public static class DbSeeder
             var existingPackagings = await db.CustomPackagings.ToListAsync();
             foreach (var pk in existingPackagings)
             {
-                if (pk.PackagingType == "Box" || pk.CapacityGrams == 300)
+                if (pk.PackagingType == "ZipBag" || pk.CapacityGrams == 150)
+                {
+                    pk.ImageUrl = "/images/tuizip/tuizip.jpg";
+                    pk.FixedPrice = 69000;
+                }
+                else if (pk.PackagingType == "Box" || pk.CapacityGrams == 300)
                 {
                     pk.Name = "Hộp Tròn Nắp Gỗ Cao Cấp";
                     pk.Description = "Hộp tròn cao cấp nắp gỗ tự nhiên kín khí, bảo quản tối ưu, nhìn rõ từng tầng hạt xếp lớp sang trọng.";
+                    pk.ImageUrl = "/images/hopnhua/hopnhua.jpg";
                     pk.FixedPrice = 153000;
+                }
+                else if (pk.PackagingType == "GiftSet" || pk.CapacityGrams == 900)
+                {
+                    pk.ImageUrl = "/images/hopdo/hopdo.jpg";
+                    pk.FixedPrice = 756000;
                 }
             }
             await db.SaveChangesAsync();

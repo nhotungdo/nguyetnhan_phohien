@@ -834,18 +834,18 @@ QUY TẮC BẮT BUỘC VỀ SẢN PHẨM & DỊ ỨNG:
         var name = (productName ?? "").ToLowerInvariant();
         if (name.Contains("tiến vua") || name.Contains("ngự thiện") || name.Contains("hộp"))
         {
-            return "/images/hopnhua.jpg";
+            return "/images/hopnhua/hopnhua.jpg";
         }
         if (name.Contains("tứ dã") || name.Contains("trân châu") || name.Contains("túi") || name.Contains("gói"))
         {
-            return "/images/tuizip.jpg";
+            return "/images/tuizip/tuizip.jpg";
         }
         if (name.Contains("vọng nguyệt") || name.Contains("thương cảng") || name.Contains("set") || name.Contains("lễ hộp"))
         {
-            return "/images/setqua.jpg";
+            return "/images/hopdo/hopdo.jpg";
         }
 
-        return "/images/hopnhua.jpg";
+        return "/images/combo3sp.jpg";
     }
 
     private List<string> ExtractTagValues(string text, string tagName)

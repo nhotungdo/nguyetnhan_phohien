@@ -200,16 +200,8 @@ public class ProductService : IProductService
 
     private static ProductResponse MapToResponse(Product product)
     {
-        return new ProductResponse
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Price = product.Price,
-            Size = product.Size,
-            Description = product.Description,
-            IsActive = product.IsActive,
-            DisplayOrder = product.DisplayOrder,
-            Images = product.Images
+        var images = product.Images != null && product.Images.Count > 0
+            ? product.Images
                 .OrderBy(i => i.DisplayOrder)
                 .Select(i => new ProductImageResponse
                 {
@@ -218,6 +210,31 @@ public class ProductService : IProductService
                     DisplayOrder = i.DisplayOrder
                 })
                 .ToList()
+            : !string.IsNullOrWhiteSpace(product.ImageUrl)
+                ? new List<ProductImageResponse>
+                {
+                    new()
+                    {
+                        Id = product.Id,
+                        ImagePath = product.ImageUrl,
+                        DisplayOrder = 0
+                    }
+                }
+                : new List<ProductImageResponse>();
+
+        var primaryImage = images.FirstOrDefault()?.ImagePath ?? product.ImageUrl;
+
+        return new ProductResponse
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Size = product.Size,
+            Description = product.Description,
+            ImageUrl = primaryImage,
+            IsActive = product.IsActive,
+            DisplayOrder = product.DisplayOrder,
+            Images = images
         };
     }
 }

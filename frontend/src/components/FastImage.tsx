@@ -32,7 +32,7 @@ interface FastImageProps {
  *  - Giữ nguyên link ngoài (http/https/data)
  *  - Chỉ ghép API_URL với ảnh tương đối từ backend (/uploads/...)
  */
-export function resolveImageUrl(path?: string, fallback = "/images/setqua.jpg"): string {
+export function resolveImageUrl(path?: string, fallback = "/images/combo3sp.jpg"): string {
   if (!path) return fallback;
   if (path.startsWith("/images/") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
     return path;
@@ -87,7 +87,7 @@ export function FastImage({
   src,
   alt,
   className,
-  fallbackSrc = "/images/setqua.jpg",
+  fallbackSrc = "/images/combo3sp.jpg",
   fill,
   width,
   height,

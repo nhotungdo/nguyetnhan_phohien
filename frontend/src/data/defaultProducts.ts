@@ -7,9 +7,14 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     price: 69000,
     size: "Túi 150g",
     description: "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.",
+    imageUrl: "/images/tuizip/tuizip.jpg",
     isActive: true,
     displayOrder: 1,
-    images: [{ id: "img-tui-zip", imagePath: "/images/tuizip.jpg", displayOrder: 1 }],
+    images: [
+      { id: "img-tui-zip-1", imagePath: "/images/tuizip/tuizip.jpg", displayOrder: 0 },
+      { id: "img-tui-zip-2", imagePath: "/images/tuizip/tuizip2.png", displayOrder: 1 },
+      { id: "img-tui-zip-3", imagePath: "/images/tuizip/tuizip3.png", displayOrder: 2 },
+    ],
   },
   {
     id: "default-dac-biet",
@@ -17,9 +22,13 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     price: 153000,
     size: "Hộp 300g",
     description: "Phiên bản ngự thiện cùi nhãn Hương Chi tiến vua hòa quyện cùng các loại hạt dinh dưỡng thượng hạng (Macca, Điều, Bí xanh, Hạnh nhân), hộp tròn cao cấp nắp gỗ tự nhiên kín khí.",
+    imageUrl: "/images/hopnhua/hopnhua.jpg",
     isActive: true,
     displayOrder: 2,
-    images: [{ id: "img-hop-nhua", imagePath: "/images/hopnhua.jpg", displayOrder: 1 }],
+    images: [
+      { id: "img-hop-nhua-1", imagePath: "/images/hopnhua/hopnhua.jpg", displayOrder: 0 },
+      { id: "img-hop-nhua-2", imagePath: "/images/hopnhua/hopnhua2.png", displayOrder: 1 },
+    ],
   },
   {
     id: "default-set-qua",
@@ -27,8 +36,12 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     price: 756000,
     size: "Set 900g",
     description: "Lễ hộp cao cấp mang âm hưởng Phố Hiến thế kỷ 17 kèm túi xách sang trọng, tinh hoa phẩm vật tiến vua kết hợp long nhãn đối lưu và 4 loại hạt dinh dưỡng hảo hạng.",
+    imageUrl: "/images/hopdo/hopdo.jpg",
     isActive: true,
     displayOrder: 3,
-    images: [{ id: "img-set-qua", imagePath: "/images/setqua.jpg", displayOrder: 1 }],
+    images: [
+      { id: "img-hop-do-1", imagePath: "/images/hopdo/hopdo.jpg", displayOrder: 0 },
+      { id: "img-hop-do-2", imagePath: "/images/hopdo/anhad.png", displayOrder: 1 },
+    ],
   },
 ];

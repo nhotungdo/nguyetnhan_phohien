@@ -6,7 +6,7 @@ import { useCartStore, type CartItem } from "@/stores/useCartStore";
 import { FastImage, resolveImageUrl } from "@/components/FastImage";
 
 function resolveCartImage(imagePath?: string): string {
-  if (!imagePath) return "/images/setqua.jpg";
+  if (!imagePath) return "/images/combo3sp.jpg";
   return resolveImageUrl(imagePath);
 }
 
@@ -39,7 +39,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-[#FDE68A]/60 bg-[#FDE68A]/10 relative mt-0.5">
         <FastImage
           src={resolveCartImage(item.imageUrl)}
-          fallbackSrc="/images/setqua.jpg"
+          fallbackSrc="/images/combo3sp.jpg"
           alt={item.productName}
           fill
           sizes="64px"

@@ -57,13 +57,18 @@ export const useCartStore = create<CartStore>()(
               isOpen: true,
             };
           }
+          const sortedImages = product.images && product.images.length > 0
+            ? [...product.images].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+            : [];
+          const resolvedImg = sortedImages[0]?.imagePath || product.imageUrl;
+
           const newItem: CartItem = {
             id: product.id,
             productId: product.id,
             productName: product.name,
             price: product.price,
             size: product.size,
-            imageUrl: product.images?.[0]?.imagePath,
+            imageUrl: resolvedImg,
             quantity: 1,
             isCustomMix: false,
           };
@@ -105,10 +110,10 @@ export const useCartStore = create<CartStore>()(
 
           const defaultImg =
             customMix.targetWeightGrams === 150
-              ? "/images/tuizip.jpg"
+              ? "/images/tuizip/tuizip.jpg"
               : customMix.targetWeightGrams === 300
-              ? "/images/hopnhua.jpg"
-              : "/images/setqua.jpg";
+              ? "/images/hopnhua/hopnhua.jpg"
+              : "/images/hopdo/hopdo.jpg";
 
           const cartItemId = `custom-${customMix.packagingId}-${Date.now()}`;
           const newItem: CartItem = {

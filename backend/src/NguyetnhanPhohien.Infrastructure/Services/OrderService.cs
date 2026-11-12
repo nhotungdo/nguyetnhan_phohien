@@ -936,7 +936,7 @@ Hotline: 034 897 3285
             }
             if (string.IsNullOrEmpty(image))
             {
-                image = firstItem?.IsCustomMix == true ? "/images/setqua3.jpg" : "/images/setqua.jpg";
+                image = firstItem?.IsCustomMix == true ? "/images/hopdo/hopdo.jpg" : "/images/combo3sp.jpg";
             }
 
             result.Add(new RecentOrderActivityDto

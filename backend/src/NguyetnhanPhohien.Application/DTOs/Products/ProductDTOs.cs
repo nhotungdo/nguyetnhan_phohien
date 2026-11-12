@@ -14,6 +14,7 @@ public class ProductResponse
     public decimal Price { get; set; }
     public string Size { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
     public int DisplayOrder { get; set; }
     public List<ProductImageResponse> Images { get; set; } = new();

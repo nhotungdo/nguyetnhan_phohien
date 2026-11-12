@@ -6,8 +6,8 @@ export interface ProductDetailInfo {
   subNameEn: string;
   size: string;
   price: number;
-  image: string;
-  fallbackImages: string[];
+  image?: string;
+  fallbackImages?: string[];
   badgeVi: string;
   badgeEn: string;
   taglineVi: string;
@@ -58,8 +58,8 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
     subNameEn: "Resealable Pouch 150g - Longan & 4 Nut Blend",
     size: "Túi 150g",
     price: 69000,
-    image: "/images/tuizip.jpg",
-    fallbackImages: ["/images/tuizip.jpg", "/images/hopnhua.jpg", "/images/setqua.jpg"],
+    image: "/images/tuizip/tuizip.jpg",
+    fallbackImages: ["/images/tuizip/tuizip.jpg", "/images/tuizip/tuizip2.png", "/images/tuizip/tuizip3.png"],
     badgeVi: "Hạt Mix Dưỡng Sinh 150g",
     badgeEn: "Daily Nut & Longan Blend",
     taglineVi: "Sự hòa quyện hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng giòn bùi ngậy.",
@@ -141,8 +141,8 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
     subNameEn: "Imperial Edition 300g Canister - Longan & Tree Nut Fusion",
     size: "Hộp 300g",
     price: 153000,
-    image: "/images/hopnhua.jpg",
-    fallbackImages: ["/images/hopnhua.jpg", "/images/tuizip.jpg", "/images/setqua.jpg"],
+    image: "/images/hopnhua/hopnhua.jpg",
+    fallbackImages: ["/images/hopnhua/hopnhua.jpg", "/images/hopnhua/hopnhua2.png"],
     badgeVi: "Đặc Sản Tiến Vua 300g",
     badgeEn: "Imperial Tribute 300g",
     taglineVi: "Từng tầng hạt dinh dưỡng xếp lớp sang trọng bên cùi nhãn Hương Chi tiến vua hổ phách.",
@@ -223,8 +223,8 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
     subNameEn: "Prestige Gift Set 900g with Silk Tote - Longan & Imperial Nut Collection",
     size: "Set 900g",
     price: 756000,
-    image: "/images/setqua.jpg",
-    fallbackImages: ["/images/setqua.jpg", "/images/hopnhua.jpg", "/images/tuizip.jpg"],
+    image: "/images/hopdo/hopdo.jpg",
+    fallbackImages: ["/images/hopdo/hopdo.jpg", "/images/hopdo/anhad.png"],
     badgeVi: "Lễ Hộp Ngoại Giao 900g",
     badgeEn: "Diplomatic Gift Set 900g",
     taglineVi: "Âm hưởng Phố Hiến thế kỷ 17, đỉnh cao quà biếu sức khỏe kết hợp long nhãn tiến vua và 4 loại hạt.",

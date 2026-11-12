@@ -252,6 +252,7 @@ export interface ProductResponse {
   price: number;
   size: string;
   description: string;
+  imageUrl?: string;
   isActive: boolean;
   displayOrder: number;
   images: ProductImageResponse[];

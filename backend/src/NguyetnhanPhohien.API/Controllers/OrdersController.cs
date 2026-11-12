@@ -178,7 +178,7 @@ public class OrdersController : ControllerBase
                         CustomerName = RecentOrderActivityDto.MaskName(order.CustomerName),
                         Location = RecentOrderActivityDto.ExtractLocation(order.CustomerAddress),
                         ProductName = productName,
-                        ProductImage = firstItem?.IsCustomMix == true ? "/images/setqua3.jpg" : "/images/setqua.jpg",
+                        ProductImage = firstItem?.IsCustomMix == true ? "/images/hopdo/hopdo.jpg" : "/images/combo3sp.jpg",
                         Quantity = quantity,
                         TimeAgo = "Vừa xong",
                         CreatedAt = DateTime.UtcNow
