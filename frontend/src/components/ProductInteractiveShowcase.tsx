@@ -139,9 +139,9 @@ export function ProductInteractiveShowcase({
           </p>
         </motion.div>
 
-        {/* Thanh Tab chọn sản phẩm */}
+        {/* Thanh Tab chọn sản phẩm: tối đa 3 sản phẩm mỗi hàng, phần còn lại tự xuống hàng */}
         <div className="flex justify-center mb-6 sm:mb-8 px-2 w-full max-w-full">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-[#FDE68A]/60 shadow-md overflow-x-auto no-scrollbar max-w-full">
+          <div className="grid w-full max-w-5xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 p-1 rounded-2xl bg-white border border-[#FDE68A]/60 shadow-md">
             {displayProducts.map((prod, idx) => {
               const isSelected = idx === selectedIndex;
               return (
@@ -151,7 +151,7 @@ export function ProductInteractiveShowcase({
                     setSelectedIndex(idx);
                     setActiveHotspot(null);
                   }}
-                  className={`relative px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center gap-1.5 shrink-0 cursor-pointer overflow-hidden ${
+                  className={`relative w-full px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-1.5 cursor-pointer overflow-hidden ${
                     isSelected ? "text-white" : "text-stone-700 hover:text-primary"
                   }`}
                 >
@@ -162,8 +162,8 @@ export function ProductInteractiveShowcase({
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="whitespace-nowrap relative z-10">{prod.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full relative z-10 ${isSelected ? "bg-black/20 text-white font-bold" : "bg-secondary text-primary font-bold"}`}>
+                  <span className="relative z-10 min-w-0 text-center leading-snug">{prod.name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full relative z-10 shrink-0 ${isSelected ? "bg-black/20 text-white font-bold" : "bg-secondary text-primary font-bold"}`}>
                     {prod.size}
                   </span>
                 </button>
