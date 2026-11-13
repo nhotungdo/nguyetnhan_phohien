@@ -46,6 +46,9 @@ export interface ProductDetailInfo {
   // Hướng dẫn bảo quản
   storageTipsVi: string[];
   storageTipsEn: string[];
+  /** true = dữ liệu sinh tự động từ ProductResponse (sản phẩm admin mới thêm),
+   *  không phải hồ sơ cảm quan/thành phần curate sẵn. */
+  isGeneric?: boolean;
 }
 
 export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
@@ -297,15 +300,118 @@ export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
   },
 };
 
-export function findProductDetail(prodOrId?: { id?: string; name?: string } | string): ProductDetailInfo {
-  if (!prodOrId) return PRODUCT_DETAILS_MAP["tui-zip"];
-  const idOrName = typeof prodOrId === "string" ? prodOrId.toLowerCase() : `${prodOrId.id || ""} ${prodOrId.name || ""}`.toLowerCase();
+export type ProductDetailSource = {
+  id?: string;
+  name?: string;
+  price?: number;
+  size?: string;
+  description?: string;
+};
 
-  if (idOrName.includes("tui-zip") || idOrName.includes("tứ dã") || idOrName.includes("150g") || idOrName.includes("túi")) {
+/**
+ * Sinh hồ sơ chi tiết tối thiểu cho sản phẩm KHÔNG nằm trong bộ dữ liệu mẫu
+ * (sản phẩm admin vừa thêm). Nhờ vậy modal chi tiết hiển thị đúng tên/mô tả/
+ * quy cách/giá của sản phẩm mới thay vì mượn nhầm hồ sơ của sản phẩm khác.
+ */
+export function buildDynamicProductDetail(prod?: ProductDetailSource | string): ProductDetailInfo {
+  const source: ProductDetailSource =
+    typeof prod === "string" ? { name: prod } : prod ?? {};
+  const name = source.name?.trim() || "Sản phẩm";
+  const size = source.size?.trim() || "Đang cập nhật";
+  const description = source.description?.trim() || "";
+  const price = typeof source.price === "number" ? source.price : 0;
+  const priceVi = `${price.toLocaleString("vi-VN").replace(/,/g, ".")}đ`;
+
+  return {
+    id: source.id || "dynamic-product",
+    nameVi: name,
+    nameEn: name,
+    subNameVi: size,
+    subNameEn: size,
+    size,
+    price,
+    badgeVi: "Đặc Sản Phố Hiến",
+    badgeEn: "Pho Hien Specialty",
+    taglineVi: description || "Sản phẩm đặc sản tuyển chọn của Nguyệt Nhãn Phố Hiến.",
+    taglineEn: description || "A selected specialty from Nguyet Nhan Pho Hien.",
+    overviewVi: description || "Thông tin chi tiết sản phẩm đang được cập nhật.",
+    overviewEn: description || "Detailed product information is being updated.",
+    ingredientsList: [],
+    sensory: {
+      nutCrispiness: 0,
+      longanChewiness: 0,
+      naturalSweetness: 0,
+      harmoniousAroma: 0,
+    },
+    specifications: [
+      { labelVi: "Tên sản phẩm", labelEn: "Product Name", valueVi: name, valueEn: name },
+      { labelVi: "Quy cách / Khối lượng", labelEn: "Packaging", valueVi: size, valueEn: size },
+      { labelVi: "Giá niêm yết", labelEn: "Listed Price", valueVi: priceVi, valueEn: priceVi },
+      { labelVi: "Bảo quản", labelEn: "Storage", valueVi: "Nơi khô ráo, thoáng mát", valueEn: "Keep in a cool, dry place" },
+    ],
+    culinaryUsages: [
+      {
+        titleVi: "Thưởng thức trực tiếp",
+        titleEn: "Enjoy Straight Away",
+        descVi: "Dùng ngay như món ăn vặt bổ dưỡng hằng ngày.",
+        descEn: "Enjoy as a wholesome everyday snack.",
+        icon: "🥢",
+      },
+      {
+        titleVi: "Thiết đãi cùng trà",
+        titleEn: "Serve with Tea",
+        descVi: "Kết hợp cùng tách trà nóng cho buổi trò chuyện thêm trọn vị.",
+        descEn: "Pair with a warm cup of tea for a refined gathering.",
+        icon: "🍵",
+      },
+      {
+        titleVi: "Bữa phụ dinh dưỡng",
+        titleEn: "Nutritious Break",
+        descVi: "Nạp năng lượng lành mạnh giữa ngày làm việc.",
+        descEn: "A healthy energy boost during the workday.",
+        icon: "🌿",
+      },
+      {
+        titleVi: "Quà tặng ý nghĩa",
+        titleEn: "Thoughtful Gift",
+        descVi: "Món quà sức khỏe trang nhã dành tặng người thương.",
+        descEn: "An elegant wellness gift for your loved ones.",
+        icon: "🎁",
+      },
+    ],
+    storageTipsVi: [
+      "Bảo quản nơi khô ráo, thoáng mát và tránh ánh nắng trực tiếp.",
+      "Đóng kín bao bì sau khi sử dụng để giữ trọn hương vị.",
+      "Có thể bảo quản ngăn mát tủ lạnh và dùng trong hạn ghi trên bao bì.",
+    ],
+    storageTipsEn: [
+      "Store in a cool, dry place away from direct sunlight.",
+      "Reseal the packaging tightly after opening to preserve flavor.",
+      "Refrigeration is recommended; consume within the printed shelf life.",
+    ],
+    isGeneric: true,
+  };
+}
+
+export function findProductDetail(prodOrId?: ProductDetailSource | string): ProductDetailInfo {
+  if (!prodOrId) return PRODUCT_DETAILS_MAP["tui-zip"];
+  const idOrName = (
+    typeof prodOrId === "string"
+      ? prodOrId
+      : `${prodOrId.id || ""} ${prodOrId.name || ""}`
+  ).toLowerCase();
+
+  // Chỉ khớp các cụm đặc trưng của 3 sản phẩm mẫu. Không dùng từ khóa chung
+  // như "túi"/"150g"/"lễ hộp" để sản phẩm mới của admin không bị gán nhầm hồ sơ.
+  if (idOrName.includes("tui-zip") || idOrName.includes("trân châu tứ dã") || idOrName.includes("túi zip")) {
     return PRODUCT_DETAILS_MAP["tui-zip"];
   }
-  if (idOrName.includes("set-qua") || idOrName.includes("hoàng gia") || idOrName.includes("thương cảng") || idOrName.includes("900g") || idOrName.includes("lễ hộp")) {
+  if (idOrName.includes("set-qua") || idOrName.includes("vọng nguyệt thương cảng") || idOrName.includes("hoàng gia")) {
     return PRODUCT_DETAILS_MAP["set-qua"];
   }
-  return PRODUCT_DETAILS_MAP["dac-biet"];
+  if (idOrName.includes("dac-biet") || idOrName.includes("ngọc nhãn tiến vua") || idOrName.includes("bản ngự thiện")) {
+    return PRODUCT_DETAILS_MAP["dac-biet"];
+  }
+
+  return buildDynamicProductDetail(prodOrId);
 }

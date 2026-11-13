@@ -65,7 +65,9 @@ export function HomeView() {
   const heroLine1 = heroLines[0];
   const heroLine2 = heroLines[1] ?? "";
 
-  const displayProducts = (apiProducts && apiProducts.length > 0 ? apiProducts : DEFAULT_FALLBACK_PRODUCTS).slice(0, 3);
+  // Hiển thị TOÀN BỘ sản phẩm đang active từ API để sản phẩm admin vừa thêm
+  // xuất hiện ngay trên Trang chủ (trước đây chỉ lấy 3 sản phẩm đầu theo DisplayOrder).
+  const displayProducts = apiProducts && apiProducts.length > 0 ? apiProducts : DEFAULT_FALLBACK_PRODUCTS;
 
   return (
     <>
@@ -207,7 +209,7 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* 3. Bộ Sưu Tập Tinh Hoa (Top 3 Bestseller Showcase Preview) */}
+      {/* 3. Bộ Sưu Tập Tinh Hoa (đồng bộ động với tab Sản phẩm của Admin) */}
       <section className="py-14 sm:py-20 bg-white">
         <div className="container mx-auto px-4 md:px-6 max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">

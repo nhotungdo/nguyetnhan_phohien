@@ -234,31 +234,34 @@ export function ProductDetailModal({
               </div>
             )}
 
-            {/* Khối cam kết vàng nổi bật dưới ảnh (CHỈ HIỆN TRÊN DESKTOP để không choán diện tích Mobile) */}
-            <div className="hidden md:block mt-4 p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-2 text-xs">
-              <div className="flex items-center gap-2 font-bold text-primary text-[11px] uppercase tracking-wide">
-                <ShieldCheck className="w-4 h-4 text-accent" />
-                <span>{language === "en" ? "Quality Commitment" : "Cam Kết Chất Lượng Vàng"}</span>
+            {/* Khối cam kết vàng nổi bật dưới ảnh (CHỈ HIỆN TRÊN DESKTOP để không choán diện tích Mobile).
+                Sản phẩm mới thêm từ Admin không có hồ sơ long nhãn/hạt cố định → ẩn khối này. */}
+            {!detailInfo.isGeneric && (
+              <div className="hidden md:block mt-4 p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-2 text-xs">
+                <div className="flex items-center gap-2 font-bold text-primary text-[11px] uppercase tracking-wide">
+                  <ShieldCheck className="w-4 h-4 text-accent" />
+                  <span>{language === "en" ? "Quality Commitment" : "Cam Kết Chất Lượng Vàng"}</span>
+                </div>
+                <ul className="space-y-1.5 text-stone-700 text-[11.5px] leading-tight">
+                  <li className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Convection dried longan + 4 nutritious nuts" : "Long nhãn sấy đối lưu + 4 loại hạt dinh dưỡng"}</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Macadamia, Cashews, Almonds, Pumpkin seeds" : "Hạt điều, Macca, Bí xanh, Hạnh nhân giòn bùi"}</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Natural wood lid with airtight safety seal" : "Nắp gỗ tự nhiên & màng nhôm niêm phong kín khí"}</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Inspect before payment" : "Đồng kiểm hàng trước khi thanh toán"}</span>
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-1.5 text-stone-700 text-[11.5px] leading-tight">
-                <li className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Convection dried longan + 4 nutritious nuts" : "Long nhãn sấy đối lưu + 4 loại hạt dinh dưỡng"}</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Macadamia, Cashews, Almonds, Pumpkin seeds" : "Hạt điều, Macca, Bí xanh, Hạnh nhân giòn bùi"}</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Natural wood lid with airtight safety seal" : "Nắp gỗ tự nhiên & màng nhôm niêm phong kín khí"}</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Inspect before payment" : "Đồng kiểm hàng trước khi thanh toán"}</span>
-                </li>
-              </ul>
-            </div>
+            )}
           </div>
 
           {/* CỘT PHẢI (MD: 7 CỘT): GIÁ, QUY CÁCH, HỆ THỐNG 4 TABS CHI TIẾT */}
@@ -284,21 +287,23 @@ export function ProductDetailModal({
                 </div>
               </div>
 
-              {/* Dải 3 micro-cam kết nhanh trên Mobile (Gọn nhẹ, vuốt ngang mượt mà) */}
-              <div className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-[11px] font-semibold text-stone-700">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
-                  <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Longan & 4 Nuts" : "Long nhãn & 4 hạt mix"}</span>
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
-                  <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Natural Wood Lid" : "Nắp gỗ & seal kín"}</span>
-                </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
-                  <Check className="w-3 h-3 text-emerald-600 shrink-0" />
-                  <span>{language === "en" ? "Inspect Upon Delivery" : "Đồng kiểm khi nhận"}</span>
-                </span>
-              </div>
+              {/* Dải 3 micro-cam kết nhanh trên Mobile (chỉ cho sản phẩm mẫu có hồ sơ cố định) */}
+              {!detailInfo.isGeneric && (
+                <div className="flex md:hidden items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-[11px] font-semibold text-stone-700">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Longan & 4 Nuts" : "Long nhãn & 4 hạt mix"}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Natural Wood Lid" : "Nắp gỗ & seal kín"}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 shrink-0">
+                    <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>{language === "en" ? "Inspect Upon Delivery" : "Đồng kiểm khi nhận"}</span>
+                  </span>
+                </div>
+              )}
 
               {/* THANH ĐIỀU HƯỚNG 4 TABS */}
               <div className="flex gap-1 p-1 bg-[#F5EFE6] rounded-xl text-xs font-semibold overflow-x-auto no-scrollbar">
@@ -362,7 +367,8 @@ export function ProductDetailModal({
                       </p>
                     </div>
 
-                    {/* Chỉ số cảm quan 4 trục */}
+                    {/* Chỉ số cảm quan 4 trục — chỉ áp dụng cho 3 sản phẩm mẫu có hồ sơ cảm quan */}
+                    {!detailInfo.isGeneric && (
                     <div className="p-3 sm:p-3.5 rounded-2xl bg-[#FCFBF8] border border-[#E8DFC8] space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="text-[11px] sm:text-xs font-bold text-primary uppercase tracking-wider">
@@ -415,12 +421,14 @@ export function ProductDetailModal({
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    {/* Danh sách 5 thành phần hạt & long nhãn phối trộn */}
+                    {/* Danh sách thành phần — chỉ hiển thị khi sản phẩm có hồ sơ thành phần chi tiết */}
+                    {detailInfo.ingredientsList.length > 0 && (
                     <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
                       <h4 className="text-[11px] sm:text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
-                        <span>{language === "en" ? "5 Ingredients in this Blend" : "Bộ 5 Thành Phần Long Nhãn & Hạt Dinh Dưỡng Mix"}</span>
+                        <span>{language === "en" ? "Ingredients in this Product" : "Thành Phần Sản Phẩm"}</span>
                       </h4>
                       <div className="space-y-1.5 text-xs">
                         {detailInfo.ingredientsList.map((ing, i) => (
@@ -438,6 +446,7 @@ export function ProductDetailModal({
                         ))}
                       </div>
                     </div>
+                    )}
                   </div>
                 )}
 

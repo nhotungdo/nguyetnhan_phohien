@@ -526,7 +526,10 @@ export default function ContentCMS() {
       {activeTab === "products" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center gap-2">
-            <p className="text-xs sm:text-sm text-muted-foreground">Quản lý các sản phẩm hiển thị trên Landing Page.</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Quản lý sản phẩm hiển thị trên <strong>Trang chủ</strong> và trang <strong>Sản phẩm</strong>.
+              Sản phẩm mới sẽ tự động xuất hiện ở cả hai trang sau khi lưu nếu bật “Hiển thị”.
+            </p>
             <button onClick={() => openModal()} className="bg-accent hover:bg-accent/90 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold flex items-center gap-1.5 transition-all shadow-sm text-xs sm:text-sm shrink-0">
               <Plus className="w-4 h-4" /> Thêm sản phẩm
             </button>
