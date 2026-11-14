@@ -12,6 +12,7 @@ import { ExternalLink, LogOut } from "lucide-react"
 
 const PAGE_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/dashboard", title: "Tổng quan" },
+  { prefix: "/analytics", title: "Lưu lượng & AI" },
   { prefix: "/orders", title: "Quản lý Đơn hàng" },
   { prefix: "/messenger", title: "Tin nhắn" },
   { prefix: "/content", title: "Nội dung Website" },

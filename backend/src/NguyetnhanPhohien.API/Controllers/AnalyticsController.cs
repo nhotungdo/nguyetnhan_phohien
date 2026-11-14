@@ -42,6 +42,7 @@ public class AnalyticsController : ControllerBase
 
             // Bỏ qua tracking các trang nội bộ của Admin
             if (rawPath.StartsWith("/dashboard", StringComparison.OrdinalIgnoreCase) ||
+                rawPath.StartsWith("/analytics", StringComparison.OrdinalIgnoreCase) ||
                 rawPath.StartsWith("/orders", StringComparison.OrdinalIgnoreCase) ||
                 rawPath.StartsWith("/messenger", StringComparison.OrdinalIgnoreCase) ||
                 rawPath.StartsWith("/content", StringComparison.OrdinalIgnoreCase) ||

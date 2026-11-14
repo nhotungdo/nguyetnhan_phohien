@@ -38,6 +38,7 @@ export function WebsiteTracker() {
     // Không tracking các đường dẫn quản trị Admin
     const isAdminRoute =
       pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/analytics") ||
       pathname.startsWith("/orders") ||
       pathname.startsWith("/messenger") ||
       pathname.startsWith("/content") ||

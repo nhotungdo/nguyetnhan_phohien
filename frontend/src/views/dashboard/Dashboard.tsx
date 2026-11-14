@@ -15,9 +15,6 @@ import {
   FileText,
   BarChart3,
   TableProperties,
-  Globe,
-  Sparkles,
-  Compass,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -174,7 +171,6 @@ export default function Dashboard() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
-  const [chartMetric, setChartMetric] = useState<"business" | "traffic">("business");
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
   // Khôi phục ngay từ localStorage (0ms độ trễ, không chớp màn hình)
@@ -215,14 +211,6 @@ export default function Dashboard() {
   }, [rawOrders]);
 
   const stats = useMemo(() => {
-    const totalWebsiteVisits = dashboardStats?.totalWebsiteVisits ?? 0;
-    const todayWebsiteVisits = dashboardStats?.todayWebsiteVisits ?? 0;
-    const uniqueVisitorsCount = dashboardStats?.uniqueVisitorsCount ?? 0;
-    const totalAiConsultations = dashboardStats?.totalAiConsultations ?? 0;
-    const todayAiConsultations = dashboardStats?.todayAiConsultations ?? 0;
-    const uniqueAiUsersCount = dashboardStats?.uniqueAiUsersCount ?? 0;
-    const topVisitedPages = dashboardStats?.topVisitedPages ?? [];
-
     // Nếu có danh sách đơn hàng, tính số đơn hiệu lực (loại trừ Cancelled)
     if (rawOrders && rawOrders.length > 0) {
       const valid = rawOrders.filter((o) => o.status !== "Cancelled");
@@ -237,13 +225,6 @@ export default function Dashboard() {
         customersCount: uniquePhones.size,
         messagesCount: dashboardStats?.messagesCount ?? 0,
         unreadMessages: dashboardStats?.unreadMessages ?? 0,
-        totalWebsiteVisits,
-        todayWebsiteVisits,
-        uniqueVisitorsCount,
-        totalAiConsultations,
-        todayAiConsultations,
-        uniqueAiUsersCount,
-        topVisitedPages,
       };
     }
 
@@ -253,13 +234,6 @@ export default function Dashboard() {
       customersCount: dashboardStats?.customersCount ?? 0,
       messagesCount: dashboardStats?.messagesCount ?? 0,
       unreadMessages: dashboardStats?.unreadMessages ?? 0,
-      totalWebsiteVisits,
-      todayWebsiteVisits,
-      uniqueVisitorsCount,
-      totalAiConsultations,
-      todayAiConsultations,
-      uniqueAiUsersCount,
-      topVisitedPages,
     };
   }, [dashboardStats, rawOrders]);
 
@@ -286,17 +260,6 @@ export default function Dashboard() {
       avgRevenueLabel: `${Math.round(totalRevenue / rangeDays).toLocaleString("vi-VN")}đ`,
       ordersLabel: `${totalOrders} đơn hiệu lực`,
       avgOrdersLabel: `${(totalOrders / rangeDays).toFixed(1)} đơn/ngày`,
-    };
-  }, [chartData, rangeDays]);
-
-  const trafficSummary = useMemo(() => {
-    const totalVisits = chartData.reduce((s, p) => s + (p.visits ?? 0), 0);
-    const totalAi = chartData.reduce((s, p) => s + (p.aiConsultations ?? 0), 0);
-    return {
-      visitsLabel: `${totalVisits.toLocaleString("vi-VN")} lượt truy cập`,
-      aiLabel: `${totalAi.toLocaleString("vi-VN")} lượt hỏi AI`,
-      avgVisitsLabel: `${Math.round(totalVisits / rangeDays).toLocaleString("vi-VN")} lượt/ngày`,
-      avgAiLabel: `${(totalAi / rangeDays).toFixed(1)} câu/ngày`,
     };
   }, [chartData, rangeDays]);
 
@@ -335,19 +298,14 @@ export default function Dashboard() {
       active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-primary"
     }`;
 
-  const hasData =
-    stats.ordersCount > 0 ||
-    stats.messagesCount > 0 ||
-    stats.revenue > 0 ||
-    (stats.totalWebsiteVisits ?? 0) > 0 ||
-    (stats.totalAiConsultations ?? 0) > 0;
+  const hasData = stats.ordersCount > 0 || stats.messagesCount > 0 || stats.revenue > 0;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Nguyệt Nhãn Phố Hiến</h2>
-          <p className="text-muted-foreground">Tổng quan kinh doanh, lưu lượng truy cập &amp; tương tác AI (chỉ quản trị viên xem được).</p>
+          <p className="text-muted-foreground">Tổng quan tình hình kinh doanh &amp; tương tác (chỉ tính đơn hiệu lực).</p>
         </div>
         <div className="flex items-center gap-2">
           {isFetching ? (
@@ -364,10 +322,9 @@ export default function Dashboard() {
         </div>
       </div>
       
-      {/* 6 THẺ THỐNG KÊ (4 KINH DOANH + 2 LƯU LƯỢNG TRUY CẬP VÀ AI TỪ DATABASE) */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* DOANH THU */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2 relative overflow-hidden group">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16" />
           </div>
@@ -376,7 +333,7 @@ export default function Dashboard() {
             <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
           <div>
-            <p className="text-base sm:text-xl font-bold mt-1 text-primary relative z-10 truncate" title={`${stats.revenue.toLocaleString("vi-VN")}đ`}>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary relative z-10 truncate" title={`${stats.revenue.toLocaleString("vi-VN")}đ`}>
               {stats.revenue.toLocaleString("vi-VN")}đ
             </p>
             <p className="text-[11px] text-muted-foreground mt-0.5 relative z-10">Đơn hoàn thành</p>
@@ -384,87 +341,47 @@ export default function Dashboard() {
         </div>
 
         {/* ĐƠN HÀNG */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Tổng Đơn Hiệu Lực</h3>
             <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
           <div>
-            <p className="text-base sm:text-xl font-bold mt-1 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 truncate" title={cancelledCount > 0 ? `Đã loại trừ ${cancelledCount} đơn huỷ` : "Chỉ tính đơn có hiệu lực"}>
-              {cancelledCount > 0 ? `Loại ${cancelledCount} đơn huỷ` : "Đơn có hiệu lực"}
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.ordersCount.toLocaleString("vi-VN")}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {cancelledCount > 0 ? `(Đã loại trừ ${cancelledCount} đơn huỷ)` : "Chỉ tính đơn có hiệu lực"}
             </p>
           </div>
         </div>
 
         {/* KHÁCH HÀNG */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Khách Hàng</h3>
             <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
           <div>
-            <p className="text-base sm:text-xl font-bold mt-1 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Khách có đơn</p>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.customersCount.toLocaleString("vi-VN")}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Khách có đơn hiệu lực</p>
           </div>
         </div>
 
         {/* TIN NHẮN */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-6 flex flex-col justify-between gap-1 sm:gap-2">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Phiên Chat</h3>
             <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
           <div>
             <div className="flex items-baseline gap-1.5 flex-wrap">
-              <p className="text-base sm:text-xl font-bold mt-1 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 sm:mt-2 text-primary">{stats.messagesCount.toLocaleString("vi-VN")}</p>
               {stats.unreadMessages > 0 && (
-                <span className="text-[10px] font-bold text-red-500 bg-red-100 px-1.5 py-0.2 rounded-full">
+                <span className="text-[10px] sm:text-xs font-bold text-red-500 bg-red-100 px-1.5 py-0.5 rounded-full">
                   {stats.unreadMessages} mới
                 </span>
               )}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">Tư vấn trực tuyến</p>
-          </div>
-        </div>
-
-        {/* TRUY CẬP WEBSITE (DATABASE THỰC TẾ) */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Globe className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-600" />
-          </div>
-          <div className="flex items-center justify-between relative z-10">
-            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">Lượt Truy Cập Web</h3>
-            <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600 shrink-0" />
-          </div>
-          <div>
-            <p className="text-base sm:text-xl font-bold mt-1 text-cyan-700 relative z-10 truncate" title={`${(stats.totalWebsiteVisits ?? 0).toLocaleString("vi-VN")} lượt`}>
-              {(stats.totalWebsiteVisits ?? 0).toLocaleString("vi-VN")}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 relative z-10 flex items-center gap-1 truncate" title={`Hôm nay: +${stats.todayWebsiteVisits ?? 0} • Khách: ${(stats.uniqueVisitorsCount ?? 0).toLocaleString("vi-VN")}`}>
-              <span>Hôm nay: <strong className="text-cyan-700">+{stats.todayWebsiteVisits ?? 0}</strong></span>
-              <span>• Khách: {stats.uniqueVisitorsCount ?? 0}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* TRỢ LÝ AI DINH DƯỠNG (DATABASE THỰC TẾ) */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-3.5 sm:p-5 flex flex-col justify-between gap-1 sm:gap-2 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-600" />
-          </div>
-          <div className="flex items-center justify-between relative z-10">
-            <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground truncate">AI Dinh Dưỡng</h3>
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-          </div>
-          <div>
-            <p className="text-base sm:text-xl font-bold mt-1 text-emerald-700 relative z-10 truncate" title={`${(stats.totalAiConsultations ?? 0).toLocaleString("vi-VN")} lượt hỏi`}>
-              {(stats.totalAiConsultations ?? 0).toLocaleString("vi-VN")}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 relative z-10 flex items-center gap-1 truncate" title={`Hôm nay: +${stats.todayAiConsultations ?? 0} • Người dùng: ${(stats.uniqueAiUsersCount ?? 0).toLocaleString("vi-VN")}`}>
-              <span>Hôm nay: <strong className="text-emerald-700">+{stats.todayAiConsultations ?? 0}</strong></span>
-              <span>• Khách: {stats.uniqueAiUsersCount ?? 0}</span>
-            </p>
           </div>
         </div>
       </div>
@@ -475,44 +392,9 @@ export default function Dashboard() {
 
         <div className="p-3.5 sm:p-6 border-b z-10 flex flex-col sm:flex-row gap-2.5 sm:gap-4 justify-between sm:items-center">
           <div>
-            <div className="flex items-center gap-2.5">
-              <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
-              {/* Chuyển loại số liệu: Kinh Doanh vs Lưu Lượng & AI */}
-              <div className="flex items-center bg-muted/80 p-0.5 rounded-lg border border-border text-xs">
-                <button
-                  type="button"
-                  onClick={() => setChartMetric("business")}
-                  className={`px-2 py-0.5 rounded-md font-semibold transition-all cursor-pointer ${
-                    chartMetric === "business"
-                      ? "bg-background text-primary shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Kinh doanh
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartMetric("traffic")}
-                  className={`px-2 py-0.5 rounded-md font-semibold transition-all cursor-pointer ${
-                    chartMetric === "traffic"
-                      ? "bg-background text-cyan-700 shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Lưu lượng &amp; AI
-                </button>
-              </div>
-            </div>
+            <h3 className="font-bold text-base sm:text-lg text-primary">Biểu đồ thống kê</h3>
             <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
-              {chartMetric === "business" ? (
-                <>
-                  {rangeDays} ngày qua — Doanh thu: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span>
-                </>
-              ) : (
-                <>
-                  {rangeDays} ngày qua — Lượt xem: <span className="font-semibold text-cyan-700">{trafficSummary.visitsLabel}</span> / AI: <span className="font-semibold text-emerald-700">{trafficSummary.aiLabel}</span>
-                </>
-              )}
+              {rangeDays} ngày qua — Tổng: <span className="font-semibold text-foreground">{chartSummary.revenueLabel}</span> / <span className="font-semibold text-foreground">{chartSummary.ordersLabel}</span>
             </p>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
@@ -548,29 +430,15 @@ export default function Dashboard() {
 
             {viewMode === "chart" && (
               <>
-                {chartMetric === "business" ? (
-                  <>
-                    <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
-                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-1)" }} />
-                      Doanh thu
-                    </span>
-                    <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
-                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
-                      Đơn hiệu lực
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
-                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-cyan-600" />
-                      Lượt xem web
-                    </span>
-                    <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
-                      <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-600" />
-                      Hỏi đáp AI
-                    </span>
-                  </>
-                )}
+                {/* Legend khớp màu với 2 trục của biểu đồ */}
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
+                  <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-1)" }} />
+                  Doanh thu
+                </span>
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs font-medium text-muted-foreground">
+                  <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full" style={{ background: "var(--chart-2)" }} />
+                  Đơn hiệu lực
+                </span>
               </>
             )}
 
@@ -644,7 +512,7 @@ export default function Dashboard() {
           {!hasData ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center space-y-4">
               <TrendingUp className="w-12 h-12 text-muted-foreground/30" />
-              <p>Biểu đồ sẽ hiển thị khi có dữ liệu đầu tiên được ghi nhận.</p>
+              <p>Biểu đồ sẽ hiển thị khi có đơn hàng đầu tiên.</p>
             </div>
           ) : viewMode === "chart" ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -653,10 +521,6 @@ export default function Dashboard() {
                   <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
                     <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
-                  </linearGradient>
-                  <linearGradient id="visitsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0891b2" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#0891b2" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
@@ -668,123 +532,64 @@ export default function Dashboard() {
                   interval="preserveStartEnd"
                   minTickGap={24}
                 />
-
-                {chartMetric === "business" ? (
-                  <>
-                    <YAxis
-                      yAxisId="revenue"
-                      tickFormatter={compactVnd}
-                      tick={{ fontSize: 11, fill: "var(--chart-1)" }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={48}
-                    />
-                    <YAxis
-                      yAxisId="orders"
-                      orientation="right"
-                      allowDecimals={false}
-                      tick={{ fontSize: 11, fill: "var(--chart-2)" }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={28}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "var(--muted)", opacity: 0.35 }}
-                      formatter={(value, name) =>
-                        name === "Doanh thu"
-                          ? [`${Number(value).toLocaleString("vi-VN")}đ`, name]
-                          : [`${Number(value)} đơn hiệu lực`, name]
-                      }
-                      labelFormatter={(label) => `Ngày ${label}`}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--border)",
-                        background: "var(--card)",
-                        color: "var(--card-foreground)",
-                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                      }}
-                    />
-                    <Bar
-                      yAxisId="orders"
-                      dataKey="orders"
-                      name="Đơn hiệu lực"
-                      fill="var(--chart-2)"
-                      fillOpacity={0.85}
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={36}
-                    />
-                    <Area
-                      yAxisId="revenue"
-                      type="monotone"
-                      dataKey="revenue"
-                      name="Doanh thu"
-                      stroke="var(--chart-1)"
-                      strokeWidth={2.5}
-                      fill="url(#revenueGradient)"
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <YAxis
-                      yAxisId="visits"
-                      tick={{ fontSize: 11, fill: "#0891b2" }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={40}
-                    />
-                    <YAxis
-                      yAxisId="ai"
-                      orientation="right"
-                      allowDecimals={false}
-                      tick={{ fontSize: 11, fill: "#059669" }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={28}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "var(--muted)", opacity: 0.35 }}
-                      formatter={(value, name) =>
-                        name === "Lượt xem web"
-                          ? [`${Number(value).toLocaleString("vi-VN")} lượt truy cập`, name]
-                          : [`${Number(value)} câu hỏi AI`, name]
-                      }
-                      labelFormatter={(label) => `Ngày ${label}`}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--border)",
-                        background: "var(--card)",
-                        color: "var(--card-foreground)",
-                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                      }}
-                    />
-                    <Bar
-                      yAxisId="ai"
-                      dataKey="aiConsultations"
-                      name="Hỏi đáp AI"
-                      fill="#10b981"
-                      fillOpacity={0.85}
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={36}
-                    />
-                    <Area
-                      yAxisId="visits"
-                      type="monotone"
-                      dataKey="visits"
-                      name="Lượt xem web"
-                      stroke="#0891b2"
-                      strokeWidth={2.5}
-                      fill="url(#visitsGradient)"
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                    />
-                  </>
-                )}
+                {/* Trục trái: doanh thu (đ) — Trục phải: số đơn, màu tick khớp màu series */}
+                <YAxis
+                  yAxisId="revenue"
+                  tickFormatter={compactVnd}
+                  tick={{ fontSize: 11, fill: "var(--chart-1)" }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={48}
+                />
+                <YAxis
+                  yAxisId="orders"
+                  orientation="right"
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: "var(--chart-2)" }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={28}
+                />
+                <Tooltip
+                  cursor={{ fill: "var(--muted)", opacity: 0.35 }}
+                  formatter={(value, name) =>
+                    name === "Doanh thu"
+                      ? [`${Number(value).toLocaleString("vi-VN")}đ`, name]
+                      : [`${Number(value)} đơn hiệu lực`, name]
+                  }
+                  labelFormatter={(label) => `Ngày ${label}`}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                    color: "var(--card-foreground)",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  }}
+                />
+                <Bar
+                  yAxisId="orders"
+                  dataKey="orders"
+                  name="Đơn hiệu lực"
+                  fill="var(--chart-2)"
+                  fillOpacity={0.85}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={36}
+                />
+                <Area
+                  yAxisId="revenue"
+                  type="monotone"
+                  dataKey="revenue"
+                  name="Doanh thu"
+                  stroke="var(--chart-1)"
+                  strokeWidth={2.5}
+                  fill="url(#revenueGradient)"
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
               </ComposedChart>
             </ResponsiveContainer>
-          ) : chartMetric === "business" ? (
-            /* BẢNG THÔNG MINH TRỰC TIẾP TRÊN GIAO DIỆN - KINH DOANH */
+          ) : (
+            /* BẢNG THÔNG MINH TRỰC TIẾP TRÊN GIAO DIỆN */
             <div className="overflow-x-auto h-full">
               <table className="w-full text-xs sm:text-sm text-left border-collapse">
                 <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-muted/60 sticky top-0 border-b border-border">
@@ -861,227 +666,64 @@ export default function Dashboard() {
                 </tfoot>
               </table>
             </div>
-          ) : (
-            /* BẢNG THÔNG MINH TRỰC TIẾP TRÊN GIAO DIỆN - LƯU LƯỢNG & AI */
-            <div className="overflow-x-auto h-full">
-              <table className="w-full text-xs sm:text-sm text-left border-collapse">
-                <thead className="text-[11px] uppercase tracking-wider text-muted-foreground bg-muted/60 sticky top-0 border-b border-border">
-                  <tr>
-                    <th className="py-2.5 px-3 font-semibold text-center w-12">#</th>
-                    <th className="py-2.5 px-3 font-semibold text-center">Ngày</th>
-                    <th className="py-2.5 px-3 font-semibold text-right">Lượt truy cập web</th>
-                    <th className="py-2.5 px-3 font-semibold text-center">Hỏi đáp AI Dinh Dưỡng</th>
-                    <th className="py-2.5 px-3 font-semibold text-right">Tỷ lệ tương tác AI</th>
-                    <th className="py-2.5 px-3 font-semibold">Đánh giá lưu lượng</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {chartData.map((d, idx) => {
-                    const visits = d.visits ?? 0;
-                    const ai = d.aiConsultations ?? 0;
-                    const rate = visits > 0 ? ((ai / visits) * 100).toFixed(1) : "0";
-                    return (
-                      <tr key={d.key} className="hover:bg-muted/40 transition-colors">
-                        <td className="py-2 px-3 text-center text-muted-foreground font-mono">{idx + 1}</td>
-                        <td className="py-2 px-3 text-center font-medium">
-                          {d.label}
-                        </td>
-                        <td className="py-2 px-3 text-right font-bold text-cyan-700">
-                          {visits.toLocaleString("vi-VN")} lượt
-                        </td>
-                        <td className="py-2 px-3 text-center">
-                          {ai > 0 ? (
-                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                              {ai} câu hỏi
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">0</span>
-                          )}
-                        </td>
-                        <td className="py-2 px-3 text-right text-muted-foreground font-medium">
-                          {ai > 0 ? `${rate}%` : "—"}
-                        </td>
-                        <td className="py-2 px-3">
-                          {visits >= 50 ? (
-                            <span className="text-xs text-amber-600 font-bold flex items-center gap-1">
-                              🔥 Sôi động
-                            </span>
-                          ) : visits > 0 ? (
-                            <span className="text-xs text-cyan-700 font-medium flex items-center gap-1">
-                              🟢 Ổn định
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/70">
-                              ⚪ Chưa có truy cập
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="border-t-2 border-border font-bold text-xs bg-muted/30 sticky bottom-0">
-                  <tr>
-                    <td colSpan={2} className="py-2.5 px-3 text-center text-primary">
-                      TỔNG CỘNG ({rangeDays} NGÀY)
-                    </td>
-                    <td className="py-2.5 px-3 text-right text-cyan-700 text-sm">
-                      {trafficSummary.visitsLabel}
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-emerald-800">
-                      {trafficSummary.aiLabel}
-                    </td>
-                    <td className="py-2.5 px-3 text-right text-muted-foreground">
-                      {trafficSummary.avgVisitsLabel}
-                    </td>
-                    <td className="py-2.5 px-3 text-muted-foreground text-[11px]">
-                      Thống kê thực tế từ PostgreSQL
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
           )}
         </div>
       </div>
 
-      {/* HAI KHỐI DỮ LIỆU: TOP SẢN PHẨM & TRANG ĐƯỢC XEM NHIỀU NHẤT */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* TOP SẢN PHẨM BÁN CHẠY */}
-        <div className="rounded-xl border bg-card shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-base sm:text-lg text-primary">Top sản phẩm bán chạy</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Xếp theo số lượng đã bán (chỉ tính đơn hiệu lực, không tính đơn huỷ)</p>
-            </div>
-            <Trophy className="w-5 h-5 text-accent" />
+      {/* TOP SẢN PHẨM BÁN CHẠY */}
+      <div className="rounded-xl border bg-card shadow-sm p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold text-lg text-primary">Top sản phẩm bán chạy</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Xếp theo số lượng đã bán (chỉ tính đơn hiệu lực, không tính đơn huỷ)</p>
           </div>
-
-          {topProducts.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Chưa có sản phẩm nào được bán trong kỳ.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs uppercase text-muted-foreground border-b border-border">
-                    <th className="py-2 pr-3 text-left font-semibold w-10">#</th>
-                    <th className="py-2 pr-3 text-left font-semibold">Sản phẩm</th>
-                    <th className="py-2 px-3 text-center font-semibold w-20">SL</th>
-                    <th className="py-2 pl-3 text-right font-semibold w-36">Doanh thu</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topProducts.map((p, idx) => (
-                    <tr key={p.key} className="border-b border-border/60 last:border-0">
-                      <td className="py-2.5 pr-3">
-                        <span className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
-                          idx === 0 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {idx + 1}
-                        </span>
-                      </td>
-                      <td className="py-2.5 pr-3">
-                        <div className="font-medium text-foreground">{p.name}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          {p.size && (
-                            <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border">
-                              {p.size}
-                            </span>
-                          )}
-                          <div className="h-1 rounded-full bg-muted w-24 overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${p.sharePct}%`, background: "var(--chart-2)" }} />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-3 text-center font-semibold text-primary">{p.quantity.toLocaleString("vi-VN")}</td>
-                      <td className="py-2.5 pl-3 text-right font-bold text-accent">{p.revenue.toLocaleString("vi-VN")}đ</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Trophy className="w-5 h-5 text-accent" />
         </div>
 
-        {/* TRANG ĐƯỢC XEM NHIỀU NHẤT (POSTGRESQL DATABASE THỰC TẾ) */}
-        <div className="rounded-xl border bg-card shadow-sm p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-base sm:text-lg text-primary flex items-center gap-2">
-                <span>Trang được xem nhiều nhất</span>
-                <span className="text-[10px] bg-cyan-100 text-cyan-800 font-semibold px-2 py-0.5 rounded-full">
-                  PostgreSQL
-                </span>
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Thống kê lưu lượng truy cập thực tế từ khách hàng</p>
-            </div>
-            <Compass className="w-5 h-5 text-cyan-600" />
-          </div>
-
-          {(stats.topVisitedPages?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Chưa có lượt truy cập nào được ghi nhận từ cơ sở dữ liệu.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs uppercase text-muted-foreground border-b border-border">
-                    <th className="py-2 pr-3 text-left font-semibold w-10">#</th>
-                    <th className="py-2 pr-3 text-left font-semibold">Trang / Đường dẫn</th>
-                    <th className="py-2 px-3 text-center font-semibold w-24">Lượt xem</th>
-                    <th className="py-2 pl-3 text-right font-semibold w-24">Số khách</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.topVisitedPages.map((page, idx) => {
-                    const maxVisits = stats.topVisitedPages[0]?.visitsCount || 1;
-                    const pct = Math.min(100, Math.round((page.visitsCount / maxVisits) * 100));
-                    const friendlyName =
-                      page.path === "/"
-                        ? "Trang chủ"
-                        : page.path === "/gioi-thieu"
-                        ? "Giới thiệu thương hiệu"
-                        : page.path === "/tu-chon-hat"
-                        ? "Xưởng chế tác hạt riêng"
-                        : page.path === "/san-pham"
-                        ? "Danh mục sản phẩm"
-                        : page.path.startsWith("/san-pham/")
-                        ? "Chi tiết sản phẩm"
-                        : page.path;
-
-                    return (
-                      <tr key={page.path} className="border-b border-border/60 last:border-0">
-                        <td className="py-2.5 pr-3">
-                          <span className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
-                            idx === 0 ? "bg-cyan-600 text-white" : "bg-muted text-muted-foreground"
-                          }`}>
-                            {idx + 1}
+        {topProducts.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">Chưa có sản phẩm nào được bán trong kỳ.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs uppercase text-muted-foreground border-b border-border">
+                  <th className="py-2 pr-3 text-left font-semibold w-10">#</th>
+                  <th className="py-2 pr-3 text-left font-semibold">Sản phẩm</th>
+                  <th className="py-2 px-3 text-center font-semibold w-20">SL</th>
+                  <th className="py-2 pl-3 text-right font-semibold w-36">Doanh thu</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topProducts.map((p, idx) => (
+                  <tr key={p.key} className="border-b border-border/60 last:border-0">
+                    <td className="py-2.5 pr-3">
+                      <span className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-bold ${
+                        idx === 0 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {idx + 1}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <div className="font-medium text-foreground">{p.name}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        {p.size && (
+                          <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border">
+                            {p.size}
                           </span>
-                        </td>
-                        <td className="py-2.5 pr-3">
-                          <div className="font-medium text-foreground">{friendlyName}</div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[140px] sm:max-w-[200px]" title={page.path}>
-                              {page.path}
-                            </span>
-                            <div className="h-1 rounded-full bg-muted w-20 overflow-hidden shrink-0">
-                              <div className="h-full rounded-full bg-cyan-600" style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-semibold text-cyan-700">
-                          {page.visitsCount.toLocaleString("vi-VN")}
-                        </td>
-                        <td className="py-2.5 pl-3 text-right font-medium text-muted-foreground">
-                          {page.uniqueVisitorsCount.toLocaleString("vi-VN")}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                        )}
+                        <div className="h-1 rounded-full bg-muted w-24 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${p.sharePct}%`, background: "var(--chart-2)" }} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-3 text-center font-semibold text-primary">{p.quantity.toLocaleString("vi-VN")}</td>
+                    <td className="py-2.5 pl-3 text-right font-bold text-accent">{p.revenue.toLocaleString("vi-VN")}đ</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

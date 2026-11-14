@@ -11,7 +11,7 @@ import {
   SidebarFooter,
   useSidebar
 } from "@/components/ui/sidebar"
-import { MessageSquare, Package, LayoutDashboard, LogOut, Globe, Ticket, CreditCard, ExternalLink } from "lucide-react"
+import { MessageSquare, Package, LayoutDashboard, LogOut, Globe, Ticket, CreditCard, ExternalLink, Activity } from "lucide-react"
 import React, { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
@@ -21,6 +21,7 @@ import { triggerPageNavigation } from "@/components/layout/RouteProgressBar"
 const items = [
   { title: "Tổng quan", url: "/dashboard", icon: LayoutDashboard },
   { title: "Đơn hàng", url: "/orders", icon: Package },
+  { title: "Lưu lượng & AI", url: "/analytics", icon: Activity },
   { title: "Nhắn tin", url: "/messenger", icon: MessageSquare },
   { title: "Nội dung Website", url: "/content", icon: Globe },
   { title: "Mã giảm giá", url: "/discounts", icon: Ticket },
