@@ -989,7 +989,7 @@ export default function CustomMixStudio() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
-        {/* BANNER TỰ CHỌN HẠT DINH DƯỠNG */}
+        {/* BANNER TỰ CHỌN HẠT DINH DƯỠNG: Giới hạn chiều cao vừa vặn trong tầm nhìn màn hình */}
         <section
           className="mb-6 sm:mb-8"
           aria-label={language === "en" ? "Custom nutritious nut mix banner" : "Banner tự chọn hạt dinh dưỡng"}
@@ -997,7 +997,7 @@ export default function CustomMixStudio() {
           <button
             type="button"
             onClick={() => scrollToStep("step1Section")}
-            className="group block w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FDE68A]/70 shadow-sm hover:shadow-lg transition-all cursor-pointer"
+            className="group relative block w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FDE68A]/80 shadow-sm hover:shadow-lg transition-all cursor-pointer h-[180px] sm:h-[220px] md:h-[260px] lg:h-[280px] max-h-[300px] bg-[#F7F3EB]"
           >
             <FastImage
               src={bannerUrl}
@@ -1006,11 +1006,10 @@ export default function CustomMixStudio() {
                   ? "Create your own nutritious nut mix – free to blend to your taste"
                   : "Tự chọn hạt dinh dưỡng – tự do phối trộn theo sở thích"
               }
-              width={2752}
-              height={1536}
+              fill
               priority
               sizes="(max-width: 1280px) 100vw, 1280px"
-              className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+              className="object-cover object-center w-full h-full transition-transform duration-500 group-hover:scale-[1.015]"
             />
           </button>
         </section>
