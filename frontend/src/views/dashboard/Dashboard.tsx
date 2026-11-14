@@ -187,8 +187,9 @@ export default function Dashboard() {
     },
     initialData: initialCached ?? undefined,
     initialDataUpdatedAt: 0,
-    refetchInterval: 5000,
-    staleTime: 0,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
 
   // Truy vấn danh sách đơn hàng để kiểm chứng và hiển thị số lượng đơn huỷ được loại trừ

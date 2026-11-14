@@ -57,6 +57,7 @@ export function useRealtimeSync() {
       queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
       queryClient.invalidateQueries({ queryKey: ["chat", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", "stats"] });
       queryClient.invalidateQueries({ queryKey: ["payment", "settings"] });
       queryClient.invalidateQueries({ queryKey: ["discounts", "admin"] });
     };
@@ -118,8 +119,14 @@ export function useRealtimeSync() {
     });
 
     // Lượt truy cập web mới hoặc câu hỏi AI mới → cập nhật số liệu Lưu lượng & AI realtime
+    // Sử dụng debounce 1000ms để tránh giật lag hay liên tục bắn request khi có nhiều lượt truy cập dồn dập
+    let analyticsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     connection.on("AnalyticsChanged", () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      if (analyticsDebounceTimer) clearTimeout(analyticsDebounceTimer);
+      analyticsDebounceTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["analytics", "stats"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      }, 1000);
     });
 
     // Cập nhật cấu hình nhận thanh toán (VietQR) → trang Quản trị thanh toán tải lại ngay
@@ -171,6 +178,7 @@ export function useRealtimeSync() {
     return () => {
       disposed = true;
       if (restartTimer) clearTimeout(restartTimer);
+      if (analyticsDebounceTimer) clearTimeout(analyticsDebounceTimer);
       connectionRef.current = null;
       // Nuốt lỗi "connection was stopped during negotiation" khi unmount giữa chừng.
       connection.stop().catch(() => {});

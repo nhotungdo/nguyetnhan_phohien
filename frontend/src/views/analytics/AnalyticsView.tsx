@@ -29,18 +29,46 @@ import { dashboardApi } from "@/services/api.service";
 import type { DashboardStatsResponse, DayPointDto } from "@/types/api.types";
 
 const RANGES = [7, 14, 30] as const;
+const ANALYTICS_CACHE_KEY = "analytics_stats_cache_v1";
+
+function readCachedAnalytics(): DashboardStatsResponse | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ANALYTICS_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedAnalytics(data: DashboardStatsResponse) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ANALYTICS_CACHE_KEY, JSON.stringify(data));
+  } catch {
+    /* QuotaExceededError */
+  }
+}
 
 export default function AnalyticsView() {
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
+  // Khôi phục số liệu ngay lập tức từ localStorage trong 0ms (chống chớp giật skeleton)
+  const initialCached = useMemo(() => readCachedAnalytics(), []);
+
   const { data: stats, isLoading, isFetching } = useQuery<DashboardStatsResponse>({
-    queryKey: ["dashboard", "stats"],
+    queryKey: ["analytics", "stats"],
     queryFn: async () => {
-      return await dashboardApi.getStats();
+      const data = await dashboardApi.getStats();
+      writeCachedAnalytics(data);
+      return data;
     },
-    refetchInterval: 3000,
-    staleTime: 0,
+    initialData: initialCached ?? undefined,
+    initialDataUpdatedAt: 0,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
 
   const chartData = useMemo<DayPointDto[]>(() => {
