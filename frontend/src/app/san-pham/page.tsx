@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { productApi } from "@/services/api.service";
@@ -42,7 +43,9 @@ export default async function SanPhamPage() {
     <HydrationBoundary state={state}>
       <StorefrontLayout>
         {/* Danh mục sản phẩm tương tác & So sánh chất lượng */}
-        <ProductCatalogView />
+        <Suspense fallback={<div className="min-h-[400px]" />}>
+          <ProductCatalogView />
+        </Suspense>
 
         {/* Form đặt hàng & Thanh toán trực tuyến */}
         <OrderSection />

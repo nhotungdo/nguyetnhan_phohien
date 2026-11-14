@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,6 +11,7 @@ import {
   Leaf,
   Phone,
   ChevronRight,
+  ChevronDown,
   LayoutDashboard,
   KeyRound,
 } from "lucide-react";
@@ -21,8 +22,10 @@ import { triggerPageNavigation } from "@/components/layout/RouteProgressBar";
 import { useLanguageStore } from "@/stores/useLanguageStore";
 import { useWebsiteContent } from "@/hooks/useWebsiteContent";
 import { useCartStore } from "@/stores/useCartStore";
+import { useProducts } from "@/hooks/useProducts";
 import { FastImage } from "@/components/FastImage";
-import { resolveCmsImage } from "@/lib/cmsImage";
+import { resolveCmsImage, resolveProductPrimaryImage } from "@/lib/cmsImage";
+import { DEFAULT_FALLBACK_PRODUCTS } from "@/data/defaultProducts";
 
 const subscribeAuth = (callback: () => void) => {
   window.addEventListener("storage", callback);
@@ -51,11 +54,107 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
+  const [isMobileProductOpen, setIsMobileProductOpen] = useState(false);
 
   const { t, language, setLanguage } = useLanguageStore();
   const { content: cmsContent } = useWebsiteContent();
   const { openCart, getTotalItems } = useCartStore();
   const totalCartItems = isMounted ? getTotalItems() : 0;
+
+  const { products: apiProducts } = useProducts();
+
+  const activeProducts = useMemo(() => {
+    const list = (apiProducts && apiProducts.length > 0 ? apiProducts : DEFAULT_FALLBACK_PRODUCTS)
+      .filter((p) => p.isActive !== false)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+    return list;
+  }, [apiProducts]);
+
+  const dropdownItems = useMemo(() => {
+    const items = [
+      {
+        id: "all",
+        title: language === "en" ? "All Products" : "Tất cả sản phẩm",
+        description:
+          language === "en"
+            ? "Explore all authentic Pho Hien specialty creations."
+            : "Khám phá toàn bộ đặc sản Nguyệt Nhãn Phố Hiến.",
+        image: "/images/combo3sp.jpg",
+        href: "/san-pham",
+        badge: null,
+        priceTag: null,
+      },
+      ...activeProducts.map((prod) => ({
+        id: prod.id,
+        title: prod.name,
+        description:
+          prod.description ||
+          (language === "en"
+            ? "Convective dried longan with nutritious nuts."
+            : "Long nhãn sấy nhiệt đối lưu kết hợp hạt dinh dưỡng."),
+        image: resolveProductPrimaryImage(prod),
+        href: `/san-pham?product=${encodeURIComponent(prod.id)}`,
+        badge: null,
+        priceTag:
+          prod.price > 0
+            ? `${prod.price.toLocaleString("vi-VN").replace(/,/g, ".")}đ${prod.size ? ` • ${prod.size}` : ""}`
+            : null,
+      })),
+      {
+        id: "custom-mix",
+        title: language === "en" ? "Bespoke Nut Studio" : "Tự chọn hạt dinh dưỡng",
+        description:
+          language === "en"
+            ? "Blend 5 premium nuts, pick packaging & personalize label."
+            : "Tự do phối 5 loại hạt, chọn bao bì & in tem nhãn riêng.",
+        image: resolveCmsImage(cmsContent?.CustomMix_BannerUrl) || "/images/banner_tu_chon_hat.png",
+        href: "/tu-chon-hat",
+        badge: language === "en" ? "New" : "Mới",
+        priceTag: language === "en" ? "From 69,000đ" : "Từ 69.000đ",
+      },
+    ];
+    return items;
+  }, [activeProducts, cmsContent, language]);
+
+  // Đóng dropdown khi click ra ngoài hoặc bấm Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        productDropdownRef.current &&
+        !productDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsProductDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProductDropdownOpen(false);
+      }
+    };
+
+    if (isProductDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isProductDropdownOpen]);
+
+  // Đóng dropdown khi chuyển route (chuẩn hóa theo React 19 không dùng setState trong effect)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsProductDropdownOpen(false);
+    setIsMobileProductOpen(false);
+  }
 
   useEffect(() => {
     let ticking = false;
@@ -132,6 +231,95 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
           <nav className="hidden xl:flex items-center gap-2 lg:gap-3 xl:gap-4.5 2xl:gap-6 shrink-0">
             {navLinks.map((item) => {
               const active = isLinkActive(item.href);
+
+              // Xử lý mục "Sản phẩm" với Menu Dropdown hiển thị sản phẩm trong database như ảnh mẫu
+              if (item.href === "/san-pham") {
+                return (
+                  <div key={item.href} className="relative" ref={productDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsProductDropdownOpen((prev) => !prev)}
+                      className={`text-xs lg:text-sm xl:text-[15px] font-semibold transition-all duration-300 ease-in-out flex items-center gap-1.5 py-1.5 px-3 rounded-full cursor-pointer select-none ${
+                        isProductDropdownOpen
+                          ? "bg-[#E5ECE7] text-primary font-bold shadow-xs"
+                          : active
+                            ? "text-accent font-bold bg-[#E8DFC8]/30"
+                            : "text-foreground/80 hover:text-accent hover:bg-black/5"
+                      }`}
+                      aria-expanded={isProductDropdownOpen}
+                      aria-haspopup="true"
+                    >
+                      <span>{item.label}</span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ease-out ${
+                          isProductDropdownOpen ? "rotate-180 text-primary" : "text-foreground/60"
+                        }`}
+                      />
+                    </button>
+
+                    {/* Popover Dropdown Card 2 cột theo ảnh mẫu */}
+                    <AnimatePresence>
+                      {isProductDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                          transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                          className="absolute top-full left-1/2 -translate-x-[40%] sm:-translate-x-1/2 pt-3 z-50 w-[640px] max-w-[calc(100vw-32px)]"
+                        >
+                          <div className="bg-white/98 backdrop-blur-md rounded-3xl border border-[#E8DFC8] p-5 sm:p-6 shadow-2xl shadow-stone-900/12">
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-5">
+                              {dropdownItems.map((prodItem) => (
+                                <Link
+                                  key={prodItem.id}
+                                  href={prodItem.href}
+                                  prefetch={true}
+                                  onClick={() => setIsProductDropdownOpen(false)}
+                                  className="group flex items-start gap-3.5 p-2.5 rounded-2xl hover:bg-[#FBF8F1] transition-all duration-200 cursor-pointer"
+                                >
+                                  {/* Thumbnail bên trái */}
+                                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl overflow-hidden border border-[#E8DFC8]/80 bg-[#FAF6EE] shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-300">
+                                    <FastImage
+                                      src={prodItem.image}
+                                      alt={prodItem.title}
+                                      fill
+                                      sizes="64px"
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+
+                                  {/* Thông tin bên phải */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <h4 className="text-[14px] sm:text-[15px] font-bold text-[#1C3A27] group-hover:text-accent transition-colors line-clamp-1">
+                                        {prodItem.title}
+                                      </h4>
+                                      {prodItem.badge && (
+                                        <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#A61C45] text-white shrink-0">
+                                          {prodItem.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="mt-0.5 text-xs text-stone-500 line-clamp-2 leading-relaxed [text-wrap:pretty]">
+                                      {prodItem.description}
+                                    </p>
+                                    {prodItem.priceTag && (
+                                      <p className="mt-1 text-[11px] font-semibold text-accent/90">
+                                        {prodItem.priceTag}
+                                      </p>
+                                    )}
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={item.href}
@@ -268,6 +456,97 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
 
               {navLinks.map((item, index) => {
                 const active = isLinkActive(item.href);
+
+                // Accordion sản phẩm trên Mobile
+                if (item.href === "/san-pham") {
+                  return (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.35, delay: 0.04 + index * 0.05, ease: EASE_OUT_EXPO }}
+                      className="border-b border-border/40"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setIsMobileProductOpen((prev) => !prev)}
+                        className={`w-full text-lg font-bold text-left py-2.5 flex items-center justify-between transition-colors cursor-pointer ${
+                          active ? "text-accent" : "text-primary hover:text-accent"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{item.label}</span>
+                          <span className="text-[11px] font-normal text-stone-500 bg-secondary px-2 py-0.5 rounded-full border border-border/60">
+                            {dropdownItems.length} {language === "en" ? "items" : "sản phẩm"}
+                          </span>
+                        </span>
+                        <ChevronDown
+                          className={`w-5 h-5 text-accent/70 transition-transform duration-200 ${
+                            isMobileProductOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+
+                      <AnimatePresence>
+                        {isMobileProductOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeInOut" }}
+                            className="overflow-hidden pb-3 space-y-2 pl-1"
+                          >
+                            {dropdownItems.map((prodItem) => (
+                              <Link
+                                key={`mobile-${prodItem.id}`}
+                                href={prodItem.href}
+                                prefetch={true}
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setIsMobileProductOpen(false);
+                                }}
+                                className="flex items-center gap-3 p-2 rounded-xl bg-[#FAF6EE] hover:bg-amber-100/60 border border-[#E8DFC8]/60 transition-colors"
+                              >
+                                <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-[#E8DFC8] bg-white shrink-0">
+                                  <FastImage
+                                    src={prodItem.image}
+                                    alt={prodItem.title}
+                                    fill
+                                    sizes="44px"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-sm font-bold text-primary truncate">
+                                      {prodItem.title}
+                                    </span>
+                                    {prodItem.badge && (
+                                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#A61C45] text-white">
+                                        {prodItem.badge}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {prodItem.priceTag ? (
+                                    <p className="text-[11px] font-semibold text-accent truncate">
+                                      {prodItem.priceTag}
+                                    </p>
+                                  ) : (
+                                    <p className="text-[11px] text-stone-500 truncate">
+                                      {prodItem.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                }
+
                 return (
                   <motion.div
                     key={item.href}

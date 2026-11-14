@@ -401,26 +401,87 @@ export function HomeView() {
       </section>
 
       {/* 5. Banner Studio Tự Chọn Hạt Độc Bản */}
-      <section className="bg-secondary/70 border-y border-border py-12 sm:py-16">
-        <div className="container mx-auto px-4 md:px-6 max-w-6xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="max-w-xl">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary bg-amber-200/60 px-3 py-1 rounded-full mb-3 inline-block">
-              Trải Nghiệm Độc Bản
+      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-[#F7F3EB] via-[#FBF8F1] to-background overflow-hidden border-y border-[#E8DFC8]/60">
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+          {/* Lời dẫn phía trên */}
+          <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary bg-amber-200/70 border border-amber-300/80 px-3.5 py-1 rounded-full mb-3 shadow-xs">
+              <span className="inline-block w-2 h-2 rounded-full bg-accent animate-pulse" />
+              {language === "en" ? "Bespoke Nut Studio" : "Trải Nghiệm Độc Bản"}
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
-              {language === "en" ? "Bespoke Custom Mix Studio" : "Phối Một Hộp Hạt Theo Ý Bạn"}
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary tracking-tight [text-wrap:balance]">
+              {language === "en" ? "Design Your Own Signature Nut Box" : "Xưởng Tự Chọn Hạt Dinh Dưỡng Phố Hiến"}
             </h2>
             <p className="mt-2 text-foreground/80 leading-relaxed text-sm sm:text-base [text-wrap:pretty]">
-              Tự tay lựa chọn tỉ lệ 5 loại hạt, chọn mẫu bao bì hộp quà cao cấp và in tem nhãn mang tên riêng của bạn hoặc người thương.
+              {language === "en"
+                ? "Freely customize your nut blend, select bespoke gift packaging, and print personalized labels for you or your loved ones."
+                : "Tự tay lựa chọn tỉ lệ 5 loại hạt thượng hạng, chọn mẫu bao bì trang nhã và in tem nhãn mang tên riêng trao gửi tâm ý."}
             </p>
           </div>
+
+          {/* Banner tương tác trực quan */}
           <Link
             href="/tu-chon-hat"
             prefetch={true}
-            className="inline-flex items-center gap-2 bg-card border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-xl px-6 py-3.5 font-bold transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base"
+            className="group relative block w-full rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#E8DFC8] hover:border-[#D4AF37] shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 bg-white cursor-pointer"
+            aria-label="Vào Studio Tự Chọn Hạt Dinh Dưỡng"
           >
-            <span>{t.nav.custom_mix || "Vào Studio Tự Chọn Hạt"}</span>
-            <ArrowRight className="w-4 h-4" />
+            <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.2/1] overflow-hidden bg-[#F4EFE6]">
+              <FastImage
+                src={resolveCmsImage(cmsContent?.CustomMix_BannerUrl) || "/images/banner_tu_chon_hat.png"}
+                alt="Banner Tự Chọn Hạt Dinh Dưỡng Nguyệt Nhãn Phố Hiến"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1152px"
+                className="object-cover object-center w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+              />
+
+              {/* Gradient che viền nhẹ tạo độ sâu */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+
+              {/* Nút Floating CTA góc dưới */}
+              <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center gap-2 bg-primary/95 hover:bg-primary backdrop-blur-md text-[#FDE68A] group-hover:text-white px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm lg:text-base shadow-xl border border-[#FDE68A]/40 transition-all duration-300 group-hover:scale-105">
+                <span>{language === "en" ? "Launch Studio Now" : "Bắt Đầu Trải Nghiệm Mix Ngay"}</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </div>
+
+              {/* Tag MỚI góc trái */}
+              <div className="absolute top-3 left-3 sm:top-5 sm:left-5">
+                <span className="inline-flex items-center gap-1.5 bg-[#A61C45] text-white text-[11px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-lg">
+                  ★ {language === "en" ? "Exclusive" : "Tính Năng Mới"}
+                </span>
+              </div>
+            </div>
+
+            {/* Dải thông tin bổ trợ chân banner */}
+            <div className="bg-[#FAF6EE] px-4 sm:px-8 py-3.5 sm:py-4.5 border-t border-[#E8DFC8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-foreground/80">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-6 font-medium">
+                <span className="flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
+                  Long Nhãn Phố Hiến
+                </span>
+                <span className="flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
+                  Hạt Điều Bình Phước
+                </span>
+                <span className="flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
+                  Hạnh Nhân Mỹ
+                </span>
+                <span className="flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
+                  Mắc Ca Lâm Đồng
+                </span>
+                <span className="flex items-center gap-1.5 text-primary font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B45309]" />
+                  Hạt Bí Xanh Ấn Độ
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-accent font-bold group-hover:underline shrink-0">
+                <span>{language === "en" ? "Customize Now" : "Tự do phối tỷ lệ"}</span>
+                <ChevronRight className="w-4 h-4" />
+              </div>
+            </div>
           </Link>
         </div>
       </section>

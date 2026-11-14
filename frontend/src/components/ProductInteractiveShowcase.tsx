@@ -25,6 +25,7 @@ interface ProductInteractiveShowcaseProps {
   onOrderProduct: (productId: string) => void;
   onOpenGallery: (product: ProductResponse) => void;
   onAddToCart?: (product: ProductResponse) => void;
+  targetProductId?: string | null;
 }
 
 // Dữ liệu mở rộng điểm chạm (Hotspots) cho sản phẩm theo ngôn ngữ
@@ -70,6 +71,7 @@ export function ProductInteractiveShowcase({
   onOrderProduct,
   onOpenGallery,
   onAddToCart,
+  targetProductId,
 }: ProductInteractiveShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const displayProducts = products && products.length > 0 ? products : DEFAULT_FALLBACK_PRODUCTS;
@@ -80,6 +82,37 @@ export function ProductInteractiveShowcase({
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeProduct = displayProducts[selectedIndex] || displayProducts[0];
   const hotspots = getProductHotspots(language);
+
+  const [prevTargetId, setPrevTargetId] = useState(targetProductId);
+  if (prevTargetId !== targetProductId) {
+    setPrevTargetId(targetProductId);
+    if (targetProductId) {
+      const normalizedTarget = targetProductId.toLowerCase();
+      const idx = displayProducts.findIndex((p) => {
+        if (p.id.toLowerCase() === normalizedTarget) return true;
+        const normalizedName = p.name.toLowerCase();
+        if (normalizedTarget.includes("tui-zip") && (normalizedName.includes("túi zip") || normalizedName.includes("tứ dã"))) return true;
+        if (normalizedTarget.includes("dac-biet") && (normalizedName.includes("ngọc nhãn") || normalizedName.includes("tiến vua"))) return true;
+        if (normalizedTarget.includes("set-qua") && (normalizedName.includes("set quà") || normalizedName.includes("vọng nguyệt"))) return true;
+        return normalizedName.includes(normalizedTarget);
+      });
+      if (idx >= 0 && idx !== selectedIndex) {
+        setSelectedIndex(idx);
+      }
+    }
+  }
+
+  // Cuộn mượt tới khu vực sản phẩm khi được chọn từ URL hoặc menu header
+  useEffect(() => {
+    if (!targetProductId) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById("san-pham");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [targetProductId]);
 
   useEffect(() => {
     return () => {
