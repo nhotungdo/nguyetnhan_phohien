@@ -4,11 +4,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Application.DTOs.Ai;
 using NguyetnhanPhohien.Application.Interfaces;
 using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Infrastructure.Persistence;
+using NguyetnhanPhohien.Infrastructure.Services;
 
 namespace NguyetnhanPhohien.API.Controllers;
 
@@ -19,15 +23,21 @@ public class NutritionAiController : ControllerBase
 {
     private readonly INutritionAiService _nutritionAiService;
     private readonly AppDbContext _db;
+    private readonly IMemoryCache _cache;
+    private readonly IHubContext<ProductsHub> _hubContext;
     private readonly ILogger<NutritionAiController> _logger;
 
     public NutritionAiController(
         INutritionAiService nutritionAiService,
         AppDbContext db,
+        IMemoryCache cache,
+        IHubContext<ProductsHub> hubContext,
         ILogger<NutritionAiController> logger)
     {
         _nutritionAiService = nutritionAiService;
         _db = db;
+        _cache = cache;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -48,6 +58,17 @@ public class NutritionAiController : ControllerBase
 
             _db.NutritionAiUsages.Add(usage);
             await _db.SaveChangesAsync();
+
+            // Xóa cache dashboard và phát sự kiện realtime
+            _cache.Remove(DashboardService.CacheKey);
+            try
+            {
+                await _hubContext.Clients.All.SendAsync(ProductsHub.AnalyticsChangedEvent);
+            }
+            catch (Exception hubEx)
+            {
+                _logger.LogWarning(hubEx, "Không thể phát sự kiện SignalR AnalyticsChanged từ NutritionAiController.");
+            }
         }
         catch (Exception ex)
         {

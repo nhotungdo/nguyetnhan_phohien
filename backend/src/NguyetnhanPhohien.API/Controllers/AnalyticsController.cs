@@ -3,8 +3,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
+using NguyetnhanPhohien.API.Hubs;
 using NguyetnhanPhohien.Domain.Entities;
 using NguyetnhanPhohien.Infrastructure.Persistence;
+using NguyetnhanPhohien.Infrastructure.Services;
 
 namespace NguyetnhanPhohien.API.Controllers;
 
@@ -21,11 +25,19 @@ public class TrackVisitRequest
 public class AnalyticsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IMemoryCache _cache;
+    private readonly IHubContext<ProductsHub> _hubContext;
     private readonly ILogger<AnalyticsController> _logger;
 
-    public AnalyticsController(AppDbContext db, ILogger<AnalyticsController> logger)
+    public AnalyticsController(
+        AppDbContext db,
+        IMemoryCache cache,
+        IHubContext<ProductsHub> hubContext,
+        ILogger<AnalyticsController> logger)
     {
         _db = db;
+        _cache = cache;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -82,6 +94,19 @@ public class AnalyticsController : ControllerBase
 
             _db.WebsiteVisits.Add(visit);
             await _db.SaveChangesAsync();
+
+            // Xóa cache dashboard để lần query tiếp theo luôn đọc số liệu thực mới nhất từ database
+            _cache.Remove(DashboardService.CacheKey);
+
+            // Bắn tín hiệu SignalR realtime cho quản trị viên đang mở trang
+            try
+            {
+                await _hubContext.Clients.All.SendAsync(ProductsHub.AnalyticsChangedEvent);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Không thể phát sự kiện SignalR AnalyticsChanged.");
+            }
 
             return Ok(new { success = true });
         }

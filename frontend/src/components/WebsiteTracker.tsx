@@ -48,9 +48,10 @@ export function WebsiteTracker() {
 
     if (isAdminRoute) return;
 
-    // Tránh gửi lặp nhiều lần nếu component re-render cùng một đường dẫn trong 3 giây
+    // Trong môi trường development (React StrictMode), effect chạy 2 lần trong < 400ms.
+    // Ở production, mỗi lần người dùng truy cập hoặc tải lại trang đều được tính là 1 lượt truy cập.
     const now = Date.now();
-    if (lastTrackedRef.current.path === pathname && now - lastTrackedRef.current.time < 3000) {
+    if (process.env.NODE_ENV === "development" && lastTrackedRef.current.path === pathname && now - lastTrackedRef.current.time < 400) {
       return;
     }
     lastTrackedRef.current = { path: pathname, time: now };
@@ -64,6 +65,8 @@ export function WebsiteTracker() {
       visitorId,
       referrer,
       deviceType,
+    }).catch(() => {
+      // Bỏ qua lỗi ngầm nếu có sự cố mạng
     });
   }, [pathname]);
 

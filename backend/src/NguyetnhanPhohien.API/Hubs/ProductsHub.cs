@@ -45,6 +45,11 @@ public class ProductsHub : Hub
     public const string SessionsChangedEvent = "SessionsChanged";
 
     /// <summary>
+    /// Thống kê lưu lượng truy cập hoặc hỏi đáp AI đổi → client invalidate ["dashboard","stats"].
+    /// </summary>
+    public const string AnalyticsChangedEvent = "AnalyticsChanged";
+
+    /// <summary>
     /// Group chỉ chứa các tab Admin đã đăng nhập. Sự kiện đơn hàng / phiên chat
     /// KHÔNG được phát cho khách vãng lai: chúng chỉ chứa thông tin vận hành nội bộ
     /// (có đơn mới lúc nào), khách không cần biết.

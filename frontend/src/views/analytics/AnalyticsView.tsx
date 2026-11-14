@@ -39,7 +39,8 @@ export default function AnalyticsView() {
     queryFn: async () => {
       return await dashboardApi.getStats();
     },
-    staleTime: 30 * 1000,
+    refetchInterval: 3000,
+    staleTime: 0,
   });
 
   const chartData = useMemo<DayPointDto[]>(() => {

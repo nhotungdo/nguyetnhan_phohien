@@ -457,11 +457,12 @@ export const dashboardApi = {
 
 // ===== ANALYTICS TRACKING API =====
 export const analyticsApi = {
-  /** Ghi nhận lượt truy cập trang web (non-blocking) */
+  /** Ghi nhận lượt truy cập trang web (non-blocking, keepalive khi reload trang) */
   trackVisit: (data: { path: string; visitorId?: string; referrer?: string; deviceType?: string }): Promise<void> =>
     apiFetch("/api/analytics/track-visit", {
       method: "POST",
       body: JSON.stringify(data),
+      keepalive: true,
     })
       .then(() => {})
       .catch(() => {}),

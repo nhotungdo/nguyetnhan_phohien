@@ -117,6 +117,11 @@ export function useRealtimeSync() {
       queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
     });
 
+    // Lượt truy cập web mới hoặc câu hỏi AI mới → cập nhật số liệu Lưu lượng & AI realtime
+    connection.on("AnalyticsChanged", () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+    });
+
     // Cập nhật cấu hình nhận thanh toán (VietQR) → trang Quản trị thanh toán tải lại ngay
     connection.on("PaymentSettingsChanged", () => {
       queryClient.invalidateQueries({ queryKey: ["payment", "settings"] });
