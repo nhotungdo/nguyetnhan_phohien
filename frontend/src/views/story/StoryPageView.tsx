@@ -565,11 +565,11 @@ export function StoryPageView() {
 
           <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-2xs flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <Crown className="w-5 h-5" />
+              <Award className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-serif font-bold text-xs sm:text-sm text-stone-900">Chuẩn Vệ Sinh ISO/HACCP</h4>
-              <p className="text-[11px] text-stone-500">Sấy đối lưu khép kín an toàn tuyệt đối.</p>
+              <h4 className="font-serif font-bold text-xs sm:text-sm text-stone-900">{isEn ? "Certified OCOP Specialty" : "Đặc Sản OCOP Hưng Yên"}</h4>
+              <p className="text-[11px] text-stone-500">{isEn ? "Certified provincial specialty standard." : "Chứng nhận Mỗi Xã Một Sản Phẩm tỉnh Hưng Yên."}</p>
             </div>
           </div>
         </div>
