@@ -105,7 +105,7 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 1. HERO BANNER: THƯỚC PHIM CẢM XÚC DI SẢN               */}
       {/* ======================================================== */}
-      <section className="relative min-h-[520px] sm:min-h-[580px] lg:min-h-[620px] flex items-center justify-center bg-[#132A22] text-[#FAF8F5] overflow-hidden px-4 sm:px-6 lg:px-12 py-16 sm:py-20">
+      <section className="relative min-h-[560px] sm:min-h-[620px] lg:min-h-[660px] flex items-center justify-center bg-[#132A22] text-[#FAF8F5] overflow-hidden px-4 sm:px-6 lg:px-12 py-16 sm:py-24">
         {/* Hình nền mờ ảo giàu chất thơ */}
         <div className="absolute inset-0 z-0">
           <FastImage
@@ -121,43 +121,43 @@ export function StoryPageView() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.18)_0%,transparent_75%)]" />
         </div>
 
-        <div className="relative z-10 max-w-3xl mx-auto text-center space-y-5 sm:space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#E7CBA0] text-xs sm:text-sm font-medium shadow-sm">
-            <Crown className="w-3.5 h-3.5 text-[#E7CBA0]" />
-            <span className="tracking-widest uppercase">
+        <div className="relative z-10 max-w-3xl mx-auto text-center space-y-6 sm:space-y-8">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#E7CBA0] text-sm sm:text-base font-semibold shadow-sm">
+            <Crown className="w-4 h-4 text-[#E7CBA0]" />
+            <span className="tracking-widest uppercase text-xs sm:text-sm">
               {isEn ? "Royal Heritage Chronicle" : "Ký Sự Di Sản Hoàng Gia"}
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-medium text-white tracking-tight leading-[1.2] [text-wrap:balance]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-medium text-white tracking-tight leading-[1.15] [text-wrap:balance]">
             {isEn
               ? "A Tale from the Land of Longan"
               : "Một Câu Chuyện Từ Miền Đất Nhãn"}
           </h1>
 
-          <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-[#E9D5B4] max-w-xl mx-auto leading-relaxed">
+          <p className="font-serif italic text-xl sm:text-2xl md:text-3xl text-[#E9D5B4] max-w-2xl mx-auto leading-relaxed">
             &ldquo;Nơi hương vị truyền thống được nâng niu qua từng món quà.&rdquo;
           </p>
 
-          <p className="text-sm sm:text-base text-stone-300 max-w-xl mx-auto font-normal leading-relaxed [text-wrap:pretty]">
+          <p className="text-base sm:text-lg md:text-xl text-stone-300 max-w-2xl mx-auto font-normal leading-relaxed [text-wrap:pretty]">
             {isEn
               ? "Journey back to the 16th-century Red River port, discovering the 300-year-old mother tree of Hien Pagoda and the artisanal craft of royal tribute longan."
               : "Hành trình tìm về thương cảng sầm uất thế kỷ 16–17, nơi giọt phù sa sông Hồng kết tinh thành thức quả ngọc tiến vua chốn hoàng cung."}
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <a
               href="#vung-dat-pho-hien"
-              className="inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 rounded-full bg-[#E5CCA0] hover:bg-[#D8BA88] text-[#241B16] font-semibold text-xs sm:text-sm transition-all shadow-md hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2.5 px-7 py-3 sm:py-3.5 rounded-full bg-[#E5CCA0] hover:bg-[#D8BA88] text-[#241B16] font-bold text-sm sm:text-base transition-all shadow-md hover:scale-105 active:scale-95"
             >
               <span>{isEn ? "Explore The Heritage" : "Khám Phá Cội Nguồn"}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </a>
             <a
               href="#tu-lieu-ky-su"
-              className="inline-flex items-center gap-2 px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm backdrop-blur-xs border border-white/25 transition-all"
+              className="inline-flex items-center gap-2.5 px-7 py-3 sm:py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-sm sm:text-base backdrop-blur-xs border border-white/25 transition-all"
             >
-              <Landmark className="w-4 h-4 text-[#E5CCA0]" />
+              <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-[#E5CCA0]" />
               <span>{isEn ? "Watch Documentary" : "Xem Thước Phim Ký Sự"}</span>
             </a>
           </div>
@@ -167,8 +167,8 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 2. CỘI NGUỒN: VÙNG ĐẤT PHỐ HIẾN & CÂY NHÃN TỔ CHÙA HIẾN    */}
       {/* ======================================================== */}
-      <section id="vung-dat-pho-hien" className="py-12 sm:py-16 lg:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <section id="vung-dat-pho-hien" className="py-14 sm:py-20 lg:py-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           
           {/* Cột Trái: Trưng bày nhiếp ảnh di tích nghệ thuật */}
           <div className="lg:col-span-5 relative group">
@@ -183,84 +183,84 @@ export function StoryPageView() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
-              <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 text-white space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#E5CCA0]">
-                  <Landmark className="w-4 h-4" />
+              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/45 backdrop-blur-md border border-white/20 text-white space-y-1">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#E5CCA0]">
+                  <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{isEn ? "National Historic Monument" : "Di Tích Lịch Sử Quốc Gia"}</span>
                 </div>
-                <h3 className="font-serif font-bold text-sm sm:text-base text-white">
+                <h3 className="font-serif font-bold text-base sm:text-lg text-white">
                   {isEn ? "Hien Pagoda & The 300-Year Ancestral Tree" : "Chùa Hiến & Cây Nhãn Tổ 300 Năm"}
                 </h3>
               </div>
             </div>
           </div>
 
-          {/* Cột Phải: Lời văn ký sự súc tích, dễ hiểu */}
-          <div className="lg:col-span-7 space-y-5">
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold tracking-widest text-[#8C6D53] uppercase flex items-center gap-2">
-                <span className="w-5 h-px bg-[#8C6D53]" />
+          {/* Cột Phải: Lời văn ký sự súc tích, dễ nhìn và chữ to rõ */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="space-y-2">
+              <span className="text-xs sm:text-sm font-bold tracking-widest text-[#8C6D53] uppercase flex items-center gap-2">
+                <span className="w-8 h-px bg-[#8C6D53]" />
                 {isEn ? "Historic Homeland" : "Cội Nguồn Phố Cảng"}
               </span>
 
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
                 {isEn ? "The Heritage Land of Pho Hien" : "Vùng Đất Phố Hiến"}
               </h2>
 
-              <p className="font-serif italic text-sm sm:text-base text-amber-900/90 leading-snug">
+              <p className="font-serif italic text-base sm:text-lg md:text-xl text-amber-900/90 leading-snug">
                 {isEn
                   ? "Rich history and timeless cultural values of our homeland."
                   : "Lịch sử và những giá trị văn hóa quê hương ngàn năm."}
               </p>
             </div>
 
-            {/* Ca dao xưa ngắn gọn */}
-            <div className="p-3.5 sm:p-4 rounded-xl bg-[#F6EFE5] border-l-4 border-[#8C6D53] text-[#422D1D]">
-              <p className="font-serif italic text-sm sm:text-base leading-relaxed">
+            {/* Ca dao xưa to rõ, trang trọng */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#F6EFE5] border-l-4 border-[#8C6D53] text-[#422D1D] shadow-2xs">
+              <p className="font-serif italic text-base sm:text-lg md:text-xl leading-relaxed">
                 &ldquo;Thứ nhất Kinh Kỳ, thứ nhì Phố Hiến.
                 <br />
                 Dù ai buôn Bắc bán Đông, đố ai quên được nhãn lồng Hưng Yên.&rdquo;
               </p>
             </div>
 
-            {/* 2 Điểm nhấn súc tích thay cho đoạn văn dài */}
-            <div className="space-y-3 text-stone-700 text-xs sm:text-sm leading-relaxed">
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+            {/* 2 Điểm nhấn súc tích, chữ to rõ ràng */}
+            <div className="space-y-4 text-stone-700 text-sm sm:text-base md:text-lg leading-relaxed">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <strong className="text-stone-900 font-semibold">{isEn ? "Golden Trading Port: " : "Thương Cảng Đệ Nhị (Thế kỷ 16–17): "}</strong>
+                  <strong className="text-stone-900 font-bold">{isEn ? "Golden Trading Port: " : "Thương Cảng Đệ Nhị (Thế kỷ 16–17): "}</strong>
                   <span>{isEn ? "Dang Ngoai's most bustling international port, where foreign merchant ships fell in love with autumn longan." : "Tàu buôn Á – Âu tấp nập cập bến sông Hồng giao thương, say đắm vị nhãn chín mọng mùa thu."}</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <strong className="text-stone-900 font-semibold">{isEn ? "Alluvial Terroir & Ancestral Tree: " : "Đất Mẹ Phù Sa & Cây Nhãn Tổ: "}</strong>
+                  <strong className="text-stone-900 font-bold">{isEn ? "Alluvial Terroir & Ancestral Tree: " : "Đất Mẹ Phù Sa & Cây Nhãn Tổ: "}</strong>
                   <span>{isEn ? "Red River mineral silt and the 300-year-old tree at Hien Pagoda give birth to crisp, honey-sweet royal longan." : "Lớp phù sa màu mỡ và bóng mát Chùa Hiến kết tinh nên giống nhãn Hương Chi cùi dày, ráo giòn ngọt thanh tiến vua."}</span>
                 </div>
               </div>
             </div>
 
-            {/* 3 Nét nhận diện độc bản dạng thẻ nhỏ gọn */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-white border border-[#E8DFC8] shadow-2xs space-y-1">
-                <h3 className="font-bold text-xs text-stone-900">Cùi Dày Giòn Ráo</h3>
-                <p className="text-[11px] text-stone-600 leading-snug">Bóc ráo ngón tay, cắn vào giòn sần sật không chảy nước.</p>
+            {/* 3 Nét nhận diện độc bản dạng thẻ chữ to, thoáng đãng */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
+              <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs space-y-1.5">
+                <h3 className="font-bold text-sm sm:text-base text-stone-900">Cùi Dày Giòn Ráo</h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">Bóc ráo ngón tay, cắn vào giòn sần sật không chảy nước.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-[#E8DFC8] shadow-2xs space-y-1">
-                <h3 className="font-bold text-xs text-stone-900">Sắc Vàng Hổ Phách</h3>
-                <p className="text-[11px] text-stone-600 leading-snug">Ánh vàng cánh gián trong suốt lưu giữ trọn vẹn mật hoa.</p>
+              <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs space-y-1.5">
+                <h3 className="font-bold text-sm sm:text-base text-stone-900">Sắc Vàng Hổ Phách</h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">Ánh vàng cánh gián trong suốt lưu giữ trọn vẹn mật hoa.</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-[#E8DFC8] shadow-2xs space-y-1">
-                <h3 className="font-bold text-xs text-stone-900">Ngọt Hậu Sâu Lắng</h3>
-                <p className="text-[11px] text-stone-600 leading-snug">Vị ngọt thanh đượm hương hoa đọng lại lâu nơi cổ họng.</p>
+              <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs space-y-1.5">
+                <h3 className="font-bold text-sm sm:text-base text-stone-900">Ngọt Hậu Sâu Lắng</h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">Vị ngọt thanh đượm hương hoa đọng lại lâu nơi cổ họng.</p>
               </div>
             </div>
           </div>
@@ -271,39 +271,39 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 3. TINH HOA: TỪ NHÃN ĐẾN MÓN QUÀ THỰC DƯỠNG              */}
       {/* ======================================================== */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-[#F5ECE0]/60 border-y border-[#E8DFC8]">
+      <section className="py-14 sm:py-20 lg:py-24 bg-[#F5ECE0]/60 border-y border-[#E8DFC8]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
             
             {/* Lời tự sự tinh hoa mỹ vị */}
-            <div className="lg:col-span-7 space-y-5 order-2 lg:order-1">
-              <div className="space-y-1.5">
-                <span className="text-xs font-semibold tracking-widest text-[#8C6D53] uppercase flex items-center gap-2">
-                  <span className="w-5 h-px bg-[#8C6D53]" />
+            <div className="lg:col-span-7 space-y-6 order-2 lg:order-1">
+              <div className="space-y-2">
+                <span className="text-xs sm:text-sm font-bold tracking-widest text-[#8C6D53] uppercase flex items-center gap-2">
+                  <span className="w-8 h-px bg-[#8C6D53]" />
                   {isEn ? "The Culinary Essence" : "Tinh Hoa Mỹ Vị"}
                 </span>
 
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
                   {isEn ? "From Pure Longan to Meaningful Gift" : "Từ Nhãn Đến Món Quà"}
                 </h2>
 
-                <p className="font-serif italic text-sm sm:text-base text-amber-900/90 leading-snug">
+                <p className="font-serif italic text-base sm:text-lg md:text-xl text-amber-900/90 leading-snug">
                   {isEn
                     ? "The exquisite harmony of longan, lotus seeds, and nutritious nuts."
                     : "Sự hòa quyện giữa long nhãn, hạt sen và hạt dinh dưỡng."}
                 </p>
               </div>
 
-              {/* Tóm tắt ngắn gọn thay cho đoạn văn dài */}
-              <div className="space-y-2.5 text-stone-700 text-xs sm:text-sm leading-relaxed">
+              {/* Tóm tắt to rõ, dễ theo dõi */}
+              <div className="space-y-3.5 text-stone-700 text-sm sm:text-base md:text-lg leading-relaxed">
                 <p>
-                  <strong className="text-stone-900 font-semibold">{isEn ? "Imperial Wellness: " : "Phong vị ngự thiện: "}</strong>
+                  <strong className="text-stone-900 font-bold">{isEn ? "Imperial Wellness: " : "Phong vị ngự thiện: "}</strong>
                   {isEn
                     ? "Ancient court physicians revered longan as 'Dragon Eye' to nourish blood, calm the mind, and restore vitality."
                     : "Các ngự y cung đình ca ngợi long nhãn là vị thuốc quý giúp bổ huyết, an thần dưỡng tâm và kiện tỳ."}
                 </p>
                 <p>
-                  <strong className="text-stone-900 font-semibold">{isEn ? "Modern Harmony: " : "Giao thoa đương đại: "}</strong>
+                  <strong className="text-stone-900 font-bold">{isEn ? "Modern Harmony: " : "Giao thoa đương đại: "}</strong>
                   {isEn
                     ? "Dried longan is delicately paired with northern lotus seeds and premium nuts (almond, walnut, cashew, macadamia) for wholesome daily tea."
                     : "Long nhãn sấy dẻo kết hợp tài tình cùng hạt sen Bắc bùi ngậy và hạt thực dưỡng (mắc ca, hạnh nhân, hạt điều), trọn vẹn ân tình sức khỏe."}
@@ -311,16 +311,16 @@ export function StoryPageView() {
               </div>
 
               {/* Bộ điều khiển chọn xem nguyên liệu */}
-              <div className="p-3.5 rounded-xl bg-white border border-[#E8DFC8] space-y-2.5">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                  <Coffee className="w-3.5 h-3.5 text-amber-800" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFC8] space-y-3 shadow-xs">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-stone-600 uppercase tracking-wider">
+                  <Coffee className="w-4 h-4 text-amber-800" />
                   <span>{isEn ? "Explore The Ingredients" : "Bộ Ba Nguyên Liệu Dưỡng Sinh"}</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2.5">
                   <button
                     type="button"
                     onClick={() => setActiveIngredientTab("longan")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                       activeIngredientTab === "longan"
                         ? "bg-[#3D263A] text-white shadow-xs"
                         : "bg-stone-100 text-stone-700 hover:bg-stone-200"
@@ -331,7 +331,7 @@ export function StoryPageView() {
                   <button
                     type="button"
                     onClick={() => setActiveIngredientTab("lotus")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                       activeIngredientTab === "lotus"
                         ? "bg-[#3D263A] text-white shadow-xs"
                         : "bg-stone-100 text-stone-700 hover:bg-stone-200"
@@ -342,7 +342,7 @@ export function StoryPageView() {
                   <button
                     type="button"
                     onClick={() => setActiveIngredientTab("nuts")}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                       activeIngredientTab === "nuts"
                         ? "bg-[#3D263A] text-white shadow-xs"
                         : "bg-stone-100 text-stone-700 hover:bg-stone-200"
@@ -352,7 +352,7 @@ export function StoryPageView() {
                   </button>
                 </div>
 
-                <p className="text-xs text-stone-600 italic">
+                <p className="text-xs sm:text-sm md:text-base text-stone-600 italic leading-relaxed pt-1">
                   {activeIngredientTab === "longan" &&
                     (isEn
                       ? "Crisp, thick-pulp longan dried over wood fire, caramelizing natural nectar into glowing amber."
@@ -382,12 +382,12 @@ export function StoryPageView() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 
-                <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 text-white space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#E5CCA0]">
-                    <Leaf className="w-4 h-4" />
+                <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/45 backdrop-blur-md border border-white/20 text-white space-y-1">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#E5CCA0]">
+                    <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>{isEn ? "Artisanal Selection" : "Nguyên Liệu Thuần Khiết"}</span>
                   </div>
-                  <h3 className="font-serif font-bold text-sm sm:text-base text-white">
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-white">
                     {isEn ? "Royal Longan & Lotus Harmony" : "Hộp Quà Long Nhãn Ôm Sen"}
                   </h3>
                 </div>
@@ -401,19 +401,19 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 4. HÀNH TRÌNH CHẾ TÁC: KỲ CÔNG NGHỆ NHÂN                  */}
       {/* ======================================================== */}
-      <section className="py-12 sm:py-16 lg:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12 space-y-2">
-          <span className="text-xs font-semibold tracking-widest text-[#8C6D53] uppercase flex items-center justify-center gap-2">
-            <span className="w-5 h-px bg-[#8C6D53]" />
+      <section className="py-14 sm:py-20 lg:py-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14 space-y-2.5">
+          <span className="text-xs sm:text-sm font-bold tracking-widest text-[#8C6D53] uppercase flex items-center justify-center gap-2">
+            <span className="w-8 h-px bg-[#8C6D53]" />
             {isEn ? "Generational Mastery" : "Kỳ Công Nghệ Nhân"}
-            <span className="w-5 h-px bg-[#8C6D53]" />
+            <span className="w-8 h-px bg-[#8C6D53]" />
           </span>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
             {isEn ? "Artisanal Longan Craftsmanship" : "Hành Trình Chế Tác Long Nhãn"}
           </h2>
 
-          <p className="text-xs sm:text-sm text-stone-600 max-w-lg mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-stone-600 max-w-xl mx-auto leading-relaxed">
             {isEn
               ? "From early morning orchards to glowing earthen jars — each step is an act of devotion."
               : "Từ cữ hái sớm mai trên bãi bồi đến hàng chục giờ canh lửa than củi ấm — mỗi công đoạn là sự nâng niu trọn vẹn hồn quê."}
@@ -421,36 +421,36 @@ export function StoryPageView() {
         </div>
 
         {/* 4 Giai đoạn chế tác trình bày dạng dòng chảy nghệ thuật */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {craftPhases.map((phase, idx) => {
             const IconComp = phase.icon;
             return (
               <div
                 key={idx}
-                className="relative p-5 sm:p-6 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
+                className="relative p-6 sm:p-7 rounded-3xl bg-white border border-[#E8DFC8] shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
               >
-                <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#F6EFE5] text-[#422D1D] flex items-center justify-center transition-colors group-hover:bg-[#3D263A] group-hover:text-white">
-                    <IconComp className="w-5 h-5 stroke-[1.75]" />
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F6EFE5] text-[#422D1D] flex items-center justify-center transition-colors group-hover:bg-[#3D263A] group-hover:text-white shadow-2xs">
+                    <IconComp className="w-6 h-6 stroke-[1.75]" />
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-[#8C6D53] uppercase tracking-wider block mb-0.5">
+                    <span className="text-xs font-bold text-[#8C6D53] uppercase tracking-wider block mb-1">
                       {phase.subtitle}
                     </span>
-                    <h3 className="font-serif font-bold text-sm sm:text-base text-stone-900 leading-snug">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-stone-900 leading-snug">
                       {phase.title}
                     </h3>
                   </div>
 
-                  <p className="text-xs text-stone-600 leading-relaxed">
+                  <p className="text-xs sm:text-sm md:text-base text-stone-600 leading-relaxed">
                     {phase.desc}
                   </p>
                 </div>
 
-                <div className="pt-3 mt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-400">
+                <div className="pt-3.5 mt-4 border-t border-stone-100 flex items-center justify-between text-xs sm:text-sm text-stone-500 font-medium">
                   <span>{isEn ? "Artisanal Craft" : "Thủ công bí truyền"}</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 </div>
               </div>
             );
@@ -474,31 +474,31 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 6. TRIẾT LÝ THƯƠNG HIỆU: KẾT HỢP HÌNH ẢNH THỰC TẾ        */}
       {/* ======================================================== */}
-      <section className="py-12 sm:py-16 lg:py-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12 space-y-2">
-          <span className="text-xs font-semibold tracking-widest text-[#8C6D53] uppercase flex items-center justify-center gap-2">
-            <span className="w-5 h-px bg-[#8C6D53]" />
+      <section className="py-14 sm:py-20 lg:py-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14 space-y-2.5">
+          <span className="text-xs sm:text-sm font-bold tracking-widest text-[#8C6D53] uppercase flex items-center justify-center gap-2">
+            <span className="w-8 h-px bg-[#8C6D53]" />
             {isEn ? "Brand Philosophy" : "Triết Lý Thương Hiệu"}
-            <span className="w-5 h-px bg-[#8C6D53]" />
+            <span className="w-8 h-px bg-[#8C6D53]" />
           </span>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[#1F1B18] tracking-tight leading-tight">
             {isEn ? "Preserving Tradition — Presenting Gratitude" : "Giữ Hồn Truyền Thống – Gửi Trao Trân Quý"}
           </h2>
 
-          <p className="text-xs sm:text-sm text-stone-600 max-w-lg mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-stone-600 max-w-xl mx-auto leading-relaxed">
             {isEn
               ? "The sacred meaning and artisan devotion behind Nguyet Nhan Pho Hien."
               : "Ý nghĩa thiêng liêng và tâm huyết đong đầy phía sau từng sản phẩm Nguyệt Nhãn Phố Hiến."}
           </p>
         </div>
 
-        {/* 3 Thẻ Triết Lý Thương Hiệu kết hợp HÌNH ẢNH THỰC TẾ */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* 3 Thẻ Triết Lý Thương Hiệu kết hợp HÌNH ẢNH THỰC TẾ & CHỮ TO RÕ */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12">
           {brandVisualPillars.map((pillar, idx) => (
             <div
               key={idx}
-              className="rounded-3xl bg-white border border-[#E8DFC8] overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group"
+              className="rounded-3xl bg-white border border-[#E8DFC8] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group"
             >
               {/* Khung ảnh thực tế phía trên */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-stone-100">
@@ -510,66 +510,66 @@ export function StoryPageView() {
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                 
                 {/* Huy hiệu chữ triết lý nổi bật */}
-                <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-[#EBDBC6]/90 backdrop-blur-xs text-[#422D1D] font-serif font-bold text-xs shadow-xs">
+                <div className="absolute bottom-3.5 left-3.5 px-3.5 py-1.5 rounded-full bg-[#EBDBC6]/95 backdrop-blur-xs text-[#422D1D] font-serif font-bold text-sm sm:text-base shadow-sm">
                   {pillar.word}
                 </div>
               </div>
 
               {/* Phần nội dung súc tích phía dưới */}
-              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#8C6D53] uppercase tracking-wider block">
+              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="space-y-1.5">
+                  <span className="text-xs sm:text-sm font-bold text-[#8C6D53] uppercase tracking-wider block">
                     {pillar.tag}
                   </span>
-                  <h3 className="font-serif font-bold text-base text-stone-900">
+                  <h3 className="font-serif font-bold text-lg sm:text-xl text-stone-900">
                     {pillar.title}
                   </h3>
-                  <p className="text-xs text-stone-600 leading-relaxed pt-1">
+                  <p className="text-xs sm:text-sm md:text-base text-stone-600 leading-relaxed pt-1">
                     {pillar.desc}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-amber-900 font-medium">
+                <div className="pt-3.5 border-t border-stone-100 flex items-center justify-between text-xs sm:text-sm text-amber-900 font-semibold">
                   <span>{isEn ? "Heritage Value" : "Giá trị di sản"}</span>
-                  <Award className="w-3.5 h-3.5 text-amber-700" />
+                  <Award className="w-4 h-4 text-amber-700" />
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* 3 Cam kết cốt lõi dạng thanh ngang nhỏ gọn */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <MapPin className="w-5 h-5" />
+        {/* 3 Cam kết cốt lõi dạng thanh ngang nhỏ gọn, chữ to rõ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+              <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-serif font-bold text-xs sm:text-sm text-stone-900">100% Cội Nguồn Phố Hiến</h4>
-              <p className="text-[11px] text-stone-500">Vùng trồng di sản bãi bồi Chùa Hiến.</p>
+              <h4 className="font-serif font-bold text-sm sm:text-base text-stone-900">100% Cội Nguồn Phố Hiến</h4>
+              <p className="text-xs sm:text-sm text-stone-500">Vùng trồng di sản bãi bồi Chùa Hiến.</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 shadow-2xs">
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-serif font-bold text-xs sm:text-sm text-stone-900">Thuần Khiết Không Phụ Gia</h4>
-              <p className="text-[11px] text-stone-500">Không đường, không sấy diêm sinh độc hại.</p>
+              <h4 className="font-serif font-bold text-sm sm:text-base text-stone-900">Thuần Khiết Không Phụ Gia</h4>
+              <p className="text-xs sm:text-sm text-stone-500">Không đường, không sấy diêm sinh độc hại.</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-[#E8DFC8] shadow-2xs flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-              <Award className="w-5 h-5" />
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFC8] shadow-xs flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-2xs">
+              <Award className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-serif font-bold text-xs sm:text-sm text-stone-900">{isEn ? "Certified OCOP Specialty" : "Đặc Sản OCOP Hưng Yên"}</h4>
-              <p className="text-[11px] text-stone-500">{isEn ? "Certified provincial specialty standard." : "Chứng nhận Mỗi Xã Một Sản Phẩm tỉnh Hưng Yên."}</p>
+              <h4 className="font-serif font-bold text-sm sm:text-base text-stone-900">{isEn ? "Certified OCOP Specialty" : "Đặc Sản OCOP Hưng Yên"}</h4>
+              <p className="text-xs sm:text-sm text-stone-500">{isEn ? "Certified provincial specialty standard." : "Chứng nhận Mỗi Xã Một Sản Phẩm tỉnh Hưng Yên."}</p>
             </div>
           </div>
         </div>
@@ -578,49 +578,49 @@ export function StoryPageView() {
       {/* ======================================================== */}
       {/* 7. LỜI MỜI: MANG HƯƠNG VỊ PHỐ HIẾN ĐẾN GẦN HƠN           */}
       {/* ======================================================== */}
-      <section className="relative py-16 sm:py-20 bg-gradient-to-b from-[#18342B] to-[#0F221B] text-white overflow-hidden text-center px-4 sm:px-6">
+      <section className="relative py-16 sm:py-24 bg-gradient-to-b from-[#18342B] to-[#0F221B] text-white overflow-hidden text-center px-4 sm:px-6">
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.15)_0%,transparent_70%)] pointer-events-none"
         />
 
-        <div className="relative z-10 max-w-2xl mx-auto space-y-5">
-          <span className="inline-block text-xs font-semibold tracking-widest text-[#E5CCA0] uppercase">
+        <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+          <span className="inline-block text-xs sm:text-sm font-bold tracking-widest text-[#E5CCA0] uppercase">
             {isEn ? "An Invitation to Heritage" : "Lời Mời Thưởng Thức"}
           </span>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-medium text-white tracking-tight leading-tight [text-wrap:balance]">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium text-white tracking-tight leading-tight [text-wrap:balance]">
             {isEn ? "Bringing Pho Hien Flavor Closer to You" : "Mang Hương Vị Phố Hiến Đến Gần Hơn"}
           </h2>
 
-          <p className="text-xs sm:text-sm md:text-base text-stone-300 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-stone-300 max-w-lg mx-auto leading-relaxed">
             {isEn
               ? "Discover our royal gift collections or customize your own wellness mix box."
               : "Thưởng thức thức quà tiến vua ngọt lành hoặc tự tay phối chọn hộp hạt dinh dưỡng theo sở thích của riêng bạn."}
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/san-pham"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[#E5CCA0] hover:bg-[#D8BA88] text-[#241B16] font-bold text-xs sm:text-sm transition-all shadow-md hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-[#E5CCA0] hover:bg-[#D8BA88] text-[#241B16] font-bold text-sm sm:text-base transition-all shadow-md hover:scale-105 active:scale-95"
             >
               <span>{isEn ? "Explore Gift Collections" : "Khám Phá Sản Phẩm"}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
 
             <Link
               href="/am-thuc"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm border border-white/20 transition-all"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-sm sm:text-base border border-white/20 transition-all"
             >
-              <BookOpen className="w-3.5 h-3.5 text-[#E5CCA0]" />
+              <BookOpen className="w-4 h-4 text-[#E5CCA0]" />
               <span>{isEn ? "Culinary Culture" : "Văn Hóa Ẩm Thực"}</span>
             </Link>
 
             <Link
               href="/tu-chon-hat"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm border border-white/20 transition-all"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-sm sm:text-base border border-white/20 transition-all"
             >
-              <Layers className="w-3.5 h-3.5 text-[#E5CCA0]" />
+              <Layers className="w-4 h-4 text-[#E5CCA0]" />
               <span>{isEn ? "Custom Mix Workshop" : "Xưởng Tự Chọn Hạt"}</span>
             </Link>
           </div>
