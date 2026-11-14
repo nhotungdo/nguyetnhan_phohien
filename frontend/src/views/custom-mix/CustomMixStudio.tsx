@@ -989,16 +989,25 @@ export default function CustomMixStudio() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-32 lg:pb-12 max-w-7xl">
-        {/* BANNER TỰ CHỌN HẠT DINH DƯỠNG: Hiển thị trọn vẹn 100% toàn bộ ảnh, không bị cắt xén (xem hết được ảnh) */}
+        {/* BANNER TỰ CHỌN HẠT DINH DƯỠNG: Tinh gọn, gọn gàng, hiển thị trọn vẹn 100% toàn bộ ảnh trong tầm mắt */}
         <section
-          className="mb-6 sm:mb-8"
+          className="mb-4 sm:mb-6"
           aria-label={language === "en" ? "Custom nutritious nut mix banner" : "Banner tự chọn hạt dinh dưỡng"}
         >
           <button
             type="button"
             onClick={() => scrollToStep("step1Section")}
-            className="group block w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FDE68A]/80 shadow-md hover:shadow-xl transition-all cursor-pointer bg-[#F7F3EB]"
+            className="group relative block w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-[#FDE68A]/80 shadow-xs hover:shadow-md transition-all cursor-pointer bg-gradient-to-r from-[#FBF8F1] via-[#F5EDDE] to-[#FBF8F1] h-[160px] sm:h-[190px] md:h-[220px] lg:h-[240px] max-h-[250px]"
           >
+            {/* Lớp nền mờ nghệ thuật cùng tone màu ảnh lan tỏa sang hai bên */}
+            <FastImage
+              src={bannerUrl}
+              alt=""
+              fill
+              className="object-cover blur-3xl opacity-20 scale-125 pointer-events-none -z-0"
+            />
+
+            {/* Ảnh banner chính hiển thị trọn vẹn 100% không bị cắt bất kỳ góc nào, vừa vặn tinh gọn */}
             <FastImage
               src={bannerUrl}
               alt={
@@ -1006,11 +1015,10 @@ export default function CustomMixStudio() {
                   ? "Create your own nutritious nut mix – free to blend to your taste"
                   : "Tự chọn hạt dinh dưỡng – tự do phối trộn theo sở thích"
               }
-              width={2752}
-              height={1536}
+              fill
               priority
               sizes="(max-width: 1280px) 100vw, 1280px"
-              className="w-full h-auto block object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+              className="object-contain object-center w-full h-full relative z-10 transition-transform duration-500 group-hover:scale-[1.01]"
             />
           </button>
         </section>
