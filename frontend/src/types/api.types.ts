@@ -193,6 +193,14 @@ export interface DayPointDto {
   label: string; // dd/MM
   revenue: number;
   orders: number;
+  visits?: number;
+  aiConsultations?: number;
+}
+
+export interface TopVisitedPageDto {
+  path: string;
+  visitsCount: number;
+  uniqueVisitorsCount: number;
 }
 
 export interface TopProductDto {
@@ -210,6 +218,17 @@ export interface DashboardStatsResponse {
   customersCount: number;
   messagesCount: number;
   unreadMessages: number;
+
+  // Thống kê thực tế 100% từ Database PostgreSQL (Admin Only)
+  totalWebsiteVisits?: number;
+  todayWebsiteVisits?: number;
+  uniqueVisitorsCount?: number;
+
+  totalAiConsultations?: number;
+  todayAiConsultations?: number;
+  uniqueAiUsersCount?: number;
+
+  topVisitedPages?: TopVisitedPageDto[];
   dailyStats: DayPointDto[];
   topProducts: TopProductDto[];
 }

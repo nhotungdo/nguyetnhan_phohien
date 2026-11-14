@@ -455,6 +455,18 @@ export const dashboardApi = {
     apiFetch("/api/dashboard/stats", { headers: getAdminHeaders() }),
 };
 
+// ===== ANALYTICS TRACKING API =====
+export const analyticsApi = {
+  /** Ghi nhận lượt truy cập trang web (non-blocking) */
+  trackVisit: (data: { path: string; visitorId?: string; referrer?: string; deviceType?: string }): Promise<void> =>
+    apiFetch("/api/analytics/track-visit", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then(() => {})
+      .catch(() => {}),
+};
+
 // ===== NUTRITION AI API (Trợ lý Dinh Dưỡng & Dưỡng Sinh Đa Hạt) =====
 export interface SuggestedProduct {
   id: string;

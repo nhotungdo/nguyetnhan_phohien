@@ -37,6 +37,10 @@ public class AppDbContext : DbContext
     public DbSet<ChatSession> ChatSessions { get; set; } = null!;
     public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
 
+    // ===== ANALYTICS & AI USAGE TRACKING (ADMIN ONLY STATS) =====
+    public DbSet<WebsiteVisit> WebsiteVisits { get; set; } = null!;
+    public DbSet<NutritionAiUsage> NutritionAiUsages { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -223,5 +227,15 @@ public class AppDbContext : DbContext
             .WithMany(p => p.Images)
             .HasForeignKey(pi => pi.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== ANALYTICS & AI USAGE TRACKING =====
+        modelBuilder.Entity<WebsiteVisit>().HasKey(v => v.Id);
+        modelBuilder.Entity<WebsiteVisit>().HasIndex(v => v.CreatedAt);
+        modelBuilder.Entity<WebsiteVisit>().HasIndex(v => new { v.VisitorId, v.CreatedAt });
+        modelBuilder.Entity<WebsiteVisit>().HasIndex(v => v.Path);
+
+        modelBuilder.Entity<NutritionAiUsage>().HasKey(u => u.Id);
+        modelBuilder.Entity<NutritionAiUsage>().HasIndex(u => u.CreatedAt);
+        modelBuilder.Entity<NutritionAiUsage>().HasIndex(u => u.VisitorId);
     }
 }

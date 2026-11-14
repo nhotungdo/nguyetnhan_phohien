@@ -50,11 +50,49 @@ public class DashboardService : IDashboardService
         var messagesCount = await _db.ChatSessions.CountAsync();
         var unreadMessages = await _db.ChatSessions.CountAsync(s => s.HasUnreadMessages);
 
-        // 4. Biểu đồ 30 ngày gần nhất (theo giờ Việt Nam UTC+7, chỉ tính đơn không huỷ)
+        // Giờ Việt Nam UTC+7
         var vnOffset = TimeSpan.FromHours(7);
         var nowVn = DateTime.UtcNow.Add(vnOffset);
         var todayVnDate = nowVn.Date;
+        var todayStartUtc = todayVnDate.Add(-vnOffset);
 
+        // 4. Thống kê Lượt truy cập Website (100% dữ liệu thực từ bảng WebsiteVisits)
+        var totalVisits = await _db.WebsiteVisits.LongCountAsync();
+        var todayVisits = await _db.WebsiteVisits
+            .Where(v => v.CreatedAt >= todayStartUtc)
+            .LongCountAsync();
+        var uniqueVisitorsCount = await _db.WebsiteVisits
+            .Where(v => !string.IsNullOrEmpty(v.VisitorId))
+            .Select(v => v.VisitorId)
+            .Distinct()
+            .LongCountAsync();
+
+        // 5. Thống kê Sử dụng Trợ lý AI Dinh dưỡng (100% dữ liệu thực từ bảng NutritionAiUsages)
+        var totalAiConsultations = await _db.NutritionAiUsages.LongCountAsync();
+        var todayAiConsultations = await _db.NutritionAiUsages
+            .Where(u => u.CreatedAt >= todayStartUtc)
+            .LongCountAsync();
+        var uniqueAiUsersCount = await _db.NutritionAiUsages
+            .Where(u => !string.IsNullOrEmpty(u.VisitorId))
+            .Select(u => u.VisitorId)
+            .Distinct()
+            .LongCountAsync();
+
+        // 6. Top các trang được truy cập nhiều nhất (100% dữ liệu thực từ Database)
+        var topVisitedPages = await _db.WebsiteVisits
+            .AsNoTracking()
+            .GroupBy(v => v.Path)
+            .Select(g => new TopVisitedPageDto
+            {
+                Path = g.Key,
+                VisitsCount = g.Count(),
+                UniqueVisitorsCount = g.Select(x => x.VisitorId).Distinct().Count()
+            })
+            .OrderByDescending(x => x.VisitsCount)
+            .Take(5)
+            .ToListAsync();
+
+        // 7. Biểu đồ 30 ngày gần nhất (theo giờ Việt Nam UTC+7, chỉ tính đơn không huỷ)
         var dailyMap = new Dictionary<string, DayPointDto>();
         for (int i = 29; i >= 0; i--)
         {
@@ -65,7 +103,9 @@ public class DashboardService : IDashboardService
                 Key = key,
                 Label = day.ToString("dd/MM"),
                 Revenue = 0,
-                Orders = 0
+                Orders = 0,
+                Visits = 0,
+                AiConsultations = 0
             };
         }
 
@@ -88,7 +128,38 @@ public class DashboardService : IDashboardService
             }
         }
 
-        // 5. Top sản phẩm bán chạy (chỉ tính đơn hợp lệ không bị huỷ)
+        // Tích hợp số liệu Lượt truy cập và AI theo ngày từ DB vào biểu đồ
+        var recentVisits = await _db.WebsiteVisits
+            .AsNoTracking()
+            .Where(v => v.CreatedAt >= cutoffUtc)
+            .Select(v => v.CreatedAt)
+            .ToListAsync();
+        foreach (var v in recentVisits)
+        {
+            var vDate = v.Add(vnOffset).Date;
+            var key = vDate.ToString("yyyy-MM-dd");
+            if (dailyMap.TryGetValue(key, out var point))
+            {
+                point.Visits += 1;
+            }
+        }
+
+        var recentAi = await _db.NutritionAiUsages
+            .AsNoTracking()
+            .Where(u => u.CreatedAt >= cutoffUtc)
+            .Select(u => u.CreatedAt)
+            .ToListAsync();
+        foreach (var u in recentAi)
+        {
+            var uDate = u.Add(vnOffset).Date;
+            var key = uDate.ToString("yyyy-MM-dd");
+            if (dailyMap.TryGetValue(key, out var point))
+            {
+                point.AiConsultations += 1;
+            }
+        }
+
+        // 8. Top sản phẩm bán chạy (chỉ tính đơn hợp lệ không bị huỷ)
         var rawTop = await _db.OrderItems
             .AsNoTracking()
             .Where(i => i.Order.Status != OrderStatus.Cancelled)
@@ -122,6 +193,16 @@ public class DashboardService : IDashboardService
             CustomersCount = customersCount,
             MessagesCount = messagesCount,
             UnreadMessages = unreadMessages,
+
+            // Dữ liệu lượt truy cập & AI Dinh dưỡng thực tế 100% từ Database
+            TotalWebsiteVisits = totalVisits,
+            TodayWebsiteVisits = todayVisits,
+            UniqueVisitorsCount = uniqueVisitorsCount,
+            TotalAiConsultations = totalAiConsultations,
+            TodayAiConsultations = todayAiConsultations,
+            UniqueAiUsersCount = uniqueAiUsersCount,
+            TopVisitedPages = topVisitedPages,
+
             DailyStats = dailyMap.Values.ToList(),
             TopProducts = topProducts
         };

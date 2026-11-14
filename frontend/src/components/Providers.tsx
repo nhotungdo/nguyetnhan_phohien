@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 import { RouteProgressBar } from "@/components/layout/RouteProgressBar";
+import { WebsiteTracker } from "@/components/WebsiteTracker";
 
 function RealtimeSync() {
   // Tách thành component con để dùng useQueryClient() đã có trong Provider.
@@ -32,6 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <RealtimeSync />
+      <WebsiteTracker />
       <RouteProgressBar />
       {/* reducedMotion="user": người bật "giảm chuyển động" trong OS sẽ bỏ qua mọi
           animation transform của framer-motion (trượt/zoom/parallax) trên TOÀN bộ app,

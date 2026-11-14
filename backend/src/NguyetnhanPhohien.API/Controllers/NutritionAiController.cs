@@ -1,7 +1,14 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Logging;
 using NguyetnhanPhohien.Application.DTOs.Ai;
 using NguyetnhanPhohien.Application.Interfaces;
+using NguyetnhanPhohien.Domain.Entities;
+using NguyetnhanPhohien.Infrastructure.Persistence;
 
 namespace NguyetnhanPhohien.API.Controllers;
 
@@ -11,14 +18,41 @@ namespace NguyetnhanPhohien.API.Controllers;
 public class NutritionAiController : ControllerBase
 {
     private readonly INutritionAiService _nutritionAiService;
+    private readonly AppDbContext _db;
     private readonly ILogger<NutritionAiController> _logger;
 
     public NutritionAiController(
         INutritionAiService nutritionAiService,
+        AppDbContext db,
         ILogger<NutritionAiController> logger)
     {
         _nutritionAiService = nutritionAiService;
+        _db = db;
         _logger = logger;
+    }
+
+    private async Task LogAiUsageAsync(NutritionConsultationRequest request)
+    {
+        try
+        {
+            var preview = (request.Message ?? string.Empty).Trim();
+            if (preview.Length > 200) preview = preview[..200] + "...";
+
+            var usage = new NutritionAiUsage
+            {
+                Id = Guid.NewGuid(),
+                QuestionPreview = preview,
+                Language = string.Equals(request.Language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "vi",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.NutritionAiUsages.Add(usage);
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Không thể ghi nhận lượt sử dụng AI vào database.");
+        }
     }
 
     /// <summary>
@@ -34,6 +68,7 @@ public class NutritionAiController : ControllerBase
             return BadRequest(new { message = "Nội dung câu hỏi không được để trống." });
         }
 
+        await LogAiUsageAsync(request);
         var response = await _nutritionAiService.ConsultAsync(request, cancellationToken);
         return Ok(response);
     }
@@ -52,6 +87,8 @@ public class NutritionAiController : ControllerBase
             await Response.WriteAsync("data: {\"error\": \"Nội dung câu hỏi không được để trống.\"}\n\n", cancellationToken);
             return;
         }
+
+        await LogAiUsageAsync(request);
 
         Response.ContentType = "text/event-stream; charset=utf-8";
         Response.Headers.Append("Cache-Control", "no-cache, no-transform");
