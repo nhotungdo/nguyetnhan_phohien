@@ -25,13 +25,24 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { dashboardApi } from "@/services/api.service";
-import type { DashboardStatsResponse, DayPointDto } from "@/types/api.types";
+import { analyticsApi } from "@/services/api.service";
+import type { AnalyticsStatsResponse, DayPointDto } from "@/types/api.types";
 
 const RANGES = [7, 14, 30] as const;
-const ANALYTICS_CACHE_KEY = "analytics_stats_cache_v1";
+const ANALYTICS_CACHE_KEY = "analytics_stats_cache_v2";
 
-function readCachedAnalytics(): DashboardStatsResponse | null {
+const defaultEmptyStats: AnalyticsStatsResponse = {
+  totalWebsiteVisits: 0,
+  todayWebsiteVisits: 0,
+  uniqueVisitorsCount: 0,
+  totalAiConsultations: 0,
+  todayAiConsultations: 0,
+  uniqueAiUsersCount: 0,
+  topVisitedPages: [],
+  dailyStats: [],
+};
+
+function readCachedAnalytics(): AnalyticsStatsResponse | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(ANALYTICS_CACHE_KEY);
@@ -41,7 +52,7 @@ function readCachedAnalytics(): DashboardStatsResponse | null {
   }
 }
 
-function writeCachedAnalytics(data: DashboardStatsResponse) {
+function writeCachedAnalytics(data: AnalyticsStatsResponse) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(ANALYTICS_CACHE_KEY, JSON.stringify(data));
@@ -54,17 +65,14 @@ export default function AnalyticsView() {
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
 
-  // Khôi phục số liệu ngay lập tức từ localStorage trong 0ms (chống chớp giật skeleton)
-  const initialCached = useMemo(() => readCachedAnalytics(), []);
-
-  const { data: stats, isLoading, isFetching } = useQuery<DashboardStatsResponse>({
+  const { data: stats = defaultEmptyStats, isFetching } = useQuery<AnalyticsStatsResponse>({
     queryKey: ["analytics", "stats"],
     queryFn: async () => {
-      const data = await dashboardApi.getStats();
+      const data = await analyticsApi.getStats();
       writeCachedAnalytics(data);
       return data;
     },
-    initialData: initialCached ?? undefined,
+    initialData: () => readCachedAnalytics() ?? defaultEmptyStats,
     initialDataUpdatedAt: 0,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
@@ -72,18 +80,18 @@ export default function AnalyticsView() {
   });
 
   const chartData = useMemo<DayPointDto[]>(() => {
-    const all = stats?.dailyStats ?? [];
+    const all = stats.dailyStats ?? [];
     if (all.length === 0) return [];
     return all.slice(-rangeDays);
-  }, [stats?.dailyStats, rangeDays]);
+  }, [stats.dailyStats, rangeDays]);
 
-  const totalVisits = stats?.totalWebsiteVisits ?? 0;
-  const todayVisits = stats?.todayWebsiteVisits ?? 0;
-  const uniqueVisitors = stats?.uniqueVisitorsCount ?? 0;
-  const totalAi = stats?.totalAiConsultations ?? 0;
-  const todayAi = stats?.todayAiConsultations ?? 0;
-  const uniqueAiUsers = stats?.uniqueAiUsersCount ?? 0;
-  const topVisitedPages = stats?.topVisitedPages ?? [];
+  const totalVisits = stats.totalWebsiteVisits ?? 0;
+  const todayVisits = stats.todayWebsiteVisits ?? 0;
+  const uniqueVisitors = stats.uniqueVisitorsCount ?? 0;
+  const totalAi = stats.totalAiConsultations ?? 0;
+  const todayAi = stats.todayAiConsultations ?? 0;
+  const uniqueAiUsers = stats.uniqueAiUsersCount ?? 0;
+  const topVisitedPages = stats.topVisitedPages ?? [];
 
   const summary = useMemo(() => {
     const periodVisits = chartData.reduce((s, p) => s + (p.visits ?? 0), 0);
@@ -103,20 +111,6 @@ export default function AnalyticsView() {
       active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-primary"
     }`;
 
-  if (isLoading && !stats) {
-    return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-10 w-72 bg-muted rounded-lg" />
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-28 bg-muted rounded-xl" />
-          ))}
-        </div>
-        <div className="h-96 bg-muted rounded-xl" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
       {/* TIÊU ĐỀ TRANG TÁCH BIỆT */}
@@ -134,12 +128,12 @@ export default function AnalyticsView() {
         </div>
         <div className="flex items-center gap-2">
           {isFetching ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
-              <Loader2 className="w-3 h-3 animate-spin text-cyan-600" />
-              Đang đồng bộ...
+            <span className="inline-flex items-center gap-1.5 text-xs text-cyan-700 bg-cyan-50 border border-cyan-200 px-2.5 py-1 rounded-full font-medium">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-600" />
+              Đang đồng bộ từ CSDL...
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-medium">
+            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Realtime Database
             </span>

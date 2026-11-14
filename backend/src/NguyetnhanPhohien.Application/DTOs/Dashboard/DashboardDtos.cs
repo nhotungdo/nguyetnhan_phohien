@@ -50,3 +50,17 @@ public class DashboardStatsResponse
     public List<DayPointDto> DailyStats { get; set; } = new();
     public List<TopProductDto> TopProducts { get; set; } = new();
 }
+
+public class AnalyticsStatsResponse
+{
+    public long TotalWebsiteVisits { get; set; }
+    public long TodayWebsiteVisits { get; set; }
+    public long UniqueVisitorsCount { get; set; }
+
+    public long TotalAiConsultations { get; set; }
+    public long TodayAiConsultations { get; set; }
+    public long UniqueAiUsersCount { get; set; }
+
+    public List<TopVisitedPageDto> TopVisitedPages { get; set; } = new();
+    public List<DayPointDto> DailyStats { get; set; } = new();
+}

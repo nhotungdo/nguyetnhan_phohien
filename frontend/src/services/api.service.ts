@@ -13,6 +13,7 @@ import type {
   UpdateContentRequest,
   PaymentSettings,
   DashboardStatsResponse,
+  AnalyticsStatsResponse,
   CustomMixOptionsResponse,
   ValidateCustomMixRequest,
   ValidateCustomMixResponse,
@@ -455,8 +456,12 @@ export const dashboardApi = {
     apiFetch("/api/dashboard/stats", { headers: getAdminHeaders() }),
 };
 
-// ===== ANALYTICS TRACKING API =====
+// ===== ANALYTICS TRACKING & STATS API =====
 export const analyticsApi = {
+  /** [ADMIN] Lấy dữ liệu thống kê lượt truy cập website và tương tác AI dinh dưỡng trực tiếp từ CSDL PostgreSQL */
+  getStats: async (): Promise<AnalyticsStatsResponse> =>
+    apiFetch<AnalyticsStatsResponse>("/api/analytics/stats", { headers: getAdminHeaders() }),
+
   /** Ghi nhận lượt truy cập trang web (non-blocking, keepalive khi reload trang) */
   trackVisit: (data: { path: string; visitorId?: string; referrer?: string; deviceType?: string }): Promise<void> =>
     apiFetch("/api/analytics/track-visit", {

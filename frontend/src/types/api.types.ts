@@ -233,6 +233,19 @@ export interface DashboardStatsResponse {
   topProducts: TopProductDto[];
 }
 
+export interface AnalyticsStatsResponse {
+  totalWebsiteVisits: number;
+  todayWebsiteVisits: number;
+  uniqueVisitorsCount: number;
+
+  totalAiConsultations: number;
+  todayAiConsultations: number;
+  uniqueAiUsersCount: number;
+
+  topVisitedPages: TopVisitedPageDto[];
+  dailyStats: DayPointDto[];
+}
+
 // ===== CONTENT TYPES =====
 // Backend chỉ trả Key/Value/Description (ContentService.MapToResponse).
 // Trước đây type còn khai `id` và `updatedAt` là bắt buộc → chúng luôn là

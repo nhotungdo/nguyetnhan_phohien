@@ -59,7 +59,8 @@ public class NutritionAiController : ControllerBase
             _db.NutritionAiUsages.Add(usage);
             await _db.SaveChangesAsync();
 
-            // Xóa cache dashboard và phát sự kiện realtime
+            // Xóa cache analytics & dashboard và phát sự kiện realtime
+            _cache.Remove(AnalyticsController.AnalyticsCacheKey);
             _cache.Remove(DashboardService.CacheKey);
             try
             {

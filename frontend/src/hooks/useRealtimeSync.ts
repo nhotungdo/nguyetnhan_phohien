@@ -125,7 +125,6 @@ export function useRealtimeSync() {
       if (analyticsDebounceTimer) clearTimeout(analyticsDebounceTimer);
       analyticsDebounceTimer = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["analytics", "stats"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
       }, 1000);
     });
 
