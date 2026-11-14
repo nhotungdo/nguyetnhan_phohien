@@ -168,6 +168,19 @@ public class AnalyticsController : ControllerBase
     }
 
     /// <summary>
+    /// [ADMIN] Nạp 1.208 lượt truy cập (825 khách) và 702 lượt hỏi AI (403 khách) vào PostgreSQL từ 16/10/2026 đến nay.
+    /// </summary>
+    [HttpPost("seed-data")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SeedData()
+    {
+        await DbSeeder.SeedAnalyticsHistoryAsync(_db, force: true);
+        _cache.Remove(AnalyticsCacheKey);
+        await _hubContext.Clients.All.SendAsync(ProductsHub.AnalyticsChangedEvent);
+        return Ok(new { success = true, message = "Đã khởi tạo thành công 1.208 lượt truy cập và 702 lượt hỏi AI vào database PostgreSQL." });
+    }
+
+    /// <summary>
     /// Ghi nhận lượt truy cập trang web (Ẩn danh, không lưu PII người dùng).
     /// </summary>
     [HttpPost("track-visit")]

@@ -462,6 +462,13 @@ export const analyticsApi = {
   getStats: async (): Promise<AnalyticsStatsResponse> =>
     apiFetch<AnalyticsStatsResponse>("/api/analytics/stats", { headers: getAdminHeaders() }),
 
+  /** [ADMIN] Nạp dữ liệu thống kê mẫu 1.208 lượt truy cập & 702 lượt hỏi AI vào database PostgreSQL */
+  seedData: async (): Promise<{ success: boolean; message: string }> =>
+    apiFetch("/api/analytics/seed-data", {
+      method: "POST",
+      headers: getAdminHeaders(),
+    }),
+
   /** Ghi nhận lượt truy cập trang web (non-blocking, keepalive khi reload trang) */
   trackVisit: (data: { path: string; visitorId?: string; referrer?: string; deviceType?: string }): Promise<void> =>
     apiFetch("/api/analytics/track-visit", {

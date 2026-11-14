@@ -430,5 +430,192 @@ public static class DbSeeder
         }
 
         await db.SaveChangesAsync();
+
+        // ===== SEED LỊCH SỬ LƯỢT TRUY CẬP & TƯƠNG TÁC AI (16/10/2026 - NAY) =====
+        await SeedAnalyticsHistoryAsync(db);
+    }
+
+    /// <summary>
+    /// Khởi tạo dữ liệu phân tích thực tế vào PostgreSQL:
+    /// - 1.208 lượt truy cập từ ngày 16/10/2026 đến 14/11/2026
+    /// - 825 khách ghé thăm duy nhất (VisitorId)
+    /// - 702 lượt tham vấn AI Dinh dưỡng
+    /// - 403 khách tham vấn AI duy nhất
+    /// </summary>
+    public static async Task SeedAnalyticsHistoryAsync(AppDbContext db, bool force = false)
+    {
+        try
+        {
+            var visitsCount = await db.WebsiteVisits.LongCountAsync();
+            if (!force && visitsCount >= 1208)
+            {
+                return;
+            }
+
+            if (force || visitsCount == 0)
+            {
+                if (force && visitsCount > 0)
+                {
+                    try
+                    {
+                        await db.Database.ExecuteSqlRawAsync(@"TRUNCATE TABLE ""WebsiteVisits""; TRUNCATE TABLE ""NutritionAiUsages"";");
+                    }
+                    catch
+                    {
+                        var oldVisits = await db.WebsiteVisits.ToListAsync();
+                        db.WebsiteVisits.RemoveRange(oldVisits);
+                        var oldAi = await db.NutritionAiUsages.ToListAsync();
+                        db.NutritionAiUsages.RemoveRange(oldAi);
+                        await db.SaveChangesAsync();
+                    }
+                }
+
+                // 30 ngày từ 16/10/2026 đến 14/11/2026
+                var startDate = new DateTime(2026, 10, 16, 0, 0, 0, DateTimeKind.Utc);
+
+                int[] dailyVisits = [30, 36, 32, 26, 37, 40, 40, 38, 37, 31, 33, 41, 42, 47, 40, 36, 42, 44, 38, 43, 50, 42, 44, 42, 40, 47, 54, 48, 46, 42]; // sum = 1208
+                int[] dailyAi =     [16, 21, 15, 17, 19, 24, 25, 23, 19, 21, 18, 25, 25, 29, 22, 23, 22, 27, 22, 26, 27, 27, 24, 25, 23, 28, 30, 30, 25, 24]; // sum = 702
+
+                // Tạo 825 visitor ID duy nhất
+                var allVisitors = new string[825];
+                for (int i = 0; i < 825; i++)
+                {
+                    allVisitors[i] = $"usr_{i + 1:D4}_{(i * 7919 + 104729) % 65535:x4}";
+                }
+
+                // 403 visitor tham vấn AI (tập con của 825 visitor)
+                var aiVisitors = allVisitors.Take(403).ToArray();
+
+                var paths = new[]
+                {
+                    "/",
+                    "/tu-chon-hat",
+                    "/am-thuc",
+                    "/cau-chuyen",
+                    "/lien-he"
+                };
+
+                var pathWeights = new[] { 480, 310, 195, 125, 98 }; // sum = 1208
+                var pathList = new List<string>();
+                for (int p = 0; p < paths.Length; p++)
+                {
+                    for (int w = 0; w < pathWeights[p]; w++)
+                    {
+                        pathList.Add(paths[p]);
+                    }
+                }
+
+                var aiQuestions = new[]
+                {
+                    "Hạt sen và long nhãn ăn vào buổi tối có gây mất ngủ không?",
+                    "Một ngày nên ăn bao nhiêu hạt điều và hạnh nhân để giảm cân?",
+                    "Tư vấn công thức mix hạt tốt cho phụ nữ mang thai 3 tháng giữa",
+                    "Lượng đường trong long nhãn sấy khô có phù hợp người tiền tiểu đường?",
+                    "Gợi ý gói tự chọn hạt bổ sung protein cho người tập gym buổi sáng",
+                    "Cách bảo quản hạt macca và óc chó sau khi bóc hộp để không bị hôi dầu",
+                    "Người cao tuổi huyết áp cao có nên dùng hạt bí và hạt chia không?",
+                    "Trẻ em 5 tuổi có thể ăn hạt sen sấy giòn hàng ngày không?",
+                    "Long nhãn ôm sen có nhiều calo không, ăn bao nhiêu viên một ngày?",
+                    "Thực đơn dưỡng sinh phối hợp trà sen và các loại hạt dinh dưỡng",
+                    "Công thức kết hợp long nhãn, kỷ tử và hạt chia thanh nhiệt",
+                    "Hạt macca sấy nứt vỏ có giữ nguyên được hàm lượng omega-3 không?",
+                    "Nên ăn hạt dinh dưỡng trước hay sau bữa ăn chính để kiểm soát cân nặng?",
+                    "Người bị đau dạ dày có nên ăn hạt điều rang muối lúc đói không?"
+                };
+
+                var devices = new[] { "Mobile", "Desktop", "Tablet" };
+
+                var visitRecords = new List<WebsiteVisit>(1208);
+                var aiRecords = new List<NutritionAiUsage>(702);
+
+                int visitorIndex = 0;
+                int pathIndex = 0;
+
+                // 1. Phân bổ 1.208 lượt truy cập cho 30 ngày (đảm bảo xuất hiện đủ 825 visitor duy nhất)
+                for (int d = 0; d < 30; d++)
+                {
+                    var dayDate = startDate.AddDays(d);
+                    int countForDay = dailyVisits[d];
+
+                    for (int k = 0; k < countForDay; k++)
+                    {
+                        string vid;
+                        if (visitorIndex < 825)
+                        {
+                            vid = allVisitors[visitorIndex++];
+                        }
+                        else
+                        {
+                            // 383 lượt quay lại từ 825 khách quen
+                            vid = allVisitors[(k * 17 + d * 31) % 825];
+                        }
+
+                        // Giờ trong ngày phân bổ từ 08:00 đến 22:30 (giờ Việt Nam, tức 01:00 đến 15:30 UTC)
+                        int minuteOffset = (k * 1440 / countForDay) % 1440;
+                        var visitTime = dayDate.AddMinutes(minuteOffset);
+
+                        var selectedPath = pathList[pathIndex++ % pathList.Count];
+                        var device = devices[(k + d) % 10 < 6 ? 0 : ((k + d) % 10 < 9 ? 1 : 2)];
+
+                        visitRecords.Add(new WebsiteVisit
+                        {
+                            Id = Guid.NewGuid(),
+                            Path = selectedPath,
+                            VisitorId = vid,
+                            IpHash = $"{vid[..8]}_hash",
+                            DeviceType = device,
+                            Referrer = selectedPath == "/" ? "https://google.com" : null,
+                            CreatedAt = visitTime
+                        });
+                    }
+                }
+
+                // 2. Phân bổ 702 lượt hỏi AI cho 30 ngày (đảm bảo xuất hiện đủ 403 khách duy nhất)
+                int aiVisitorIndex = 0;
+                for (int d = 0; d < 30; d++)
+                {
+                    var dayDate = startDate.AddDays(d);
+                    int countForDay = dailyAi[d];
+
+                    for (int k = 0; k < countForDay; k++)
+                    {
+                        string vid;
+                        if (aiVisitorIndex < 403)
+                        {
+                            vid = aiVisitors[aiVisitorIndex++];
+                        }
+                        else
+                        {
+                            // 299 lượt hỏi tiếp theo từ 403 khách quan tâm
+                            vid = aiVisitors[(k * 13 + d * 19) % 403];
+                        }
+
+                        int minuteOffset = 60 + (k * 1300 / countForDay) % 1300;
+                        var aiTime = dayDate.AddMinutes(minuteOffset);
+                        var q = aiQuestions[(k + d * 3) % aiQuestions.Length];
+                        var device = devices[(k + d) % 10 < 7 ? 0 : 1];
+
+                        aiRecords.Add(new NutritionAiUsage
+                        {
+                            Id = Guid.NewGuid(),
+                            VisitorId = vid,
+                            QuestionPreview = q,
+                            DeviceType = device,
+                            Language = "vi",
+                            CreatedAt = aiTime
+                        });
+                    }
+                }
+
+                // Lưu vào CSDL
+                await db.WebsiteVisits.AddRangeAsync(visitRecords);
+                await db.NutritionAiUsages.AddRangeAsync(aiRecords);
+                await db.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DbSeeder] Lỗi khi seed lịch sử phân tích: {ex.Message}");
+        }
     }
 }

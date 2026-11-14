@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Globe,
   Sparkles,
@@ -62,8 +62,10 @@ function writeCachedAnalytics(data: AnalyticsStatsResponse) {
 }
 
 export default function AnalyticsView() {
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [rangeDays, setRangeDays] = useState<(typeof RANGES)[number]>(14);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   const { data: stats = defaultEmptyStats, isFetching } = useQuery<AnalyticsStatsResponse>({
     queryKey: ["analytics", "stats"],
@@ -78,6 +80,18 @@ export default function AnalyticsView() {
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
   });
+
+  const handleSeedData = async () => {
+    try {
+      setIsSeeding(true);
+      await analyticsApi.seedData();
+      await queryClient.invalidateQueries({ queryKey: ["analytics", "stats"] });
+    } catch (err) {
+      console.error("Lỗi khi nạp dữ liệu phân tích:", err);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   const chartData = useMemo<DayPointDto[]>(() => {
     const all = stats.dailyStats ?? [];
@@ -127,6 +141,26 @@ export default function AnalyticsView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {totalVisits === 0 && (
+            <button
+              type="button"
+              onClick={handleSeedData}
+              disabled={isSeeding}
+              className="inline-flex items-center gap-1.5 text-xs text-white bg-cyan-700 hover:bg-cyan-800 px-3 py-1.5 rounded-full font-medium shadow-sm transition disabled:opacity-50 cursor-pointer"
+            >
+              {isSeeding ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Đang nạp...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  Nạp dữ liệu mẫu
+                </>
+              )}
+            </button>
+          )}
           {isFetching ? (
             <span className="inline-flex items-center gap-1.5 text-xs text-cyan-700 bg-cyan-50 border border-cyan-200 px-2.5 py-1 rounded-full font-medium">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-600" />
@@ -291,9 +325,32 @@ export default function AnalyticsView() {
 
         <div className="flex-1 z-10 p-4 pt-5 min-h-0 overflow-y-auto">
           {totalVisits === 0 && totalAi === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center space-y-3">
-              <Globe className="w-12 h-12 text-muted-foreground/30" />
-              <p>Chưa có dữ liệu lượt truy cập nào được ghi nhận từ cơ sở dữ liệu.</p>
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center space-y-3 py-10">
+              <Globe className="w-12 h-12 text-cyan-600/30" />
+              <div className="max-w-md space-y-1">
+                <p className="font-semibold text-foreground">Cơ sở dữ liệu đang trống</p>
+                <p className="text-xs text-muted-foreground">
+                  Chưa có dữ liệu lượt truy cập hoặc tương tác AI nào được ghi nhận từ cơ sở dữ liệu.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSeedData}
+                disabled={isSeeding}
+                className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 text-white hover:bg-cyan-800 text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+              >
+                {isSeeding ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Đang nạp 1.208 lượt xem &amp; 702 lượt hỏi AI...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    Nạp dữ liệu mẫu vào Database (1.208 lượt xem &amp; 702 hỏi AI)
+                  </>
+                )}
+              </button>
             </div>
           ) : viewMode === "chart" ? (
             <ResponsiveContainer width="100%" height="100%">
