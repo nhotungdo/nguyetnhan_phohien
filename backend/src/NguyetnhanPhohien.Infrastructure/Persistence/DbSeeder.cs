@@ -49,6 +49,13 @@ public static class DbSeeder
                 );
                 CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_CreatedAt"" ON ""NutritionAiUsages"" (""CreatedAt"" DESC);
                 CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_VisitorId"" ON ""NutritionAiUsages"" (""VisitorId"");
+
+                -- Bật Row Level Security (RLS) theo chuẩn bảo mật Supabase Security Advisor
+                ALTER TABLE IF EXISTS public.""CustomIngredients"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""CustomPackagings"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""EmailOutbox"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""WebsiteVisits"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""NutritionAiUsages"" ENABLE ROW LEVEL SECURITY;
             ");
         }
         catch
@@ -471,6 +478,13 @@ public static class DbSeeder
                 );
                 CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_CreatedAt"" ON ""NutritionAiUsages"" (""CreatedAt"" DESC);
                 CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_VisitorId"" ON ""NutritionAiUsages"" (""VisitorId"");
+
+                -- Bật Row Level Security (RLS) theo chuẩn bảo mật Supabase Security Advisor
+                ALTER TABLE IF EXISTS public.""CustomIngredients"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""CustomPackagings"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""EmailOutbox"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""WebsiteVisits"" ENABLE ROW LEVEL SECURITY;
+                ALTER TABLE IF EXISTS public.""NutritionAiUsages"" ENABLE ROW LEVEL SECURITY;
             ");
 
             var visitsCount = await db.WebsiteVisits.LongCountAsync();

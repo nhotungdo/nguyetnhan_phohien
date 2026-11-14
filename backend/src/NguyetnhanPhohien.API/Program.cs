@@ -372,6 +372,52 @@ if (args.Contains("--seed-analytics"))
     return;
 }
 
+if (args.Contains("--fix-rls"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("Đang kết nối tới Supabase PostgreSQL để sửa lỗi RLS...");
+    await db.Database.ExecuteSqlRawAsync(@"
+        ALTER TABLE IF EXISTS public.""CustomIngredients"" ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE IF EXISTS public.""CustomPackagings"" ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE IF EXISTS public.""EmailOutbox"" ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE IF EXISTS public.""WebsiteVisits"" ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE IF EXISTS public.""NutritionAiUsages"" ENABLE ROW LEVEL SECURITY;
+
+        DO $$
+        DECLARE
+            t record;
+        BEGIN
+            FOR t IN
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_type = 'BASE TABLE'
+                  AND table_name <> '__EFMigrationsHistory'
+            LOOP
+                EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t.table_name);
+            END LOOP;
+        END $$;
+    ");
+
+    using var conn = db.Database.GetDbConnection();
+    await conn.OpenAsync();
+    using var cmd = conn.CreateCommand();
+    cmd.CommandText = "SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;";
+    using var reader = await cmd.ExecuteReaderAsync();
+
+    Console.WriteLine("TABLE NAME | RLS ENABLED");
+    Console.WriteLine("-------------------------");
+    while (await reader.ReadAsync())
+    {
+        Console.WriteLine($"{reader.GetString(0),-25} | {reader.GetBoolean(1)}");
+    }
+
+    Console.WriteLine("Hoàn tất bật Row Level Security (RLS) cho tất cả các bảng trên Supabase!");
+    return;
+}
+
 // ===== MIDDLEWARE PIPELINE =====
 // 1. Forwarded Headers BẮT BUỘC ĐẦU TIÊN để Kestrel nhận đúng HTTPS và IP từ Reverse Proxy của Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
