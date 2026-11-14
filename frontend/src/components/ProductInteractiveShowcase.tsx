@@ -172,48 +172,6 @@ export function ProductInteractiveShowcase({
           </p>
         </motion.div>
 
-        {/* Thanh Tab chọn sản phẩm: tối đa 3 sản phẩm mỗi hàng, phần còn lại tự xuống hàng */}
-        <div className="flex justify-center mb-6 sm:mb-8 px-2 w-full max-w-full">
-          <div className="flex w-full max-w-5xl flex-wrap justify-center gap-1.5 rounded-2xl border border-[#E8DFC8] bg-white p-1.5 shadow-sm sm:p-2">
-            {displayProducts.map((prod, idx) => {
-              const isSelected = idx === selectedIndex;
-              return (
-                <button
-                  key={prod.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  title={prod.name}
-                  onClick={() => {
-                    setSelectedIndex(idx);
-                    setActiveHotspot(null);
-                  }}
-                  className={`relative flex min-h-[86px] shrink-0 basis-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border px-3 py-3 text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D97706] focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:min-h-[92px] sm:basis-[calc((100%-0.375rem)/2)] lg:basis-[calc((100%-0.75rem)/3)] ${
-                    isSelected
-                      ? "border-primary bg-primary text-white"
-                      : "border-[#F0E7D6] bg-[#FFFDF8] text-primary hover:border-[#DFCFA9] hover:bg-[#FBF6EC]"
-                  }`}
-                >
-                  {isSelected && (
-                    <motion.span
-                      layoutId="activeShowcaseTab"
-                      className="absolute inset-0 bg-primary"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10 line-clamp-2 text-[12.5px] font-semibold leading-snug text-balance sm:text-[13.5px]">
-                    {prod.name}
-                  </span>
-                  {prod.size && (
-                    <span className={`relative z-10 inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10.5px] font-bold tracking-wide sm:text-[11px] ${isSelected ? "bg-[#F3D498] text-[#0F3E30]" : "bg-secondary text-primary"}`}>
-                      {prod.size}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
           <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-center w-full max-w-5xl mx-auto bg-card rounded-3xl p-4 sm:p-6 lg:p-7 border border-border shadow-md hover:shadow-xl hover:border-accent/40 transition-all duration-500 relative overflow-hidden group">
