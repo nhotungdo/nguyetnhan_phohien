@@ -3,13 +3,13 @@ import { StorefrontLayout } from "@/components/layout/StorefrontLayout";
 import { StoryPageView } from "@/views/story/StoryPageView";
 
 export const metadata: Metadata = {
-  title: "Một Câu Chuyện Từ Miền Đất Nhãn | Nguyệt Nhãn Phố Hiến",
+  title: "Ký Sự Long Nhãn Phố Hiến — Hương Vị Tiến Vua Khắc Họa Lịch Sử Hưng Yên",
   description:
-    "Tìm hiểu lịch sử long nhãn Hưng Yên tiến vua từ thế kỷ 16, gìn giữ trọn vẹn hương vị truyền thống phù sa sông Hồng qua tư liệu ký sự di sản Phố Hiến.",
+    "Tìm hiểu cội nguồn di sản long nhãn Hưng Yên tiến vua từ thế kỷ 16, cây nhãn tổ Chùa Hiến 300 năm tuổi và tuyệt kỹ xoáy cùi sấy than củi nhãn truyền thống qua thước phim tài liệu di sản Phố Hiến.",
   openGraph: {
-    title: "Một Câu Chuyện Từ Miền Đất Nhãn | Nguyệt Nhãn Phố Hiến",
+    title: "Ký Sự Long Nhãn Phố Hiến | Nguyệt Nhãn Phố Hiến",
     description:
-      "Nơi hương vị truyền thống được nâng niu qua từng món quà. Khám phá câu chuyện và tư liệu ký sự di sản Phố Hiến.",
+      "Từ bãi bồi phù sa sông Hồng và cây nhãn tổ Chùa Hiến đến bàn tiệc ngự thiện cung đình. Khám phá câu chuyện di sản 300 năm lưu giữ hồn quê hương.",
     images: ["/images/combo3sp.jpg"],
   },
 };
