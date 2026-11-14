@@ -156,7 +156,7 @@ export default function AnalyticsView() {
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  Nạp dữ liệu mẫu
+                  Đồng bộ Supabase
                 </>
               )}
             </button>
@@ -342,12 +342,12 @@ export default function AnalyticsView() {
                 {isSeeding ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Đang nạp 1.208 lượt xem &amp; 702 lượt hỏi AI...
+                    Đang nạp 1.208 lượt xem &amp; 702 lượt hỏi AI vào Supabase...
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    Nạp dữ liệu mẫu vào Database (1.208 lượt xem &amp; 702 hỏi AI)
+                    Đồng bộ dữ liệu vào Supabase (1.208 lượt xem &amp; 702 hỏi AI)
                   </>
                 )}
               </button>
@@ -632,7 +632,7 @@ export default function AnalyticsView() {
               <div className="p-3.5 rounded-xl bg-muted/40 border border-border/80 flex items-start gap-3">
                 <HelpCircle className="w-5 h-5 text-cyan-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-xs sm:text-sm text-foreground">Bảo vệ quyền riêng tư &amp; Không Mock Data</h4>
+                  <h4 className="font-semibold text-xs sm:text-sm text-foreground">Bảo vệ quyền riêng tư &amp; Dữ liệu thực từ Supabase</h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Địa chỉ IP được mã hóa hash một chiều SHA-256 bảo mật. Mọi số liệu hiển thị được tính toán trực tiếp từ các bản ghi thực tế trong PostgreSQL.
                   </p>

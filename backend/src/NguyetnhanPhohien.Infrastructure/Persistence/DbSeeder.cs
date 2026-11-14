@@ -446,6 +446,33 @@ public static class DbSeeder
     {
         try
         {
+            await db.Database.ExecuteSqlRawAsync(@"
+                CREATE TABLE IF NOT EXISTS ""WebsiteVisits"" (
+                    ""Id"" uuid NOT NULL PRIMARY KEY,
+                    ""Path"" character varying(255) NOT NULL,
+                    ""VisitorId"" character varying(64) NOT NULL,
+                    ""IpHash"" character varying(64) NULL,
+                    ""DeviceType"" character varying(32) NULL,
+                    ""Referrer"" character varying(500) NULL,
+                    ""CreatedAt"" timestamp with time zone NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS ""IX_WebsiteVisits_CreatedAt"" ON ""WebsiteVisits"" (""CreatedAt"" DESC);
+                CREATE INDEX IF NOT EXISTS ""IX_WebsiteVisits_VisitorId_CreatedAt"" ON ""WebsiteVisits"" (""VisitorId"", ""CreatedAt"" DESC);
+                CREATE INDEX IF NOT EXISTS ""IX_WebsiteVisits_Path"" ON ""WebsiteVisits"" (""Path"");
+
+                CREATE TABLE IF NOT EXISTS ""NutritionAiUsages"" (
+                    ""Id"" uuid NOT NULL PRIMARY KEY,
+                    ""SessionId"" character varying(64) NULL,
+                    ""VisitorId"" character varying(64) NULL,
+                    ""QuestionPreview"" character varying(255) NULL,
+                    ""DeviceType"" character varying(32) NULL,
+                    ""Language"" character varying(10) NOT NULL DEFAULT 'vi',
+                    ""CreatedAt"" timestamp with time zone NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_CreatedAt"" ON ""NutritionAiUsages"" (""CreatedAt"" DESC);
+                CREATE INDEX IF NOT EXISTS ""IX_NutritionAiUsages_VisitorId"" ON ""NutritionAiUsages"" (""VisitorId"");
+            ");
+
             var visitsCount = await db.WebsiteVisits.LongCountAsync();
             if (!force && visitsCount >= 1208)
             {

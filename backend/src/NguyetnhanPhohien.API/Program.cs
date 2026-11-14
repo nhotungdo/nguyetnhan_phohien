@@ -350,6 +350,28 @@ if (args.Contains("--clear-data"))
     return;
 }
 
+if (args.Contains("--seed-analytics"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("Đang kết nối tới Supabase PostgreSQL...");
+    await NguyetnhanPhohien.Infrastructure.Persistence.DbSeeder.SeedAnalyticsHistoryAsync(db, force: true);
+
+    var visits = await db.WebsiteVisits.LongCountAsync();
+    var visitors = await db.WebsiteVisits.Select(v => v.VisitorId).Distinct().LongCountAsync();
+    var ai = await db.NutritionAiUsages.LongCountAsync();
+    var aiUsers = await db.NutritionAiUsages.Select(u => u.VisitorId).Distinct().LongCountAsync();
+
+    Console.WriteLine($"ĐÃ XÁC NHẬN TRÊN SUPABASE:");
+    Console.WriteLine($"- Tổng lượt truy cập: {visits}");
+    Console.WriteLine($"- Khách ghé thăm (duy nhất): {visitors}");
+    Console.WriteLine($"- Lượt hỏi AI dinh dưỡng: {ai}");
+    Console.WriteLine($"- Khách hỏi AI (duy nhất): {aiUsers}");
+    Console.WriteLine($"- Tỷ lệ tương tác AI: {(visitors > 0 ? (double)aiUsers / visitors * 100 : 0):F1}%");
+    return;
+}
+
 // ===== MIDDLEWARE PIPELINE =====
 // 1. Forwarded Headers BẮT BUỘC ĐẦU TIÊN để Kestrel nhận đúng HTTPS và IP từ Reverse Proxy của Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
