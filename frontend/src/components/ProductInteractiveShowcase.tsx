@@ -387,55 +387,6 @@ export function ProductInteractiveShowcase({
                   </span>
                 </div>
               </div>
-
-              {/* Băng ảnh nhỏ chọn sản phẩm: chia lưới linh hoạt, không bị cắt xén tên */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2 mt-3 w-full">
-                {visibleProducts.map((prod) => {
-                  const isCurrent = prod.id === activeProduct?.id;
-                  return (
-                    <button
-                      key={prod.id}
-                      onClick={() => {
-                        setSelectedProductId(prod.id);
-                        setActiveHotspot(null);
-                      }}
-                      className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
-                        isCurrent
-                          ? "bg-[#F4EFE6] ring-1 ring-primary/40 shadow-xs"
-                          : "bg-white/80 hover:bg-white border border-border/40"
-                      }`}
-                    >
-                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden relative border border-border/40 shrink-0 bg-white">
-                        <FastImage
-                          key={`thumb-${prod.id}-${getProductImage(prod)}`}
-                          src={getProductImage(prod)}
-                          fallbackSrc="/images/combo3sp.jpg"
-                          alt={prod.name}
-                          fill
-                          sizes="36px"
-                          className="object-contain p-0.5"
-                        />
-                        {prod.isFavorite && (
-                          <span
-                            className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 shadow-xs z-10 ring-1 ring-white"
-                            title={language === "en" ? "Favorite choice" : "Sản phẩm yêu thích"}
-                          >
-                            <Heart className="w-2 h-2 fill-white" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 w-full">
-                        <div className="text-[11px] sm:text-xs font-bold text-primary truncate sm:line-clamp-2 leading-tight" title={prod.name}>
-                          {language === "en" ? (prod.nameEn || prod.name) : prod.name}
-                        </div>
-                        <div className="text-xs font-bold text-accent leading-tight mt-0.5">
-                          {formatPrice(prod.price)}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Cột Phải (Thông tin chi tiết, Thanh chỉ số cảm quan, Nút mua hàng) */}
@@ -548,6 +499,75 @@ export function ProductInteractiveShowcase({
                   <span>{language === "en" ? "Order Now" : "Đặt Mua Ngay"}</span>
                   <ChevronRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
                 </motion.button>
+              </div>
+            </div>
+
+            {/* BĂNG 5 SẢN PHẨM TOÀN CHIỀU RỘNG (12 CỘT): KHÔNG BỊ CO CỤM HAY ÉP CHỮ */}
+            <div className="lg:col-span-12 pt-4 sm:pt-5 border-t border-border/60 mt-1 w-full">
+              <div className="flex items-center justify-between mb-2.5 px-0.5">
+                <span className="text-[11px] sm:text-xs font-bold text-stone-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5 text-accent" />
+                  {language === "en" ? "Select Product Creation" : "Chọn Dòng Sản Phẩm"}
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  {visibleProducts.length} {language === "en" ? "items" : "sản phẩm"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 w-full">
+                {visibleProducts.map((prod, idx) => {
+                  const isCurrent = prod.id === activeProduct?.id;
+                  const isLastOdd = visibleProducts.length % 2 !== 0 && idx === visibleProducts.length - 1;
+
+                  return (
+                    <button
+                      key={prod.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProductId(prod.id);
+                        setActiveHotspot(null);
+                      }}
+                      className={`flex items-center gap-2 sm:gap-2.5 p-2 sm:p-2.5 rounded-2xl text-left transition-all cursor-pointer ${
+                        isLastOdd ? "col-span-2 sm:col-span-1" : ""
+                      } ${
+                        isCurrent
+                          ? "bg-[#F7F3EB] ring-2 ring-primary/70 shadow-xs border border-primary/30"
+                          : "bg-white/90 hover:bg-white border border-border/60 hover:border-primary/40 shadow-2xs"
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden border border-border/50 bg-white relative">
+                          <FastImage
+                            key={`thumb-${prod.id}-${getProductImage(prod)}`}
+                            src={getProductImage(prod)}
+                            fallbackSrc="/images/combo3sp.jpg"
+                            alt={prod.name}
+                            fill
+                            sizes="44px"
+                            className="object-contain p-1"
+                          />
+                        </div>
+                        {prod.isFavorite && (
+                          <span
+                            className="absolute -top-1 -right-1 bg-gradient-to-r from-red-600 to-rose-500 text-white rounded-full p-0.5 shadow-sm z-10 ring-1.5 ring-white"
+                            title={language === "en" ? "Favorite choice" : "Sản phẩm yêu thích"}
+                          >
+                            <Heart className="w-2.5 h-2.5 fill-white" />
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] sm:text-xs font-bold text-primary truncate leading-tight" title={prod.name}>
+                          {language === "en" ? (prod.nameEn || prod.name) : prod.name}
+                        </div>
+                        <div className="text-xs font-extrabold text-accent leading-tight mt-0.5">
+                          {formatPrice(prod.price)}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
