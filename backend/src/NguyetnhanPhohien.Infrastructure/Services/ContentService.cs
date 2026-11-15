@@ -81,22 +81,32 @@ public class ContentService : IContentService
         // 1. Ảnh Landing Page (Trang Chủ)
         "SiteLogo",       // logo header + footer
         "HeroBannerUrl",  // ảnh banner hero
-        "StoryImage",     // ảnh mục câu chuyện
+        "HeroBgImage",    // ảnh nền phong cảnh mờ của Hero trang chủ
+        "StoryImage",     // ảnh mục câu chuyện trên trang chủ
         "CultureImage",   // ảnh mục văn hóa
 
-        // 2. Ảnh Bao Bì Quy Cách Đóng Gói (Trang Tự Chọn Hạt)
+        // 2. Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)
+        "Story_HeroBg",          // Ảnh nền mở đầu trang Câu Chuyện
+        "Story_ChuaHien",        // Ảnh di tích Chùa Hiến và Cây nhãn tổ hơn 3 thế kỷ
+        "Story_Ingredients",     // Ảnh nguyên liệu: Long nhãn, sen Bắc & hạt dưỡng sinh
+        "Story_PosterUrl",       // Bìa video tài liệu ký sự VTV
+        "Story_Pillar_Nguyet",   // Ảnh triết lý: Nguyệt (Vẹn Tròn Đoàn Viên)
+        "Story_Pillar_Nhan",     // Ảnh triết lý: Nhãn (Tinh Hoa Dưỡng Sinh)
+        "Story_Pillar_PhoHien",  // Ảnh triết lý: Phố Hiến (Niềm Tự Hào Di Sản)
+
+        // 3. Ảnh Bao Bì Quy Cách Đóng Gói (Trang Tự Chọn Hạt)
         "CustomMix_Pkg_ZipBag",   // Bao bì: Túi Zip 150g
         "CustomMix_Pkg_Box",      // Bao bì: Hộp Mica 300g
         "CustomMix_Pkg_GiftSet",  // Bao bì: Lễ Hộp Hoàng Gia 900g
 
-        // 3. Ảnh 5 Loại Hạt Đặc Sản & Dinh Dưỡng (Trang Tự Chọn Hạt)
+        // 4. Ảnh 5 Loại Hạt Đặc Sản & Dinh Dưỡng (Trang Tự Chọn Hạt)
         "CustomMix_Nut_LongNhan", // Hạt: Long Nhãn Phố Hiến
         "CustomMix_Nut_Macca",    // Hạt: Hạt Macca Tây Nguyên
         "CustomMix_Nut_HatDieu",  // Hạt: Hạt Điều Bình Phước
         "CustomMix_Nut_HanhNhan", // Hạt: Hạnh Nhân California
         "CustomMix_Nut_BiXanh",   // Hạt: Hạt Bí Xanh Ấn Độ
 
-        // 4. Banner trang Tự Chọn Hạt
+        // 5. Banner trang Tự Chọn Hạt
         "CustomMix_BannerUrl"     // Banner đầu trang Tự chọn hạt
     };
 

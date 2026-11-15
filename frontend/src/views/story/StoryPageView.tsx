@@ -21,10 +21,18 @@ import { FastImage } from "@/components/FastImage";
 import { HeritageVideoSection } from "@/components/HeritageVideoSection";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { useLanguageStore } from "@/stores/useLanguageStore";
+import { useWebsiteContent } from "@/hooks/useWebsiteContent";
+import { resolveCmsImage } from "@/lib/cmsImage";
 
 export function StoryPageView() {
   const { language } = useLanguageStore();
   const isEn = language === "en";
+  const { content } = useWebsiteContent();
+
+  const heroBg = resolveCmsImage(content.Story_HeroBg) || "/images/chuachuong_hero_bg.jpg";
+  const chuaHienImg = resolveCmsImage(content.Story_ChuaHien) || "/images/chuachuong.jpg";
+  const ingredientsImg = resolveCmsImage(content.Story_Ingredients) || "/images/combo3sp.jpg";
+  const posterUrl = resolveCmsImage(content.Story_PosterUrl) || "/images/setqua.jpg";
 
   // Tab chuyển đổi góc nhìn nguyên liệu di sản
   const [activeIngredientTab, setActiveIngredientTab] = useState<"longan" | "lotus" | "nuts">("longan");
@@ -74,7 +82,7 @@ export function StoryPageView() {
       desc: isEn
         ? "Symbolizes golden harvest time along the river, warmth of family reunion, and sweet peace beside warm tea."
         : "Mùa thu hoạch rực vàng bên bãi bồi sông Hồng, biểu trưng cho sự sum vầy gia đình ấm áp bên tách trà thơm.",
-      image: "/images/anhdep1.png",
+      image: resolveCmsImage(content.Story_Pillar_Nguyet) || "/images/anhdep1.png",
       fallbackImage: "/images/combo3sp.jpg",
     },
     {
@@ -84,7 +92,7 @@ export function StoryPageView() {
       desc: isEn
         ? "Ancient imperial delicacy that nourishes blood, calms the spirit, and promotes longevity and vitality."
         : "Quả ngọc trời ban, vị thuốc ngự thiện bồi bổ khí huyết, an thần dưỡng tâm và bồi đắp sức khỏe trường thọ.",
-      image: "/images/nuts/longnhanomsen.jpg",
+      image: resolveCmsImage(content.Story_Pillar_Nhan) || "/images/nuts/longnhanomsen.jpg",
       fallbackImage: "/images/combo3sp.jpg",
     },
     {
@@ -94,7 +102,7 @@ export function StoryPageView() {
       desc: isEn
         ? "Rooted in the eternal pride of Hung Yen's ancient trading port and 300-year-old mother tree heritage."
         : "Gắn liền với thương cảng sầm uất thế kỷ 16–17 và cây nhãn tổ Chùa Hiến hơn 3 thế kỷ lưu giữ thức quả tiến vua.",
-      image: "/images/chuachuong.jpg",
+      image: resolveCmsImage(content.Story_Pillar_PhoHien) || "/images/chuachuong.jpg",
       fallbackImage: "/images/chuachuong_hero_bg.jpg",
     },
   ];
@@ -109,8 +117,8 @@ export function StoryPageView() {
         {/* Hình nền mờ ảo giàu chất thơ */}
         <div className="absolute inset-0 z-0">
           <FastImage
-            src="/images/chuachuong_hero_bg.jpg"
-            fallbackSrc="/images/chuachuong.jpg"
+            src={heroBg}
+            fallbackSrc="/images/chuachuong_hero_bg.jpg"
             alt="Di tích lịch sử Phố Hiến Hưng Yên"
             fill
             priority
@@ -174,7 +182,7 @@ export function StoryPageView() {
           <div className="lg:col-span-5 relative group">
             <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-[#EAE2D5]">
               <FastImage
-                src="/images/chuachuong.jpg"
+                src={chuaHienImg}
                 fallbackSrc="/images/chuachuong_hero_bg.jpg"
                 alt="Chùa Hiến và Cổ Thụ Nhãn Lồng Hưng Yên"
                 fill
@@ -373,7 +381,7 @@ export function StoryPageView() {
             <div className="lg:col-span-5 relative group order-1 lg:order-2">
               <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-[#EAE2D5]">
                 <FastImage
-                  src="/images/combo3sp.jpg"
+                  src={ingredientsImg}
                   fallbackSrc="/images/nuts/longnhanomsen.jpg"
                   alt="Long nhãn ôm sen và hạt dinh dưỡng cao cấp"
                   fill
@@ -465,7 +473,7 @@ export function StoryPageView() {
         <SectionErrorBoundary sectionName="Tư Liệu Ký Sự Di Sản">
           <HeritageVideoSection
             language={language as "vi" | "en"}
-            posterUrl="/images/setqua.jpg"
+            posterUrl={posterUrl}
             youtubeId="X8e-QWaVGQk"
           />
         </SectionErrorBoundary>

@@ -12,7 +12,7 @@ import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
   CloudUpload, Link as LinkIcon, RefreshCw, AlertCircle,
-  Star, BookOpen, ShoppingBag, Mail, Clock
+  Star, BookOpen, ShoppingBag, Mail, Clock, Camera, RotateCcw
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -108,6 +108,14 @@ const IMAGE_SLOTS: ImageSlot[] = [
     defaultPath: "/images/hero.png",
   },
   {
+    key: "HeroBgImage",
+    label: "Ảnh nền phong cảnh mờ của Hero trang chủ",
+    hint: "Ảnh phong cảnh Chùa Chuông mờ phía sau Hero trang chủ. Mặc định: /images/chuachuong_hero_bg.jpg.",
+    boxClass: "w-full aspect-video rounded-xl",
+    group: "Ảnh Trang Chủ (Landing Page)",
+    defaultPath: "/images/chuachuong_hero_bg.jpg",
+  },
+  {
     key: "StoryImage",
     label: "Ảnh câu chuyện di sản",
     hint: "Bên cạnh tiêu đề “Thứ Quả Tiến Vua Trứ Danh”.",
@@ -120,6 +128,64 @@ const IMAGE_SLOTS: ImageSlot[] = [
     hint: "Khối tròn tôn vinh nghệ thuật ẩm thực ở mục Văn hóa Phố Hiến.",
     boxClass: "w-40 h-40 rounded-full",
     group: "Ảnh Trang Chủ (Landing Page)",
+  },
+
+  // ===== 2. ẢNH TRANG CÂU CHUYỆN DI SẢN (/cau-chuyen) =====
+  {
+    key: "Story_HeroBg",
+    label: "Ảnh nền mở đầu (Hero)",
+    hint: "Ảnh nền mờ toàn cảnh phần mở đầu trang /cau-chuyen. Mặc định: /images/chuachuong_hero_bg.jpg.",
+    boxClass: "w-full aspect-[21/9] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/chuachuong_hero_bg.jpg",
+  },
+  {
+    key: "Story_ChuaHien",
+    label: "Ảnh Chùa Hiến & Cây Nhãn Tổ",
+    hint: "Ảnh minh họa phần lịch sử cây nhãn tổ hơn 3 thế kỷ. Mặc định: /images/chuachuong.jpg.",
+    boxClass: "w-full aspect-[4/3] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/chuachuong.jpg",
+  },
+  {
+    key: "Story_Ingredients",
+    label: "Ảnh Bộ 3 Tinh Hoa Nguyên Liệu",
+    hint: "Ảnh kết tinh long nhãn, sen Bắc & hạt dưỡng sinh. Mặc định: /images/combo3sp.jpg.",
+    boxClass: "w-full aspect-[4/3] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/combo3sp.jpg",
+  },
+  {
+    key: "Story_PosterUrl",
+    label: "Bìa video Ký Sự Di Sản VTV",
+    hint: "Ảnh poster hiển thị trước khi bấm phát video tư liệu ký sự. Mặc định: /images/setqua.jpg.",
+    boxClass: "w-full aspect-video rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/setqua.jpg",
+  },
+  {
+    key: "Story_Pillar_Nguyet",
+    label: "Triết lý: Nguyệt (Vẹn Tròn Đoàn Viên)",
+    hint: "Ảnh minh họa trụ cột triết lý Nguyệt. Mặc định: /images/anhdep1.png.",
+    boxClass: "w-full aspect-[4/3] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/anhdep1.png",
+  },
+  {
+    key: "Story_Pillar_Nhan",
+    label: "Triết lý: Nhãn (Tinh Hoa Dưỡng Sinh)",
+    hint: "Ảnh minh họa trụ cột triết lý Nhãn. Mặc định: /images/nuts/longnhanomsen.jpg.",
+    boxClass: "w-full aspect-[4/3] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/nuts/longnhanomsen.jpg",
+  },
+  {
+    key: "Story_Pillar_PhoHien",
+    label: "Triết lý: Phố Hiến (Tự Hào Di Sản)",
+    hint: "Ảnh minh họa trụ cột triết lý Phố Hiến. Mặc định: /images/chuachuong.jpg.",
+    boxClass: "w-full aspect-[4/3] rounded-xl",
+    group: "Ảnh Trang Câu Chuyện Di Sản (/cau-chuyen)",
+    defaultPath: "/images/chuachuong.jpg",
   },
 
   // ===== 2. BAO BÌ & QUY CÁCH ĐÓNG GÓI (TRANG TỰ CHỌN HẠT) =====
@@ -800,7 +866,27 @@ function ImageSlotEditor({ slot, value, onSaved }: {
   const [loadFailed, setLoadFailed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Khôi phục về ảnh mặc định ban đầu
+  const handleResetDefault = async () => {
+    if (!confirm(`Bạn có chắc muốn khôi phục ảnh mặc định cho "${slot.label}"?`)) return;
+    try {
+      setSavingUrl(true);
+      await contentApi.upsert({ key: slot.key, value: "" });
+      onSaved(slot.key, "");
+      setUrlDraft("");
+      setFile(null);
+      setPreviewUrl(null);
+      setLoadFailed(false);
+      flashSuccess(setUrlSuccess);
+    } catch (err) {
+      alert(`Lỗi khi khôi phục ảnh mặc định!\n${err instanceof Error ? err.message : ""}`.trim());
+    } finally {
+      setSavingUrl(false);
+    }
+  };
 
   // Đồng bộ giá trị đã lưu lên ô nhập URL (sau khi upload / refetch từ parent).
   // Dùng pattern "điều chỉnh state khi prop đổi" thay cho useEffect để không
@@ -900,11 +986,25 @@ function ImageSlotEditor({ slot, value, onSaved }: {
           <h4 className="font-semibold flex items-center gap-2"><ImageIcon className="w-4 h-4 text-primary" /> {slot.label}</h4>
           <p className="text-sm text-muted-foreground mt-0.5">{slot.hint}</p>
         </div>
-        {(uploadSuccess || urlSuccess) && (
-          <div className="flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-sm font-medium shrink-0">
-            <CheckCircle2 className="w-4 h-4" /> Đã cập nhật thành công!
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {slot.defaultPath && value && (
+            <button
+              type="button"
+              onClick={handleResetDefault}
+              disabled={savingUrl}
+              title="Khôi phục ảnh mặc định ban đầu"
+              className="text-xs text-muted-foreground hover:text-amber-700 dark:hover:text-amber-400 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border hover:bg-muted transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+              <span>Khôi phục mặc định</span>
+            </button>
+          )}
+          {(uploadSuccess || urlSuccess) && (
+            <div className="flex items-center gap-2 text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg text-sm font-medium shrink-0">
+              <CheckCircle2 className="w-4 h-4" /> Đã cập nhật thành công!
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-6 space-y-5">
@@ -974,7 +1074,27 @@ function ImageSlotEditor({ slot, value, onSaved }: {
               </div>
               <p className="text-xs text-muted-foreground/70">JPG, PNG, WEBP, GIF · Tối đa 10MB</p>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="py-2.5 px-4 rounded-xl border bg-muted/40 hover:bg-muted text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer text-stone-700 dark:text-stone-300"
+              >
+                <CloudUpload className="w-4 h-4 text-primary" />
+                <span>Chọn từ thư viện máy</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="py-2.5 px-4 rounded-xl border border-amber-600/30 bg-amber-50/60 dark:bg-amber-950/20 hover:bg-amber-100/60 text-amber-800 dark:text-amber-300 text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Camera className="w-4 h-4 text-amber-600" />
+                <span>Chụp ảnh mới từ Camera</span>
+              </button>
+            </div>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ""; }} />
 
             {file && (

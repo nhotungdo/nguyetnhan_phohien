@@ -13,7 +13,17 @@ export const defaultContents: Record<string, string> = {
   HeroSubtitle: "Hương vị truyền thống, đậm đà bản sắc Hưng Yên.",
   Hotline: "090 123 4567",
   Address: "Số 1, Phố Hiến, Hưng Yên",
-  FooterText: "© 2026 Nguyệt Nhãn Phố Hiến. Tất cả các quyền được bảo lưu."
+  FooterText: "© 2026 Nguyệt Nhãn Phố Hiến. Tất cả các quyền được bảo lưu.",
+
+  // Ảnh Landing Page & Câu chuyện
+  HeroBgImage: "/images/chuachuong_hero_bg.jpg",
+  Story_HeroBg: "/images/chuachuong_hero_bg.jpg",
+  Story_ChuaHien: "/images/chuachuong.jpg",
+  Story_Ingredients: "/images/combo3sp.jpg",
+  Story_PosterUrl: "/images/setqua.jpg",
+  Story_Pillar_Nguyet: "/images/anhdep1.png",
+  Story_Pillar_Nhan: "/images/nuts/longnhanomsen.jpg",
+  Story_Pillar_PhoHien: "/images/chuachuong.jpg"
 };
 
 /** Query key dùng chung — PHẢI trùng với prefetch ở app/page.tsx (SSR). */
