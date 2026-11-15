@@ -391,12 +391,20 @@ export const productApi = {
       headers: getAdminHeaders(),
     }),
 
-  /** [ADMIN] Bật / Tắt trạng thái yêu thích sản phẩm (Favorite Choice) chỉ với 1 click */
-  toggleFavorite: (id: string): Promise<import("@/types/api.types").ProductResponse> =>
-    apiFetch(`/api/products/${id}/toggle-favorite`, {
-      method: "PATCH",
-      headers: getAdminHeaders(),
-    }),
+  /** [ADMIN] Bật / Tắt trạng thái yêu thích sản phẩm (Favorite Choice) chỉ với 1 click (hỗ trợ tự động fallback sang POST nếu mạng chặn PATCH) */
+  toggleFavorite: async (id: string): Promise<import("@/types/api.types").ProductResponse> => {
+    try {
+      return await apiFetch(`/api/products/${id}/toggle-favorite`, {
+        method: "PATCH",
+        headers: getAdminHeaders(),
+      });
+    } catch {
+      return await apiFetch(`/api/products/${id}/toggle-favorite`, {
+        method: "POST",
+        headers: getAdminHeaders(),
+      });
+    }
+  },
 
   /** [ADMIN] Xóa sản phẩm */
   delete: (id: string): Promise<void> =>

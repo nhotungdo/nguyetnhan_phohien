@@ -110,13 +110,14 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>[ADMIN] Bật / Tắt trạng thái yêu thích sản phẩm (Favorite Choice) chỉ với 1 click</summary>
+    /// <summary>[ADMIN] Bật / Tắt trạng thái yêu thích sản phẩm (Favorite Choice) chỉ với 1 click (hỗ trợ cả PATCH lẫn POST)</summary>
     [HttpPatch("{id}/toggle-favorite")]
+    [HttpPost("{id}/toggle-favorite")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ProductResponse>> ToggleFavorite(Guid id)
     {
         var result = await _productService.ToggleFavoriteAsync(id);
-        if (result == null) return NotFound();
+        if (result == null) return NotFound(new { message = "Không tìm thấy sản phẩm." });
         await BroadcastChangeAsync("updated", id);
         return Ok(result);
     }

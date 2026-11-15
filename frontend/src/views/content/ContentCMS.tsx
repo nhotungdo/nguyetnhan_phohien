@@ -403,7 +403,7 @@ export default function ContentCMS() {
       await queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (err) {
       await refetchProducts();
-      alert(`Lỗi khi cập nhật trạng thái yêu thích!\n${err instanceof Error ? err.message : ""}`.trim());
+      alert(`Không thể cập nhật trạng thái yêu thích!\n${err instanceof Error ? err.message : "Vui lòng tải lại trang và thử lại."}`.trim());
     } finally {
       setTogglingFavoriteId(null);
     }
