@@ -328,8 +328,8 @@ export function ProductInteractiveShowcase({
                 </div>
               </div>
 
-              {/* Băng ảnh nhỏ chọn sản phẩm: chia lưới 3 cột vừa vặn, không bị cắt xén tên */}
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 w-full">
+              {/* Băng ảnh nhỏ chọn sản phẩm: chia lưới linh hoạt, không bị cắt xén tên */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2 mt-3 w-full">
                 {displayProducts.map((prod, idx) => {
                   const isCurrent = idx === selectedIndex;
                   return (
@@ -358,7 +358,7 @@ export function ProductInteractiveShowcase({
                       </div>
                       <div className="min-w-0 flex-1 w-full">
                         <div className="text-[11px] sm:text-xs font-bold text-primary truncate sm:line-clamp-2 leading-tight" title={prod.name}>
-                          {prod.name}
+                          {language === "en" ? (prod.nameEn || prod.name) : prod.name}
                         </div>
                         <div className="text-xs font-bold text-accent leading-tight mt-0.5">
                           {formatPrice(prod.price)}
@@ -377,7 +377,7 @@ export function ProductInteractiveShowcase({
                 <div className="flex items-center justify-between gap-2 mb-1.5 w-full">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#A61C45] text-white text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-xs shrink-0">
                     <Award className="w-3 h-3 text-[#F3D498]" />
-                    {language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua"}
+                    {activeProduct.badge || (language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua")}
                   </span>
                   <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full shrink-0">
                     {language === "en" ? "Net wt: " : "Quy cách: "}{activeProduct.size}
@@ -385,7 +385,7 @@ export function ProductInteractiveShowcase({
                 </div>
 
                 <h3 className="text-xl sm:text-2xl font-bold text-primary mb-1.5 break-words leading-snug [text-wrap:balance]">
-                  {activeProduct.name}
+                  {language === "en" ? (activeProduct.nameEn || activeProduct.name) : activeProduct.name}
                 </h3>
 
                 <p className="text-foreground/80 text-xs sm:text-sm leading-relaxed mb-3 break-words line-clamp-2 [text-wrap:pretty]">

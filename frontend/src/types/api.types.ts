@@ -272,6 +272,13 @@ export interface PaymentSettings {
 }
 
 // ===== PRODUCT TYPES =====
+export interface ProductSensoryScores {
+  nutCrispiness: number;
+  longanChewiness: number;
+  naturalSweetness: number;
+  harmoniousAroma: number;
+}
+
 export interface ProductImageResponse {
   id: string;
   imagePath: string;
@@ -280,10 +287,19 @@ export interface ProductImageResponse {
 
 export interface ProductResponse {
   id: string;
+  productCode?: string;
   name: string;
+  nameEn?: string;
+  packagingType?: string;
   price: number;
   size: string;
+  badge?: string;
   description: string;
+  overview?: string;
+  ingredients?: string;
+  sensoryScores?: string;
+  healthBenefits?: string;
+  usageInstructions?: string;
   imageUrl?: string;
   isActive: boolean;
   displayOrder: number;
@@ -291,10 +307,19 @@ export interface ProductResponse {
 }
 
 export interface ProductRequest {
+  productCode?: string;
   name: string;
+  nameEn?: string;
+  packagingType?: string;
   price: number;
   size: string;
+  badge?: string;
   description: string;
+  overview?: string;
+  ingredients?: string;
+  sensoryScores?: string;
+  healthBenefits?: string;
+  usageInstructions?: string;
   isActive: boolean;
   displayOrder: number;
 }

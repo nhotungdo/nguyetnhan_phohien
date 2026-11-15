@@ -46,10 +46,19 @@ public class ProductService : IProductService
     {
         var product = new Product
         {
+            ProductCode = request.ProductCode,
             Name = request.Name,
+            NameEn = request.NameEn,
+            PackagingType = request.PackagingType,
             Price = request.Price,
             Size = request.Size,
+            Badge = request.Badge,
             Description = request.Description,
+            Overview = request.Overview,
+            Ingredients = request.Ingredients,
+            SensoryScores = request.SensoryScores,
+            HealthBenefits = request.HealthBenefits,
+            UsageInstructions = request.UsageInstructions,
             IsActive = request.IsActive,
             DisplayOrder = request.DisplayOrder,
             CreatedAt = DateTime.UtcNow,
@@ -66,10 +75,19 @@ public class ProductService : IProductService
         var product = await _db.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return null;
 
+        product.ProductCode = request.ProductCode;
         product.Name = request.Name;
+        product.NameEn = request.NameEn;
+        product.PackagingType = request.PackagingType;
         product.Price = request.Price;
         product.Size = request.Size;
+        product.Badge = request.Badge;
         product.Description = request.Description;
+        product.Overview = request.Overview;
+        product.Ingredients = request.Ingredients;
+        product.SensoryScores = request.SensoryScores;
+        product.HealthBenefits = request.HealthBenefits;
+        product.UsageInstructions = request.UsageInstructions;
         product.IsActive = request.IsActive;
         product.DisplayOrder = request.DisplayOrder;
         product.UpdatedAt = DateTime.UtcNow;
@@ -227,10 +245,19 @@ public class ProductService : IProductService
         return new ProductResponse
         {
             Id = product.Id,
+            ProductCode = product.ProductCode,
             Name = product.Name,
+            NameEn = product.NameEn,
+            PackagingType = product.PackagingType,
             Price = product.Price,
             Size = product.Size,
+            Badge = product.Badge,
             Description = product.Description,
+            Overview = product.Overview,
+            Ingredients = product.Ingredients,
+            SensoryScores = product.SensoryScores,
+            HealthBenefits = product.HealthBenefits,
+            UsageInstructions = product.UsageInstructions,
             ImageUrl = primaryImage,
             IsActive = product.IsActive,
             DisplayOrder = product.DisplayOrder,

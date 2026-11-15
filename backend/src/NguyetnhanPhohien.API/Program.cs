@@ -418,6 +418,169 @@ if (args.Contains("--fix-rls"))
     return;
 }
 
+if (args.Contains("--migrate-products-5"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("Đang cập nhật schema và 5 sản phẩm thực tế lên Supabase...");
+    await db.Database.ExecuteSqlRawAsync(@"
+        ALTER TABLE public.""Products""
+            ADD COLUMN IF NOT EXISTS ""ProductCode"" VARCHAR(100) NULL,
+            ADD COLUMN IF NOT EXISTS ""NameEn"" VARCHAR(255) NULL,
+            ADD COLUMN IF NOT EXISTS ""PackagingType"" VARCHAR(100) NULL,
+            ADD COLUMN IF NOT EXISTS ""Badge"" VARCHAR(100) NULL,
+            ADD COLUMN IF NOT EXISTS ""Overview"" TEXT NULL,
+            ADD COLUMN IF NOT EXISTS ""Ingredients"" TEXT NULL,
+            ADD COLUMN IF NOT EXISTS ""SensoryScores"" TEXT NULL,
+            ADD COLUMN IF NOT EXISTS ""HealthBenefits"" TEXT NULL,
+            ADD COLUMN IF NOT EXISTS ""UsageInstructions"" TEXT NULL;
+
+        CREATE INDEX IF NOT EXISTS ""IX_Products_ProductCode"" ON public.""Products"" (""ProductCode"");
+    ");
+
+    var existing = await db.Products.Include(p => p.Images).ToListAsync();
+    db.Products.RemoveRange(existing);
+    await db.SaveChangesAsync();
+
+    var products = new List<NguyetnhanPhohien.Domain.Entities.Product>
+    {
+        new()
+        {
+            Id = new Guid("b0000001-0000-0000-0000-000000000150"),
+            ProductCode = "NN-ZIP-150",
+            Name = "Gói \"Long Nhãn Mix Hạt Dinh Dưỡng\" (Túi Zip)",
+            NameEn = "Artisanal Longan & Nut Blend Pouch",
+            PackagingType = "Túi Zip Kraft",
+            Size = "150g",
+            Price = 69000,
+            Badge = "Dưỡng Sinh Năng Lượng 150g",
+            Description = "Sự kết hợp hoàn hảo giữa Long nhãn Phố Hiến dẻo ngọt và 4 loại hạt dinh dưỡng (Hạt điều, Macca, Bí xanh, Hạnh nhân) giòn bùi tự nhiên, túi zip tiện lợi.",
+            Overview = "Lấy cảm hứng từ nhịp sống năng động hiện đại, gói hạt là giải pháp dinh dưỡng sạch và tiện lợi mỗi ngày. Từng múi long nhãn Hương Chi được sấy đối lưu giữ trọn vị ngọt mật, phối cùng hạt điều Bình Phước loại 1, macca Tây Nguyên béo ngậy, hạnh nhân và hạt bí xanh nướng mộc không chiên dầu.",
+            Ingredients = "Long Nhãn Hương Chi Phố Hiến (30%), Hạt Điều Bình Phước (20%), Hạt Macca Tây Nguyên (20%), Hạnh Nhân Nướng Mộc (15%), Hạt Bí Xanh Tuyển Chọn (15%).",
+            SensoryScores = "{\"nutCrispiness\":9.2,\"longanChewiness\":8.6,\"naturalSweetness\":8.5,\"harmoniousAroma\":9.0}",
+            HealthBenefits = "Cung cấp năng lượng sạch tức thì, dồi dào chất xơ, vitamin E và Omega tự nhiên tốt cho tim mạch và não bộ.",
+            UsageInstructions = "Ăn liền trực tiếp, trộn cùng sữa chua granola hoặc dùng kèm tách trà ấm trong giờ làm việc.",
+            ImageUrl = "/images/products/tui_zip_mix_hat.jpg",
+            DisplayOrder = 1,
+            IsActive = true,
+            Images = new List<NguyetnhanPhohien.Domain.Entities.ProductImage>
+            {
+                new() { ImagePath = "/images/products/tui_zip_mix_hat.jpg", DisplayOrder = 0 },
+                new() { ImagePath = "/images/tuizip/tuizip.jpg", DisplayOrder = 1 }
+            }
+        },
+        new()
+        {
+            Id = new Guid("b0000001-0000-0000-0000-000000000300"),
+            ProductCode = "NN-DEO-300",
+            Name = "Hũ \"Long Nhãn Sấy Dẻo Phố Hiến\" (Bản Tiến Vua)",
+            NameEn = "Royal Tribute Convection-Dried Longan",
+            PackagingType = "Hũ nắp gỗ sồi",
+            Size = "300g",
+            Price = 165000,
+            Badge = "Phẩm Vật Tiến Vua Nguyên Bản",
+            Description = "100% cùi nhãn Hương Chi bãi bồi sông Hồng tuyển chọn, sấy nhiệt nóng đối lưu bằng than củi nhãn già, cô đọng mật ngọt đất trời thành múi long dẻo quánh hổ phách chuẩn vị ngự thiện.",
+            Overview = "Thứ quả ngọc tiến vua trứ danh ngàn năm của đất Hưng Yên. Thu hoạch từ cữ sớm mai trên những tán nhãn cổ thụ quanh Chùa Hiến, người nghệ nhân dùng bút tre xoáy cùi tách hạt khéo léo, giữ nguyên vẹn đài múi tròn đầy rồi sấy liên tục 36 giờ trên lò sấy đối lưu than củi gia truyền.",
+            Ingredients = "100% Long nhãn Hương Chi Phố Hiến thuần khiết (0% đường phụ gia, 0% diêm sinh xông khói).",
+            SensoryScores = "{\"nutCrispiness\":5.0,\"longanChewiness\":9.8,\"naturalSweetness\":9.5,\"harmoniousAroma\":9.6}",
+            HealthBenefits = "Bổ tâm tỳ, dưỡng huyết an thần, trị mất ngủ, bồi bổ cơ thể suy nhược và tăng cường khí sắc.",
+            UsageInstructions = "Thưởng trà mạn/trà sen, hãm trà dưỡng nhan cùng kỷ tử táo đỏ, hoặc nấu chè hạt sen long nhãn mùa hè.",
+            ImageUrl = "/images/products/hu_long_nhan_say_deo.jpg",
+            DisplayOrder = 2,
+            IsActive = true,
+            Images = new List<NguyetnhanPhohien.Domain.Entities.ProductImage>
+            {
+                new() { ImagePath = "/images/products/hu_long_nhan_say_deo.jpg", DisplayOrder = 0 },
+                new() { ImagePath = "/images/hopnhua/hopnhua.jpg", DisplayOrder = 1 }
+            }
+        },
+        new()
+        {
+            Id = new Guid("b0000001-0000-0000-0000-000000000301"),
+            ProductCode = "NN-SEN-300",
+            Name = "Hũ \"Long Nhãn Ôm Sen Bắc\" (Bản Ngự Thiện)",
+            NameEn = "Imperial Longan Embracing Lotus Seed",
+            PackagingType = "Hũ nắp gỗ sồi",
+            Size = "300g",
+            Price = 185000,
+            Badge = "Tuyệt Kỹ Ngự Thiện Cung Đình",
+            Description = "Sự kết tinh đỉnh cao giữa cùi nhãn Hương Chi ngọt thanh và hạt sen đầm Bắc bùi béo dẻo ngậy; mỗi múi nhãn ôm trọn viên hạt sen tròn đầy, thanh tao an thần dưỡng trí.",
+            Overview = "Biểu tượng của sự vẹn tròn và thanh khiết trong ẩm thực hoàng cung xưa. Từng hạt sen tươi giống Bắc thơm bở được hấp chín tới, sau đó người thợ thủ công khéo léo lồng vào giữa múi nhãn Hương Chi tươi rồi đem sấy đối lưu. Vị ngọt đậm của mật nhãn ngấm đều vào hạt sen, tạo nên vị dẻo giòn bên ngoài và bùi béo ngậy tan mịn bên trong.",
+            Ingredients = "Long Nhãn Hương Chi Phố Hiến (55%), Hạt Sen Bắc Tươi Đầm Hồng (45%).",
+            SensoryScores = "{\"nutCrispiness\":7.5,\"longanChewiness\":9.4,\"naturalSweetness\":9.6,\"harmoniousAroma\":9.5}",
+            HealthBenefits = "Dưỡng tâm an thần, cải thiện giấc ngủ sâu, kiện tỳ vị, thanh nhiệt dưỡng nhan.",
+            UsageInstructions = "Dùng kèm tách trà hoa cúc hoặc trà ướp hoa sen ấm nóng; món quà biếu trang nhã cho người lớn tuổi.",
+            ImageUrl = "/images/products/hu_long_nhan_om_sen.jpg",
+            DisplayOrder = 3,
+            IsActive = true,
+            Images = new List<NguyetnhanPhohien.Domain.Entities.ProductImage>
+            {
+                new() { ImagePath = "/images/products/hu_long_nhan_om_sen.jpg", DisplayOrder = 0 }
+            }
+        },
+        new()
+        {
+            Id = new Guid("b0000001-0000-0000-0000-000000000302"),
+            ProductCode = "NN-MIX-300",
+            Name = "Hũ \"Long Nhãn Ôm Sen Mix Hạt Dinh Dưỡng\"",
+            NameEn = "Lotus Longan & Premium Nut Symphony",
+            PackagingType = "Hũ nắp gỗ sồi",
+            Size = "300g",
+            Price = 175000,
+            Badge = "Bản Giao Hưởng Dinh Dưỡng",
+            Description = "Bản hòa ca mỹ vị độc bản giữa Long nhãn ôm sen Bắc bùi dẻo và 4 loại hạt dinh dưỡng (Điều, Macca, Hạnh nhân, Bí xanh) giòn bùi ngậy, trọn vẹn phong vị và vi chất cho sức khỏe.",
+            Overview = "Tác phẩm giao thoa giữa di sản ẩm thực tiến vua và phong cách thực dưỡng hiện đại. Hũ hội tụ đủ cả từng viên long nhãn ôm sen ngọt bùi lẫn độ giòn tan béo ngậy của hạt macca Tây Nguyên, hạt điều Bình Phước nướng củi, hạnh nhân và hạt bí xanh, mang đến trải nghiệm thưởng vị phong phú bất tận.",
+            Ingredients = "Long Nhãn Ôm Sen Bắc (40%), Hạt Macca Tây Nguyên (15%), Hạt Điều Bình Phước (15%), Hạnh Nhân Nướng Mộc (15%), Hạt Bí Xanh Ấn Độ (15%).",
+            SensoryScores = "{\"nutCrispiness\":9.3,\"longanChewiness\":9.2,\"naturalSweetness\":9.2,\"harmoniousAroma\":9.6}",
+            HealthBenefits = "Bổ sung khoáng chất, vitamin E, chất chống oxy hóa, hỗ trợ vóc dáng và làm chậm quá trình lão hóa.",
+            UsageInstructions = "Nhâm nhi trực tiếp cùng trà sen, hoặc làm món khai vị chiêu đãi bạn bè trong những buổi thưởng trà đàm đạo.",
+            ImageUrl = "/images/products/hu_long_nhan_om_sen_mix_hat.jpg",
+            DisplayOrder = 4,
+            IsActive = true,
+            Images = new List<NguyetnhanPhohien.Domain.Entities.ProductImage>
+            {
+                new() { ImagePath = "/images/products/hu_long_nhan_om_sen_mix_hat.jpg", DisplayOrder = 0 }
+            }
+        },
+        new()
+        {
+            Id = new Guid("b0000001-0000-0000-0000-000000000900"),
+            ProductCode = "NN-SET-900",
+            Name = "Lễ Hộp \"Vọng Nguyệt Thương Cảng\" (Hoàng Gia)",
+            NameEn = "Imperial Gift Case \"Port Moonrise Heritage\"",
+            PackagingType = "Lễ Hộp quai tre",
+            Size = "Set 900g",
+            Price = 780000,
+            Badge = "Phẩm Vật Ngoại Giao Hoàng Gia",
+            Description = "Tuyệt phẩm quà biếu tái hiện sự phồn hoa thương cảng Phố Hiến thế kỷ 17; thiết kế vali gấm đỏ quai tre truyền thống sang trọng, kết tinh trọn vẹn các thức quả ngự thiện thượng hạng.",
+            Overview = "Đỉnh cao quà tặng di sản dành cho các dịp đại lễ, Tết cổ truyền và ngoại giao doanh nghiệp. Thiết kế vali bọc gấm đỏ tượng trưng cho vượng khí, tài lộc và sự viên mãn. Bên trong là 3 hũ nắp gỗ thượng hạng: 01 Hũ Long nhãn ôm sen, 01 Hũ Long nhãn sấy dẻo và 01 Hũ Hạt dinh dưỡng / Ôm sen mix hạt, gửi trao trọn vẹn chân tình và sự trân quý.",
+            Ingredients = "01 Hũ Long Nhãn Ôm Sen (300g) + 01 Hũ Long Nhãn Sấy Dẻo (300g) + 01 Hũ Hạt Dinh Dưỡng Mix (300g) + 01 Thiệp thư pháp chúc mừng + 01 Túi xách gấm đỏ cao cấp.",
+            SensoryScores = "{\"nutCrispiness\":9.5,\"longanChewiness\":9.8,\"naturalSweetness\":9.5,\"harmoniousAroma\":9.8}",
+            HealthBenefits = "Món quà sức khỏe đẳng cấp trao gửi đối tác ngoại giao, lãnh đạo, tri ân cha mẹ và khách quý.",
+            UsageInstructions = "Trưng bày không gian trang trọng ngày Tết hoặc dùng làm quà ngoại giao, biếu tặng cao cấp.",
+            ImageUrl = "/images/products/le_hop_hoang_gia.jpg",
+            DisplayOrder = 5,
+            IsActive = true,
+            Images = new List<NguyetnhanPhohien.Domain.Entities.ProductImage>
+            {
+                new() { ImagePath = "/images/products/le_hop_hoang_gia.jpg", DisplayOrder = 0 },
+                new() { ImagePath = "/images/hopdo/hopdo.jpg", DisplayOrder = 1 }
+            }
+        }
+    };
+
+    db.Products.AddRange(products);
+    await db.SaveChangesAsync();
+
+    Console.WriteLine($"Đã nạp thành công {products.Count} sản phẩm đầy đủ 13 trường dữ liệu động lên Supabase!");
+    foreach (var p in products)
+    {
+        Console.WriteLine($"- [{p.ProductCode}] {p.Name} | {p.Size} | {p.Price:N0}đ | Ảnh: {p.ImageUrl}");
+    }
+    return;
+}
+
 // ===== MIDDLEWARE PIPELINE =====
 // 1. Forwarded Headers BẮT BUỘC ĐẦU TIÊN để Kestrel nhận đúng HTTPS và IP từ Reverse Proxy của Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
