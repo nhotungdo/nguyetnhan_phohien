@@ -60,6 +60,7 @@ public class ProductService : IProductService
             HealthBenefits = request.HealthBenefits,
             UsageInstructions = request.UsageInstructions,
             IsActive = request.IsActive,
+            IsFavorite = request.IsFavorite,
             DisplayOrder = request.DisplayOrder,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -89,7 +90,20 @@ public class ProductService : IProductService
         product.HealthBenefits = request.HealthBenefits;
         product.UsageInstructions = request.UsageInstructions;
         product.IsActive = request.IsActive;
+        product.IsFavorite = request.IsFavorite;
         product.DisplayOrder = request.DisplayOrder;
+        product.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return MapToResponse(product);
+    }
+
+    public async Task<ProductResponse?> ToggleFavoriteAsync(Guid id)
+    {
+        var product = await _db.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
+        if (product == null) return null;
+
+        product.IsFavorite = !product.IsFavorite;
         product.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -260,6 +274,7 @@ public class ProductService : IProductService
             UsageInstructions = product.UsageInstructions,
             ImageUrl = primaryImage,
             IsActive = product.IsActive,
+            IsFavorite = product.IsFavorite,
             DisplayOrder = product.DisplayOrder,
             Images = images
         };

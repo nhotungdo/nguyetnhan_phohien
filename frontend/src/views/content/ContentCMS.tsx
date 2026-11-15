@@ -12,7 +12,7 @@ import {
   Loader2, Save, CheckCircle2, Plus, Edit, Trash2, X,
   Type, Phone, MapPin, Globe, Image as ImageIcon, Package, Upload,
   CloudUpload, Link as LinkIcon, RefreshCw, AlertCircle,
-  Star, BookOpen, ShoppingBag, Mail, Clock, Camera, RotateCcw
+  Star, BookOpen, ShoppingBag, Mail, Clock, Camera, RotateCcw, Heart
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
@@ -284,6 +284,7 @@ const EMPTY_FORM: ProductRequest = {
   healthBenefits: "",
   usageInstructions: "",
   isActive: true,
+  isFavorite: false,
   displayOrder: 0,
 };
 
@@ -384,6 +385,30 @@ export default function ContentCMS() {
     setPendingImages(prev => { prev.forEach(p => URL.revokeObjectURL(p.url)); return []; });
   };
 
+  const [togglingFavoriteId, setTogglingFavoriteId] = useState<string | null>(null);
+
+  const handleToggleFavorite = async (product: ProductResponse) => {
+    if (togglingFavoriteId) return;
+    setTogglingFavoriteId(product.id);
+
+    // Optimistic UI update in React Query cache
+    queryClient.setQueryData<ProductResponse[]>(["products", "admin"], old => {
+      if (!old) return old;
+      return old.map(p => p.id === product.id ? { ...p, isFavorite: !p.isFavorite } : p);
+    });
+
+    try {
+      await productApi.toggleFavorite(product.id);
+      await refetchProducts();
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (err) {
+      await refetchProducts();
+      alert(`Lỗi khi cập nhật trạng thái yêu thích!\n${err instanceof Error ? err.message : ""}`.trim());
+    } finally {
+      setTogglingFavoriteId(null);
+    }
+  };
+
   const openModal = (product?: ProductResponse) => {
     if (product) {
       setEditingId(product.id);
@@ -402,6 +427,7 @@ export default function ContentCMS() {
         healthBenefits: product.healthBenefits || "",
         usageInstructions: product.usageInstructions || "",
         isActive: product.isActive,
+        isFavorite: product.isFavorite ?? false,
         displayOrder: product.displayOrder,
       });
       setExistingImages([...product.images]);
@@ -664,6 +690,7 @@ export default function ContentCMS() {
                   <th className="px-5 py-3.5 font-medium">Bao bì & Quy cách</th>
                   <th className="px-5 py-3.5 font-medium">Giá bán (VNĐ)</th>
                   <th className="px-5 py-3.5 font-medium">Huy hiệu</th>
+                  <th className="px-5 py-3.5 font-medium text-center">Yêu thích</th>
                   <th className="px-5 py-3.5 font-medium">Số ảnh</th>
                   <th className="px-5 py-3.5 font-medium">Trạng thái</th>
                   <th className="px-5 py-3.5 text-right font-medium">Thao tác</th>
@@ -671,16 +698,16 @@ export default function ContentCMS() {
               </thead>
               <tbody className="divide-y">
                 {isLoadingProducts ? (
-                  <tr><td colSpan={8} className="px-5 py-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></td></tr>
+                  <tr><td colSpan={9} className="px-5 py-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></td></tr>
                 ) : isErrorProducts && products.length === 0 ? (
-                  <tr><td colSpan={8} className="px-5 py-8 text-center space-y-2">
+                  <tr><td colSpan={9} className="px-5 py-8 text-center space-y-2">
                     <p className="text-sm font-medium">Không tải được danh sách sản phẩm.</p>
                     <button onClick={() => refetchProducts()} className="border hover:bg-muted px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 transition-colors">
                       <RefreshCw className="w-4 h-4" /> Thử lại
                     </button>
                   </td></tr>
                 ) : products.length === 0 ? (
-                  <tr><td colSpan={8} className="px-5 py-8 text-center text-muted-foreground">Chưa có sản phẩm. Hãy thêm mới!</td></tr>
+                  <tr><td colSpan={9} className="px-5 py-8 text-center text-muted-foreground">Chưa có sản phẩm. Hãy thêm mới!</td></tr>
                 ) : products.map(p => (
                   <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-3.5">
@@ -716,6 +743,25 @@ export default function ContentCMS() {
                       ) : (
                         <span className="text-xs text-muted-foreground">-</span>
                       )}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFavorite(p)}
+                        disabled={togglingFavoriteId === p.id}
+                        title={p.isFavorite ? "Bỏ đánh dấu yêu thích" : "Đánh dấu là sản phẩm yêu thích"}
+                        className={`p-2 rounded-full transition-all cursor-pointer inline-flex items-center justify-center ${
+                          p.isFavorite
+                            ? "bg-rose-50 text-rose-600 hover:bg-rose-100 ring-1 ring-rose-200 shadow-2xs"
+                            : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"
+                        }`}
+                      >
+                        <Heart
+                          className={`w-4 h-4 transition-transform active:scale-125 ${
+                            p.isFavorite ? "fill-rose-500 text-rose-600" : ""
+                          }`}
+                        />
+                      </button>
                     </td>
                     <td className="px-5 py-3.5"><span className="bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">{p.images.length} ảnh</span></td>
                     <td className="px-5 py-3.5">
@@ -766,9 +812,24 @@ export default function ContentCMS() {
                           <h4 className="font-bold text-foreground text-sm truncate">{p.name}</h4>
                           {p.nameEn && <p className="text-xs text-muted-foreground truncate">{p.nameEn}</p>}
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                          {p.isActive ? "Hiển thị" : "Ẩn"}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFavorite(p)}
+                            disabled={togglingFavoriteId === p.id}
+                            title={p.isFavorite ? "Bỏ yêu thích" : "Đánh dấu yêu thích"}
+                            className={`p-1.5 rounded-full transition-all cursor-pointer inline-flex items-center justify-center ${
+                              p.isFavorite
+                                ? "bg-rose-50 text-rose-600 ring-1 ring-rose-200 shadow-2xs"
+                                : "text-stone-300 hover:text-stone-500 hover:bg-stone-100"
+                            }`}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${p.isFavorite ? "fill-rose-500 text-rose-600" : ""}`} />
+                          </button>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                            {p.isActive ? "Hiển thị" : "Ẩn"}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-accent font-bold text-sm mt-0.5">{p.price.toLocaleString("vi-VN").replace(/,/g, ".")}đ</p>
                       <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-muted-foreground">
@@ -1013,17 +1074,33 @@ export default function ContentCMS() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    <input
-                      type="checkbox"
-                      id="isActive"
-                      checked={formData.isActive}
-                      onChange={e => setFormData(p => ({ ...p, isActive: e.target.checked }))}
-                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-                    />
-                    <label htmlFor="isActive" className="text-sm font-medium cursor-pointer">
-                      Hiển thị sản phẩm này trên website (Landing Page & Trang Sản phẩm)
-                    </label>
+                  <div className="space-y-2.5 pt-2 border-t">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isActive"
+                        checked={formData.isActive}
+                        onChange={e => setFormData(p => ({ ...p, isActive: e.target.checked }))}
+                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      />
+                      <label htmlFor="isActive" className="text-sm font-medium cursor-pointer">
+                        Hiển thị sản phẩm này trên website (Landing Page & Trang Sản phẩm)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isFavorite"
+                        checked={formData.isFavorite ?? false}
+                        onChange={e => setFormData(p => ({ ...p, isFavorite: e.target.checked }))}
+                        className="w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                      />
+                      <label htmlFor="isFavorite" className="text-sm font-semibold text-rose-700 flex items-center gap-1.5 cursor-pointer">
+                        <Heart className={`w-4 h-4 ${formData.isFavorite ? "fill-rose-500 text-rose-600" : "text-rose-400"}`} />
+                        Được yêu thích nhất (Hiển thị biểu tượng ❤️ Yêu thích nổi bật trên tất cả các trang web)
+                      </label>
+                    </div>
                   </div>
                 </div>
               )}

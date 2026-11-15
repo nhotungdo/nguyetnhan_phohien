@@ -142,11 +142,17 @@ export function ProductDetailModal({
         {/* HEADER MODAL */}
         <div className="flex items-center justify-between px-4 py-2.5 sm:px-6 sm:py-4 border-b border-[#E8DFC8] bg-[#FAF8F5] shrink-0">
           <div className="min-w-0 pr-2">
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full bg-amber-100 text-[#92400E] border border-amber-300 shrink-0">
                 <Award className="w-3 h-3 text-[#B45309]" />
                 {product.badge || (language === "en" ? detailInfo.badgeEn : detailInfo.badgeVi)}
               </span>
+              {(product.isFavorite ?? detailInfo.isFavorite) && (
+                <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-xs shrink-0 border border-white/20">
+                  <Heart className="w-3 h-3 fill-white" />
+                  {language === "en" ? "Favorite Choice" : "Yêu Thích Nhất"}
+                </span>
+              )}
               <span className="text-xs font-semibold text-stone-500 hidden sm:inline">
                 {language === "en" ? `Packaging: ${product.size || detailInfo.size}` : `Quy cách: ${product.size || detailInfo.size}`}
               </span>
@@ -184,6 +190,13 @@ export function ProductDetailModal({
                 sizes="(max-width: 768px) 96vw, 380px"
                 className="w-full h-full object-contain p-2 sm:p-3 pointer-events-none"
               />
+
+              {(product.isFavorite ?? detailInfo.isFavorite) && (
+                <span className="absolute top-2.5 left-2.5 bg-gradient-to-r from-red-600 to-rose-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 z-10 border border-white/20">
+                  <Heart className="w-3 h-3 fill-white" />
+                  {language === "en" ? "Favorite" : "Yêu thích"}
+                </span>
+              )}
 
               {/* Nút chuyển ảnh trước / sau */}
               {images.length > 1 && (

@@ -25,6 +25,7 @@ public class ProductResponse
     public string? UsageInstructions { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
+    public bool IsFavorite { get; set; }
     public int DisplayOrder { get; set; }
     public List<ProductImageResponse> Images { get; set; } = new();
 }
@@ -45,6 +46,7 @@ public class CreateProductRequest
     public string? HealthBenefits { get; set; }
     public string? UsageInstructions { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsFavorite { get; set; } = false;
     public int DisplayOrder { get; set; } = 0;
 }
 
@@ -64,6 +66,7 @@ public class UpdateProductRequest
     public string? HealthBenefits { get; set; }
     public string? UsageInstructions { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsFavorite { get; set; } = false;
     public int DisplayOrder { get; set; } = 0;
 }
 

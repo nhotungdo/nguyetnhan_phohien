@@ -752,6 +752,12 @@ export function PhoHienCulinaryView() {
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full text-[11px] font-bold text-primary border border-stone-200">
                       {prod.size || (language === "en" ? "Standard" : "Chuẩn vị")}
                     </div>
+                    {prod.isFavorite && (
+                      <span className="absolute top-3 right-3 bg-gradient-to-r from-red-600 to-rose-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 z-10 border border-white/20">
+                        <Heart className="w-3 h-3 fill-white" />
+                        <span>{language === "en" ? "Favorite" : "Yêu thích"}</span>
+                      </span>
+                    )}
                   </div>
 
                   <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">

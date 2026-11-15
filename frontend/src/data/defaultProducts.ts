@@ -18,6 +18,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     usageInstructions: "Ăn liền trực tiếp, trộn cùng sữa chua granola hoặc dùng kèm tách trà ấm trong giờ làm việc.",
     imageUrl: "/images/products/tui_zip_mix_hat.jpg",
     isActive: true,
+    isFavorite: true,
     displayOrder: 1,
     images: [
       { id: "img-zip-1", imagePath: "/images/products/tui_zip_mix_hat.jpg", displayOrder: 0 },
@@ -41,6 +42,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     usageInstructions: "Thưởng trà mạn/trà sen, hãm trà dưỡng nhan cùng kỷ tử táo đỏ, hoặc nấu chè hạt sen long nhãn mùa hè.",
     imageUrl: "/images/products/hu_long_nhan_say_deo.jpg",
     isActive: true,
+    isFavorite: false,
     displayOrder: 2,
     images: [
       { id: "img-deo-1", imagePath: "/images/products/hu_long_nhan_say_deo.jpg", displayOrder: 0 },
@@ -64,6 +66,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     usageInstructions: "Dùng kèm tách trà hoa cúc hoặc trà ướp hoa sen ấm nóng; món quà biếu trang nhã cho người lớn tuổi.",
     imageUrl: "/images/products/hu_long_nhan_om_sen.jpg",
     isActive: true,
+    isFavorite: true,
     displayOrder: 3,
     images: [
       { id: "img-sen-1", imagePath: "/images/products/hu_long_nhan_om_sen.jpg", displayOrder: 0 },
@@ -86,6 +89,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     usageInstructions: "Nhâm nhi trực tiếp cùng trà sen, hoặc làm món khai vị chiêu đãi bạn bè trong những buổi thưởng trà đàm đạo.",
     imageUrl: "/images/products/hu_long_nhan_om_sen_mix_hat.jpg",
     isActive: true,
+    isFavorite: false,
     displayOrder: 4,
     images: [
       { id: "img-mix-1", imagePath: "/images/products/hu_long_nhan_om_sen_mix_hat.jpg", displayOrder: 0 },
@@ -108,6 +112,7 @@ export const DEFAULT_FALLBACK_PRODUCTS: ProductResponse[] = [
     usageInstructions: "Trưng bày không gian trang trọng ngày Tết hoặc dùng làm quà ngoại giao, biếu tặng cao cấp.",
     imageUrl: "/images/products/le_hop_hoang_gia.jpg",
     isActive: true,
+    isFavorite: false,
     displayOrder: 5,
     images: [
       { id: "img-set-1", imagePath: "/images/products/le_hop_hoang_gia.jpg", displayOrder: 0 },

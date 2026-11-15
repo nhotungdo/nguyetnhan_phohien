@@ -677,10 +677,11 @@ export function OrderSection() {
                               <option value="">{t.order.select_default}</option>
                               {effectiveProducts.map((prod) => (
                                 <option key={prod.id} value={prod.id}>
-                                  {prod.name} -{" "}
+                                  {prod.isFavorite ? "❤️ " : ""}{prod.name} -{" "}
                                   {language === "en"
                                     ? `$${(prod.price / 25000).toFixed(2).replace(",", ".")}`
                                     : `${prod.price.toLocaleString("vi-VN").replace(/,/g, ".")}đ`}
+                                  {prod.isFavorite ? (language === "en" ? " (Favorite)" : " (Yêu thích)") : ""}
                                 </option>
                               ))}
                             </select>

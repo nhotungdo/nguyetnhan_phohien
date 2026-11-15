@@ -49,6 +49,8 @@ export interface ProductDetailInfo {
   /** true = dữ liệu sinh tự động từ ProductResponse (sản phẩm admin mới thêm),
    *  không phải hồ sơ cảm quan/thành phần curate sẵn. */
   isGeneric?: boolean;
+  /** Sản phẩm được admin đánh dấu yêu thích (Admin Choice / Favorite) */
+  isFavorite?: boolean;
 }
 
 export const PRODUCT_DETAILS_MAP: Record<string, ProductDetailInfo> = {
@@ -315,6 +317,7 @@ export type ProductDetailSource = {
   sensoryScores?: string;
   healthBenefits?: string;
   usageInstructions?: string;
+  isFavorite?: boolean;
   imageUrl?: string;
   images?: { id: string; imagePath: string; displayOrder: number }[];
 };
@@ -436,6 +439,7 @@ export function buildDynamicProductDetail(prod?: ProductDetailSource | string): 
     subNameEn: source.packagingType ? `${source.packagingType} ${size}` : size,
     size,
     price,
+    isFavorite: Boolean(source.isFavorite),
     badgeVi,
     badgeEn,
     taglineVi: description || "Sản phẩm đặc sản tuyển chọn của Nguyệt Nhãn Phố Hiến.",

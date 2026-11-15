@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShoppingCart, Check, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones, Eye } from "lucide-react";
+import { ArrowRight, ShoppingCart, Check, BookOpen, ChevronRight, Leaf, Flame, ShieldCheck, Award, Headphones, Eye, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
 import { FastImage } from "@/components/FastImage";
@@ -253,6 +253,13 @@ export function HomeView() {
                     {prod.size && (
                       <span className="absolute top-3.5 left-3.5 bg-primary/90 backdrop-blur-xs text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs">
                         {prod.size}
+                      </span>
+                    )}
+
+                    {prod.isFavorite && (
+                      <span className="absolute top-3.5 right-3.5 bg-gradient-to-r from-red-600 to-rose-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 z-10 border border-white/20">
+                        <Heart className="w-3.5 h-3.5 fill-white" />
+                        <span>{language === "en" ? "Favorite" : "Yêu thích"}</span>
                       </span>
                     )}
 

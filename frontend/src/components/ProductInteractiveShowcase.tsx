@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
   Crown,
@@ -10,7 +10,8 @@ import {
   ChevronRight, 
   Award, 
   Check, 
-  Info
+  Info,
+  Heart
 } from "lucide-react";
 import { FastImage } from "@/components/FastImage";
 import { EASE_OUT_EXPO } from "@/components/LandingMotion";
@@ -75,12 +76,31 @@ export function ProductInteractiveShowcase({
 }: ProductInteractiveShowcaseProps) {
   const prefersReducedMotion = useReducedMotion();
   const displayProducts = products && products.length > 0 ? products : DEFAULT_FALLBACK_PRODUCTS;
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [filterMode, setFilterMode] = useState<"all" | "favorite">("all");
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const [isAdded, setIsAdded] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const addedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeProduct = displayProducts[selectedIndex] || displayProducts[0];
+
+  const favoriteCount = useMemo(() => displayProducts.filter(p => p.isFavorite).length, [displayProducts]);
+
+  const visibleProducts = useMemo(() => {
+    if (filterMode === "favorite") {
+      const favs = displayProducts.filter(p => p.isFavorite);
+      return favs.length > 0 ? favs : displayProducts;
+    }
+    return displayProducts;
+  }, [displayProducts, filterMode]);
+
+  const activeProduct = useMemo(() => {
+    if (selectedProductId) {
+      const found = visibleProducts.find((p) => p.id === selectedProductId);
+      if (found) return found;
+    }
+    return visibleProducts[0] || displayProducts[0];
+  }, [visibleProducts, selectedProductId, displayProducts]);
+
   const hotspots = getProductHotspots(language);
 
   const [prevTargetId, setPrevTargetId] = useState(targetProductId);
@@ -88,7 +108,7 @@ export function ProductInteractiveShowcase({
     setPrevTargetId(targetProductId);
     if (targetProductId) {
       const normalizedTarget = targetProductId.toLowerCase();
-      const idx = displayProducts.findIndex((p) => {
+      const targetProd = displayProducts.find((p) => {
         if (p.id.toLowerCase() === normalizedTarget) return true;
         const normalizedName = p.name.toLowerCase();
         if (normalizedTarget.includes("tui-zip") && (normalizedName.includes("túi zip") || normalizedName.includes("tứ dã"))) return true;
@@ -96,8 +116,9 @@ export function ProductInteractiveShowcase({
         if (normalizedTarget.includes("set-qua") && (normalizedName.includes("set quà") || normalizedName.includes("vọng nguyệt"))) return true;
         return normalizedName.includes(normalizedTarget);
       });
-      if (idx >= 0 && idx !== selectedIndex) {
-        setSelectedIndex(idx);
+      if (targetProd) {
+        setFilterMode("all");
+        setSelectedProductId(targetProd.id);
       }
     }
   }
@@ -171,6 +192,45 @@ export function ProductInteractiveShowcase({
               : (cmsContent.ProductsSubtitle || "Từng cùi nhãn Hương Chi được chọn lọc kỹ lưỡng, sấy nhiệt nóng (sấy đối lưu) giữ trọn sắc vàng óng ánh và hương thơm ngọt ngào trứ danh.")}
           </p>
         </motion.div>
+
+        {/* Bộ lọc nhanh: Tất cả sản phẩm & Được yêu thích nhất */}
+        {favoriteCount > 0 && (
+          <div className="flex items-center justify-center gap-2.5 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setFilterMode("all");
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                filterMode === "all"
+                  ? "bg-primary text-white shadow-xs"
+                  : "bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200"
+              }`}
+            >
+              {language === "en" ? "All Creations" : "Tất Cả Sản Phẩm"} ({displayProducts.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFilterMode("favorite");
+                const firstFav = displayProducts.find(p => p.isFavorite);
+                if (firstFav) {
+                  setSelectedProductId(firstFav.id);
+                  setActiveHotspot(null);
+                }
+              }}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                filterMode === "favorite"
+                  ? "bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-xs"
+                  : "bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${filterMode === "favorite" ? "fill-white" : "fill-rose-500 text-rose-600"}`} />
+              <span>{language === "en" ? "Most Loved" : "Được Yêu Thích Nhất"}</span>
+              <span className="text-[11px] opacity-90">({favoriteCount})</span>
+            </button>
+          </div>
+        )}
 
         {/* Khung Showcase Chi Tiết: Chia 2 cột tỷ lệ 5:7 cân đối, vừa vặn màn hình */}
         {activeProduct && (
@@ -330,13 +390,13 @@ export function ProductInteractiveShowcase({
 
               {/* Băng ảnh nhỏ chọn sản phẩm: chia lưới linh hoạt, không bị cắt xén tên */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2 mt-3 w-full">
-                {displayProducts.map((prod, idx) => {
-                  const isCurrent = idx === selectedIndex;
+                {visibleProducts.map((prod) => {
+                  const isCurrent = prod.id === activeProduct?.id;
                   return (
                     <button
                       key={prod.id}
                       onClick={() => {
-                        setSelectedIndex(idx);
+                        setSelectedProductId(prod.id);
                         setActiveHotspot(null);
                       }}
                       className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-1.5 rounded-xl text-center sm:text-left transition-all cursor-pointer ${
@@ -355,6 +415,14 @@ export function ProductInteractiveShowcase({
                           sizes="36px"
                           className="object-contain p-0.5"
                         />
+                        {prod.isFavorite && (
+                          <span
+                            className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-0.5 shadow-xs z-10 ring-1 ring-white"
+                            title={language === "en" ? "Favorite choice" : "Sản phẩm yêu thích"}
+                          >
+                            <Heart className="w-2 h-2 fill-white" />
+                          </span>
+                        )}
                       </div>
                       <div className="min-w-0 flex-1 w-full">
                         <div className="text-[11px] sm:text-xs font-bold text-primary truncate sm:line-clamp-2 leading-tight" title={prod.name}>
@@ -374,11 +442,19 @@ export function ProductInteractiveShowcase({
             <div className="lg:col-span-7 flex flex-col justify-between space-y-4 w-full min-w-0 max-w-full">
               <div className="w-full">
                 {/* Quy cách & Tên */}
-                <div className="flex items-center justify-between gap-2 mb-1.5 w-full">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#A61C45] text-white text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-xs shrink-0">
-                    <Award className="w-3 h-3 text-[#F3D498]" />
-                    {activeProduct.badge || (language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua")}
-                  </span>
+                <div className="flex items-center justify-between gap-2 mb-1.5 w-full flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#A61C45] text-white text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-xs shrink-0">
+                      <Award className="w-3 h-3 text-[#F3D498]" />
+                      {activeProduct.badge || (language === "en" ? "Royal Tribute Delicacy" : "Đặc Sản Tiến Vua")}
+                    </span>
+                    {activeProduct.isFavorite && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-rose-500 text-white text-[11px] sm:text-xs font-bold shadow-xs shrink-0 border border-white/20">
+                        <Heart className="w-3 h-3 fill-white" />
+                        {language === "en" ? "Favorite Choice" : "Yêu Thích Nhất"}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[11px] sm:text-xs font-semibold text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full shrink-0">
                     {language === "en" ? "Net wt: " : "Quy cách: "}{activeProduct.size}
                   </span>

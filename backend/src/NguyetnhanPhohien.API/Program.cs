@@ -418,6 +418,27 @@ if (args.Contains("--fix-rls"))
     return;
 }
 
+if (args.Contains("--migrate-favorite"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    Console.WriteLine("Đang cập nhật cột IsFavorite vào bảng Products trên Supabase PostgreSQL...");
+    await db.Database.ExecuteSqlRawAsync(@"
+        ALTER TABLE public.""Products""
+            ADD COLUMN IF NOT EXISTS ""IsFavorite"" BOOLEAN NOT NULL DEFAULT FALSE;
+
+        CREATE INDEX IF NOT EXISTS ""IX_Products_IsFavorite"" ON public.""Products"" (""IsFavorite"");
+
+        UPDATE public.""Products""
+        SET ""IsFavorite"" = TRUE
+        WHERE ""ProductCode"" IN ('NN-ZIP-150', 'NN-SEN-300');
+    ");
+
+    Console.WriteLine("Hoàn tất thêm cột IsFavorite và đặt yêu thích ban đầu cho sản phẩm trên Supabase!");
+    return;
+}
+
 if (args.Contains("--migrate-products-5"))
 {
     using var scope = app.Services.CreateScope();

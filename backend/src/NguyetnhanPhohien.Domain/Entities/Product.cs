@@ -83,6 +83,11 @@ public class Product
     public bool IsActive { get; set; } = true;
 
     /// <summary>
+    /// Đánh dấu là sản phẩm yêu thích (Favorite Choice / Admin Choice)
+    /// </summary>
+    public bool IsFavorite { get; set; } = false;
+
+    /// <summary>
     /// Thứ tự sắp xếp trên giao diện
     /// </summary>
     public int DisplayOrder { get; set; } = 0;

@@ -96,7 +96,7 @@ export function NavigationHeader({ onOpenChat }: NavigationHeaderProps) {
             : "Long nhãn sấy nhiệt đối lưu kết hợp hạt dinh dưỡng."),
         image: resolveProductPrimaryImage(prod),
         href: `/san-pham?product=${encodeURIComponent(prod.id)}`,
-        badge: null,
+        badge: prod.isFavorite ? (language === "en" ? "❤️ Favorite" : "❤️ Yêu thích") : null,
         priceTag:
           prod.price > 0
             ? `${prod.price.toLocaleString("vi-VN").replace(/,/g, ".")}đ${prod.size ? ` • ${prod.size}` : ""}`

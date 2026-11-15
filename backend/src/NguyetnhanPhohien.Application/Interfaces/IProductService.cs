@@ -8,6 +8,7 @@ public interface IProductService
     Task<ProductResponse?> GetByIdAsync(Guid id);
     Task<ProductResponse> CreateAsync(CreateProductRequest request);
     Task<ProductResponse?> UpdateAsync(Guid id, UpdateProductRequest request);
+    Task<ProductResponse?> ToggleFavoriteAsync(Guid id);
     Task<bool> DeleteAsync(Guid id);
 
     // Image management

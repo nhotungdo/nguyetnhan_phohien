@@ -110,6 +110,17 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>[ADMIN] Bật / Tắt trạng thái yêu thích sản phẩm (Favorite Choice) chỉ với 1 click</summary>
+    [HttpPatch("{id}/toggle-favorite")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ProductResponse>> ToggleFavorite(Guid id)
+    {
+        var result = await _productService.ToggleFavoriteAsync(id);
+        if (result == null) return NotFound();
+        await BroadcastChangeAsync("updated", id);
+        return Ok(result);
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Delete(Guid id)

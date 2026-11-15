@@ -302,6 +302,7 @@ export interface ProductResponse {
   usageInstructions?: string;
   imageUrl?: string;
   isActive: boolean;
+  isFavorite?: boolean;
   displayOrder: number;
   images: ProductImageResponse[];
 }
@@ -321,5 +322,6 @@ export interface ProductRequest {
   healthBenefits?: string;
   usageInstructions?: string;
   isActive: boolean;
+  isFavorite?: boolean;
   displayOrder: number;
 }
